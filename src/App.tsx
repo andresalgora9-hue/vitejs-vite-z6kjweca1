@@ -1107,12 +1107,15 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
 }
 
 // ─── ADMIN ───
+
+// ─── ADMIN DASHBOARD ───
 function Admin({onLogout}:{onLogout:()=>void}){
-  const [tab,setTab]=useState<"overview"|"users"|"jobs">("overview");
+  const [tab,setTab]=useState<"overview"|"registros"|"usuarios"|"trabajos">("overview");
   const [users,setUsers]=useState<UserRow[]>([]);
   const [jobs,setJobs]=useState<JobRow[]>([]);
   const [loading,setLoading]=useState(true);
-  const [stats,setStats]=useState({total:0,pros:0,clients:0,reviews:0,messages:0,mrr:0});
+  const [period,setPeriod]=useState<"7d"|"30d"|"90d"|"all">("30d");
+  const [stats,setStats]=useState({total:0,pros:0,clients:0,reviews:0,messages:0,mrr:0,trial:0,paying:0,expired:0});
 
   useEffect(()=>{
     const load=async()=>{
@@ -1120,83 +1123,295 @@ function Admin({onLogout}:{onLogout:()=>void}){
       const {data:js}=await db.from("jobs").select("*").order("created_at",{ascending:false});
       const {count:rv}=await db.from("reviews").select("id",{count:"exact"} as any);
       const {count:mg}=await db.from("messages").select("id",{count:"exact"} as any);
-      const all=us||[];
-      const mrr=all.filter((u:UserRow)=>u.type==="profesional").reduce((s:number,u:UserRow)=>s+PLAN_PRICES[u.plan as Plan],0);
+      const all=(us||[]) as UserRow[];
+      const pros=all.filter((u:UserRow)=>u.type==="profesional");
+      const now=new Date();
+      const trial=pros.filter((u:UserRow)=>u.plan==="gratis"&&new Date(u.trial_end)>now);
+      const paying=pros.filter((u:UserRow)=>u.plan!=="gratis");
+      const expired=pros.filter((u:UserRow)=>u.plan==="gratis"&&new Date(u.trial_end)<=now);
+      const mrr=paying.reduce((s:number,u:UserRow)=>s+PLAN_PRICES[u.plan as Plan],0);
       setUsers(all);setJobs(js||[]);
-      setStats({total:all.length,pros:all.filter((u:UserRow)=>u.type==="profesional").length,clients:all.filter((u:UserRow)=>u.type==="cliente").length,reviews:(rv as any)||0,messages:(mg as any)||0,mrr});
+      setStats({total:all.length,pros:pros.length,clients:all.filter((u:UserRow)=>u.type==="cliente").length,reviews:(rv as any)||0,messages:(mg as any)||0,mrr,trial:trial.length,paying:paying.length,expired:expired.length});
       setLoading(false);
     };
     load();
   },[]);
 
+  // Filter users by period
+  const filterByPeriod=(items:any[],dateField:string)=>{
+    if(period==="all") return items;
+    const days=period==="7d"?7:period==="30d"?30:90;
+    const cutoff=new Date(Date.now()-days*86400000);
+    return items.filter(i=>new Date(i[dateField])>=cutoff);
+  };
+
+  // Group by date for chart
+  const groupByDay=(items:any[],dateField:string)=>{
+    const days=period==="7d"?7:period==="30d"?30:90;
+    const result:Record<string,number>={};
+    for(let i=days-1;i>=0;i--){
+      const d=new Date(Date.now()-i*86400000);
+      const key=d.toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit"});
+      result[key]=0;
+    }
+    items.forEach(item=>{
+      const key=new Date(item[dateField]).toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit"});
+      if(key in result) result[key]=(result[key]||0)+1;
+    });
+    return Object.entries(result).map(([date,count])=>({date,count}));
+  };
+
+  const filteredUsers=filterByPeriod(users,"joined_at");
+  const chartData=groupByDay(users,"joined_at");
+  const maxVal=Math.max(...chartData.map(d=>d.count),1);
+
+  const pros=users.filter((u:UserRow)=>u.type==="profesional");
+  const now=new Date();
+  const trialUsers=pros.filter((u:UserRow)=>u.plan==="gratis"&&new Date(u.trial_end)>now);
+  const payingUsers=pros.filter((u:UserRow)=>u.plan!=="gratis");
+  const expiredUsers=pros.filter((u:UserRow)=>u.plan==="gratis"&&new Date(u.trial_end)<=now);
+
   return (
-    <div style={{minHeight:"100dvh",background:C.bg,paddingBottom:72}}>
+    <div style={{minHeight:"100dvh",background:C.bg,paddingBottom:80}}>
       <header style={{background:"rgba(10,10,15,0.95)",backdropFilter:"blur(20px)",borderBottom:"1px solid "+C.accent+"22",position:"sticky",top:0,zIndex:100}}>
         <div style={{maxWidth:1000,margin:"0 auto",padding:"0 16px",display:"flex",alignItems:"center",justifyContent:"space-between",height:52}}>
           <span style={{fontWeight:800,fontSize:17}}><span style={{color:C.accent}}>⚙ Admin</span><span style={{color:C.muted}}> · OfficioYa</span></span>
           <button onClick={onLogout} style={{background:"none",border:"1px solid "+C.border,borderRadius:6,color:C.muted,cursor:"pointer",padding:"4px 10px",fontSize:11}}>Salir</button>
         </div>
       </header>
+
       <div style={{maxWidth:1000,margin:"0 auto",padding:"20px 16px"}}>
         {loading?<Spin />:(<>
+
           {tab==="overview"&&(<>
-            <h2 style={{fontWeight:800,fontSize:22,color:C.text,marginBottom:16,letterSpacing:"-0.02em"}}>Panel de control</h2>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))",gap:10,marginBottom:20}}>
-              {[{l:"Usuarios",v:stats.total,c:C.blue,i:"👥"},{l:"Profesionales",v:stats.pros,c:C.accent,i:"🔨"},{l:"Clientes",v:stats.clients,c:C.green,i:"🏠"},{l:"Reseñas",v:stats.reviews,c:C.purple,i:"⭐"},{l:"Mensajes",v:stats.messages,c:C.cyan,i:"💬"},{l:"MRR",v:stats.mrr.toFixed(0)+"€",c:C.orange,i:"💰"}].map(s=>(
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,flexWrap:"wrap",gap:8}}>
+              <h2 style={{fontWeight:800,fontSize:22,color:C.text,letterSpacing:"-0.02em"}}>Panel de control</h2>
+              <div style={{display:"flex",gap:6}}>
+                {(["7d","30d","90d","all"] as const).map(p=>(
+                  <button key={p} onClick={()=>setPeriod(p)} style={{padding:"5px 10px",borderRadius:6,border:"1px solid "+(period===p?C.accent:C.border),background:period===p?C.accent+"18":"transparent",color:period===p?C.accent:C.muted,cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:period===p?700:400}}>
+                    {p==="7d"?"7 días":p==="30d"?"30 días":p==="90d"?"90 días":"Todo"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* KPIs */}
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(150px,1fr))",gap:10,marginBottom:20}}>
+              {[
+                {l:"Usuarios totales",v:stats.total,c:C.blue,i:"👥",sub:"registros"},
+                {l:"Profesionales",v:stats.pros,c:C.accent,i:"🔨",sub:"en la plataforma"},
+                {l:"Clientes",v:stats.clients,c:C.green,i:"🏠",sub:"registrados"},
+                {l:"MRR",v:stats.mrr.toFixed(0)+"€",c:C.orange,i:"💰",sub:"ingresos/mes"},
+                {l:"De pago",v:stats.paying,c:C.green,i:"✅",sub:"suscripciones activas"},
+                {l:"En trial",v:stats.trial,c:C.cyan,i:"⏱",sub:"30 días gratis"},
+                {l:"Trial expirado",v:stats.expired,c:C.red,i:"⛔",sub:"sin convertir"},
+                {l:"Reseñas",v:stats.reviews,c:C.purple,i:"⭐",sub:"publicadas"},
+              ].map(s=>(
                 <GCard key={s.l} style={{textAlign:"center",padding:"14px 8px"}}>
-                  <div style={{fontSize:20,marginBottom:4}}>{s.i}</div>
+                  <div style={{fontSize:18,marginBottom:4}}>{s.i}</div>
                   <p style={{fontWeight:800,fontSize:22,color:s.c}}>{s.v}</p>
-                  <p style={{fontSize:10,color:C.muted}}>{s.l}</p>
+                  <p style={{fontSize:11,color:C.text,fontWeight:600}}>{s.l}</p>
+                  <p style={{fontSize:10,color:C.muted,marginTop:2}}>{s.sub}</p>
                 </GCard>
               ))}
             </div>
-            <GCard style={{marginBottom:14}}>
+
+            {/* Registros por día - bar chart manual */}
+            <GCard style={{marginBottom:16}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+                <p style={{fontWeight:700,color:C.text,fontSize:14}}>Registros de usuarios</p>
+                <span style={{fontSize:12,color:C.muted}}>{filteredUsers.length} en período</span>
+              </div>
+              <div style={{display:"flex",gap:3,alignItems:"flex-end",height:80,overflow:"hidden"}}>
+                {chartData.map((d,i)=>(
+                  <div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:3}}>
+                    <div style={{width:"100%",background:d.count>0?"linear-gradient(180deg,"+C.accent+","+C.orange+")":C.border,borderRadius:"3px 3px 0 0",height:Math.max(d.count/maxVal*68,d.count>0?4:2)+"px",transition:"height 0.3s",position:"relative"}} title={d.date+": "+d.count}>
+                      {d.count>0&&<span style={{position:"absolute",top:-18,left:"50%",transform:"translateX(-50%)",fontSize:9,color:C.accent,fontWeight:700,whiteSpace:"nowrap"}}>{d.count}</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div style={{display:"flex",justifyContent:"space-between",marginTop:6}}>
+                <span style={{fontSize:9,color:C.muted}}>{chartData[0]?.date}</span>
+                <span style={{fontSize:9,color:C.muted}}>{chartData[Math.floor(chartData.length/2)]?.date}</span>
+                <span style={{fontSize:9,color:C.muted}}>{chartData[chartData.length-1]?.date}</span>
+              </div>
+            </GCard>
+
+            {/* Conversión trial → pago */}
+            <GCard style={{marginBottom:16}}>
+              <p style={{fontWeight:700,color:C.text,fontSize:14,marginBottom:14}}>Estado de profesionales</p>
+              <div style={{display:"flex",flexDirection:"column",gap:12}}>
+                {[
+                  {label:"De pago (activos)",count:payingUsers.length,total:stats.pros,col:C.green,icon:"✅"},
+                  {label:"En trial gratuito",count:trialUsers.length,total:stats.pros,col:C.cyan,icon:"⏱"},
+                  {label:"Trial expirado (leads fríos)",count:expiredUsers.length,total:stats.pros,col:C.red,icon:"⛔"},
+                ].map(s=>{
+                  const pct=stats.pros>0?Math.round(s.count/stats.pros*100):0;
+                  return <div key={s.label}>
+                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}>
+                      <span style={{fontSize:13,color:C.text}}>{s.icon} {s.label}</span>
+                      <span style={{fontSize:13,fontWeight:700,color:s.col}}>{s.count} <span style={{fontSize:11,color:C.muted,fontWeight:400}}>({pct}%)</span></span>
+                    </div>
+                    <div style={{height:8,background:C.border,borderRadius:99,overflow:"hidden"}}>
+                      <div style={{width:pct+"%",height:"100%",background:"linear-gradient(90deg,"+s.col+","+s.col+"88)",borderRadius:99,transition:"width 0.5s"}} />
+                    </div>
+                  </div>;
+                })}
+              </div>
+              {stats.pros>0&&<div style={{marginTop:14,padding:"10px 12px",background:C.green+"10",borderRadius:8,border:"1px solid "+C.green+"22"}}>
+                <p style={{fontSize:12,color:C.green,fontWeight:700}}>Tasa de conversión: {stats.pros>0?Math.round(stats.paying/stats.pros*100):0}% · ARR estimado: {(stats.mrr*12).toFixed(0)}€/año</p>
+              </div>}
+            </GCard>
+
+            {/* MRR por plan */}
+            <GCard style={{marginBottom:16}}>
               <p style={{fontWeight:700,color:C.text,fontSize:14,marginBottom:12}}>MRR por plan</p>
-              {(["gratis","basico","pro","elite"] as Plan[]).map(pl=>{
+              {(["basico","pro","elite"] as Plan[]).map(pl=>{
                 const count=users.filter((u:UserRow)=>u.plan===pl&&u.type==="profesional").length;
                 const mrr=count*PLAN_PRICES[pl];
                 const pct=stats.mrr>0?Math.round(mrr/stats.mrr*100):0;
-                return <div key={pl} style={{marginBottom:10}}>
-                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
-                    <div style={{display:"flex",gap:8,alignItems:"center"}}><Badge plan={pl} /><span style={{fontSize:12,color:C.mutedL}}>{count} pros</span></div>
-                    <span style={{fontWeight:700,fontSize:13,color:PLAN_COLORS[pl]}}>{mrr.toFixed(0)}€/mes</span>
+                return <div key={pl} style={{marginBottom:12}}>
+                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:5,alignItems:"center"}}>
+                    <div style={{display:"flex",gap:8,alignItems:"center"}}><Badge plan={pl} /><span style={{fontSize:12,color:C.mutedL}}>{count} profesionales × {PLAN_PRICES[pl]}€</span></div>
+                    <span style={{fontWeight:700,fontSize:14,color:PLAN_COLORS[pl]}}>{mrr.toFixed(0)}€/mes</span>
                   </div>
                   <div style={{height:6,background:C.border,borderRadius:99,overflow:"hidden"}}>
                     <div style={{width:pct+"%",height:"100%",background:"linear-gradient(90deg,"+PLAN_COLORS[pl]+","+PLAN_COLORS[pl]+"88)",borderRadius:99}} />
                   </div>
                 </div>;
               })}
-              <div style={{display:"flex",justifyContent:"space-between",paddingTop:10,borderTop:"1px solid "+C.border,marginTop:4}}>
-                <span style={{fontWeight:700,color:C.text}}>TOTAL MRR</span>
-                <span style={{fontWeight:800,fontSize:18,color:C.accent}}>{stats.mrr.toFixed(2)}€/mes</span>
+              <div style={{display:"flex",justifyContent:"space-between",paddingTop:12,borderTop:"1px solid "+C.border,marginTop:4}}>
+                <div>
+                  <p style={{fontWeight:700,color:C.text,fontSize:14}}>TOTAL MRR</p>
+                  <p style={{fontSize:11,color:C.muted}}>ARR: {(stats.mrr*12).toFixed(0)}€/año</p>
+                </div>
+                <span style={{fontWeight:900,fontSize:24,color:C.accent}}>{stats.mrr.toFixed(2)}€<span style={{fontSize:13,color:C.muted,fontWeight:400}}>/mes</span></span>
               </div>
             </GCard>
+
+            {/* Leads fríos — acción */}
+            {expiredUsers.length>0&&(
+              <GCard style={{border:"1px solid "+C.red+"33",marginBottom:16}}>
+                <p style={{fontWeight:700,color:C.red,fontSize:14,marginBottom:10}}>⛔ {expiredUsers.length} leads fríos — trial expirado sin convertir</p>
+                <p style={{fontSize:12,color:C.muted,marginBottom:12}}>Estos profesionales tuvieron el perfil activo pero no se convirtieron. Contacta con ellos.</p>
+                <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                  {expiredUsers.slice(0,5).map((u:UserRow)=>(
+                    <div key={u.id} style={{display:"flex",gap:10,alignItems:"center",padding:"8px 0",borderBottom:"1px solid "+C.border}}>
+                      <Ava s={u.name.substring(0,2).toUpperCase()} size={32} color={C.red} />
+                      <div style={{flex:1}}>
+                        <p style={{fontSize:13,color:C.text,fontWeight:600}}>{u.name}</p>
+                        <p style={{fontSize:11,color:C.muted}}>{u.trade} · {u.zone} · Trial expiró: {new Date(u.trial_end).toLocaleDateString("es-ES")}</p>
+                      </div>
+                      <a href={"tel:"+u.phone} style={{padding:"4px 10px",background:C.green+"22",border:"1px solid "+C.green+"44",borderRadius:6,color:C.green,textDecoration:"none",fontSize:11,fontWeight:700}}>📞 Llamar</a>
+                    </div>
+                  ))}
+                  {expiredUsers.length>5&&<p style={{fontSize:11,color:C.muted,textAlign:"center"}}>+{expiredUsers.length-5} más en la pestaña Usuarios</p>}
+                </div>
+              </GCard>
+            )}
           </>)}
-          {tab==="users"&&(<>
-            <h2 style={{fontWeight:800,fontSize:22,color:C.text,marginBottom:16}}>Usuarios · {users.length}</h2>
+
+          {tab==="registros"&&(<>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,flexWrap:"wrap",gap:8}}>
+              <h2 style={{fontWeight:800,fontSize:22,color:C.text,letterSpacing:"-0.02em"}}>Registros por fecha</h2>
+              <div style={{display:"flex",gap:6}}>
+                {(["7d","30d","90d","all"] as const).map(p=>(
+                  <button key={p} onClick={()=>setPeriod(p)} style={{padding:"5px 10px",borderRadius:6,border:"1px solid "+(period===p?C.accent:C.border),background:period===p?C.accent+"18":"transparent",color:period===p?C.accent:C.muted,cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:period===p?700:400}}>
+                    {p==="7d"?"7 días":p==="30d"?"30 días":p==="90d"?"90 días":"Todo"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:16}}>
+              {[
+                {l:"Total período",v:filteredUsers.length,c:C.blue},
+                {l:"Profesionales",v:filteredUsers.filter((u:UserRow)=>u.type==="profesional").length,c:C.accent},
+                {l:"Clientes",v:filteredUsers.filter((u:UserRow)=>u.type==="cliente").length,c:C.green},
+              ].map(s=><GCard key={s.l} style={{textAlign:"center",padding:"12px 8px"}}>
+                <p style={{fontWeight:800,fontSize:22,color:s.c}}>{s.v}</p>
+                <p style={{fontSize:11,color:C.muted}}>{s.l}</p>
+              </GCard>)}
+            </div>
+
             <div style={{display:"flex",flexDirection:"column",gap:8}}>
-              {users.map((u:UserRow)=>(
-                <GCard key={u.id} style={{padding:"12px 14px"}}>
-                  <div style={{display:"flex",gap:12,alignItems:"center",flexWrap:"wrap"}}>
+              {filteredUsers.map((u:UserRow)=>{
+                const isExpired=u.type==="profesional"&&u.plan==="gratis"&&new Date(u.trial_end)<=new Date();
+                const isPaying=u.type==="profesional"&&u.plan!=="gratis";
+                const isTrial=u.type==="profesional"&&u.plan==="gratis"&&new Date(u.trial_end)>new Date();
+                return <GCard key={u.id} style={{padding:"12px 14px"}}>
+                  <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
+                    <Ava s={u.name.substring(0,2).toUpperCase()} size={36} color={u.type==="profesional"?C.accent:C.blue} />
+                    <div style={{flex:1,minWidth:100}}>
+                      <p style={{fontWeight:700,color:C.text,fontSize:13}}>{u.name}</p>
+                      <p style={{fontSize:11,color:C.muted}}>{u.email}</p>
+                    </div>
+                    <div style={{display:"flex",gap:5,flexWrap:"wrap",alignItems:"center"}}>
+                      <span style={{fontSize:10,color:u.type==="profesional"?C.accent:C.blue,background:(u.type==="profesional"?C.accent:C.blue)+"22",padding:"2px 7px",borderRadius:4,fontWeight:700}}>{u.type.toUpperCase()}</span>
+                      {u.trade&&<span style={{fontSize:10,color:C.mutedL}}>{u.trade}</span>}
+                      {isPaying&&<span style={{fontSize:10,color:C.green,background:C.green+"18",padding:"2px 7px",borderRadius:4,fontWeight:700}}>✅ PAGA</span>}
+                      {isTrial&&<span style={{fontSize:10,color:C.cyan,background:C.cyan+"18",padding:"2px 7px",borderRadius:4,fontWeight:700}}>⏱ TRIAL</span>}
+                      {isExpired&&<span style={{fontSize:10,color:C.red,background:C.red+"18",padding:"2px 7px",borderRadius:4,fontWeight:700}}>⛔ EXPIRADO</span>}
+                    </div>
+                    <div style={{textAlign:"right",flexShrink:0}}>
+                      <p style={{fontSize:11,color:C.muted}}>{new Date(u.joined_at).toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"numeric"})}</p>
+                      <p style={{fontSize:10,color:C.muted}}>{new Date(u.joined_at).toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"})}</p>
+                    </div>
+                  </div>
+                </GCard>;
+              })}
+              {filteredUsers.length===0&&<p style={{textAlign:"center",color:C.muted,padding:32,fontSize:13}}>Sin registros en este período</p>}
+            </div>
+          </>)}
+
+          {tab==="usuarios"&&(<>
+            <h2 style={{fontWeight:800,fontSize:22,color:C.text,marginBottom:16,letterSpacing:"-0.02em"}}>Todos los usuarios · {users.length}</h2>
+
+            <div style={{display:"flex",flexDirection:"column",gap:8}}>
+              {users.map((u:UserRow)=>{
+                const isExpired=u.type==="profesional"&&u.plan==="gratis"&&new Date(u.trial_end)<=new Date();
+                const isPaying=u.type==="profesional"&&u.plan!=="gratis";
+                const isTrial=u.type==="profesional"&&u.plan==="gratis"&&new Date(u.trial_end)>new Date();
+                const daysLeft=Math.ceil((new Date(u.trial_end).getTime()-Date.now())/86400000);
+                return <GCard key={u.id} style={{padding:"12px 14px"}}>
+                  <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
                     <Ava s={u.name.substring(0,2).toUpperCase()} size={36} color={u.type==="profesional"?C.accent:C.blue} />
                     <div style={{flex:1,minWidth:120}}>
                       <p style={{fontWeight:700,color:C.text,fontSize:13}}>{u.name}</p>
                       <p style={{fontSize:11,color:C.muted}}>{u.email} · {u.phone}</p>
+                      {u.zone&&<p style={{fontSize:10,color:C.muted}}>📍{u.zone}{u.trade?" · "+u.trade:""}</p>}
                     </div>
-                    <div style={{display:"flex",gap:5,flexWrap:"wrap",alignItems:"center"}}>
-                      <span style={{fontSize:10,color:u.type==="profesional"?C.accent:C.blue,background:(u.type==="profesional"?C.accent:C.blue)+"22",padding:"2px 7px",borderRadius:4,fontWeight:700}}>{u.type.toUpperCase()}</span>
-                      <Badge plan={u.plan as Plan} />
-                      {u.trade&&<span style={{fontSize:10,color:C.mutedL}}>{u.trade}</span>}
-                      {u.zone&&<span style={{fontSize:10,color:C.muted}}>📍{u.zone}</span>}
+                    <div style={{display:"flex",flexDirection:"column",gap:4,alignItems:"flex-end"}}>
+                      <div style={{display:"flex",gap:4,flexWrap:"wrap",justifyContent:"flex-end"}}>
+                        <span style={{fontSize:10,color:u.type==="profesional"?C.accent:C.blue,background:(u.type==="profesional"?C.accent:C.blue)+"22",padding:"2px 7px",borderRadius:4,fontWeight:700}}>{u.type.toUpperCase()}</span>
+                        <Badge plan={u.plan as Plan} />
+                        {isPaying&&<span style={{fontSize:10,color:C.green,background:C.green+"18",padding:"2px 7px",borderRadius:4,fontWeight:700}}>✅ PAGA {PLAN_PRICES[u.plan as Plan]}€/m</span>}
+                        {isTrial&&<span style={{fontSize:10,color:C.cyan,background:C.cyan+"18",padding:"2px 7px",borderRadius:4,fontWeight:700}}>⏱ {daysLeft}d trial</span>}
+                        {isExpired&&<span style={{fontSize:10,color:C.red,background:C.red+"18",padding:"2px 7px",borderRadius:4,fontWeight:700}}>⛔ EXPIRADO</span>}
+                      </div>
+                      <span style={{fontSize:10,color:C.muted}}>{new Date(u.joined_at).toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"numeric"})}</span>
+                      {u.phone&&<a href={"tel:"+u.phone} style={{fontSize:10,color:C.green,textDecoration:"none"}}>📞 {u.phone}</a>}
                     </div>
-                    <span style={{fontSize:10,color:C.muted,flexShrink:0}}>{new Date(u.joined_at).toLocaleDateString("es-ES")}</span>
                   </div>
-                </GCard>
-              ))}
+                </GCard>;
+              })}
             </div>
           </>)}
-          {tab==="jobs"&&(<>
+
+          {tab==="trabajos"&&(<>
             <h2 style={{fontWeight:800,fontSize:22,color:C.text,marginBottom:16}}>Trabajos · {jobs.length}</h2>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10,marginBottom:16}}>
+              {[
+                {l:"Pendientes",v:jobs.filter((j:JobRow)=>j.status==="pending").length,c:C.orange},
+                {l:"En progreso",v:jobs.filter((j:JobRow)=>j.status==="in_progress").length,c:C.blue},
+                {l:"Completados",v:jobs.filter((j:JobRow)=>j.status==="done").length,c:C.green},
+                {l:"Cancelados",v:jobs.filter((j:JobRow)=>j.status==="cancelled").length,c:C.red},
+              ].map(s=><GCard key={s.l} style={{textAlign:"center",padding:"12px 8px"}}>
+                <p style={{fontWeight:800,fontSize:22,color:s.c}}>{s.v}</p>
+                <p style={{fontSize:11,color:C.muted}}>{s.l}</p>
+              </GCard>)}
+            </div>
             <div style={{display:"flex",flexDirection:"column",gap:8}}>
               {jobs.length===0&&<p style={{textAlign:"center",color:C.muted,padding:32,fontSize:13}}>No hay trabajos registrados</p>}
               {jobs.map((j:JobRow)=>(
@@ -1204,28 +1419,31 @@ function Admin({onLogout}:{onLogout:()=>void}){
                   <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
                     <div style={{flex:1,minWidth:120}}>
                       <p style={{fontWeight:700,color:C.text,fontSize:13}}>{j.title}</p>
-                      <p style={{fontSize:11,color:C.muted}}>Cliente: {j.client_name}</p>
+                      <p style={{fontSize:11,color:C.muted}}>👤 {j.client_name}</p>
                     </div>
                     <StatusDot status={j.status} />
-                    <span style={{fontSize:10,color:C.muted}}>{new Date(j.created_at).toLocaleDateString("es-ES")}</span>
+                    <span style={{fontSize:10,color:C.muted,flexShrink:0}}>{new Date(j.created_at).toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"numeric"})}</span>
                   </div>
                 </GCard>
               ))}
             </div>
           </>)}
+
         </>)}
       </div>
+
       <nav style={{position:"fixed",bottom:0,left:0,right:0,background:"rgba(10,10,15,0.97)",backdropFilter:"blur(20px)",borderTop:"1px solid "+C.accent+"22",display:"flex",zIndex:200}}>
-        {([["overview","📊","Overview"],["users","👥","Usuarios"],["jobs","🔨","Trabajos"]] as const).map(([id,icon,label])=>(
-          <button key={id} onClick={()=>setTab(id as any)} style={{flex:1,padding:"10px 4px 12px",background:"none",border:"none",color:tab===id?C.accent:C.muted,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:3}}>
-            <span style={{fontSize:20}}>{icon}</span>
-            <span style={{fontSize:10,fontWeight:600}}>{label}</span>
+        {([["overview","📊","Overview"],["registros","📅","Registros"],["usuarios","👥","Usuarios"],["trabajos","🔨","Trabajos"]] as const).map(([id,icon,label])=>(
+          <button key={id} onClick={()=>setTab(id as any)} style={{flex:1,padding:"10px 2px 12px",background:"none",border:"none",color:tab===id?C.accent:C.muted,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:3}}>
+            <span style={{fontSize:18}}>{icon}</span>
+            <span style={{fontSize:9,fontWeight:600}}>{label}</span>
           </button>
         ))}
       </nav>
     </div>
   );
 }
+
 
 // ─── ROOT ───
 export default function App(){
