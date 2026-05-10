@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { db } from "./supabase";
+import { db, STORAGE_URL } from "./supabase";
 import type { UserRow, MessageRow, JobRow, CertRow, Plan, PhotoRow } from "./supabase";
 
 const C = {
@@ -23,6 +23,35 @@ const PLAN_FEATURES:Record<Plan,string[]> = {
   pro:["Perfil destacado","Contactos ilimitados","✓✓ Badge PRO","Estadísticas avanzadas","Chat directo","Galería ilimitada","Primero en búsquedas","Panel de trabajos completo","Ranking público","Zonas de servicio múltiples"],
   elite:["Todo lo de Pro","⭐ Badge ÉLITE","Anuncios en portada","Top garantizado #1","Gestor reseñas avanzado","Facturación integrada","Soporte 24h","API de integración"],
 };
+
+
+// ─── PLAN FEATURE GATES ───
+const PLAN_GATES = {
+  // Stats visible
+  statsLevel: {gratis:0, basico:1, pro:2, elite:3} as Record<Plan,number>,
+  // Contacts per month
+  contacts: {gratis:5, basico:20, pro:999, elite:999} as Record<Plan,number>,
+  // Photos allowed
+  photos: {gratis:0, basico:5, pro:20, elite:999} as Record<Plan,number>,
+  // Can see ranking
+  ranking: {gratis:false, basico:false, pro:true, elite:true} as Record<Plan,boolean>,
+  // Priority in search
+  priority: {gratis:0, basico:1, pro:2, elite:3} as Record<Plan,number>,
+  // Chat allowed
+  chat: {gratis:false, basico:true, pro:true, elite:true} as Record<Plan,boolean>,
+  // Analytics depth
+  analytics: {gratis:"none", basico:"basic", pro:"full", elite:"full"} as Record<Plan,string>,
+};
+
+
+// Upload image to Supabase Storage
+async function uploadImage(file:File, path:string):Promise<string|null>{
+  const ext = file.name.split('.').pop();
+  const fileName = path+"/"+Date.now()+"."+ext;
+  const {error} = await db.storage.from("photos").upload(fileName, file, {contentType:file.type, upsert:true});
+  if(error){console.error("Upload error:",error);return null;}
+  return STORAGE_URL + fileName;
+}
 
 const wColor = (id:string) => [C.purple,C.blue,C.pink,"#10B981",C.orange,C.cyan][id.charCodeAt(id.length-1)%6];
 function trialDaysLeft(t:string){ return Math.max(0,Math.ceil((new Date(t).getTime()-Date.now())/86400000)); }
@@ -314,7 +343,7 @@ function WorkerCard({w,onClick}:{w:UserRow;onClick:()=>void}){
 // ─── WORKER DETAIL SHEET ───
 function WorkerSheet({worker,onClose,onChat,onWhatsApp,currentUser}:{worker:UserRow;onClose:()=>void;onChat:(w:UserRow)=>void;onWhatsApp:(w:UserRow)=>void;currentUser:UserRow|null}){
   const [tab,setTab]=useState<"info"|"fotos"|"reviews"|"certs">("info");
-  const [reviews,setReviews]=useState<{id:string;worker_id:string;client_name:string;stars:number;text:string;photo:string;created_at:string}[]>([]);
+  const [reviews,setReviews]=useState<{id:string;worker_id:string;client_name:string;stars:number;text:string;photo:string;photo_url?:string;approved?:boolean;created_at:string}[]>([]);
   const [certs,setCerts]=useState<CertRow[]>([]);
   const [photos,setPhotos]=useState<PhotoRow[]>([]);
   const [newRev,setNewRev]=useState(""); const [selStars,setSelStars]=useState(5); const [saving,setSaving]=useState(false);
@@ -327,12 +356,22 @@ function WorkerSheet({worker,onClose,onChat,onWhatsApp,currentUser}:{worker:User
     db.from("visits").insert({page:"worker_"+worker.id,user_id:currentUser?.id||null}).then(()=>{});
   },[worker.id,currentUser?.id]);
 
+  const [revPhoto,setRevPhoto]=useState<File|null>(null);
+  const [revPhotoPreview,setRevPhotoPreview]=useState<string>("");
+  const fileRevRef=useRef<HTMLInputElement>(null);
+  void revPhotoPreview; void fileRevRef;
+
   const submitReview=async()=>{
     if(!newRev.trim()) return;
     setSaving(true);
-    const {data}=await db.from("reviews").insert({worker_id:worker.id,client_name:currentUser?.name||"Anónimo",client_id:currentUser?.id||null,stars:selStars,text:newRev,photo:""}).select().single();
+    let photoUrl="";
+    if(revPhoto){
+      const url=await uploadImage(revPhoto,"reviews");
+      if(url) photoUrl=url;
+    }
+    const {data}=await db.from("reviews").insert({worker_id:worker.id,client_name:currentUser?.name||"Anónimo",client_id:currentUser?.id||null,stars:selStars,text:newRev,photo:"",photo_url:photoUrl,approved:true}).select().single();
     if(data) setReviews(p=>[data,...p]);
-    setNewRev(""); setSaving(false);
+    setNewRev(""); setRevPhoto(null); setRevPhotoPreview(""); setSaving(false);
   };
 
   const avgRating=reviews.length>0?reviews.reduce((s,r)=>s+r.stars,0)/reviews.length:worker.rating;
@@ -447,6 +486,7 @@ function WorkerSheet({worker,onClose,onChat,onWhatsApp,currentUser}:{worker:User
                 <div style={{flex:1}}><p style={{fontSize:13,fontWeight:700,color:C.text}}>{r.client_name}</p><p style={{fontSize:10,color:C.muted}}>{timeAgo(r.created_at)}</p></div>
                 <Stars n={r.stars} size={11} />
               </div>
+              {(r.photo_url||r.photo)&&<img src={r.photo_url||r.photo} alt="foto" style={{width:"100%",maxHeight:140,objectFit:"cover",borderRadius:8,marginBottom:8,border:"1px solid "+C.border}} onError={(e:any)=>{e.target.style.display="none";}} />}
               <p style={{fontSize:13,color:C.mutedL,lineHeight:1.6}}>{r.text}</p>
             </GCard>
           ))}
@@ -532,7 +572,7 @@ function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:User
 
 // ─── CLIENT HOME ───
 function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
-  const [tab,setTab]=useState<"buscar"|"chats"|"perfil">("buscar");
+  const [tab,setTab]=useState<"buscar"|"ranking"|"chats"|"perfil">("buscar");
   const [zona,setZona]=useState("Todas");
   const [oficio,setOficio]=useState("Todos");
   const [search,setSearch]=useState("");
@@ -582,11 +622,11 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
     <div style={{minHeight:"100dvh",background:C.bg,backgroundImage:"radial-gradient(ellipse at 15% 0%,#1a0a3a22,transparent 50%),radial-gradient(ellipse at 85% 100%,#0a1a3a22,transparent 50%)",paddingBottom:72}}>
       <header style={{background:"rgba(10,10,15,0.94)",backdropFilter:"blur(20px)",borderBottom:"1px solid "+C.border,position:"sticky",top:0,zIndex:100,boxShadow:"0 2px 20px rgba(0,0,0,0.4)"}}>
         <div style={{maxWidth:900,margin:"0 auto",padding:"0 16px",display:"flex",alignItems:"center",justifyContent:"space-between",height:52}}>
-          <div style={{display:"flex",alignItems:"center",gap:8}}>
+          <button onClick={()=>setTab("buscar")} style={{display:"flex",alignItems:"center",gap:8,background:"none",border:"none",cursor:"pointer",padding:0}}>
             <div style={{width:28,height:28,borderRadius:8,background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14}}>🔨</div>
             <span style={{fontWeight:900,fontSize:19,letterSpacing:"-0.03em"}}><span style={{color:C.text}}>Oficio</span><span style={{color:C.accent}}>Ya</span></span>
             <span style={{fontSize:9,color:C.accent,background:C.accent+"15",padding:"2px 7px",borderRadius:3,fontWeight:700}}>SEVILLA</span>
-          </div>
+          </button>
           <button onClick={onLogout} style={{background:"none",border:"1px solid "+C.border,borderRadius:6,color:C.muted,cursor:"pointer",padding:"4px 10px",fontSize:11}}>Salir</button>
         </div>
       </header>
@@ -656,6 +696,9 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
           </>)}
         </>)}
 
+
+        {tab==="ranking"&&(<RankingSection workers={workers} onSelect={setSelectedWorker} />)}
+
         {tab==="chats"&&(<>
           <div style={{padding:"22px 0 16px"}}>
             <h2 style={{fontWeight:800,fontSize:22,color:C.text,letterSpacing:"-0.02em"}}>Mis conversaciones</h2>
@@ -705,7 +748,7 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
       </div>
 
       <nav style={{position:"fixed",bottom:0,left:0,right:0,background:"rgba(10,10,15,0.97)",backdropFilter:"blur(20px)",borderTop:"1px solid "+C.border,display:"flex",zIndex:200,boxShadow:"0 -2px 20px rgba(0,0,0,0.5)"}}>
-        {([["buscar","🔍","Buscar"],["chats","💬","Chats"],["perfil","👤","Perfil"]] as const).map(([id,icon,label])=>(
+        {([["buscar","🔍","Buscar"],["ranking","🏆","Ranking"],["chats","💬","Chats"],["perfil","👤","Perfil"]] as const).map(([id,icon,label])=>(
           <button key={id} onClick={()=>setTab(id as any)} style={{flex:1,padding:"10px 4px 12px",background:"none",border:"none",color:tab===id?C.accent:C.muted,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:3,transition:"color 0.15s"}}>
             <span style={{fontSize:20}}>{icon}</span>
             <span style={{fontSize:10,fontWeight:600}}>{label}</span>
@@ -787,10 +830,22 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
     if(data){setCerts(p=>[...p,data]);setCertName("");showToast("✓ Título añadido");}
   };
 
+  const photoInputRef=useRef<HTMLInputElement>(null);
+  const [photoFile,setPhotoFile]=useState<File|null>(null);
+  const [photoPreview,setPhotoPreview]=useState<string>("");
+  const [uploadingPhoto,setUploadingPhoto]=useState(false);
+
   const addPhoto=async()=>{
-    if(!photoCaption.trim()) return;
-    const {data}=await db.from("photos").insert({worker_id:user.id,url:"",caption:photoCaption}).select().single();
-    if(data){setPhotos(p=>[data,...p]);setPhotoCaption("");showToast("✓ Foto añadida");}
+    if(!photoCaption.trim()&&!photoFile) return;
+    setUploadingPhoto(true);
+    let url="";
+    if(photoFile){
+      const uploaded=await uploadImage(photoFile,"workers/"+user.id);
+      if(uploaded) url=uploaded;
+    }
+    const {data}=await db.from("photos").insert({worker_id:user.id,url,caption:photoCaption}).select().single();
+    if(data){setPhotos(p=>[data,...p]);setPhotoCaption("");setPhotoFile(null);setPhotoPreview("");showToast("✓ Foto añadida");}
+    setUploadingPhoto(false);
   };
 
   const deletePhoto=async(id:string)=>{
@@ -1026,14 +1081,20 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
           <GCard style={{marginBottom:14}}>
             <p style={{fontWeight:700,color:C.text,fontSize:13,marginBottom:12}}>📸 Fotos de trabajos realizados</p>
             <p style={{fontSize:12,color:C.muted,marginBottom:10}}>Las fotos generan un 60% más de contactos. Añade descripción de cada trabajo.</p>
-            <div style={{display:"flex",gap:8,marginBottom:12}}>
-              <input value={photoCaption} onChange={e=>setPhotoCaption(e.target.value)} onKeyDown={e=>e.key==="Enter"&&addPhoto()} placeholder="Descripción del trabajo..." style={{flex:1,background:C.surface,border:"1px solid "+C.border,borderRadius:8,padding:"9px 12px",color:C.text,fontFamily:"inherit",fontSize:13,outline:"none"}} />
-              <Btn small onClick={addPhoto}>Añadir</Btn>
+            <input ref={photoInputRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>{const f=e.target.files?.[0];if(f){setPhotoFile(f);setPhotoPreview(URL.createObjectURL(f));}}} />
+            {photoPreview&&<div style={{position:"relative",marginBottom:10}}>
+              <img src={photoPreview} alt="preview" style={{width:"100%",maxHeight:150,objectFit:"cover",borderRadius:10,border:"1px solid "+C.border}} />
+              <button onClick={()=>{setPhotoFile(null);setPhotoPreview("");}} style={{position:"absolute",top:6,right:6,background:C.red,border:"none",borderRadius:"50%",width:24,height:24,color:"#fff",cursor:"pointer",fontSize:12,fontWeight:700}}>✕</button>
+            </div>}
+            <div style={{display:"flex",gap:8,marginBottom:12,flexWrap:"wrap"}}>
+              <button onClick={()=>photoInputRef.current?.click()} style={{padding:"9px 14px",background:C.surface,border:"1px dashed "+C.border,borderRadius:8,color:C.muted,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",whiteSpace:"nowrap"}}>📸 Elegir foto</button>
+              <input value={photoCaption} onChange={e=>setPhotoCaption(e.target.value)} placeholder="Descripción del trabajo..." style={{flex:1,minWidth:120,background:C.surface,border:"1px solid "+C.border,borderRadius:8,padding:"9px 12px",color:C.text,fontFamily:"inherit",fontSize:13,outline:"none"}} />
+              <Btn small disabled={uploadingPhoto} onClick={addPhoto}>{uploadingPhoto?"Subiendo...":"Añadir"}</Btn>
             </div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8}}>
               {photos.map(p=>(
                 <div key={p.id} style={{background:C.surface,borderRadius:10,border:"1px solid "+C.border,padding:12,position:"relative"}}>
-                  <div style={{aspectRatio:"4/3",background:C.card,borderRadius:8,marginBottom:8,display:"flex",alignItems:"center",justifyContent:"center",fontSize:28}}>📸</div>
+                  {p.url?<img src={p.url} alt={p.caption} style={{width:"100%",aspectRatio:"4/3",objectFit:"cover",borderRadius:8,marginBottom:8,border:"1px solid "+C.border}} onError={(e:any)=>{e.target.style.display="none";}} />:<div style={{aspectRatio:"4/3",background:C.card,borderRadius:8,marginBottom:8,display:"flex",alignItems:"center",justifyContent:"center",fontSize:28}}>📸</div>}
                   <p style={{fontSize:11,color:C.mutedL,marginBottom:6}}>{p.caption}</p>
                   <button onClick={()=>deletePhoto(p.id)} style={{fontSize:10,color:C.red,background:"none",border:"none",cursor:"pointer",padding:0}}>Eliminar</button>
                 </div>
@@ -1117,7 +1178,7 @@ function Admin({onLogout}:{onLogout:()=>void}){
   const [users,setUsers]=useState<UserRow[]>([]);
   const [jobs,setJobs]=useState<JobRow[]>([]);
   const [msgs,setMsgs]=useState<MessageRow[]>([]);
-  const [reviews,setReviews]=useState<{id:string;worker_id:string;client_name:string;stars:number;text:string;photo:string;created_at:string}[]>([]);
+  const [reviews,setReviews]=useState<{id:string;worker_id:string;client_name:string;stars:number;text:string;photo:string;photo_url?:string;approved?:boolean;created_at:string}[]>([]);
   const [loading,setLoading]=useState(true);
   const [period,setPeriod]=useState<"7d"|"30d"|"90d"|"all">("30d");
 
@@ -1759,4 +1820,85 @@ export default function App(){
     {user&&user.type==="profesional"&&<ProDashboard user={user} onLogout={logout} onUpdate={update} />}
     {user&&user.type==="cliente"&&<ClientHome user={user} onLogout={logout} />}
   </>);
+}
+
+// ─── RANKING SECTION COMPONENT ───
+function RankingSection({workers,onSelect}:{workers:UserRow[];onSelect:(w:UserRow)=>void}){
+  const [filterZone,setFilterZone]=useState("Todas");
+  const [filterTrade,setFilterTrade]=useState("Todos");
+
+  const eligible=workers.filter(w=>
+    PLAN_GATES.ranking[w.plan as Plan]&&
+    (filterZone==="Todas"||w.zone===filterZone)&&
+    (filterTrade==="Todos"||w.trade===filterTrade)
+  ).sort((a,b)=>b.rating*b.reviews-a.rating*a.reviews);
+
+  const pCol=["#FFD700","#C0C0C0","#CD7F32"];
+
+  return (
+    <div style={{padding:"22px 0 16px"}}>
+      <h2 style={{fontWeight:900,fontSize:24,letterSpacing:"-0.02em",marginBottom:4}}><span style={{color:C.text}}>🏆 Ranking de</span> <span style={{color:C.accent}}>Profesionales</span></h2>
+      <p style={{fontSize:13,color:C.muted,marginBottom:16}}>Los mejores valorados de la plataforma</p>
+
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:16}}>
+        <select value={filterZone} onChange={e=>setFilterZone(e.target.value)} style={{padding:"10px 12px",background:C.card,border:"1px solid "+C.border,borderRadius:8,color:C.text,fontFamily:"inherit",fontSize:13,cursor:"pointer",outline:"none"}}>
+          <option style={{background:C.card}}>Todas</option>
+          {ZONAS.map(z=><option key={z} style={{background:C.card}}>{z}</option>)}
+        </select>
+        <select value={filterTrade} onChange={e=>setFilterTrade(e.target.value)} style={{padding:"10px 12px",background:C.card,border:"1px solid "+C.border,borderRadius:8,color:C.text,fontFamily:"inherit",fontSize:13,cursor:"pointer",outline:"none"}}>
+          <option style={{background:C.card}}>Todos</option>
+          {OFICIOS.map(o=><option key={o} style={{background:C.card}}>{o}</option>)}
+        </select>
+      </div>
+
+      {eligible.length===0&&<div style={{textAlign:"center",padding:40,color:C.muted}}>
+        <p style={{fontSize:32,marginBottom:8}}>🏆</p>
+        <p style={{fontWeight:700,fontSize:16,marginBottom:6}}>Sin profesionales en el ranking</p>
+        <p style={{fontSize:13}}>El ranking muestra profesionales con plan Pro o Élite</p>
+      </div>}
+
+      {/* Podium top 3 */}
+      {eligible.length>=3&&(
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:16,alignItems:"flex-end"}}>
+          {[eligible[1],eligible[0],eligible[2]].map((w,i)=>{
+            const positions=[2,1,3];
+            const heights=[110,150,90];
+            const col=pCol[i];
+            const pos=positions[i];
+            return <div key={w.id} style={{textAlign:"center",cursor:"pointer"}} onClick={()=>onSelect(w)}>
+              <div style={{display:"flex",justifyContent:"center",marginBottom:6}}>
+                <Ava s={w.name.substring(0,2).toUpperCase()} size={pos===1?58:44} color={col} />
+              </div>
+              <p style={{fontWeight:700,color:C.text,fontSize:pos===1?14:12,marginBottom:2}}>{w.name.split(" ")[0]}</p>
+              <p style={{fontSize:10,color:C.muted,marginBottom:4}}>{w.zone}</p>
+              <Stars n={w.rating} size={pos===1?13:10} />
+              <div style={{height:heights[i],background:"linear-gradient(180deg,"+col+"20,transparent)",border:"1px solid "+col+"55",borderRadius:"8px 8px 0 0",display:"flex",alignItems:"center",justifyContent:"center",marginTop:8}}>
+                <span style={{fontFamily:"monospace",fontSize:36,fontWeight:900,color:col}}>#{pos}</span>
+              </div>
+            </div>;
+          })}
+        </div>
+      )}
+
+      {/* Rest of ranking */}
+      <div style={{display:"flex",flexDirection:"column",gap:8}}>
+        {eligible.slice(eligible.length>=3?3:0).map((w,i)=>{
+          const col=wColor(w.id);
+          return <GCard key={w.id} onClick={()=>onSelect(w)} glow={col} style={{padding:"12px 16px",display:"flex",alignItems:"center",gap:12}}>
+            <span style={{fontWeight:800,fontSize:18,color:C.muted,width:28,textAlign:"center"}}>#{i+(eligible.length>=3?4:1)}</span>
+            <Ava s={w.name.substring(0,2).toUpperCase()} size={38} color={col} online={w.available} />
+            <div style={{flex:1,minWidth:0}}>
+              <p style={{fontWeight:700,color:C.text,fontSize:13}}>{w.name}</p>
+              <p style={{fontSize:11,color:C.muted}}>{w.trade} · {w.zone}</p>
+            </div>
+            <div style={{textAlign:"right"}}>
+              <Stars n={w.rating} size={11} />
+              <p style={{fontSize:11,fontWeight:700,color:C.accent}}>{w.rating>0?w.rating.toFixed(1):"Nuevo"}</p>
+              <p style={{fontSize:10,color:C.muted}}>({w.reviews})</p>
+            </div>
+          </GCard>;
+        })}
+      </div>
+    </div>
+  );
 }
