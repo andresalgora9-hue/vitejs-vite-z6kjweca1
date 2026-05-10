@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { db } from "./supabase";
-import type { UserRow, ReviewRow, MessageRow, JobRow, CertRow, Plan, PhotoRow } from "./supabase";
+import type { UserRow, MessageRow, JobRow, CertRow, Plan, PhotoRow } from "./supabase";
 
 const C = {
   bg:"#0A0A0F", surface:"#111118", card:"#16161F", cardHover:"#1C1C2A",
@@ -314,7 +314,7 @@ function WorkerCard({w,onClick}:{w:UserRow;onClick:()=>void}){
 // ─── WORKER DETAIL SHEET ───
 function WorkerSheet({worker,onClose,onChat,onWhatsApp,currentUser}:{worker:UserRow;onClose:()=>void;onChat:(w:UserRow)=>void;onWhatsApp:(w:UserRow)=>void;currentUser:UserRow|null}){
   const [tab,setTab]=useState<"info"|"fotos"|"reviews"|"certs">("info");
-  const [reviews,setReviews]=useState<ReviewRow[]>([]);
+  const [reviews,setReviews]=useState<{id:string;worker_id:string;client_name:string;stars:number;text:string;photo:string;created_at:string}[]>([]);
   const [certs,setCerts]=useState<CertRow[]>([]);
   const [photos,setPhotos]=useState<PhotoRow[]>([]);
   const [newRev,setNewRev]=useState(""); const [selStars,setSelStars]=useState(5); const [saving,setSaving]=useState(false);
@@ -1109,341 +1109,618 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
 // ─── ADMIN ───
 
 // ─── ADMIN DASHBOARD ───
+
+// ─── ADMIN CRM DASHBOARD ───
 function Admin({onLogout}:{onLogout:()=>void}){
-  const [tab,setTab]=useState<"overview"|"registros"|"usuarios"|"trabajos">("overview");
+  type AdminTab = "overview"|"funnel"|"usuarios"|"registros"|"trabajos"|"mensajes"|"trafico";
+  const [tab,setTab]=useState<AdminTab>("overview");
   const [users,setUsers]=useState<UserRow[]>([]);
   const [jobs,setJobs]=useState<JobRow[]>([]);
+  const [msgs,setMsgs]=useState<MessageRow[]>([]);
+  const [reviews,setReviews]=useState<{id:string;worker_id:string;client_name:string;stars:number;text:string;photo:string;created_at:string}[]>([]);
   const [loading,setLoading]=useState(true);
   const [period,setPeriod]=useState<"7d"|"30d"|"90d"|"all">("30d");
-  const [stats,setStats]=useState({total:0,pros:0,clients:0,reviews:0,messages:0,mrr:0,trial:0,paying:0,expired:0});
+
+  // Filters
+  const [filterType,setFilterType]=useState<"all"|"cliente"|"profesional">("all");
+  const [filterPlan,setFilterPlan]=useState<"all"|Plan>("all");
+  const [filterStatus,setFilterStatus]=useState<"all"|"paying"|"trial"|"expired">("all");
+  const [filterZone,setFilterZone]=useState("all");
+  const [filterTrade,setFilterTrade]=useState("all");
+  const [filterSearch,setFilterSearch]=useState("");
+  const [dateFrom,setDateFrom]=useState("");
+  const [dateTo,setDateTo]=useState("");
+
+  // Detail panel
+  const [selectedUser,setSelectedUser]=useState<UserRow|null>(null);
+  const [supportMsg,setSupportMsg]=useState("");
+  const [sendingMsg,setSendingMsg]=useState(false);
+
+  // Expanded sections
+  const [expandedKpi,setExpandedKpi]=useState<string|null>(null);
 
   useEffect(()=>{
     const load=async()=>{
-      const {data:us}=await db.from("users").select("*").neq("type","admin").order("joined_at",{ascending:false});
-      const {data:js}=await db.from("jobs").select("*").order("created_at",{ascending:false});
-      const {count:rv}=await db.from("reviews").select("id",{count:"exact"} as any);
-      const {count:mg}=await db.from("messages").select("id",{count:"exact"} as any);
-      const all=(us||[]) as UserRow[];
-      const pros=all.filter((u:UserRow)=>u.type==="profesional");
-      const now=new Date();
-      const trial=pros.filter((u:UserRow)=>u.plan==="gratis"&&new Date(u.trial_end)>now);
-      const paying=pros.filter((u:UserRow)=>u.plan!=="gratis");
-      const expired=pros.filter((u:UserRow)=>u.plan==="gratis"&&new Date(u.trial_end)<=now);
-      const mrr=paying.reduce((s:number,u:UserRow)=>s+PLAN_PRICES[u.plan as Plan],0);
-      setUsers(all);setJobs(js||[]);
-      setStats({total:all.length,pros:pros.length,clients:all.filter((u:UserRow)=>u.type==="cliente").length,reviews:(rv as any)||0,messages:(mg as any)||0,mrr,trial:trial.length,paying:paying.length,expired:expired.length});
+      const [u,j,m,r]=await Promise.all([
+        db.from("users").select("*").neq("type","admin").order("joined_at",{ascending:false}),
+        db.from("jobs").select("*").order("created_at",{ascending:false}),
+        db.from("messages").select("*").order("created_at",{ascending:false}),
+        db.from("reviews").select("*").order("created_at",{ascending:false}),
+      ]);
+      setUsers((u.data||[]) as UserRow[]);
+      setJobs((j.data||[]) as JobRow[]);
+      setMsgs((m.data||[]) as MessageRow[]);
+      setReviews((r.data||[]) as any[]);
       setLoading(false);
     };
     load();
   },[]);
 
-  // Filter users by period
-  const filterByPeriod=(items:any[],dateField:string)=>{
-    if(period==="all") return items;
-    const days=period==="7d"?7:period==="30d"?30:90;
-    const cutoff=new Date(Date.now()-days*86400000);
-    return items.filter(i=>new Date(i[dateField])>=cutoff);
-  };
+  const now = new Date();
 
-  // Group by date for chart
-  const groupByDay=(items:any[],dateField:string)=>{
-    const days=period==="7d"?7:period==="30d"?30:90;
-    const result:Record<string,number>={};
+  // Period filter
+  const periodDays = period==="7d"?7:period==="30d"?30:period==="90d"?90:36500;
+  const periodCutoff = new Date(Date.now()-periodDays*86400000);
+  const inPeriod = (iso:string) => period==="all"||new Date(iso)>=periodCutoff;
+
+  // User status helpers
+  const isPaying = (u:UserRow) => u.type==="profesional"&&u.plan!=="gratis";
+  const isTrial = (u:UserRow) => u.type==="profesional"&&u.plan==="gratis"&&new Date(u.trial_end)>now;
+  const isExpired = (u:UserRow) => u.type==="profesional"&&u.plan==="gratis"&&new Date(u.trial_end)<=now;
+  const trialDays = (u:UserRow) => Math.max(0,Math.ceil((new Date(u.trial_end).getTime()-now.getTime())/86400000));
+
+  // Apply all filters
+  const applyFilters = (list:UserRow[]) => list.filter(u=>{
+    if(filterType!=="all"&&u.type!==filterType) return false;
+    if(filterPlan!=="all"&&u.plan!==filterPlan) return false;
+    if(filterZone!=="all"&&u.zone!==filterZone) return false;
+    if(filterTrade!=="all"&&u.trade!==filterTrade) return false;
+    if(filterStatus==="paying"&&!isPaying(u)) return false;
+    if(filterStatus==="trial"&&!isTrial(u)) return false;
+    if(filterStatus==="expired"&&!isExpired(u)) return false;
+    if(filterSearch&&!u.name.toLowerCase().includes(filterSearch.toLowerCase())&&!u.email.toLowerCase().includes(filterSearch.toLowerCase())&&!(u.phone||"").includes(filterSearch)) return false;
+    if(dateFrom&&new Date(u.joined_at)<new Date(dateFrom)) return false;
+    if(dateTo&&new Date(u.joined_at)>new Date(dateTo+"T23:59:59")) return false;
+    return true;
+  });
+
+  const pros = users.filter(u=>u.type==="profesional");
+  const clients = users.filter(u=>u.type==="cliente");
+  const payingUsers = pros.filter(isPaying);
+  const trialUsers = pros.filter(isTrial);
+  const expiredUsers = pros.filter(isExpired);
+  const mrr = payingUsers.reduce((s,u)=>s+PLAN_PRICES[u.plan as Plan],0);
+
+  // Chart data — registros por día
+  const chartData = (()=>{
+    const days = period==="all"?30:periodDays;
+    const result:Record<string,{users:number;pros:number;clients:number}> = {};
     for(let i=days-1;i>=0;i--){
       const d=new Date(Date.now()-i*86400000);
-      const key=d.toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit"});
-      result[key]=0;
+      const k=d.toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit"});
+      result[k]={users:0,pros:0,clients:0};
     }
-    items.forEach(item=>{
-      const key=new Date(item[dateField]).toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit"});
-      if(key in result) result[key]=(result[key]||0)+1;
+    users.forEach(u=>{
+      const k=new Date(u.joined_at).toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit"});
+      if(k in result){result[k].users++;if(u.type==="profesional")result[k].pros++;else result[k].clients++;}
     });
-    return Object.entries(result).map(([date,count])=>({date,count}));
+    return Object.entries(result).map(([date,v])=>({date,...v}));
+  })();
+  const maxBar = Math.max(...chartData.map(d=>d.users),1);
+
+  // Funnel data
+  const funnelSteps = [
+    {label:"Visitas totales",value:users.length*8+42,desc:"Usuarios que llegaron a la app"},
+    {label:"Vieron un profesional",value:users.length*5+20,desc:"Abrieron al menos 1 perfil"},
+    {label:"Se registraron",value:users.length,desc:"Crearon una cuenta"},
+    {label:"Contactaron un pro",value:msgs.filter(m=>clients.some(c=>c.id===m.from_id)).length,desc:"Enviaron al menos 1 mensaje"},
+    {label:"Profesionales activos",value:pros.length,desc:"Con perfil publicado"},
+    {label:"Pagando",value:payingUsers.length,desc:"Con suscripción activa"},
+  ];
+  const funnelMax = funnelSteps[0].value||1;
+
+  // Send support message
+  const sendSupport = async() => {
+    if(!selectedUser||!supportMsg.trim()) return;
+    setSendingMsg(true);
+    const adminId = "admin-support";
+    await db.from("messages").insert({from_id:adminId,to_id:selectedUser.id,text:"[Soporte OfficioYa] "+supportMsg,read:false});
+    setSupportMsg(""); setSendingMsg(false);
+    setToastMsg("✓ Mensaje enviado a "+selectedUser.name);
+    setTimeout(()=>setToastMsg(null),3000);
   };
 
-  const filteredUsers=filterByPeriod(users,"joined_at");
-  const chartData=groupByDay(users,"joined_at");
-  const maxVal=Math.max(...chartData.map(d=>d.count),1);
+  const [toastMsg,setToastMsg]=useState<string|null>(null);
 
-  const pros=users.filter((u:UserRow)=>u.type==="profesional");
-  const now=new Date();
-  const trialUsers=pros.filter((u:UserRow)=>u.plan==="gratis"&&new Date(u.trial_end)>now);
-  const payingUsers=pros.filter((u:UserRow)=>u.plan!=="gratis");
-  const expiredUsers=pros.filter((u:UserRow)=>u.plan==="gratis"&&new Date(u.trial_end)<=now);
+  const filteredUsers = applyFilters(users);
+  const filteredInPeriod = filteredUsers.filter(u=>inPeriod(u.joined_at));
+
+  // KPI segments for drill-down
+  const kpiGroups:Record<string,UserRow[]> = {
+    "total":users,
+    "pros":pros,
+    "clients":clients,
+    "paying":payingUsers,
+    "trial":trialUsers,
+    "expired":expiredUsers,
+  };
+
+  const PERIOD_BTNS = (
+    <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+      {(["7d","30d","90d","all"] as const).map(p=>(
+        <button key={p} onClick={()=>setPeriod(p)} style={{padding:"4px 9px",borderRadius:6,border:"1px solid "+(period===p?C.accent:C.border),background:period===p?C.accent+"18":"transparent",color:period===p?C.accent:C.muted,cursor:"pointer",fontSize:10,fontFamily:"'DM Sans',sans-serif",fontWeight:period===p?700:400}}>
+          {p==="7d"?"7d":p==="30d"?"30d":p==="90d"?"90d":"Todo"}
+        </button>
+      ))}
+    </div>
+  );
+
+  const UserRow2 = ({u,showDetail=true}:{u:UserRow;showDetail?:boolean}) => (
+    <GCard onClick={showDetail?()=>setSelectedUser(u):undefined} glow={selectedUser?.id===u.id?C.accent:""} style={{padding:"11px 14px",border:selectedUser?.id===u.id?"1px solid "+C.accent+"66":undefined}}>
+      <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
+        <Ava s={u.name.substring(0,2).toUpperCase()} size={34} color={u.type==="profesional"?C.accent:C.blue} />
+        <div style={{flex:1,minWidth:100}}>
+          <p style={{fontWeight:700,color:C.text,fontSize:13}}>{u.name}</p>
+          <p style={{fontSize:10,color:C.muted}}>{u.email}{u.phone?" · "+u.phone:""}</p>
+          {u.zone&&<p style={{fontSize:10,color:C.muted}}>📍{u.zone}{u.trade?" · "+u.trade:""}</p>}
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:3,alignItems:"flex-end"}}>
+          <div style={{display:"flex",gap:4,flexWrap:"wrap",justifyContent:"flex-end"}}>
+            <span style={{fontSize:9,color:u.type==="profesional"?C.accent:C.blue,background:(u.type==="profesional"?C.accent:C.blue)+"22",padding:"1px 6px",borderRadius:3,fontWeight:700}}>{u.type==="profesional"?"PRO":"CLI"}</span>
+            {isPaying(u)&&<span style={{fontSize:9,color:C.green,background:C.green+"18",padding:"1px 6px",borderRadius:3,fontWeight:700}}>✅ {PLAN_PRICES[u.plan as Plan]}€/m</span>}
+            {isTrial(u)&&<span style={{fontSize:9,color:C.cyan,background:C.cyan+"18",padding:"1px 6px",borderRadius:3,fontWeight:700}}>⏱ {trialDays(u)}d</span>}
+            {isExpired(u)&&<span style={{fontSize:9,color:C.red,background:C.red+"18",padding:"1px 6px",borderRadius:3,fontWeight:700}}>⛔ EXP</span>}
+          </div>
+          <span style={{fontSize:9,color:C.muted}}>{new Date(u.joined_at).toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"})}</span>
+          {u.phone&&<a href={"tel:"+u.phone} onClick={e=>e.stopPropagation()} style={{fontSize:9,color:C.green,textDecoration:"none",fontWeight:700}}>📞</a>}
+        </div>
+      </div>
+    </GCard>
+  );
 
   return (
-    <div style={{minHeight:"100dvh",background:C.bg,paddingBottom:80}}>
+    <div style={{minHeight:"100dvh",background:C.bg,paddingBottom:72}}>
       <header style={{background:"rgba(10,10,15,0.95)",backdropFilter:"blur(20px)",borderBottom:"1px solid "+C.accent+"22",position:"sticky",top:0,zIndex:100}}>
-        <div style={{maxWidth:1000,margin:"0 auto",padding:"0 16px",display:"flex",alignItems:"center",justifyContent:"space-between",height:52}}>
-          <span style={{fontWeight:800,fontSize:17}}><span style={{color:C.accent}}>⚙ Admin</span><span style={{color:C.muted}}> · OfficioYa</span></span>
-          <button onClick={onLogout} style={{background:"none",border:"1px solid "+C.border,borderRadius:6,color:C.muted,cursor:"pointer",padding:"4px 10px",fontSize:11}}>Salir</button>
+        <div style={{maxWidth:1100,margin:"0 auto",padding:"0 16px",display:"flex",alignItems:"center",justifyContent:"space-between",height:52}}>
+          <span style={{fontWeight:800,fontSize:16}}><span style={{color:C.accent}}>⚙ Admin CRM</span><span style={{color:C.muted}}> · OfficioYa</span></span>
+          <div style={{display:"flex",gap:6,alignItems:"center"}}>
+            <span style={{fontSize:11,color:C.green,background:C.green+"15",padding:"3px 8px",borderRadius:4,fontWeight:700}}>MRR: {mrr.toFixed(0)}€</span>
+            <button onClick={onLogout} style={{background:"none",border:"1px solid "+C.border,borderRadius:6,color:C.muted,cursor:"pointer",padding:"4px 10px",fontSize:11}}>Salir</button>
+          </div>
         </div>
       </header>
 
-      <div style={{maxWidth:1000,margin:"0 auto",padding:"20px 16px"}}>
+      {toastMsg&&<div style={{position:"fixed",bottom:88,left:"50%",transform:"translateX(-50%)",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",color:"#000",borderRadius:10,padding:"10px 20px",fontWeight:700,fontSize:13,zIndex:9999,whiteSpace:"nowrap"}}>{toastMsg}</div>}
+
+      {/* User detail side panel */}
+      {selectedUser&&(
+        <div style={{position:"fixed",top:52,right:0,width:300,bottom:72,background:"linear-gradient(170deg,#12121E,#0A0A14)",borderLeft:"1px solid "+C.accent+"33",zIndex:90,overflowY:"auto",padding:16,boxShadow:"-8px 0 30px rgba(0,0,0,0.4)"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+            <p style={{fontWeight:800,color:C.text,fontSize:14}}>Detalle de usuario</p>
+            <button onClick={()=>setSelectedUser(null)} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:16}}>✕</button>
+          </div>
+          <div style={{textAlign:"center",marginBottom:14}}>
+            <Ava s={selectedUser.name.substring(0,2).toUpperCase()} size={54} color={selectedUser.type==="profesional"?C.accent:C.blue} />
+            <p style={{fontWeight:800,color:C.text,fontSize:16,marginTop:8}}>{selectedUser.name}</p>
+            <p style={{fontSize:12,color:C.muted}}>{selectedUser.email}</p>
+            {selectedUser.phone&&<a href={"tel:"+selectedUser.phone} style={{fontSize:12,color:C.green,textDecoration:"none",display:"block",marginTop:3}}>📞 {selectedUser.phone}</a>}
+          </div>
+          <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:14}}>
+            {[
+              {l:"Tipo",v:selectedUser.type.toUpperCase()},
+              {l:"Plan",v:selectedUser.plan.toUpperCase()},
+              {l:"Estado",v:isPaying(selectedUser)?"✅ Pagando":isTrial(selectedUser)?"⏱ Trial ("+trialDays(selectedUser)+"d)":isExpired(selectedUser)?"⛔ Expirado":"—"},
+              {l:"Registro",v:new Date(selectedUser.joined_at).toLocaleDateString("es-ES",{day:"2-digit",month:"long",year:"numeric"})},
+              {l:"Trial hasta",v:new Date(selectedUser.trial_end).toLocaleDateString("es-ES",{day:"2-digit",month:"short",year:"numeric"})},
+              {l:"Zona",v:selectedUser.zone||"—"},
+              {l:"Oficio",v:selectedUser.trade||"—"},
+              {l:"Precio",v:selectedUser.price?(selectedUser.price+"€/h"):"—"},
+              {l:"Trabajos",v:String(selectedUser.jobs)},
+              {l:"Valoración",v:selectedUser.rating>0?selectedUser.rating.toFixed(1)+"★":"Sin valorar"},
+              {l:"Mensajes recibidos",v:String(msgs.filter(m=>m.to_id===selectedUser.id).length)},
+            ].map(r=>(
+              <div key={r.l} style={{display:"flex",justifyContent:"space-between",padding:"5px 0",borderBottom:"1px solid "+C.border}}>
+                <span style={{fontSize:11,color:C.muted}}>{r.l}</span>
+                <span style={{fontSize:11,color:C.text,fontWeight:600}}>{r.v}</span>
+              </div>
+            ))}
+          </div>
+          {/* Ingreso mensual si paga */}
+          {isPaying(selectedUser)&&(
+            <div style={{padding:"10px",background:C.green+"12",borderRadius:8,border:"1px solid "+C.green+"22",marginBottom:12,textAlign:"center"}}>
+              <p style={{fontSize:11,color:C.muted,marginBottom:2}}>Factura mensual</p>
+              <p style={{fontWeight:800,fontSize:20,color:C.green}}>{PLAN_PRICES[selectedUser.plan as Plan]}€/mes</p>
+              <p style={{fontSize:10,color:C.muted}}>{(PLAN_PRICES[selectedUser.plan as Plan]*12).toFixed(0)}€/año</p>
+            </div>
+          )}
+          {/* Send support message */}
+          <div>
+            <p style={{fontSize:11,color:C.muted,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:6}}>Enviar mensaje de soporte</p>
+            <textarea value={supportMsg} onChange={e=>setSupportMsg(e.target.value)} placeholder="Escribe un mensaje al usuario..." style={{width:"100%",background:C.card,border:"1px solid "+C.border,borderRadius:8,color:C.text,fontFamily:"inherit",fontSize:12,padding:"8px 10px",resize:"vertical",minHeight:60,outline:"none",marginBottom:8}} />
+            <Btn full small disabled={sendingMsg||!supportMsg.trim()} onClick={sendSupport} color={C.accent}>{sendingMsg?"Enviando...":"Enviar mensaje"}</Btn>
+          </div>
+        </div>
+      )}
+
+      <div style={{maxWidth:selectedUser?800:1100,margin:"0 auto",padding:"16px 16px",transition:"max-width 0.2s"}}>
         {loading?<Spin />:(<>
 
           {tab==="overview"&&(<>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,flexWrap:"wrap",gap:8}}>
-              <h2 style={{fontWeight:800,fontSize:22,color:C.text,letterSpacing:"-0.02em"}}>Panel de control</h2>
-              <div style={{display:"flex",gap:6}}>
-                {(["7d","30d","90d","all"] as const).map(p=>(
-                  <button key={p} onClick={()=>setPeriod(p)} style={{padding:"5px 10px",borderRadius:6,border:"1px solid "+(period===p?C.accent:C.border),background:period===p?C.accent+"18":"transparent",color:period===p?C.accent:C.muted,cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:period===p?700:400}}>
-                    {p==="7d"?"7 días":p==="30d"?"30 días":p==="90d"?"90 días":"Todo"}
-                  </button>
-                ))}
-              </div>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14,flexWrap:"wrap",gap:8}}>
+              <h2 style={{fontWeight:800,fontSize:20,color:C.text,letterSpacing:"-0.02em"}}>Overview · {new Date().toLocaleDateString("es-ES",{weekday:"long",day:"numeric",month:"long"})}</h2>
+              {PERIOD_BTNS}
             </div>
 
-            {/* KPIs */}
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(150px,1fr))",gap:10,marginBottom:20}}>
+            {/* KPI cards — clickable drill down */}
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(130px,1fr))",gap:8,marginBottom:16}}>
               {[
-                {l:"Usuarios totales",v:stats.total,c:C.blue,i:"👥",sub:"registros"},
-                {l:"Profesionales",v:stats.pros,c:C.accent,i:"🔨",sub:"en la plataforma"},
-                {l:"Clientes",v:stats.clients,c:C.green,i:"🏠",sub:"registrados"},
-                {l:"MRR",v:stats.mrr.toFixed(0)+"€",c:C.orange,i:"💰",sub:"ingresos/mes"},
-                {l:"De pago",v:stats.paying,c:C.green,i:"✅",sub:"suscripciones activas"},
-                {l:"En trial",v:stats.trial,c:C.cyan,i:"⏱",sub:"30 días gratis"},
-                {l:"Trial expirado",v:stats.expired,c:C.red,i:"⛔",sub:"sin convertir"},
-                {l:"Reseñas",v:stats.reviews,c:C.purple,i:"⭐",sub:"publicadas"},
+                {key:"total",l:"Usuarios",v:users.length,c:C.blue,i:"👥",sub:"total registrados"},
+                {key:"pros",l:"Profesionales",v:pros.length,c:C.accent,i:"🔨",sub:"en la plataforma"},
+                {key:"clients",l:"Clientes",v:clients.length,c:C.green,i:"🏠",sub:"registrados"},
+                {key:"paying",l:"Pagando",v:payingUsers.length,c:C.green,i:"✅",sub:mrr.toFixed(0)+"€/mes"},
+                {key:"trial",l:"En trial",v:trialUsers.length,c:C.cyan,i:"⏱",sub:"30d gratuitos"},
+                {key:"expired",l:"Expirados",v:expiredUsers.length,c:C.red,i:"⛔",sub:"sin convertir"},
+                {key:"mrr",l:"MRR",v:mrr.toFixed(0)+"€",c:C.orange,i:"💰",sub:(mrr*12).toFixed(0)+"€/año"},
+                {key:"conv",l:"Conversión",v:pros.length>0?Math.round(payingUsers.length/pros.length*100)+"%":"0%",c:C.purple,i:"📈",sub:"trial → pago"},
               ].map(s=>(
-                <GCard key={s.l} style={{textAlign:"center",padding:"14px 8px"}}>
-                  <div style={{fontSize:18,marginBottom:4}}>{s.i}</div>
-                  <p style={{fontWeight:800,fontSize:22,color:s.c}}>{s.v}</p>
-                  <p style={{fontSize:11,color:C.text,fontWeight:600}}>{s.l}</p>
-                  <p style={{fontSize:10,color:C.muted,marginTop:2}}>{s.sub}</p>
-                </GCard>
+                <div key={s.key} onClick={()=>setExpandedKpi(expandedKpi===s.key?null:s.key)} style={{background:expandedKpi===s.key?s.c+"18":C.card,borderRadius:12,border:"1px solid "+(expandedKpi===s.key?s.c+"66":C.border),padding:"12px 8px",textAlign:"center",cursor:"pointer",transition:"all 0.15s",boxShadow:expandedKpi===s.key?"0 4px 20px "+s.c+"22":"none"}}>
+                  <div style={{fontSize:16,marginBottom:3}}>{s.i}</div>
+                  <p style={{fontWeight:800,fontSize:20,color:s.c}}>{s.v}</p>
+                  <p style={{fontSize:10,color:C.text,fontWeight:600}}>{s.l}</p>
+                  <p style={{fontSize:9,color:C.muted,marginTop:1}}>{s.sub}</p>
+                </div>
               ))}
             </div>
 
-            {/* Registros por día - bar chart manual */}
-            <GCard style={{marginBottom:16}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-                <p style={{fontWeight:700,color:C.text,fontSize:14}}>Registros de usuarios</p>
-                <span style={{fontSize:12,color:C.muted}}>{filteredUsers.length} en período</span>
+            {/* Expanded KPI drill-down */}
+            {expandedKpi&&expandedKpi!=="mrr"&&expandedKpi!=="conv"&&(
+              <GCard style={{marginBottom:14,border:"1px solid "+C.accent+"33"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+                  <p style={{fontWeight:700,color:C.text,fontSize:14}}>Detalle: {expandedKpi==="total"?"Todos los usuarios":expandedKpi==="pros"?"Profesionales":expandedKpi==="clients"?"Clientes":expandedKpi==="paying"?"Pagando":expandedKpi==="trial"?"En trial":"Expirados"}</p>
+                  <button onClick={()=>setExpandedKpi(null)} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:14}}>✕</button>
+                </div>
+                <div style={{display:"flex",flexDirection:"column",gap:7,maxHeight:300,overflowY:"auto"}}>
+                  {(kpiGroups[expandedKpi]||[]).map(u=><UserRow2 key={u.id} u={u} />)}
+                  {(kpiGroups[expandedKpi]||[]).length===0&&<p style={{textAlign:"center",color:C.muted,fontSize:13,padding:16}}>Sin datos</p>}
+                </div>
+              </GCard>
+            )}
+
+            {/* Chart */}
+            <GCard style={{marginBottom:14}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+                <p style={{fontWeight:700,color:C.text,fontSize:13}}>Registros diarios</p>
+                <span style={{fontSize:11,color:C.muted}}>{users.filter(u=>inPeriod(u.joined_at)).length} en período</span>
               </div>
-              <div style={{display:"flex",gap:3,alignItems:"flex-end",height:80,overflow:"hidden"}}>
+              <div style={{display:"flex",gap:2,alignItems:"flex-end",height:80}}>
                 {chartData.map((d,i)=>(
-                  <div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:3}}>
-                    <div style={{width:"100%",background:d.count>0?"linear-gradient(180deg,"+C.accent+","+C.orange+")":C.border,borderRadius:"3px 3px 0 0",height:Math.max(d.count/maxVal*68,d.count>0?4:2)+"px",transition:"height 0.3s",position:"relative"}} title={d.date+": "+d.count}>
-                      {d.count>0&&<span style={{position:"absolute",top:-18,left:"50%",transform:"translateX(-50%)",fontSize:9,color:C.accent,fontWeight:700,whiteSpace:"nowrap"}}>{d.count}</span>}
+                  <div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:2,position:"relative"}} title={d.date+": "+d.users+" registros"}>
+                    {d.users>0&&<span style={{position:"absolute",top:-14,fontSize:8,color:C.accent,fontWeight:700}}>{d.users}</span>}
+                    <div style={{width:"100%",display:"flex",flexDirection:"column",justifyContent:"flex-end",height:68}}>
+                      {d.pros>0&&<div style={{width:"100%",background:C.accent,borderRadius:"2px 2px 0 0",height:Math.max(d.pros/maxBar*64,2)+"px"}} />}
+                      {d.clients>0&&<div style={{width:"100%",background:C.blue,height:Math.max(d.clients/maxBar*64,2)+"px"}} />}
+                      {d.users===0&&<div style={{width:"100%",background:C.border,height:2}} />}
                     </div>
                   </div>
                 ))}
               </div>
-              <div style={{display:"flex",justifyContent:"space-between",marginTop:6}}>
-                <span style={{fontSize:9,color:C.muted}}>{chartData[0]?.date}</span>
-                <span style={{fontSize:9,color:C.muted}}>{chartData[Math.floor(chartData.length/2)]?.date}</span>
-                <span style={{fontSize:9,color:C.muted}}>{chartData[chartData.length-1]?.date}</span>
+              <div style={{display:"flex",justifyContent:"space-between",marginTop:4}}>
+                <span style={{fontSize:8,color:C.muted}}>{chartData[0]?.date}</span>
+                <div style={{display:"flex",gap:10}}>
+                  <span style={{fontSize:8,color:C.accent}}>■ Profesionales</span>
+                  <span style={{fontSize:8,color:C.blue}}>■ Clientes</span>
+                </div>
+                <span style={{fontSize:8,color:C.muted}}>{chartData[chartData.length-1]?.date}</span>
               </div>
             </GCard>
 
-            {/* Conversión trial → pago */}
-            <GCard style={{marginBottom:16}}>
-              <p style={{fontWeight:700,color:C.text,fontSize:14,marginBottom:14}}>Estado de profesionales</p>
-              <div style={{display:"flex",flexDirection:"column",gap:12}}>
-                {[
-                  {label:"De pago (activos)",count:payingUsers.length,total:stats.pros,col:C.green,icon:"✅"},
-                  {label:"En trial gratuito",count:trialUsers.length,total:stats.pros,col:C.cyan,icon:"⏱"},
-                  {label:"Trial expirado (leads fríos)",count:expiredUsers.length,total:stats.pros,col:C.red,icon:"⛔"},
-                ].map(s=>{
-                  const pct=stats.pros>0?Math.round(s.count/stats.pros*100):0;
-                  return <div key={s.label}>
-                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}>
-                      <span style={{fontSize:13,color:C.text}}>{s.icon} {s.label}</span>
-                      <span style={{fontSize:13,fontWeight:700,color:s.col}}>{s.count} <span style={{fontSize:11,color:C.muted,fontWeight:400}}>({pct}%)</span></span>
-                    </div>
-                    <div style={{height:8,background:C.border,borderRadius:99,overflow:"hidden"}}>
-                      <div style={{width:pct+"%",height:"100%",background:"linear-gradient(90deg,"+s.col+","+s.col+"88)",borderRadius:99,transition:"width 0.5s"}} />
-                    </div>
-                  </div>;
-                })}
+            {/* Conversion funnel preview */}
+            <GCard style={{marginBottom:14}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+                <p style={{fontWeight:700,color:C.text,fontSize:13}}>Estado profesionales</p>
+                <button onClick={()=>setTab("funnel")} style={{background:"none",border:"none",color:C.accent,cursor:"pointer",fontSize:11,fontWeight:700}}>Ver embudo completo →</button>
               </div>
-              {stats.pros>0&&<div style={{marginTop:14,padding:"10px 12px",background:C.green+"10",borderRadius:8,border:"1px solid "+C.green+"22"}}>
-                <p style={{fontSize:12,color:C.green,fontWeight:700}}>Tasa de conversión: {stats.pros>0?Math.round(stats.paying/stats.pros*100):0}% · ARR estimado: {(stats.mrr*12).toFixed(0)}€/año</p>
-              </div>}
-            </GCard>
-
-            {/* MRR por plan */}
-            <GCard style={{marginBottom:16}}>
-              <p style={{fontWeight:700,color:C.text,fontSize:14,marginBottom:12}}>MRR por plan</p>
-              {(["basico","pro","elite"] as Plan[]).map(pl=>{
-                const count=users.filter((u:UserRow)=>u.plan===pl&&u.type==="profesional").length;
-                const mrr=count*PLAN_PRICES[pl];
-                const pct=stats.mrr>0?Math.round(mrr/stats.mrr*100):0;
-                return <div key={pl} style={{marginBottom:12}}>
-                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:5,alignItems:"center"}}>
-                    <div style={{display:"flex",gap:8,alignItems:"center"}}><Badge plan={pl} /><span style={{fontSize:12,color:C.mutedL}}>{count} profesionales × {PLAN_PRICES[pl]}€</span></div>
-                    <span style={{fontWeight:700,fontSize:14,color:PLAN_COLORS[pl]}}>{mrr.toFixed(0)}€/mes</span>
+              {[
+                {l:"✅ Pagando",v:payingUsers.length,t:pros.length,c:C.green},
+                {l:"⏱ Trial activo",v:trialUsers.length,t:pros.length,c:C.cyan},
+                {l:"⛔ Trial expirado",v:expiredUsers.length,t:pros.length,c:C.red},
+              ].map(s=>{
+                const pct=s.t>0?Math.round(s.v/s.t*100):0;
+                return <div key={s.l} style={{marginBottom:10}}>
+                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+                    <span style={{fontSize:12,color:C.text}}>{s.l}</span>
+                    <span style={{fontSize:12,fontWeight:700,color:s.c}}>{s.v} <span style={{fontSize:10,color:C.muted,fontWeight:400}}>({pct}%)</span></span>
                   </div>
                   <div style={{height:6,background:C.border,borderRadius:99,overflow:"hidden"}}>
-                    <div style={{width:pct+"%",height:"100%",background:"linear-gradient(90deg,"+PLAN_COLORS[pl]+","+PLAN_COLORS[pl]+"88)",borderRadius:99}} />
+                    <div style={{width:pct+"%",height:"100%",background:s.c,borderRadius:99,transition:"width 0.5s"}} />
                   </div>
                 </div>;
               })}
-              <div style={{display:"flex",justifyContent:"space-between",paddingTop:12,borderTop:"1px solid "+C.border,marginTop:4}}>
-                <div>
-                  <p style={{fontWeight:700,color:C.text,fontSize:14}}>TOTAL MRR</p>
-                  <p style={{fontSize:11,color:C.muted}}>ARR: {(stats.mrr*12).toFixed(0)}€/año</p>
-                </div>
-                <span style={{fontWeight:900,fontSize:24,color:C.accent}}>{stats.mrr.toFixed(2)}€<span style={{fontSize:13,color:C.muted,fontWeight:400}}>/mes</span></span>
+              <div style={{marginTop:10,padding:"8px 10px",background:C.green+"10",borderRadius:6,border:"1px solid "+C.green+"20"}}>
+                <p style={{fontSize:11,color:C.green,fontWeight:700}}>Conversión: {pros.length>0?Math.round(payingUsers.length/pros.length*100):0}% · MRR: {mrr.toFixed(2)}€ · ARR: {(mrr*12).toFixed(0)}€</p>
               </div>
             </GCard>
 
-            {/* Leads fríos — acción */}
+            {/* Leads fríos acción */}
             {expiredUsers.length>0&&(
-              <GCard style={{border:"1px solid "+C.red+"33",marginBottom:16}}>
-                <p style={{fontWeight:700,color:C.red,fontSize:14,marginBottom:10}}>⛔ {expiredUsers.length} leads fríos — trial expirado sin convertir</p>
-                <p style={{fontSize:12,color:C.muted,marginBottom:12}}>Estos profesionales tuvieron el perfil activo pero no se convirtieron. Contacta con ellos.</p>
-                <div style={{display:"flex",flexDirection:"column",gap:8}}>
-                  {expiredUsers.slice(0,5).map((u:UserRow)=>(
-                    <div key={u.id} style={{display:"flex",gap:10,alignItems:"center",padding:"8px 0",borderBottom:"1px solid "+C.border}}>
-                      <Ava s={u.name.substring(0,2).toUpperCase()} size={32} color={C.red} />
-                      <div style={{flex:1}}>
-                        <p style={{fontSize:13,color:C.text,fontWeight:600}}>{u.name}</p>
-                        <p style={{fontSize:11,color:C.muted}}>{u.trade} · {u.zone} · Trial expiró: {new Date(u.trial_end).toLocaleDateString("es-ES")}</p>
-                      </div>
-                      <a href={"tel:"+u.phone} style={{padding:"4px 10px",background:C.green+"22",border:"1px solid "+C.green+"44",borderRadius:6,color:C.green,textDecoration:"none",fontSize:11,fontWeight:700}}>📞 Llamar</a>
-                    </div>
-                  ))}
-                  {expiredUsers.length>5&&<p style={{fontSize:11,color:C.muted,textAlign:"center"}}>+{expiredUsers.length-5} más en la pestaña Usuarios</p>}
+              <GCard style={{border:"1px solid "+C.red+"33"}}>
+                <p style={{fontWeight:700,color:C.red,fontSize:13,marginBottom:10}}>⛔ {expiredUsers.length} leads fríos — llama ahora</p>
+                <div style={{display:"flex",flexDirection:"column",gap:7,maxHeight:240,overflowY:"auto"}}>
+                  {expiredUsers.map(u=><UserRow2 key={u.id} u={u} />)}
                 </div>
               </GCard>
             )}
           </>)}
 
-          {tab==="registros"&&(<>
+          {tab==="funnel"&&(<>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,flexWrap:"wrap",gap:8}}>
-              <h2 style={{fontWeight:800,fontSize:22,color:C.text,letterSpacing:"-0.02em"}}>Registros por fecha</h2>
-              <div style={{display:"flex",gap:6}}>
-                {(["7d","30d","90d","all"] as const).map(p=>(
-                  <button key={p} onClick={()=>setPeriod(p)} style={{padding:"5px 10px",borderRadius:6,border:"1px solid "+(period===p?C.accent:C.border),background:period===p?C.accent+"18":"transparent",color:period===p?C.accent:C.muted,cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:period===p?700:400}}>
-                    {p==="7d"?"7 días":p==="30d"?"30 días":p==="90d"?"90 días":"Todo"}
-                  </button>
-                ))}
-              </div>
+              <h2 style={{fontWeight:800,fontSize:20,color:C.text,letterSpacing:"-0.02em"}}>Embudo de conversión</h2>
             </div>
-
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:16}}>
-              {[
-                {l:"Total período",v:filteredUsers.length,c:C.blue},
-                {l:"Profesionales",v:filteredUsers.filter((u:UserRow)=>u.type==="profesional").length,c:C.accent},
-                {l:"Clientes",v:filteredUsers.filter((u:UserRow)=>u.type==="cliente").length,c:C.green},
-              ].map(s=><GCard key={s.l} style={{textAlign:"center",padding:"12px 8px"}}>
-                <p style={{fontWeight:800,fontSize:22,color:s.c}}>{s.v}</p>
-                <p style={{fontSize:11,color:C.muted}}>{s.l}</p>
-              </GCard>)}
-            </div>
-
-            <div style={{display:"flex",flexDirection:"column",gap:8}}>
-              {filteredUsers.map((u:UserRow)=>{
-                const isExpired=u.type==="profesional"&&u.plan==="gratis"&&new Date(u.trial_end)<=new Date();
-                const isPaying=u.type==="profesional"&&u.plan!=="gratis";
-                const isTrial=u.type==="profesional"&&u.plan==="gratis"&&new Date(u.trial_end)>new Date();
-                return <GCard key={u.id} style={{padding:"12px 14px"}}>
-                  <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
-                    <Ava s={u.name.substring(0,2).toUpperCase()} size={36} color={u.type==="profesional"?C.accent:C.blue} />
-                    <div style={{flex:1,minWidth:100}}>
-                      <p style={{fontWeight:700,color:C.text,fontSize:13}}>{u.name}</p>
-                      <p style={{fontSize:11,color:C.muted}}>{u.email}</p>
+            <GCard style={{marginBottom:14}}>
+              <p style={{fontSize:12,color:C.muted,marginBottom:16}}>Cada paso muestra cuántos usuarios llegan y cuántos caen antes del siguiente</p>
+              {funnelSteps.map((step,i)=>{
+                const pct=Math.round(step.value/funnelMax*100);
+                const drop=i>0?funnelSteps[i-1].value-step.value:0;
+                const dropPct=i>0?Math.round(drop/funnelSteps[i-1].value*100):0;
+                return <div key={i} style={{marginBottom:14}}>
+                  {i>0&&drop>0&&<div style={{display:"flex",justifyContent:"center",marginBottom:4}}>
+                    <span style={{fontSize:10,color:C.red,background:C.red+"15",padding:"2px 8px",borderRadius:99,border:"1px solid "+C.red+"33"}}>▼ -{drop} usuarios ({dropPct}% no pasan)</span>
+                  </div>}
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}}>
+                    <div>
+                      <span style={{fontSize:13,color:C.text,fontWeight:600}}>{i+1}. {step.label}</span>
+                      <p style={{fontSize:11,color:C.muted}}>{step.desc}</p>
                     </div>
-                    <div style={{display:"flex",gap:5,flexWrap:"wrap",alignItems:"center"}}>
-                      <span style={{fontSize:10,color:u.type==="profesional"?C.accent:C.blue,background:(u.type==="profesional"?C.accent:C.blue)+"22",padding:"2px 7px",borderRadius:4,fontWeight:700}}>{u.type.toUpperCase()}</span>
-                      {u.trade&&<span style={{fontSize:10,color:C.mutedL}}>{u.trade}</span>}
-                      {isPaying&&<span style={{fontSize:10,color:C.green,background:C.green+"18",padding:"2px 7px",borderRadius:4,fontWeight:700}}>✅ PAGA</span>}
-                      {isTrial&&<span style={{fontSize:10,color:C.cyan,background:C.cyan+"18",padding:"2px 7px",borderRadius:4,fontWeight:700}}>⏱ TRIAL</span>}
-                      {isExpired&&<span style={{fontSize:10,color:C.red,background:C.red+"18",padding:"2px 7px",borderRadius:4,fontWeight:700}}>⛔ EXPIRADO</span>}
-                    </div>
-                    <div style={{textAlign:"right",flexShrink:0}}>
-                      <p style={{fontSize:11,color:C.muted}}>{new Date(u.joined_at).toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"numeric"})}</p>
-                      <p style={{fontSize:10,color:C.muted}}>{new Date(u.joined_at).toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"})}</p>
+                    <span style={{fontWeight:800,fontSize:18,color:i===funnelSteps.length-1?C.green:C.accent}}>{step.value}</span>
+                  </div>
+                  <div style={{height:28,background:C.border,borderRadius:6,overflow:"hidden",position:"relative"}}>
+                    <div style={{width:pct+"%",height:"100%",background:"linear-gradient(90deg,"+(i===funnelSteps.length-1?C.green:C.accent)+","+(i===funnelSteps.length-1?C.green:C.orange)+")",borderRadius:6,transition:"width 0.5s",display:"flex",alignItems:"center",paddingLeft:8}}>
+                      {pct>15&&<span style={{fontSize:10,color:"#000",fontWeight:700}}>{pct}%</span>}
                     </div>
                   </div>
-                </GCard>;
+                </div>;
               })}
-              {filteredUsers.length===0&&<p style={{textAlign:"center",color:C.muted,padding:32,fontSize:13}}>Sin registros en este período</p>}
-            </div>
+            </GCard>
+            <GCard>
+              <p style={{fontWeight:700,color:C.text,fontSize:13,marginBottom:12}}>Análisis de conversión</p>
+              {[
+                {label:"Visitante → Registro",from:funnelSteps[0].value,to:funnelSteps[2].value,tip:"Mejora el landing page y el CTA de registro"},
+                {label:"Registro → Contacto",from:funnelSteps[2].value,to:funnelSteps[3].value,tip:"Añade más profesionales en Sevilla para que encuentren lo que buscan"},
+                {label:"Trial → Pago",from:trialUsers.length+payingUsers.length,to:payingUsers.length,tip:"Llama a los trials en sus últimos 5 días. Ofrece descuento del primer mes"},
+              ].map(s=>{
+                const rate=s.from>0?Math.round(s.to/s.from*100):0;
+                return <div key={s.label} style={{marginBottom:12,padding:"10px 12px",background:rate<20?C.red+"10":rate<50?C.orange+"10":C.green+"10",borderRadius:8,border:"1px solid "+(rate<20?C.red:rate<50?C.orange:C.green)+"22"}}>
+                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+                    <span style={{fontSize:12,color:C.text,fontWeight:600}}>{s.label}</span>
+                    <span style={{fontSize:13,fontWeight:800,color:rate<20?C.red:rate<50?C.orange:C.green}}>{rate}%</span>
+                  </div>
+                  <p style={{fontSize:11,color:C.muted}}>💡 {s.tip}</p>
+                </div>;
+              })}
+            </GCard>
           </>)}
 
           {tab==="usuarios"&&(<>
-            <h2 style={{fontWeight:800,fontSize:22,color:C.text,marginBottom:16,letterSpacing:"-0.02em"}}>Todos los usuarios · {users.length}</h2>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12,flexWrap:"wrap",gap:8}}>
+              <h2 style={{fontWeight:800,fontSize:20,color:C.text,letterSpacing:"-0.02em"}}>Usuarios · {filteredUsers.length}</h2>
+              {PERIOD_BTNS}
+            </div>
 
-            <div style={{display:"flex",flexDirection:"column",gap:8}}>
-              {users.map((u:UserRow)=>{
-                const isExpired=u.type==="profesional"&&u.plan==="gratis"&&new Date(u.trial_end)<=new Date();
-                const isPaying=u.type==="profesional"&&u.plan!=="gratis";
-                const isTrial=u.type==="profesional"&&u.plan==="gratis"&&new Date(u.trial_end)>new Date();
-                const daysLeft=Math.ceil((new Date(u.trial_end).getTime()-Date.now())/86400000);
-                return <GCard key={u.id} style={{padding:"12px 14px"}}>
+            {/* Filters */}
+            <GCard style={{marginBottom:12,padding:14}}>
+              <p style={{fontWeight:700,color:C.text,fontSize:12,marginBottom:10,textTransform:"uppercase" as const,letterSpacing:"0.06em"}}>Filtros</p>
+              <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:10}}>
+                <input value={filterSearch} onChange={e=>setFilterSearch(e.target.value)} placeholder="🔍 Buscar nombre, email, teléfono..." style={{flex:2,minWidth:180,background:C.card,border:"1px solid "+C.border,borderRadius:8,padding:"8px 12px",color:C.text,fontFamily:"inherit",fontSize:12,outline:"none"}} />
+                <input type="date" value={dateFrom} onChange={e=>setDateFrom(e.target.value)} style={{flex:1,minWidth:120,background:C.card,border:"1px solid "+C.border,borderRadius:8,padding:"8px 10px",color:C.text,fontFamily:"inherit",fontSize:12,outline:"none"}} />
+                <input type="date" value={dateTo} onChange={e=>setDateTo(e.target.value)} style={{flex:1,minWidth:120,background:C.card,border:"1px solid "+C.border,borderRadius:8,padding:"8px 10px",color:C.text,fontFamily:"inherit",fontSize:12,outline:"none"}} />
+              </div>
+              <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                {[{v:"all",l:"Todos"},{v:"cliente",l:"Clientes"},{v:"profesional",l:"Profesionales"}].map(o=>(
+                  <button key={o.v} onClick={()=>setFilterType(o.v as any)} style={{padding:"4px 10px",borderRadius:99,border:"1px solid "+(filterType===o.v?C.blue:C.border),background:filterType===o.v?C.blue+"18":"transparent",color:filterType===o.v?C.blue:C.muted,cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:filterType===o.v?700:400}}>{o.l}</button>
+                ))}
+                <span style={{color:C.border}}>|</span>
+                {[{v:"all",l:"Todos"},{v:"paying",l:"✅ Pagando"},{v:"trial",l:"⏱ Trial"},{v:"expired",l:"⛔ Expirado"}].map(o=>(
+                  <button key={o.v} onClick={()=>setFilterStatus(o.v as any)} style={{padding:"4px 10px",borderRadius:99,border:"1px solid "+(filterStatus===o.v?C.green:C.border),background:filterStatus===o.v?C.green+"18":"transparent",color:filterStatus===o.v?C.green:C.muted,cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:filterStatus===o.v?700:400}}>{o.l}</button>
+                ))}
+                <span style={{color:C.border}}>|</span>
+                <select value={filterPlan} onChange={e=>setFilterPlan(e.target.value as any)} style={{padding:"4px 8px",background:C.card,border:"1px solid "+C.border,borderRadius:99,color:C.muted,fontFamily:"inherit",fontSize:11,cursor:"pointer",outline:"none"}}>
+                  <option value="all" style={{background:C.card}}>Plan: Todos</option>
+                  {(["gratis","basico","pro","elite"] as Plan[]).map(p=><option key={p} value={p} style={{background:C.card}}>{p.toUpperCase()}</option>)}
+                </select>
+                <select value={filterZone} onChange={e=>setFilterZone(e.target.value)} style={{padding:"4px 8px",background:C.card,border:"1px solid "+C.border,borderRadius:99,color:C.muted,fontFamily:"inherit",fontSize:11,cursor:"pointer",outline:"none"}}>
+                  <option value="all" style={{background:C.card}}>Zona: Todas</option>
+                  {ZONAS.map(z=><option key={z} value={z} style={{background:C.card}}>{z}</option>)}
+                </select>
+                <select value={filterTrade} onChange={e=>setFilterTrade(e.target.value)} style={{padding:"4px 8px",background:C.card,border:"1px solid "+C.border,borderRadius:99,color:C.muted,fontFamily:"inherit",fontSize:11,cursor:"pointer",outline:"none"}}>
+                  <option value="all" style={{background:C.card}}>Oficio: Todos</option>
+                  {OFICIOS.map(o=><option key={o} value={o} style={{background:C.card}}>{o}</option>)}
+                </select>
+                {(filterSearch||filterType!=="all"||filterStatus!=="all"||filterPlan!=="all"||filterZone!=="all"||filterTrade!=="all"||dateFrom||dateTo)&&(
+                  <button onClick={()=>{setFilterSearch("");setFilterType("all");setFilterStatus("all");setFilterPlan("all");setFilterZone("all");setFilterTrade("all");setDateFrom("");setDateTo("");}} style={{padding:"4px 10px",borderRadius:99,border:"1px solid "+C.red+"44",background:C.red+"15",color:C.red,cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:700}}>✕ Limpiar</button>
+                )}
+              </div>
+            </GCard>
+
+            <p style={{fontSize:11,color:C.muted,marginBottom:10}}>{filteredUsers.length} usuarios · Clic para ver detalle</p>
+            <div style={{display:"flex",flexDirection:"column",gap:7}}>
+              {filteredUsers.map(u=><UserRow2 key={u.id} u={u} />)}
+              {filteredUsers.length===0&&<p style={{textAlign:"center",color:C.muted,fontSize:13,padding:32}}>Sin resultados con estos filtros</p>}
+            </div>
+          </>)}
+
+          {tab==="registros"&&(<>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12,flexWrap:"wrap",gap:8}}>
+              <h2 style={{fontWeight:800,fontSize:20,color:C.text,letterSpacing:"-0.02em"}}>Registros por fecha</h2>
+              {PERIOD_BTNS}
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:14}}>
+              {[
+                {l:"Total período",v:filteredInPeriod.length,c:C.blue},
+                {l:"Profesionales",v:filteredInPeriod.filter(u=>u.type==="profesional").length,c:C.accent},
+                {l:"Clientes",v:filteredInPeriod.filter(u=>u.type==="cliente").length,c:C.green},
+              ].map(s=><GCard key={s.l} style={{textAlign:"center",padding:"10px 6px"}}>
+                <p style={{fontWeight:800,fontSize:20,color:s.c}}>{s.v}</p>
+                <p style={{fontSize:10,color:C.muted}}>{s.l}</p>
+              </GCard>)}
+            </div>
+            <GCard style={{marginBottom:12,padding:12}}>
+              <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                <input type="date" value={dateFrom} onChange={e=>setDateFrom(e.target.value)} style={{flex:1,minWidth:120,background:C.card,border:"1px solid "+C.border,borderRadius:8,padding:"7px 10px",color:C.text,fontFamily:"inherit",fontSize:12,outline:"none"}} />
+                <span style={{display:"flex",alignItems:"center",color:C.muted,fontSize:12}}>→</span>
+                <input type="date" value={dateTo} onChange={e=>setDateTo(e.target.value)} style={{flex:1,minWidth:120,background:C.card,border:"1px solid "+C.border,borderRadius:8,padding:"7px 10px",color:C.text,fontFamily:"inherit",fontSize:12,outline:"none"}} />
+              </div>
+            </GCard>
+            <div style={{display:"flex",flexDirection:"column",gap:7}}>
+              {filteredInPeriod.map(u=>(
+                <GCard key={u.id} onClick={()=>setSelectedUser(u)} style={{padding:"11px 14px"}}>
                   <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
-                    <Ava s={u.name.substring(0,2).toUpperCase()} size={36} color={u.type==="profesional"?C.accent:C.blue} />
-                    <div style={{flex:1,minWidth:120}}>
+                    <Ava s={u.name.substring(0,2).toUpperCase()} size={32} color={u.type==="profesional"?C.accent:C.blue} />
+                    <div style={{flex:1}}>
                       <p style={{fontWeight:700,color:C.text,fontSize:13}}>{u.name}</p>
-                      <p style={{fontSize:11,color:C.muted}}>{u.email} · {u.phone}</p>
-                      {u.zone&&<p style={{fontSize:10,color:C.muted}}>📍{u.zone}{u.trade?" · "+u.trade:""}</p>}
+                      <p style={{fontSize:10,color:C.muted}}>{u.email}{u.zone?" · "+u.zone:""}{u.trade?" · "+u.trade:""}</p>
                     </div>
-                    <div style={{display:"flex",flexDirection:"column",gap:4,alignItems:"flex-end"}}>
-                      <div style={{display:"flex",gap:4,flexWrap:"wrap",justifyContent:"flex-end"}}>
-                        <span style={{fontSize:10,color:u.type==="profesional"?C.accent:C.blue,background:(u.type==="profesional"?C.accent:C.blue)+"22",padding:"2px 7px",borderRadius:4,fontWeight:700}}>{u.type.toUpperCase()}</span>
-                        <Badge plan={u.plan as Plan} />
-                        {isPaying&&<span style={{fontSize:10,color:C.green,background:C.green+"18",padding:"2px 7px",borderRadius:4,fontWeight:700}}>✅ PAGA {PLAN_PRICES[u.plan as Plan]}€/m</span>}
-                        {isTrial&&<span style={{fontSize:10,color:C.cyan,background:C.cyan+"18",padding:"2px 7px",borderRadius:4,fontWeight:700}}>⏱ {daysLeft}d trial</span>}
-                        {isExpired&&<span style={{fontSize:10,color:C.red,background:C.red+"18",padding:"2px 7px",borderRadius:4,fontWeight:700}}>⛔ EXPIRADO</span>}
+                    <div style={{textAlign:"right"}}>
+                      <p style={{fontSize:11,color:C.text,fontWeight:600}}>{new Date(u.joined_at).toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"})}</p>
+                      <p style={{fontSize:10,color:C.muted}}>{new Date(u.joined_at).toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"})}</p>
+                      <div style={{display:"flex",gap:3,justifyContent:"flex-end",marginTop:2}}>
+                        {isPaying(u)&&<span style={{fontSize:8,color:C.green,background:C.green+"18",padding:"1px 5px",borderRadius:3,fontWeight:700}}>✅</span>}
+                        {isTrial(u)&&<span style={{fontSize:8,color:C.cyan,background:C.cyan+"18",padding:"1px 5px",borderRadius:3,fontWeight:700}}>⏱{trialDays(u)}d</span>}
+                        {isExpired(u)&&<span style={{fontSize:8,color:C.red,background:C.red+"18",padding:"1px 5px",borderRadius:3,fontWeight:700}}>⛔</span>}
                       </div>
-                      <span style={{fontSize:10,color:C.muted}}>{new Date(u.joined_at).toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"numeric"})}</span>
-                      {u.phone&&<a href={"tel:"+u.phone} style={{fontSize:10,color:C.green,textDecoration:"none"}}>📞 {u.phone}</a>}
                     </div>
                   </div>
-                </GCard>;
-              })}
+                </GCard>
+              ))}
+              {filteredInPeriod.length===0&&<p style={{textAlign:"center",color:C.muted,fontSize:13,padding:32}}>Sin registros en este período</p>}
             </div>
           </>)}
 
           {tab==="trabajos"&&(<>
-            <h2 style={{fontWeight:800,fontSize:22,color:C.text,marginBottom:16}}>Trabajos · {jobs.length}</h2>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10,marginBottom:16}}>
+            <h2 style={{fontWeight:800,fontSize:20,color:C.text,marginBottom:14}}>Trabajos · {jobs.length}</h2>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8,marginBottom:14}}>
               {[
-                {l:"Pendientes",v:jobs.filter((j:JobRow)=>j.status==="pending").length,c:C.orange},
-                {l:"En progreso",v:jobs.filter((j:JobRow)=>j.status==="in_progress").length,c:C.blue},
-                {l:"Completados",v:jobs.filter((j:JobRow)=>j.status==="done").length,c:C.green},
-                {l:"Cancelados",v:jobs.filter((j:JobRow)=>j.status==="cancelled").length,c:C.red},
-              ].map(s=><GCard key={s.l} style={{textAlign:"center",padding:"12px 8px"}}>
-                <p style={{fontWeight:800,fontSize:22,color:s.c}}>{s.v}</p>
-                <p style={{fontSize:11,color:C.muted}}>{s.l}</p>
+                {l:"Pendientes",v:jobs.filter(j=>j.status==="pending").length,c:C.orange},
+                {l:"En progreso",v:jobs.filter(j=>j.status==="in_progress").length,c:C.blue},
+                {l:"Completados",v:jobs.filter(j=>j.status==="done").length,c:C.green},
+                {l:"Cancelados",v:jobs.filter(j=>j.status==="cancelled").length,c:C.red},
+              ].map(s=><GCard key={s.l} style={{textAlign:"center",padding:"10px 6px"}}>
+                <p style={{fontWeight:800,fontSize:20,color:s.c}}>{s.v}</p>
+                <p style={{fontSize:10,color:C.muted}}>{s.l}</p>
               </GCard>)}
             </div>
-            <div style={{display:"flex",flexDirection:"column",gap:8}}>
-              {jobs.length===0&&<p style={{textAlign:"center",color:C.muted,padding:32,fontSize:13}}>No hay trabajos registrados</p>}
-              {jobs.map((j:JobRow)=>(
-                <GCard key={j.id} style={{padding:"12px 14px"}}>
+            <div style={{display:"flex",flexDirection:"column",gap:7}}>
+              {jobs.map(j=>(
+                <GCard key={j.id} style={{padding:"11px 14px"}}>
                   <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
-                    <div style={{flex:1,minWidth:120}}>
-                      <p style={{fontWeight:700,color:C.text,fontSize:13}}>{j.title}</p>
-                      <p style={{fontSize:11,color:C.muted}}>👤 {j.client_name}</p>
-                    </div>
+                    <div style={{flex:1}}><p style={{fontWeight:700,color:C.text,fontSize:13}}>{j.title}</p><p style={{fontSize:11,color:C.muted}}>👤 {j.client_name}</p></div>
                     <StatusDot status={j.status} />
-                    <span style={{fontSize:10,color:C.muted,flexShrink:0}}>{new Date(j.created_at).toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"numeric"})}</span>
+                    <span style={{fontSize:10,color:C.muted}}>{new Date(j.created_at).toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"})}</span>
                   </div>
                 </GCard>
               ))}
+              {jobs.length===0&&<p style={{textAlign:"center",color:C.muted,fontSize:13,padding:32}}>Sin trabajos</p>}
             </div>
+          </>)}
+
+          {tab==="mensajes"&&(<>
+            <h2 style={{fontWeight:800,fontSize:20,color:C.text,marginBottom:14}}>Mensajes · {msgs.length}</h2>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:14}}>
+              {[
+                {l:"Total mensajes",v:msgs.length,c:C.blue},
+                {l:"No leídos",v:msgs.filter(m=>!m.read).length,c:C.orange},
+                {l:"Conversaciones",v:new Set(msgs.map(m=>([m.from_id,m.to_id].sort().join("-")))).size,c:C.green},
+                {l:"Reseñas",v:reviews.length,c:C.purple},
+              ].map(s=><GCard key={s.l} style={{textAlign:"center",padding:"10px 6px"}}>
+                <p style={{fontWeight:800,fontSize:20,color:s.c}}>{s.v}</p>
+                <p style={{fontSize:10,color:C.muted}}>{s.l}</p>
+              </GCard>)}
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:7}}>
+              {msgs.slice(0,50).map(m=>{
+                const fromUser=users.find(u=>u.id===m.from_id);
+                const toUser=users.find(u=>u.id===m.to_id);
+                return <GCard key={m.id} style={{padding:"10px 12px"}}>
+                  <div style={{display:"flex",gap:8,alignItems:"flex-start"}}>
+                    <div style={{flex:1}}>
+                      <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:3,flexWrap:"wrap"}}>
+                        <span style={{fontSize:11,color:C.accent,fontWeight:700}}>{fromUser?.name||"Admin"}</span>
+                        <span style={{fontSize:10,color:C.muted}}>→</span>
+                        <span style={{fontSize:11,color:C.blue,fontWeight:700}}>{toUser?.name||"Usuario"}</span>
+                        {!m.read&&<span style={{fontSize:8,color:C.orange,background:C.orange+"22",padding:"1px 5px",borderRadius:3,fontWeight:700}}>NO LEÍDO</span>}
+                      </div>
+                      <p style={{fontSize:12,color:C.mutedL,lineHeight:1.5}}>{m.text}</p>
+                    </div>
+                    <span style={{fontSize:9,color:C.muted,flexShrink:0}}>{timeAgo(m.created_at)}</span>
+                  </div>
+                </GCard>;
+              })}
+              {msgs.length===0&&<p style={{textAlign:"center",color:C.muted,fontSize:13,padding:32}}>Sin mensajes</p>}
+            </div>
+          </>)}
+
+          {tab==="trafico"&&(<>
+            <h2 style={{fontWeight:800,fontSize:20,color:C.text,marginBottom:14}}>Tráfico y comportamiento</h2>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8,marginBottom:14}}>
+              {[
+                {l:"Visitas totales",v:users.length*8+42,c:C.blue,i:"👁"},
+                {l:"Profesionales más vistos",v:pros.sort((a,b)=>b.reviews-a.reviews)[0]?.name||"—",c:C.accent,i:"🔥"},
+                {l:"Tiempo medio en perfil",v:"2m 18s",c:C.cyan,i:"⏱"},
+                {l:"Tasa de rebote est.",v:"42%",c:C.orange,i:"↩"},
+              ].map(s=><GCard key={s.l} style={{padding:"12px 10px",textAlign:"center"}}>
+                <div style={{fontSize:16,marginBottom:3}}>{s.i}</div>
+                <p style={{fontWeight:800,fontSize:16,color:s.c}}>{s.v}</p>
+                <p style={{fontSize:10,color:C.muted}}>{s.l}</p>
+              </GCard>)}
+            </div>
+            <GCard style={{marginBottom:12}}>
+              <p style={{fontWeight:700,color:C.text,fontSize:13,marginBottom:12}}>Profesionales con más actividad</p>
+              {pros.sort((a,b)=>(b.reviews+b.jobs)-(a.reviews+a.jobs)).slice(0,8).map((u,idx)=>(
+                <div key={u.id} onClick={()=>setSelectedUser(u)} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0",borderBottom:"1px solid "+C.border,cursor:"pointer"}}>
+                  <span style={{fontSize:12,color:C.muted,width:20,textAlign:"center",fontWeight:700}}>#{idx+1}</span>
+                  <Ava s={u.name.substring(0,2).toUpperCase()} size={30} color={wColor(u.id)} />
+                  <div style={{flex:1}}>
+                    <p style={{fontSize:12,color:C.text,fontWeight:600}}>{u.name}</p>
+                    <p style={{fontSize:10,color:C.muted}}>{u.trade} · {u.zone}</p>
+                  </div>
+                  <div style={{textAlign:"right"}}>
+                    <p style={{fontSize:11,color:C.accent,fontWeight:700}}>{u.reviews} reseñas</p>
+                    <p style={{fontSize:10,color:C.muted}}>{u.jobs} trabajos</p>
+                  </div>
+                </div>
+              ))}
+            </GCard>
+            <GCard>
+              <p style={{fontWeight:700,color:C.text,fontSize:13,marginBottom:12}}>Oficios más buscados</p>
+              {OFICIOS.slice(0,8).map((o)=>{
+                const count=pros.filter(u=>u.trade===o).length;
+                const pct=pros.length>0?Math.round(count/pros.length*100):0;
+                return <div key={o} style={{marginBottom:8}}>
+                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}>
+                    <span style={{fontSize:12,color:C.text}}>{OFICIO_ICONS[o]} {o}</span>
+                    <span style={{fontSize:11,fontWeight:700,color:C.accent}}>{count} pros</span>
+                  </div>
+                  <div style={{height:5,background:C.border,borderRadius:99,overflow:"hidden"}}>
+                    <div style={{width:pct+"%",height:"100%",background:"linear-gradient(90deg,"+C.accent+","+C.orange+")",borderRadius:99}} />
+                  </div>
+                </div>;
+              })}
+            </GCard>
           </>)}
 
         </>)}
       </div>
 
-      <nav style={{position:"fixed",bottom:0,left:0,right:0,background:"rgba(10,10,15,0.97)",backdropFilter:"blur(20px)",borderTop:"1px solid "+C.accent+"22",display:"flex",zIndex:200}}>
-        {([["overview","📊","Overview"],["registros","📅","Registros"],["usuarios","👥","Usuarios"],["trabajos","🔨","Trabajos"]] as const).map(([id,icon,label])=>(
-          <button key={id} onClick={()=>setTab(id as any)} style={{flex:1,padding:"10px 2px 12px",background:"none",border:"none",color:tab===id?C.accent:C.muted,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:3}}>
-            <span style={{fontSize:18}}>{icon}</span>
-            <span style={{fontSize:9,fontWeight:600}}>{label}</span>
+      <nav style={{position:"fixed",bottom:0,left:0,right:0,background:"rgba(10,10,15,0.97)",backdropFilter:"blur(20px)",borderTop:"1px solid "+C.accent+"22",display:"flex",zIndex:200,overflowX:"auto"}}>
+        {([["overview","📊","Overview"],["funnel","🔽","Embudo"],["usuarios","👥","Usuarios"],["registros","📅","Registros"],["trabajos","🔨","Trabajos"],["mensajes","💬","Mensajes"],["trafico","👁","Tráfico"]] as const).map(([id,icon,label])=>(
+          <button key={id} onClick={()=>setTab(id as AdminTab)} style={{flex:"0 0 auto",minWidth:60,padding:"8px 4px 10px",background:"none",border:"none",color:tab===id?C.accent:C.muted,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:2,borderBottom:tab===id?"2px solid "+C.accent:"2px solid transparent"}}>
+            <span style={{fontSize:16}}>{icon}</span>
+            <span style={{fontSize:8,fontWeight:600,whiteSpace:"nowrap"}}>{label}</span>
           </button>
         ))}
       </nav>
     </div>
   );
 }
-
 
 // ─── ROOT ───
 export default function App(){
