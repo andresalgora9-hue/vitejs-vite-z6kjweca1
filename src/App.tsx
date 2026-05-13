@@ -10,9 +10,52 @@ const C = {
   text:"#F0F0FA", muted:"#44445A", mutedL:"#7777AA",
 };
 
-const ZONAS = ["Sevilla","Madrid","Barcelona","Valencia","Málaga","Bilbao","Zaragoza","Alicante","Granada","Cádiz","Córdoba","Huelva","Toledo","Salamanca","Valladolid"];
-const OFICIOS = ["Electricista","Fontanero","Pintor","Albañil","Carpintero","Cerrajero","Jardinero","Soldador","Climatización","Reformas Integrales","Instalador Solar","Yesero","Técnico de Gas","Fumigador","Techador"];
-const OFICIO_ICONS:Record<string,string> = {"Electricista":"⚡","Fontanero":"🔧","Pintor":"🖌️","Albañil":"🧱","Carpintero":"🪵","Cerrajero":"🔑","Jardinero":"🌿","Soldador":"🔥","Climatización":"❄️","Reformas Integrales":"🏗️","Instalador Solar":"☀️","Yesero":"🏛️","Técnico de Gas":"🔩","Fumigador":"🪲","Techador":"🏠"};
+const ZONAS = [
+  "Sevilla","Madrid","Barcelona","Valencia","Málaga","Bilbao","Zaragoza","Alicante","Granada","Cádiz","Córdoba","Huelva",
+];
+// Sevilla neighborhoods for map filtering
+const SEVILLA_ZONAS = [
+  "Centro / Casco Antiguo","Triana","Los Remedios","Nervión","La Macarena",
+  "San Pablo / Santa Justa","Bellavista / La Palmera","Cerro-Amate","Sur","Este / Alcosa / Torreblanca",
+  "Norte","Camas","Dos Hermanas","Alcalá de Guadaíra","Mairena del Aljarafe",
+  "San Juan de Aznalfarache","Bormujos","Tomares","Gelves","La Rinconada"
+];
+const OFICIOS = [
+  // Técnicos y servicios
+  "Electricista","Fontanero","Pintor","Albañil","Carpintero","Cerrajero","Jardinero",
+  "Soldador","Climatización","Reformas Integrales","Instalador Solar","Yesero",
+  "Técnico de Gas","Fumigador","Techador","Tapicero","Mecánico","Cocinero","Zapatero",
+  "Montador de Estructuras",
+  // Tradición sevillana
+  "Ceramista / Alfarero","Bordador de Oro y Seda","Orfebre","Guarnicionero",
+  "Costurero/a Flamenca","Lutier","Imaginero / Escultor","Abaniquero",
+  "Encuadernador Artesanal","Tallista de Castañuelas",
+];
+const OFICIO_CATEGORIES: Record<string,string> = {
+  "Electricista":"⚡ Técnico","Fontanero":"🔧 Técnico","Pintor":"🖌️ Técnico",
+  "Albañil":"🧱 Técnico","Carpintero":"🪵 Técnico","Cerrajero":"🔑 Técnico",
+  "Jardinero":"🌿 Servicios","Soldador":"🔥 Técnico","Climatización":"❄️ Técnico",
+  "Reformas Integrales":"🏗️ Técnico","Instalador Solar":"☀️ Técnico","Yesero":"🏛️ Técnico",
+  "Técnico de Gas":"🔩 Técnico","Fumigador":"🪲 Servicios","Techador":"🏠 Técnico",
+  "Tapicero":"🪑 Técnico","Mecánico":"🚗 Técnico","Cocinero":"👨‍🍳 Hostelería",
+  "Zapatero":"👟 Servicios","Montador de Estructuras":"🎪 Eventos",
+  "Ceramista / Alfarero":"🏺 Artesanía","Bordador de Oro y Seda":"🧵 Artesanía",
+  "Orfebre":"💍 Artesanía","Guarnicionero":"🐴 Artesanía",
+  "Costurero/a Flamenca":"💃 Artesanía","Lutier":"🎸 Artesanía",
+  "Imaginero / Escultor":"⛪ Artesanía","Abaniquero":"🪭 Artesanía",
+  "Encuadernador Artesanal":"📚 Artesanía","Tallista de Castañuelas":"🎵 Artesanía",
+};
+const OFICIO_ICONS:Record<string,string> = {
+  "Electricista":"⚡","Fontanero":"🔧","Pintor":"🖌️","Albañil":"🧱","Carpintero":"🪵",
+  "Cerrajero":"🔑","Jardinero":"🌿","Soldador":"🔥","Climatización":"❄️",
+  "Reformas Integrales":"🏗️","Instalador Solar":"☀️","Yesero":"🏛️",
+  "Técnico de Gas":"🔩","Fumigador":"🪲","Techador":"🏠","Tapicero":"🪑",
+  "Mecánico":"🚗","Cocinero":"👨‍🍳","Zapatero":"👟","Montador de Estructuras":"🎪",
+  "Ceramista / Alfarero":"🏺","Bordador de Oro y Seda":"🧵","Orfebre":"💍",
+  "Guarnicionero":"🐴","Costurero/a Flamenca":"💃","Lutier":"🎸",
+  "Imaginero / Escultor":"⛪","Abaniquero":"🪭",
+  "Encuadernador Artesanal":"📚","Tallista de Castañuelas":"🎵",
+};
 const SCHEDULES = ["Lunes a Viernes","Lunes a Sábado","Todos los días","Fines de semana","Urgencias 24h"];
 const RESPONSE_TIMES = ["Menos de 1h","Menos de 2h","Menos de 4h","Mismo día","24 horas"];
 const PLAN_COLORS:Record<Plan,string> = {gratis:"#7777AA",basico:"#3B82F6",pro:"#FFD700",elite:"#FF8C00"};
@@ -577,6 +620,10 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
   const [oficio,setOficio]=useState("Todos");
   const [search,setSearch]=useState("");
   const [soloDisp,setSoloDisp]=useState(false);
+  const [catFilter,setCatFilter]=useState("Todos");
+  const [showMap,setShowMap]=useState(false);
+  const [mapZone,setMapZone]=useState("");
+  const [showQuickMatch,setShowQuickMatch]=useState(false);
   const [workers,setWorkers]=useState<UserRow[]>([]);
   const [loading,setLoading]=useState(true);
   const [selectedWorker,setSelectedWorker]=useState<UserRow|null>(null);
@@ -598,7 +645,7 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
       return order[b.plan as Plan]-order[a.plan as Plan]||b.rating-a.rating;
     });
     setWorkers(sorted); setLoading(false);
-  },[zona,oficio,search,soloDisp]);
+  },[zona,oficio,search,soloDisp,mapZone]);
 
   useEffect(()=>{loadWorkers();},[loadWorkers]);
 
@@ -660,16 +707,31 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
                 {OFICIOS.map(o=><option key={o} style={{background:C.card}}>{o}</option>)}
               </select>
             </div>
-            <label style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer",fontSize:13,color:C.mutedL}}>
-              <input type="checkbox" checked={soloDisp} onChange={e=>setSoloDisp(e.target.checked)} style={{accentColor:C.accent,width:15,height:15}} />
-              Solo disponibles ahora
-            </label>
+            <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
+              <label style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer",fontSize:13,color:C.mutedL}}>
+                <input type="checkbox" checked={soloDisp} onChange={e=>setSoloDisp(e.target.checked)} style={{accentColor:C.accent,width:15,height:15}} />
+                Solo disponibles ahora
+              </label>
+              <button onClick={()=>setShowMap(!showMap)} style={{display:"flex",alignItems:"center",gap:6,padding:"6px 12px",borderRadius:99,border:"1px solid "+(showMap?C.accent:C.border),background:showMap?C.accent+"18":"transparent",color:showMap?C.accent:C.muted,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:showMap?700:400,transition:"all 0.15s"}}>
+                🗺️ {showMap?"Ocultar mapa":"Ver en mapa"}
+              </button>
+            </div>
+            {showMap&&<SevillaMap selectedZone={mapZone} onZoneSelect={z=>{setMapZone(z===mapZone?"":z);}} />}
           </div>
 
-          <div style={{display:"flex",gap:7,overflowX:"auto",paddingBottom:4,marginBottom:14}}>
-            {["Todos",...OFICIOS.slice(0,8)].map(o=>(
-              <button key={o} onClick={()=>setOficio(o)} style={{flexShrink:0,padding:"6px 12px",borderRadius:99,border:"1px solid "+(oficio===o?C.accent:C.border),background:oficio===o?C.accent+"18":"transparent",color:oficio===o?C.accent:C.muted,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:oficio===o?700:400,whiteSpace:"nowrap",transition:"all 0.15s"}}>
-                {o!=="Todos"&&OFICIO_ICONS[o]+" "}{o}
+          {/* Category tabs */}
+          <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:4,marginBottom:8}}>
+            {["Todos","⚡ Técnico","🌿 Servicios","🏺 Artesanía","👨‍🍳 Hostelería","🎪 Eventos"].map(cat=>(
+              <button key={cat} onClick={()=>{setCatFilter(cat);setOficio("Todos");}} style={{flexShrink:0,padding:"6px 14px",borderRadius:99,border:"1px solid "+(catFilter===cat?C.accent:C.border),background:catFilter===cat?C.accent+"22":"transparent",color:catFilter===cat?C.accent:C.muted,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:catFilter===cat?700:400,whiteSpace:"nowrap",transition:"all 0.15s"}}>
+                {cat}
+              </button>
+            ))}
+          </div>
+          {/* Oficio pills filtered by category */}
+          <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:4,marginBottom:14}}>
+            {["Todos",...OFICIOS.filter(o=>catFilter==="Todos"||OFICIO_CATEGORIES[o]===catFilter)].map(o=>(
+              <button key={o} onClick={()=>setOficio(o)} style={{flexShrink:0,padding:"5px 11px",borderRadius:99,border:"1px solid "+(oficio===o?C.blue:C.border),background:oficio===o?C.blue+"22":"transparent",color:oficio===o?C.blue:C.muted,cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:oficio===o?700:400,whiteSpace:"nowrap",transition:"all 0.15s"}}>
+                {o!=="Todos"&&(OFICIO_ICONS[o]||"🔧")+" "}{o}
               </button>
             ))}
           </div>
@@ -683,8 +745,20 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
             ))}
           </div>
 
+
+            {/* QUICK MATCH — Encuentra profesional en 30 segundos */}
+            <div style={{background:"linear-gradient(135deg,"+C.accent+"18,"+C.orange+"10)",borderRadius:14,border:"1px solid "+C.accent+"33",padding:"14px 16px",marginBottom:16,display:"flex",alignItems:"center",gap:12}}>
+              <div style={{fontSize:28}}>⚡</div>
+              <div style={{flex:1}}>
+                <p style={{fontWeight:700,color:C.text,fontSize:14,marginBottom:2}}>¿Necesitas un profesional ahora?</p>
+                <p style={{fontSize:12,color:C.muted}}>Te conectamos con el disponible más cercano en segundos</p>
+              </div>
+              <button onClick={()=>setShowQuickMatch(true)} style={{padding:"10px 16px",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:10,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,cursor:"pointer",whiteSpace:"nowrap",boxShadow:"0 4px 14px "+C.accent+"44"}}>
+                Buscar →
+              </button>
+            </div>
           {loading?<Spin />:(<>
-            <p style={{fontSize:12,color:C.muted,marginBottom:12}}><span style={{color:C.text,fontWeight:700}}>{workers.length}</span> profesionales{zona!=="Todas"?" en "+zona:""}</p>
+            <p style={{fontSize:12,color:C.muted,marginBottom:12}}><span style={{color:C.text,fontWeight:700}}>{workers.length}</span> profesionales{zona!=="Todas"?" en "+zona:(mapZone?" en "+mapZone:"")}  {mapZone&&<button onClick={()=>setMapZone("")} style={{background:"none",border:"none",color:C.accent,cursor:"pointer",fontSize:11,fontWeight:700}}>✕ {mapZone}</button>}</p>
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(265px,1fr))",gap:12}}>
               {workers.map(w=><WorkerCard key={w.id} w={w} onClick={()=>setSelectedWorker(w)} />)}
               {workers.length===0&&<div style={{gridColumn:"1/-1",textAlign:"center",padding:48,color:C.muted}}>
@@ -756,6 +830,7 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
         ))}
       </nav>
 
+      {showQuickMatch&&<QuickMatchModal workers={workers} onClose={()=>setShowQuickMatch(false)} onSelect={w=>{setShowQuickMatch(false);setSelectedWorker(w);}} />}
       {selectedWorker&&<WorkerSheet worker={selectedWorker} onClose={()=>setSelectedWorker(null)} onChat={w=>{setSelectedWorker(null);setChatWorker(w);showToast("Chat abierto con "+w.name);}} onWhatsApp={handleWhatsApp} currentUser={user} />}
       {chatWorker&&<ChatPanel toUser={chatWorker} currentUser={user} onClose={()=>setChatWorker(null)} />}
       <Ping msg={toast} />
@@ -1820,6 +1895,169 @@ export default function App(){
     {user&&user.type==="profesional"&&<ProDashboard user={user} onLogout={logout} onUpdate={update} />}
     {user&&user.type==="cliente"&&<ClientHome user={user} onLogout={logout} />}
   </>);
+}
+
+
+
+// ─── QUICK MATCH MODAL ───
+function QuickMatchModal({workers,onClose,onSelect}:{workers:UserRow[];onClose:()=>void;onSelect:(w:UserRow)=>void}){
+  const [step,setStep]=useState(0);
+  const [trade,setTrade]=useState("");
+  const [zone,setZone]=useState("");
+  const [urgency,setUrgency]=useState<string>(""); void urgency;
+
+  const topTrades = ["Electricista","Fontanero","Albañil","Pintor","Carpintero","Cerrajero","Climatización","Mecánico","Cocinero","Ceramista / Alfarero","Costurero/a Flamenca","Lutier"];
+  
+  const matches = workers.filter(w=>
+    (!trade||w.trade===trade)&&
+    (!zone||w.zone===zone||(w.service_zones||[]).includes(zone))&&
+    w.available
+  ).sort((a,b)=>b.rating-a.rating).slice(0,3);
+
+  return (
+    <Sheet onClose={onClose} title="⚡ Encuentra tu profesional">
+      {/* Progress */}
+      <div style={{display:"flex",gap:4,marginBottom:20}}>
+        {[0,1,2,3].map(s=><div key={s} style={{flex:1,height:4,borderRadius:99,background:s<=step?C.accent:C.border,transition:"background 0.3s"}} />)}
+      </div>
+
+      {step===0&&(<>
+        <p style={{fontWeight:700,color:C.text,fontSize:15,marginBottom:4}}>¿Qué profesional necesitas?</p>
+        <p style={{fontSize:12,color:C.muted,marginBottom:14}}>Selecciona el tipo de servicio</p>
+        <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:20}}>
+          {topTrades.map(t=>(
+            <button key={t} onClick={()=>{setTrade(t);setStep(1);}} style={{padding:"10px 14px",borderRadius:10,border:"1px solid "+(trade===t?C.accent:C.border),background:trade===t?C.accent+"18":C.surface,color:trade===t?C.accent:C.text,cursor:"pointer",fontSize:13,fontFamily:"'DM Sans',sans-serif",fontWeight:600,display:"flex",alignItems:"center",gap:6,transition:"all 0.15s"}}>
+              <span>{OFICIO_ICONS[t]||"🔧"}</span>{t}
+            </button>
+          ))}
+        </div>
+        <Btn outline full onClick={()=>setStep(1)} color={C.muted} small>Saltar → Ver todos</Btn>
+      </>)}
+
+      {step===1&&(<>
+        <p style={{fontWeight:700,color:C.text,fontSize:15,marginBottom:4}}>¿En qué zona de Sevilla?</p>
+        <p style={{fontSize:12,color:C.muted,marginBottom:14}}>Para mostrarte los más cercanos</p>
+        <div style={{display:"flex",flexWrap:"wrap",gap:7,marginBottom:20}}>
+          {SEVILLA_ZONAS.slice(0,12).map(z=>(
+            <button key={z} onClick={()=>{setZone(z);setStep(2);}} style={{padding:"8px 12px",borderRadius:10,border:"1px solid "+(zone===z?C.blue:C.border),background:zone===z?C.blue+"18":C.surface,color:zone===z?C.blue:C.text,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:zone===z?700:400,transition:"all 0.15s"}}>
+              📍 {z}
+            </button>
+          ))}
+        </div>
+        <Btn outline full onClick={()=>setStep(2)} color={C.muted} small>No importa la zona →</Btn>
+      </>)}
+
+      {step===2&&(<>
+        <p style={{fontWeight:700,color:C.text,fontSize:15,marginBottom:4}}>¿Con qué urgencia?</p>
+        <p style={{fontSize:12,color:C.muted,marginBottom:14}}>Te mostramos los que pueden verte antes</p>
+        <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:20}}>
+          {[{v:"now",l:"🚨 Urgente — necesito ayuda hoy",c:C.red},{v:"week",l:"📅 Esta semana — tengo tiempo",c:C.blue},{v:"quote",l:"💬 Solo quiero un presupuesto",c:C.green}].map(o=>(
+            <button key={o.v} onClick={()=>{setUrgency(o.v);setStep(3);}} style={{padding:"14px 16px",borderRadius:10,border:"1px solid "+o.c+"44",background:o.c+"12",color:C.text,cursor:"pointer",fontSize:13,fontFamily:"'DM Sans',sans-serif",fontWeight:600,textAlign:"left",transition:"all 0.15s"}}>
+              {o.l}
+            </button>
+          ))}
+        </div>
+      </>)}
+
+      {step===3&&(<>
+        <p style={{fontWeight:700,color:C.text,fontSize:15,marginBottom:4}}>
+          {matches.length>0?`✅ Encontramos ${matches.length} profesional${matches.length>1?"es":""}`:"😕 Sin resultados exactos"}
+        </p>
+        <p style={{fontSize:12,color:C.muted,marginBottom:14}}>
+          {trade&&<span style={{color:C.accent,fontWeight:600}}>{OFICIO_ICONS[trade]} {trade}</span>}{zone&&<span style={{color:C.blue}}> · 📍{zone}</span>}
+        </p>
+        {matches.length===0&&(
+          <div style={{textAlign:"center",padding:20,color:C.muted,marginBottom:14}}>
+            <p style={{fontSize:13}}>No hay profesionales disponibles ahora con esos filtros</p>
+            <button onClick={()=>{setTrade("");setZone("");setStep(3);}} style={{marginTop:10,background:"none",border:"none",color:C.accent,cursor:"pointer",fontSize:12,fontWeight:700}}>Ver todos los disponibles →</button>
+          </div>
+        )}
+        <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:14}}>
+          {matches.map(w=>{
+            const col=wColor(w.id);
+            return <GCard key={w.id} onClick={()=>onSelect(w)} glow={col} style={{padding:14}}>
+              <div style={{display:"flex",gap:12,alignItems:"center"}}>
+                <Ava s={w.name.substring(0,2).toUpperCase()} size={44} color={col} online />
+                <div style={{flex:1}}>
+                  <p style={{fontWeight:700,color:C.text,fontSize:14}}>{w.name}</p>
+                  <p style={{fontSize:12,color:col}}>{OFICIO_ICONS[w.trade||""]||"🔧"} {w.trade}</p>
+                  <div style={{display:"flex",gap:5,alignItems:"center",marginTop:2}}>
+                    <Stars n={w.rating} size={10} />
+                    <span style={{fontSize:11,color:C.text,fontWeight:700}}>{w.rating>0?w.rating.toFixed(1):"Nuevo"}</span>
+                    {w.free_quote&&<span style={{fontSize:10,color:C.green}}>· Presupuesto gratis</span>}
+                  </div>
+                </div>
+                <div style={{textAlign:"right"}}>
+                  <p style={{fontWeight:800,fontSize:18,color:C.accent}}>{w.price}€<span style={{fontSize:10,color:C.muted}}>/h</span></p>
+                  <p style={{fontSize:10,color:C.green}}>● Disponible</p>
+                </div>
+              </div>
+            </GCard>;
+          })}
+        </div>
+        <Btn full onClick={()=>{onClose();}} color={C.accent}>Ver todos los profesionales →</Btn>
+      </>)}
+    </Sheet>
+  );
+}
+
+// ─── SEVILLA MAP COMPONENT ───
+function SevillaMap({selectedZone,onZoneSelect}:{selectedZone:string;onZoneSelect:(z:string)=>void}){
+  const zones = [
+    {id:"Centro / Casco Antiguo",x:48,y:52,w:12,h:14,color:"#FF6B35"},
+    {id:"Triana",x:34,y:50,w:10,h:12,color:"#E63946"},
+    {id:"Los Remedios",x:28,y:56,w:10,h:10,color:"#457B9D"},
+    {id:"Nervión",x:56,y:44,w:12,h:10,color:"#2A9D8F"},
+    {id:"La Macarena",x:48,y:36,w:14,h:14,color:"#8338EC"},
+    {id:"San Pablo / Santa Justa",x:60,y:36,w:14,h:12,color:"#FB8500"},
+    {id:"Bellavista / La Palmera",x:38,y:66,w:12,h:10,color:"#06D6A0"},
+    {id:"Cerro-Amate",x:62,y:54,w:12,h:10,color:"#118AB2"},
+    {id:"Sur",x:46,y:66,w:12,h:10,color:"#EF476F"},
+    {id:"Este / Alcosa / Torreblanca",x:68,y:46,w:14,h:12,color:"#FFD166"},
+    {id:"Norte",x:50,y:24,w:14,h:12,color:"#06A77D"},
+    {id:"Camas",x:22,y:44,w:10,h:8,color:"#9B5DE5"},
+  ];
+
+  return (
+    <div style={{marginBottom:14,borderRadius:12,overflow:"hidden",border:"1px solid "+C.border,background:C.card}}>
+      <div style={{padding:"10px 14px",borderBottom:"1px solid "+C.border,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+        <p style={{fontSize:12,fontWeight:700,color:C.text}}>🗺️ Selecciona una zona de Sevilla</p>
+        {selectedZone&&<button onClick={()=>onZoneSelect(selectedZone)} style={{background:"none",border:"none",color:C.accent,cursor:"pointer",fontSize:11,fontWeight:700}}>✕ Quitar filtro</button>}
+      </div>
+      <div style={{position:"relative",width:"100%",paddingBottom:"75%",background:"linear-gradient(135deg,#0a1628,#0d1f3c)"}}>
+        <svg viewBox="0 0 100 100" style={{position:"absolute",inset:0,width:"100%",height:"100%"}}>
+          {/* River Guadalquivir */}
+          <path d="M 32 20 Q 36 40 34 55 Q 32 65 36 78" stroke="#1a6b8a" strokeWidth="3" fill="none" opacity="0.6" />
+          {/* Zone rectangles */}
+          {zones.map(z=>(
+            <g key={z.id} onClick={()=>onZoneSelect(z.id)} style={{cursor:"pointer"}}>
+              <rect x={z.x} y={z.y} width={z.w} height={z.h}
+                fill={selectedZone===z.id?z.color:z.color+"44"}
+                stroke={selectedZone===z.id?z.color:z.color+"88"}
+                strokeWidth={selectedZone===z.id?"0.8":"0.4"}
+                rx="1"
+                style={{transition:"all 0.2s"}}
+              />
+              <text x={z.x+z.w/2} y={z.y+z.h/2+1} textAnchor="middle" fontSize="2.2" fill={selectedZone===z.id?"#fff":z.color} fontWeight={selectedZone===z.id?"bold":"normal"}>
+                {z.id.split(" ")[0]}
+              </text>
+            </g>
+          ))}
+          {/* Center dot */}
+          <circle cx="54" cy="59" r="1.5" fill={C.accent} opacity="0.8" />
+          <text x="54" y="65" textAnchor="middle" fontSize="2" fill={C.accent+"88"}>Sevilla</text>
+        </svg>
+      </div>
+      {/* Zone pills */}
+      <div style={{padding:"10px 12px",display:"flex",gap:5,flexWrap:"wrap"}}>
+        {zones.map(z=>(
+          <button key={z.id} onClick={()=>onZoneSelect(z.id)} style={{padding:"4px 10px",borderRadius:99,border:"1px solid "+(selectedZone===z.id?z.color:C.border),background:selectedZone===z.id?z.color+"22":"transparent",color:selectedZone===z.id?z.color:C.muted,cursor:"pointer",fontSize:10,fontFamily:"'DM Sans',sans-serif",fontWeight:selectedZone===z.id?700:400,transition:"all 0.15s",whiteSpace:"nowrap"}}>
+            {z.id}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 // ─── RANKING SECTION COMPONENT ───
