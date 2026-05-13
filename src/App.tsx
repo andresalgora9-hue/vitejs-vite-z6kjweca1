@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { db, STORAGE_URL } from "./supabase";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import type { UserRow, MessageRow, JobRow, CertRow, Plan, PhotoRow } from "./supabase";
 
 const C = {
@@ -29,7 +31,7 @@ const OFICIOS = [
   // Tradición sevillana
   "Ceramista / Alfarero","Bordador de Oro y Seda","Orfebre","Guarnicionero",
   "Costurero/a Flamenca","Lutier","Imaginero / Escultor","Abaniquero",
-  "Encuadernador Artesanal","Tallista de Castañuelas",
+  "Encuadernador Artesanal","Tallista de Castañuelas","Otros servicios",
 ];
 const OFICIO_CATEGORIES: Record<string,string> = {
   "Electricista":"⚡ Técnico","Fontanero":"🔧 Técnico","Pintor":"🖌️ Técnico",
@@ -43,7 +45,7 @@ const OFICIO_CATEGORIES: Record<string,string> = {
   "Orfebre":"💍 Artesanía","Guarnicionero":"🐴 Artesanía",
   "Costurero/a Flamenca":"💃 Artesanía","Lutier":"🎸 Artesanía",
   "Imaginero / Escultor":"⛪ Artesanía","Abaniquero":"🪭 Artesanía",
-  "Encuadernador Artesanal":"📚 Artesanía","Tallista de Castañuelas":"🎵 Artesanía",
+  "Encuadernador Artesanal":"📚 Artesanía","Tallista de Castañuelas":"🎵 Artesanía","Otros servicios":"🛠️ Servicios",
 };
 const OFICIO_ICONS:Record<string,string> = {
   "Electricista":"⚡","Fontanero":"🔧","Pintor":"🖌️","Albañil":"🧱","Carpintero":"🪵",
@@ -54,7 +56,7 @@ const OFICIO_ICONS:Record<string,string> = {
   "Ceramista / Alfarero":"🏺","Bordador de Oro y Seda":"🧵","Orfebre":"💍",
   "Guarnicionero":"🐴","Costurero/a Flamenca":"💃","Lutier":"🎸",
   "Imaginero / Escultor":"⛪","Abaniquero":"🪭",
-  "Encuadernador Artesanal":"📚","Tallista de Castañuelas":"🎵",
+  "Encuadernador Artesanal":"📚","Tallista de Castañuelas":"🎵","Otros servicios":"🛠️",
 };
 const SCHEDULES = ["Lunes a Viernes","Lunes a Sábado","Todos los días","Fines de semana","Urgencias 24h"];
 const RESPONSE_TIMES = ["Menos de 1h","Menos de 2h","Menos de 4h","Mismo día","24 horas"];
@@ -2001,58 +2003,110 @@ function QuickMatchModal({workers,onClose,onSelect}:{workers:UserRow[];onClose:(
   );
 }
 
-// ─── SEVILLA MAP COMPONENT ───
+// ─── SEVILLA MAP COMPONENT (Leaflet) ───
+// Barrios de Sevilla con coordenadas reales aproximadas
+const SEVILLA_BARRIOS = [
+  { id:"Centro / Casco Antiguo", color:"#FF6B35",
+    coords:[[37.394,-5.995],[37.394,-5.975],[37.379,-5.975],[37.379,-5.995]] },
+  { id:"Triana", color:"#E63946",
+    coords:[[37.392,-6.010],[37.392,-5.997],[37.378,-5.997],[37.378,-6.010]] },
+  { id:"Los Remedios", color:"#457B9D",
+    coords:[[37.380,-6.010],[37.380,-5.997],[37.368,-5.997],[37.368,-6.010]] },
+  { id:"Nervión", color:"#2A9D8F",
+    coords:[[37.397,-5.977],[37.397,-5.960],[37.385,-5.960],[37.385,-5.977]] },
+  { id:"La Macarena", color:"#8338EC",
+    coords:[[37.410,-5.995],[37.410,-5.975],[37.395,-5.975],[37.395,-5.995]] },
+  { id:"San Pablo / Santa Justa", color:"#FB8500",
+    coords:[[37.410,-5.975],[37.410,-5.955],[37.395,-5.955],[37.395,-5.975]] },
+  { id:"Bellavista / La Palmera", color:"#06D6A0",
+    coords:[[37.368,-5.997],[37.368,-5.975],[37.355,-5.975],[37.355,-5.997]] },
+  { id:"Cerro-Amate", color:"#118AB2",
+    coords:[[37.385,-5.960],[37.385,-5.942],[37.372,-5.942],[37.372,-5.960]] },
+  { id:"Sur", color:"#EF476F",
+    coords:[[37.368,-5.975],[37.368,-5.955],[37.355,-5.955],[37.355,-5.975]] },
+  { id:"Este / Alcosa / Torreblanca", color:"#FFD166",
+    coords:[[37.397,-5.960],[37.397,-5.935],[37.378,-5.935],[37.378,-5.960]] },
+  { id:"Norte", color:"#06A77D",
+    coords:[[37.420,-5.995],[37.420,-5.960],[37.410,-5.960],[37.410,-5.995]] },
+  { id:"Camas", color:"#9B5DE5",
+    coords:[[37.402,-6.030],[37.402,-6.010],[37.390,-6.010],[37.390,-6.030]] },
+  { id:"Dos Hermanas", color:"#F72585",
+    coords:[[37.350,-5.980],[37.350,-5.950],[37.330,-5.950],[37.330,-5.980]] },
+  { id:"Alcalá de Guadaíra", color:"#4CC9F0",
+    coords:[[37.370,-5.910],[37.370,-5.880],[37.350,-5.880],[37.350,-5.910]] },
+];
+
 function SevillaMap({selectedZone,onZoneSelect}:{selectedZone:string;onZoneSelect:(z:string)=>void}){
-  const zones = [
-    {id:"Centro / Casco Antiguo",x:48,y:52,w:12,h:14,color:"#FF6B35"},
-    {id:"Triana",x:34,y:50,w:10,h:12,color:"#E63946"},
-    {id:"Los Remedios",x:28,y:56,w:10,h:10,color:"#457B9D"},
-    {id:"Nervión",x:56,y:44,w:12,h:10,color:"#2A9D8F"},
-    {id:"La Macarena",x:48,y:36,w:14,h:14,color:"#8338EC"},
-    {id:"San Pablo / Santa Justa",x:60,y:36,w:14,h:12,color:"#FB8500"},
-    {id:"Bellavista / La Palmera",x:38,y:66,w:12,h:10,color:"#06D6A0"},
-    {id:"Cerro-Amate",x:62,y:54,w:12,h:10,color:"#118AB2"},
-    {id:"Sur",x:46,y:66,w:12,h:10,color:"#EF476F"},
-    {id:"Este / Alcosa / Torreblanca",x:68,y:46,w:14,h:12,color:"#FFD166"},
-    {id:"Norte",x:50,y:24,w:14,h:12,color:"#06A77D"},
-    {id:"Camas",x:22,y:44,w:10,h:8,color:"#9B5DE5"},
-  ];
+  const mapRef = useRef<HTMLDivElement>(null);
+  const leafletRef = useRef<L.Map|null>(null);
+  const layersRef = useRef<Record<string,L.Polygon>>({});
+
+  useEffect(()=>{
+    if(!mapRef.current || leafletRef.current) return;
+
+    const map = L.map(mapRef.current, {
+      center:[37.385,-5.984],
+      zoom:12,
+      zoomControl:true,
+      scrollWheelZoom:false,
+      attributionControl:false,
+    });
+
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{
+      maxZoom:19,
+    }).addTo(map);
+
+    SEVILLA_BARRIOS.forEach(barrio=>{
+      const coords = barrio.coords.map(c=>[c[0],c[1]] as L.LatLngTuple);
+      const polygon = L.polygon(coords,{
+        color:barrio.color,
+        fillColor:barrio.color,
+        fillOpacity:0.3,
+        weight:2,
+        opacity:0.8,
+      }).addTo(map);
+
+      polygon.bindTooltip(barrio.id,{
+        permanent:false,
+        direction:"center",
+        className:"leaflet-tooltip-dark",
+      });
+
+      polygon.on("click",()=>onZoneSelect(barrio.id));
+      polygon.on("mouseover",()=>polygon.setStyle({fillOpacity:0.6,weight:3}));
+      polygon.on("mouseout",()=>polygon.setStyle({fillOpacity:selectedZone===barrio.id?0.7:0.3,weight:selectedZone===barrio.id?3:2}));
+
+      layersRef.current[barrio.id] = polygon;
+    });
+
+    leafletRef.current = map;
+    return ()=>{ map.remove(); leafletRef.current=null; };
+  },[]);
+
+  // Update selected zone styles
+  useEffect(()=>{
+    Object.entries(layersRef.current).forEach(([id,poly])=>{
+      const barrio = SEVILLA_BARRIOS.find(b=>b.id===id);
+      if(!barrio) return;
+      if(id===selectedZone){
+        poly.setStyle({fillOpacity:0.75,weight:3,color:barrio.color});
+      } else {
+        poly.setStyle({fillOpacity:0.25,weight:1.5,color:barrio.color});
+      }
+    });
+  },[selectedZone]);
 
   return (
-    <div style={{marginBottom:14,borderRadius:12,overflow:"hidden",border:"1px solid "+C.border,background:C.card}}>
-      <div style={{padding:"10px 14px",borderBottom:"1px solid "+C.border,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-        <p style={{fontSize:12,fontWeight:700,color:C.text}}>🗺️ Selecciona una zona de Sevilla</p>
-        {selectedZone&&<button onClick={()=>onZoneSelect(selectedZone)} style={{background:"none",border:"none",color:C.accent,cursor:"pointer",fontSize:11,fontWeight:700}}>✕ Quitar filtro</button>}
+    <div style={{marginBottom:14,borderRadius:12,overflow:"hidden",border:"1px solid "+C.border}}>
+      <div style={{padding:"10px 14px",borderBottom:"1px solid "+C.border,display:"flex",alignItems:"center",justifyContent:"space-between",background:C.card}}>
+        <p style={{fontSize:12,fontWeight:700,color:C.text}}>🗺️ Selecciona tu barrio en Sevilla</p>
+        {selectedZone&&<button onClick={()=>onZoneSelect(selectedZone)} style={{background:"none",border:"none",color:C.accent,cursor:"pointer",fontSize:11,fontWeight:700}}>✕ {selectedZone}</button>}
       </div>
-      <div style={{position:"relative",width:"100%",paddingBottom:"75%",background:"linear-gradient(135deg,#0a1628,#0d1f3c)"}}>
-        <svg viewBox="0 0 100 100" style={{position:"absolute",inset:0,width:"100%",height:"100%"}}>
-          {/* River Guadalquivir */}
-          <path d="M 32 20 Q 36 40 34 55 Q 32 65 36 78" stroke="#1a6b8a" strokeWidth="3" fill="none" opacity="0.6" />
-          {/* Zone rectangles */}
-          {zones.map(z=>(
-            <g key={z.id} onClick={()=>onZoneSelect(z.id)} style={{cursor:"pointer"}}>
-              <rect x={z.x} y={z.y} width={z.w} height={z.h}
-                fill={selectedZone===z.id?z.color:z.color+"44"}
-                stroke={selectedZone===z.id?z.color:z.color+"88"}
-                strokeWidth={selectedZone===z.id?"0.8":"0.4"}
-                rx="1"
-                style={{transition:"all 0.2s"}}
-              />
-              <text x={z.x+z.w/2} y={z.y+z.h/2+1} textAnchor="middle" fontSize="2.2" fill={selectedZone===z.id?"#fff":z.color} fontWeight={selectedZone===z.id?"bold":"normal"}>
-                {z.id.split(" ")[0]}
-              </text>
-            </g>
-          ))}
-          {/* Center dot */}
-          <circle cx="54" cy="59" r="1.5" fill={C.accent} opacity="0.8" />
-          <text x="54" y="65" textAnchor="middle" fontSize="2" fill={C.accent+"88"}>Sevilla</text>
-        </svg>
-      </div>
-      {/* Zone pills */}
-      <div style={{padding:"10px 12px",display:"flex",gap:5,flexWrap:"wrap"}}>
-        {zones.map(z=>(
-          <button key={z.id} onClick={()=>onZoneSelect(z.id)} style={{padding:"4px 10px",borderRadius:99,border:"1px solid "+(selectedZone===z.id?z.color:C.border),background:selectedZone===z.id?z.color+"22":"transparent",color:selectedZone===z.id?z.color:C.muted,cursor:"pointer",fontSize:10,fontFamily:"'DM Sans',sans-serif",fontWeight:selectedZone===z.id?700:400,transition:"all 0.15s",whiteSpace:"nowrap"}}>
-            {z.id}
+      <div ref={mapRef} style={{height:300,width:"100%"}} />
+      <div style={{padding:"10px 12px",display:"flex",gap:5,flexWrap:"wrap",background:C.card,borderTop:"1px solid "+C.border}}>
+        {SEVILLA_BARRIOS.map(b=>(
+          <button key={b.id} onClick={()=>onZoneSelect(b.id)} style={{padding:"4px 10px",borderRadius:99,border:"1px solid "+(selectedZone===b.id?b.color:C.border),background:selectedZone===b.id?b.color+"22":"transparent",color:selectedZone===b.id?b.color:C.muted,cursor:"pointer",fontSize:10,fontFamily:"'DM Sans',sans-serif",fontWeight:selectedZone===b.id?700:400,transition:"all 0.15s",whiteSpace:"nowrap"}}>
+            {b.id}
           </button>
         ))}
       </div>
