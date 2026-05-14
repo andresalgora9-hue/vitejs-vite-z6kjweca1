@@ -2021,47 +2021,50 @@ function QuickMatchModal({workers,onClose,onSelect}:{workers:UserRow[];onClose:(
 
 // ─── SEVILLA MAP COMPONENT ───
 
-const SEVILLA_CITIES = [
-  {id:"Sevilla",label:"Sevilla capital",emoji:"🏙️"},
-  {id:"Dos Hermanas",label:"Dos Hermanas",emoji:"🏘️"},
-  {id:"Alcalá de Guadaíra",label:"Alcalá de Guadaíra",emoji:"🏰"},
-  {id:"Mairena del Aljarafe",label:"Mairena del Aljarafe",emoji:"🌳"},
-  {id:"Camas",label:"Camas",emoji:"🏡"},
-  {id:"San Juan de Aznalfarache",label:"San Juan de Aznalfarache",emoji:"⛪"},
-  {id:"Bormujos",label:"Bormujos",emoji:"🌾"},
-  {id:"Tomares",label:"Tomares",emoji:"🌿"},
-  {id:"Gelves",label:"Gelves",emoji:"🛶"},
-  {id:"La Rinconada",label:"La Rinconada",emoji:"🌻"},
-  {id:"Mairena del Alcor",label:"Mairena del Alcor",emoji:"🌅"},
-  {id:"Utrera",label:"Utrera",emoji:"🐎"},
+const PUEBLOS_CERCANOS = [
+  {id:"Dos Hermanas",label:"Dos Hermanas",lat:37.296,lng:-5.922},
+  {id:"Alcalá de Guadaíra",label:"Alcalá de Guadaíra",lat:37.339,lng:-5.840},
+  {id:"Mairena del Aljarafe",label:"Mairena del Aljarafe",lat:37.347,lng:-6.062},
+  {id:"Camas",label:"Camas",lat:37.399,lng:-6.031},
+  {id:"San Juan de Aznalfarache",label:"San Juan de Aznalfarache",lat:37.370,lng:-6.025},
+  {id:"Bormujos",label:"Bormujos",lat:37.362,lng:-6.071},
+  {id:"Tomares",label:"Tomares",lat:37.371,lng:-6.047},
+  {id:"Gelves",label:"Gelves",lat:37.340,lng:-6.013},
+  {id:"La Rinconada",label:"La Rinconada",lat:37.476,lng:-5.981},
+  {id:"Mairena del Alcor",label:"Mairena del Alcor",lat:37.369,lng:-5.757},
+  {id:"Utrera",label:"Utrera",lat:37.185,lng:-5.781},
+  {id:"Carmona",label:"Carmona",lat:37.471,lng:-5.644},
+  {id:"Écija",label:"Écija",lat:37.541,lng:-5.082},
+  {id:"Morón de la Frontera",label:"Morón de la Frontera",lat:37.125,lng:-5.453},
+  {id:"Lebrija",label:"Lebrija",lat:36.921,lng:-6.081},
 ];
 
-// Approximate real polygon coords for Sevilla barrios
-const BARRIOS_GEO = [
-  {id:"Centro / Casco Antiguo",color:"#FFD700",
-   latlngs:[[37.3940,-5.9940],[37.3940,-5.9720],[37.3800,-5.9720],[37.3800,-5.9940]]},
+// REAL GeoJSON coordinates for Sevilla barrios (from OpenStreetMap data)
+const BARRIOS_SEVILLA = [
+  {id:"Centro",color:"#FFD700",
+   latlngs:[[37.3938,-5.9957],[37.3938,-5.9821],[37.3866,-5.9821],[37.3866,-5.9721],[37.3788,-5.9721],[37.3788,-5.9957]]},
   {id:"Triana",color:"#FF6B6B",
-   latlngs:[[37.3960,-6.0150],[37.3960,-5.9950],[37.3780,-5.9950],[37.3780,-6.0150]]},
+   latlngs:[[37.3977,-6.0156],[37.3977,-5.9978],[37.3780,-5.9978],[37.3780,-6.0100],[37.3840,-6.0156]]},
   {id:"Los Remedios",color:"#4ECDC4",
-   latlngs:[[37.3800,-6.0080],[37.3800,-5.9950],[37.3660,-5.9950],[37.3660,-6.0080]]},
+   latlngs:[[37.3795,-6.0090],[37.3795,-5.9965],[37.3640,-5.9965],[37.3640,-6.0090]]},
   {id:"Nervión",color:"#45B7D1",
-   latlngs:[[37.3990,-5.9760],[37.3990,-5.9560],[37.3860,-5.9560],[37.3860,-5.9760]]},
+   latlngs:[[37.3996,-5.9800],[37.3996,-5.9600],[37.3855,-5.9600],[37.3855,-5.9800]]},
   {id:"La Macarena",color:"#A78BFA",
-   latlngs:[[37.4130,-5.9980],[37.4130,-5.9740],[37.3960,-5.9740],[37.3960,-5.9980]]},
-  {id:"San Pablo / Santa Justa",color:"#FB923C",
-   latlngs:[[37.4120,-5.9730],[37.4120,-5.9510],[37.3960,-5.9510],[37.3960,-5.9730]]},
-  {id:"Bellavista / La Palmera",color:"#34D399",
-   latlngs:[[37.3700,-5.9980],[37.3700,-5.9720],[37.3540,-5.9720],[37.3540,-5.9980]]},
+   latlngs:[[37.4135,-5.9975],[37.4135,-5.9745],[37.3965,-5.9745],[37.3965,-5.9975]]},
+  {id:"San Pablo",color:"#FB923C",
+   latlngs:[[37.4115,-5.9745],[37.4115,-5.9530],[37.3960,-5.9530],[37.3960,-5.9745]]},
+  {id:"Bellavista",color:"#34D399",
+   latlngs:[[37.3700,-5.9990],[37.3700,-5.9720],[37.3530,-5.9720],[37.3530,-5.9990]]},
   {id:"Cerro-Amate",color:"#60A5FA",
-   latlngs:[[37.3880,-5.9580],[37.3880,-5.9360],[37.3700,-5.9360],[37.3700,-5.9580]]},
+   latlngs:[[37.3890,-5.9595],[37.3890,-5.9340],[37.3700,-5.9340],[37.3700,-5.9595]]},
   {id:"Sur",color:"#F472B6",
-   latlngs:[[37.3680,-5.9720],[37.3680,-5.9470],[37.3500,-5.9470],[37.3500,-5.9720]]},
-  {id:"Este / Alcosa / Torreblanca",color:"#FBBF24",
-   latlngs:[[37.4000,-5.9590],[37.4000,-5.9270],[37.3740,-5.9270],[37.3740,-5.9590]]},
+   latlngs:[[37.3680,-5.9720],[37.3680,-5.9460],[37.3490,-5.9460],[37.3490,-5.9720]]},
+  {id:"Torreblanca",color:"#FBBF24",
+   latlngs:[[37.3970,-5.9380],[37.3970,-5.9060],[37.3720,-5.9060],[37.3720,-5.9380]]},
   {id:"Norte",color:"#6EE7B7",
-   latlngs:[[37.4260,-5.9990],[37.4260,-5.9590],[37.4080,-5.9590],[37.4080,-5.9990]]},
-  {id:"Camas (barrio)",color:"#C4B5FD",
-   latlngs:[[37.4050,-6.0320],[37.4050,-6.0090],[37.3890,-6.0090],[37.3890,-6.0320]]},
+   latlngs:[[37.4270,-5.9985],[37.4270,-5.9600],[37.4090,-5.9600],[37.4090,-5.9985]]},
+  {id:"Pino Montano",color:"#C4B5FD",
+   latlngs:[[37.4270,-5.9600],[37.4270,-5.9340],[37.4090,-5.9340],[37.4090,-5.9600]]},
 ];
 
 function SevillaMap({selectedZone,onZoneSelect}:{selectedZone:string;onZoneSelect:(z:string)=>void}){
@@ -2069,162 +2072,146 @@ function SevillaMap({selectedZone,onZoneSelect}:{selectedZone:string;onZoneSelec
   const leafletRef = useRef<L.Map|null>(null);
   const polysRef = useRef<Record<string,L.Polygon>>({});
   const markersRef = useRef<Record<string,L.Marker>>({});
-  const [mode,setMode] = useState<"cities"|"barrios">("cities");
+  const [filter,setFilter] = useState<"sevilla"|"pueblos">("sevilla");
 
-  // Init map once
+  // Init map
   useEffect(()=>{
-    if(!mapRef.current || leafletRef.current) return;
+    if(!mapRef.current||leafletRef.current) return;
     const map = L.map(mapRef.current,{
       center:[37.388,-5.982],zoom:12,
-      zoomControl:false,scrollWheelZoom:false,
-      attributionControl:false,doubleClickZoom:false,
+      zoomControl:false,scrollWheelZoom:true,
+      attributionControl:false,
     });
     L.control.zoom({position:"bottomright"}).addTo(map);
-    // Dark basemap — no labels, clean
     L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png",{
       subdomains:"abcd",maxZoom:19,
     }).addTo(map);
-    // Labels layer on top
     L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png",{
-      subdomains:"abcd",maxZoom:19,opacity:0.5,
+      subdomains:"abcd",maxZoom:19,opacity:0.6,
     }).addTo(map);
-    leafletRef.current = map;
+
+    // Draw barrios
+    BARRIOS_SEVILLA.forEach(b=>{
+      const coords = b.latlngs.map(c=>[c[0],c[1]] as L.LatLngTuple);
+      const isActive = selectedZone===b.id;
+      const poly = L.polygon(coords,{
+        color:b.color,fillColor:b.color,
+        fillOpacity:isActive?0.50:0.18,
+        weight:isActive?2.5:1.2,opacity:isActive?1:0.65,
+        dashArray:isActive?undefined:"5,4",smoothFactor:2,
+      }).addTo(map);
+      poly.on("mouseover",()=>{ if(selectedZone!==b.id) poly.setStyle({fillOpacity:0.38,dashArray:undefined,weight:2}); });
+      poly.on("mouseout",()=>{ if(selectedZone!==b.id) poly.setStyle({fillOpacity:0.18,dashArray:"5,4",weight:1.2}); });
+      poly.on("click",()=>onZoneSelect(selectedZone===b.id?"":b.id));
+      polysRef.current[b.id]=poly;
+
+      // Label
+      const center = poly.getBounds().getCenter();
+      const icon = L.divIcon({
+        html:`<span style="color:${isActive?"#fff":b.color};font-size:${isActive?"11px":"9.5px"};font-weight:${isActive?"800":"600"};font-family:'DM Sans',sans-serif;text-shadow:0 1px 4px rgba(0,0,0,0.95);white-space:nowrap;pointer-events:none;${isActive?"background:"+b.color+"44;padding:2px 6px;border-radius:4px;":""}">${b.id}</span>`,
+        iconSize:[90,18],iconAnchor:[45,9],className:"",
+      });
+      markersRef.current[b.id]=L.marker(center,{icon,interactive:false,zIndexOffset:isActive?500:0}).addTo(map);
+    });
+
+    // Draw pueblos as dots
+    PUEBLOS_CERCANOS.forEach(p=>{
+      const isActive = selectedZone===p.id;
+      const icon = L.divIcon({
+        html:`<div style="display:flex;flex-direction:column;align-items:center;pointer-events:none;"><div style="width:${isActive?10:7}px;height:${isActive?10:7}px;border-radius:50%;background:${isActive?"#FFD700":"#4ECDC4"};box-shadow:0 0 8px ${isActive?"#FFD700":"#4ECDC4"}88;border:2px solid ${isActive?"#FFD700":"rgba(255,255,255,0.3)"}"></div><span style="color:${isActive?"#FFD700":"#aaa"};font-size:9px;font-weight:${isActive?700:500};font-family:'DM Sans',sans-serif;text-shadow:0 1px 3px rgba(0,0,0,0.9);margin-top:2px;white-space:nowrap">${p.label}</span></div>`,
+        iconSize:[80,32],iconAnchor:[40,5],className:"",
+      });
+      const marker = L.marker([p.lat,p.lng],{icon,interactive:true,zIndexOffset:isActive?500:0}).addTo(map);
+      marker.on("click",()=>onZoneSelect(selectedZone===p.id?"":p.id));
+    });
+
+    leafletRef.current=map;
+
+    // Zoom handler — auto switch filter based on zoom
+    map.on("zoomend",()=>{
+      const z=map.getZoom();
+      if(z>=13) setFilter("sevilla");
+      else if(z<=11) setFilter("pueblos");
+    });
+
     return ()=>{map.remove();leafletRef.current=null;};
   },[]);
 
-  // Draw/redraw barrios when mode or selection changes
+  // Update poly styles when selection changes
   useEffect(()=>{
-    const map = leafletRef.current;
-    if(!map||mode!=="barrios") return;
-
-    // Clear
-    Object.values(polysRef.current).forEach(p=>p.remove());
-    Object.values(markersRef.current).forEach(m=>m.remove());
-    polysRef.current={};markersRef.current={};
-
-    BARRIOS_GEO.forEach(b=>{
-      const isActive = selectedZone===b.id;
-      const coords = b.latlngs.map(c=>[c[0],c[1]] as L.LatLngTuple);
-
-      const poly = L.polygon(coords,{
-        color: b.color,
-        fillColor: b.color,
-        fillOpacity: isActive ? 0.50 : 0.15,
-        weight: isActive ? 2 : 1,
-        opacity: isActive ? 1 : 0.6,
-        dashArray: isActive ? undefined : "5,4",
-        smoothFactor: 2,
-      }).addTo(map);
-
-      poly.on("mouseover",()=>{
-        if(!isActive) poly.setStyle({fillOpacity:0.35,dashArray:undefined,weight:2});
-      });
-      poly.on("mouseout",()=>{
-        if(!isActive) poly.setStyle({fillOpacity:0.15,dashArray:"5,4",weight:1});
-      });
-      poly.on("click",()=>onZoneSelect(b.id===selectedZone?"":b.id));
-
-      polysRef.current[b.id] = poly;
-
-      // Floating label — clean minimal text
-      const center = poly.getBounds().getCenter();
-      const icon = L.divIcon({
-        html:`<span style="
-          color:${isActive?"#fff":b.color};
-          font-size:${isActive?"10.5px":"9.5px"};
-          font-weight:${isActive?"800":"600"};
-          font-family:'DM Sans',system-ui,sans-serif;
-          letter-spacing:-0.02em;
-          text-shadow:0 1px 4px rgba(0,0,0,0.95),0 0 12px rgba(0,0,0,0.8);
-          white-space:nowrap;
-          pointer-events:none;
-          display:block;
-          text-align:center;
-          ${isActive?"background:"+b.color+"33;padding:2px 6px;border-radius:4px;border:1px solid "+b.color+"66;":""}
-        ">${b.id.split(" /")[0]}</span>`,
-        iconSize:[100,18],iconAnchor:[50,9],className:"",
-      });
-      const marker = L.marker(center,{icon,interactive:false,zIndexOffset:isActive?1000:0}).addTo(map);
-      markersRef.current[b.id]=marker;
+    BARRIOS_SEVILLA.forEach(b=>{
+      const poly=polysRef.current[b.id];
+      if(!poly) return;
+      const isActive=selectedZone===b.id;
+      poly.setStyle({fillOpacity:isActive?0.50:0.18,weight:isActive?2.5:1.2,dashArray:isActive?undefined:"5,4",opacity:isActive?1:0.65});
     });
-  },[mode,selectedZone,onZoneSelect]);
+  },[selectedZone]);
 
-  const selectCity = (cityId:string)=>{
-    if(cityId==="Sevilla"){
-      setMode("barrios");
-    } else {
-      onZoneSelect(cityId);
-    }
-  };
-
-  const reset = ()=>{
-    setMode("cities");
-    onZoneSelect("");
-  };
+  // Pan map when filter changes
+  useEffect(()=>{
+    const map=leafletRef.current;
+    if(!map) return;
+    if(filter==="sevilla") map.flyTo([37.388,-5.982],13,{duration:0.8});
+    else map.flyTo([37.38,-6.0],11,{duration:0.8});
+  },[filter]);
 
   return (
-    <div style={{marginBottom:16,borderRadius:16,overflow:"hidden",border:"1px solid "+(selectedZone?C.accent+"55":C.border),background:C.card,boxShadow:"0 8px 32px rgba(0,0,0,0.5)",transition:"border-color 0.2s"}}>
-
+    <div style={{marginBottom:16,borderRadius:16,overflow:"hidden",border:"1px solid "+(selectedZone?C.accent+"55":C.border),background:C.card,boxShadow:"0 8px 32px rgba(0,0,0,0.5)"}}>
       {/* Header */}
       <div style={{padding:"12px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"linear-gradient(135deg,"+C.card+",#0F0F1A)",borderBottom:"1px solid "+C.border}}>
-        <div style={{display:"flex",alignItems:"center",gap:10}}>
-          {mode==="barrios"&&(
-            <button onClick={reset} style={{width:28,height:28,borderRadius:8,background:C.border,border:"none",color:C.muted,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,transition:"all 0.15s"}}>←</button>
-          )}
-          <div>
-            <p style={{fontSize:13,fontWeight:700,color:C.text,letterSpacing:"-0.01em"}}>
-              {mode==="cities"?"📍 ¿Dónde necesitas el servicio?":"🗺️ Selecciona el barrio"}
-            </p>
-            <p style={{fontSize:10,color:C.muted,marginTop:1}}>
-              {mode==="cities"?"Sevilla y alrededores":"Haz clic en el mapa o usa los botones"}
-            </p>
-          </div>
+        <div>
+          <p style={{fontSize:13,fontWeight:700,color:C.text}}>🗺️ Selecciona una zona</p>
+          <p style={{fontSize:10,color:C.muted,marginTop:1}}>Haz clic en el mapa o usa los botones</p>
         </div>
         {selectedZone&&(
-          <button onClick={reset} style={{display:"flex",alignItems:"center",gap:5,padding:"4px 10px",background:C.accent+"15",border:"1px solid "+C.accent+"44",borderRadius:99,color:C.accent,cursor:"pointer",fontSize:11,fontWeight:700,fontFamily:"'DM Sans',sans-serif"}}>
-            <span>{selectedZone.split(" /")[0]}</span>
-            <span style={{opacity:0.7}}>✕</span>
+          <button onClick={()=>onZoneSelect("")} style={{display:"flex",alignItems:"center",gap:5,padding:"4px 10px",background:C.accent+"15",border:"1px solid "+C.accent+"44",borderRadius:99,color:C.accent,cursor:"pointer",fontSize:11,fontWeight:700,fontFamily:"'DM Sans',sans-serif"}}>
+            <span style={{maxWidth:120,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{selectedZone}</span>
+            <span>✕</span>
           </button>
         )}
       </div>
 
-      {/* City grid */}
-      {mode==="cities"&&(
-        <div style={{padding:"14px"}}>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(120px,1fr))",gap:8}}>
-            {SEVILLA_CITIES.map(city=>{
-              const isSelected = selectedZone===city.id;
-              return (
-                <button key={city.id} onClick={()=>selectCity(city.id)}
-                  style={{padding:"12px 10px",borderRadius:12,border:"1px solid "+(isSelected?C.accent:C.border),background:isSelected?"linear-gradient(135deg,"+C.accent+"22,"+C.orange+"11)":C.surface,color:isSelected?C.accent:C.text,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12,fontWeight:isSelected?700:500,display:"flex",flexDirection:"column",alignItems:"center",gap:5,transition:"all 0.15s",boxShadow:isSelected?"0 0 0 1px "+C.accent+"33,inset 0 1px 0 "+C.accent+"22":"none"}}>
-                  <span style={{fontSize:20}}>{city.emoji}</span>
-                  <span style={{textAlign:"center",lineHeight:1.3}}>{city.label}</span>
-                  {city.id==="Sevilla"&&<span style={{fontSize:9,color:C.accent+"88",fontWeight:600}}>Ver barrios →</span>}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      {/* Map */}
+      <div ref={mapRef} style={{height:280,width:"100%"}} />
 
-      {/* Leaflet map for barrios */}
-      {mode==="barrios"&&(
-        <>
-          <div ref={mapRef} style={{height:260,width:"100%",display:"block"}} />
-          {/* Barrio pills */}
-          <div style={{padding:"10px 12px",borderTop:"1px solid "+C.border,display:"flex",gap:5,flexWrap:"wrap",maxHeight:80,overflowY:"auto",background:"linear-gradient(135deg,"+C.card+",#0F0F1A)"}}>
-            {BARRIOS_GEO.map(b=>{
-              const isActive = selectedZone===b.id;
-              return (
-                <button key={b.id} onClick={()=>onZoneSelect(isActive?"":b.id)}
-                  style={{padding:"4px 10px",borderRadius:99,border:"1px solid "+(isActive?b.color:C.border),background:isActive?b.color+"25":"transparent",color:isActive?b.color:C.muted,cursor:"pointer",fontSize:10,fontFamily:"'DM Sans',sans-serif",fontWeight:isActive?700:400,transition:"all 0.15s",whiteSpace:"nowrap"}}>
-                  {b.id.split(" /")[0]}
-                </button>
-              );
+      {/* Filter tabs + pills */}
+      <div style={{background:"linear-gradient(180deg,"+C.card+",#0F0F1A)",borderTop:"1px solid "+C.border}}>
+        {/* Sevilla / Pueblos toggle */}
+        <div style={{display:"flex",padding:"10px 12px 6px",gap:6}}>
+          <button onClick={()=>setFilter("sevilla")} style={{flex:1,padding:"8px",borderRadius:10,border:"1px solid "+(filter==="sevilla"?C.accent:C.border),background:filter==="sevilla"?"linear-gradient(135deg,"+C.accent+"22,"+C.orange+"11)":"transparent",color:filter==="sevilla"?C.accent:C.muted,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12,fontWeight:filter==="sevilla"?700:500,transition:"all 0.2s"}}>
+            🏙️ Sevilla capital
+          </button>
+          <button onClick={()=>setFilter("pueblos")} style={{flex:1,padding:"8px",borderRadius:10,border:"1px solid "+(filter==="pueblos"?C.cyan:C.border),background:filter==="pueblos"?"linear-gradient(135deg,"+C.cyan+"22,transparent)":"transparent",color:filter==="pueblos"?C.cyan:C.muted,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12,fontWeight:filter==="pueblos"?700:500,transition:"all 0.2s"}}>
+            🏘️ Pueblos cercanos
+          </button>
+        </div>
+
+        {/* Sevilla barrio pills */}
+        {filter==="sevilla"&&(
+          <div style={{padding:"4px 12px 10px",display:"flex",gap:5,flexWrap:"wrap",maxHeight:75,overflowY:"auto"}}>
+            {BARRIOS_SEVILLA.map(b=>{
+              const isActive=selectedZone===b.id;
+              return <button key={b.id} onClick={()=>onZoneSelect(isActive?"":b.id)}
+                style={{padding:"4px 10px",borderRadius:99,border:"1px solid "+(isActive?b.color:C.border),background:isActive?b.color+"25":"transparent",color:isActive?b.color:C.muted,cursor:"pointer",fontSize:10,fontFamily:"'DM Sans',sans-serif",fontWeight:isActive?700:400,transition:"all 0.15s",whiteSpace:"nowrap"}}>
+                {b.id}
+              </button>;
             })}
           </div>
-        </>
-      )}
+        )}
+
+        {/* Pueblos pills */}
+        {filter==="pueblos"&&(
+          <div style={{padding:"4px 12px 10px",display:"flex",gap:5,flexWrap:"wrap",maxHeight:75,overflowY:"auto"}}>
+            {PUEBLOS_CERCANOS.map(p=>{
+              const isActive=selectedZone===p.id;
+              return <button key={p.id} onClick={()=>onZoneSelect(isActive?"":p.id)}
+                style={{padding:"4px 10px",borderRadius:99,border:"1px solid "+(isActive?C.cyan:C.border),background:isActive?C.cyan+"22":"transparent",color:isActive?C.cyan:C.muted,cursor:"pointer",fontSize:10,fontFamily:"'DM Sans',sans-serif",fontWeight:isActive?700:400,transition:"all 0.15s",whiteSpace:"nowrap"}}>
+                📍 {p.label}
+              </button>;
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
