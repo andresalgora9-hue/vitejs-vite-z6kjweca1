@@ -2065,6 +2065,8 @@ const BARRIOS_SEVILLA = [
    latlngs:[[37.4270,-5.9985],[37.4270,-5.9600],[37.4090,-5.9600],[37.4090,-5.9985]]},
   {id:"Pino Montano",color:"#C4B5FD",
    latlngs:[[37.4270,-5.9600],[37.4270,-5.9340],[37.4090,-5.9340],[37.4090,-5.9600]]},
+{id:"Sevilla Este",color:"#F97316",
+   latlngs:[[37.3970,-5.9380],[37.3800,-5.9060],[37.3600,-5.9200],[37.3600,-5.9500],[37.3800,-5.9500]]},
 ];
 
 function SevillaMap({selectedZone,onZoneSelect}:{selectedZone:string;onZoneSelect:(z:string)=>void}){
