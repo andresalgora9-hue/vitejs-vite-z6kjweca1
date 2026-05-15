@@ -1,9 +1,20 @@
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body, #root {
-  width: 100%;
-  min-height: 100dvh;
-  overflow-x: hidden;
-  background: #080810;
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
 }
-body { margin: 0; -webkit-font-smoothing: antialiased; }
-#root { display: flex; flex-direction: column; }
+
+/* Leaflet fix */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+/* Estilos personalizados para el scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #1E1E30; border-radius: 99px; }
