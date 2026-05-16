@@ -3165,422 +3165,2344 @@ onUpdate={update} />}
 </>);
 }
 
-// ─── QUICK MATCH MODAL ───
-function
-QuickMatchModal({workers,onClose,onSelect}:{workers:UserRow[];onClose:()=>void;onSele
-ct:(w:UserRow)=>void}){
-const [step,setStep]=useState(0);
-const [trade,setTrade]=useState("");
-const [zone,setZone]=useState("");
-const [urgency,setUrgency]=useState<string>(""); void urgency;
-const topTrades = OFICIOS;
-const matches = workers.filter(w=>
-
-(!trade||w.trade===trade)&&
-(!zone||w.zone===zone||(w.service_zones||[]).includes(zone))&&
-w.available
-).sort((a,b)=>b.rating-a.rating).slice(0,3);
-
-
-return (
-<Sheet onClose={onClose} title="Encuentra tu profesional">
-{/* Progress */}
-<div style={{display:"flex",gap:4,marginBottom:20}}>
-{[0,1,2,3].map(s=><div key={s}
-style={{flex:1,height:4,borderRadius:99,background:s<=step?C.accent:C.border,transition:"background 0.3s"}} />)}
-</div>
-{step===0&&(<>
-<p style={{fontWeight:700,color:C.text,fontSize:15,marginBottom:4}}>¿Qué profesional
-necesitas?</p>
-<p style={{fontSize:12,color:C.muted,marginBottom:14}}>Selecciona el tipo de
-servicio</p>
-<div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:20}}>
-{topTrades.map(t=>(
-<button key={t} onClick={()=>{setTrade(t);setStep(1);}} style={{padding:"10px14px",borderRadius:10,border:"1px solid"+(trade===t?C.accent:C.border),background:trade===t?C.accent+"18":C.surface,color:trade===t?C.accent:C.text,cursor:"pointer",fontSize:13,fontFamily:"'DM
-Sans',sans-serif",fontWeight:600,display:"flex",alignItems:"center",gap:6,transition:"all
-0.15s"}}>
-<span>{OFICIO_ICONS[t]||" "}</span>{t}
-</button>
-))}
-</div>
-<Btn outline full onClick={()=>setStep(1)} color={C.muted} small>Saltar → Ver
-todos</Btn>
-</>)}
-
-
-{step===1&&(<>
-<p style={{fontWeight:700,color:C.text,fontSize:15,marginBottom:4}}>¿En qué zona de
-Sevilla?</p>
-<p style={{fontSize:12,color:C.muted,marginBottom:14}}>Para mostrarte los más
-cercanos</p>
-<div style={{display:"flex",flexWrap:"wrap",gap:7,marginBottom:20}}>
-{SEVILLA_ZONAS.slice(0,12).map(z=>(
-<button key={z} onClick={()=>{setZone(z);setStep(2);}} style={{padding:"8px12px",borderRadius:10,border:"1px solid"+(zone===z?C.blue:C.border),background:zone===z?C.blue+"18":C.surface,color:zone===z?C.blue:C.text,cursor:"pointer",fontSize:12,fontFamily:"'DM
-Sans',sans-serif",fontWeight:zone===z?700:400,transition:"all 0.15s"}}>
-{z}
-
-
-</button>
-))}
-</div>
-<Btn outline full onClick={()=>setStep(2)} color={C.muted} small>No importa la zona
-→</Btn>
-</>)}
-{step===2&&(<>
-<p style={{fontWeight:700,color:C.text,fontSize:15,marginBottom:4}}>¿Con qué
-urgencia?</p>
-<p style={{fontSize:12,color:C.muted,marginBottom:14}}>Te mostramos los que pueden
-verte antes</p>
-<div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:20}}>
-{[{v:"now",l:"Urgente — necesito ayuda hoy",c:C.red},{v:"week",l:"Esta semana
-— tengo tiempo",c:C.blue},{v:"quote",l:"
-Solo quiero un
-presupuesto",c:C.green}].map(o=>(
-<button key={o.v} onClick={()=>{setUrgency(o.v);setStep(3);}} style={{padding:"14px16px",borderRadius:10,border:"1px solid"+o.c+"44",background:o.c+"12",color:C.text,cursor:"pointer",fontSize:13,fontFamily:"'DM
-Sans',sans-serif",fontWeight:600,textAlign:"left",transition:"all 0.15s"}}>
-{o.l}
-</button>
-))}
-</div>
-</>)}
-
-
-
-
-{step===3&&(<>
-<p style={{fontWeight:700,color:C.text,fontSize:15,marginBottom:4}}>
-{matches.length>0?`
-Encontramos ${matches.length}
-profesional${matches.length>1?"es":""}`:"
-Sin resultados exactos"}
-</p>
-<p style={{fontSize:12,color:C.muted,marginBottom:14}}>
-{trade&&<span style={{color:C.accent,fontWeight:600}}>{OFICIO_ICONS[trade]}
-{trade}</span>}{zone&&<span style={{color:C.blue}}> ·
-{zone}</span>}
-</p>
-{matches.length===0&&(
-<div style={{textAlign:"center",padding:20,color:C.muted,marginBottom:14}}>
-<p style={{fontSize:13}}>No hay profesionales disponibles ahora con esos filtros</p>
-<button onClick={()=>{setTrade("");setZone("");setStep(3);}}
-style={{marginTop:10,background:"none",border:"none",color:C.accent,cursor:"pointer",fontS
-ize:12,fontWeight:700}}>Ver todos los disponibles →</button>
-</div>
-)}
-<div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:14}}>
-{matches.map(w=>{
-const col=wColor(w.id);
-return <GCard key={w.id} onClick={()=>onSelect(w)} glow={col}
-style={{padding:14}}>
-
-
-
-
-<div style={{display:"flex",gap:12,alignItems:"center"}}>
-<Ava s={w.name.substring(0,2).toUpperCase()} size={44} color={col} online />
-<div style={{flex:1}}>
-<p style={{fontWeight:700,color:C.text,fontSize:14}}>{w.name}</p>
-<p style={{fontSize:12,color:col}}>{OFICIO_ICONS[w.trade||""]||" "}
-{w.trade}</p>
-<div style={{display:"flex",gap:5,alignItems:"center",marginTop:2}}>
-<Stars n={w.rating} size={10} />
-<span
-style={{fontSize:11,color:C.text,fontWeight:700}}>{w.rating>0?w.rating.toFixed(1):"Nuevo"}</
-span>
-{w.free_quote&&<span style={{fontSize:10,color:C.green}}>· Presupuesto
-gratis</span>}
-</div>
-</div>
-<div style={{textAlign:"right"}}>
-<p style={{fontWeight:800,fontSize:18,color:C.accent}}>{w.price}€<span
-style={{fontSize:10,color:C.muted}}>/h</span></p>
-<p style={{fontSize:10,color:C.green}}>● Disponible</p>
-</div>
-</div>
-</GCard>;
-})}
-</div>
-<Btn full onClick={()=>{onClose();}} color={C.accent}>Ver todos los profesionales
-→</Btn>
-</>)}
-</Sheet>
-);
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// BLOQUE FINAL — pega esto SUSTITUYENDO todo desde el primer
+// "// ─── QUICK MATCH MODAL ───" hasta el final de tu archivo
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 
+// ─── QUICK MATCH MODAL ───────────────────────────────────────────────
+function QuickMatchModal({
+  workers,
+  onClose,
+  onSelect,
+}: {
+  workers: UserRow[];
+  onClose: () => void;
+  onSelect: (w: UserRow) => void;
+}) {
+  const [step, setStep] = useState(0);
+  const [trade, setTrade] = useState("");
+  const [zone, setZone] = useState("");
+  const [urgency, setUrgency] = useState<string>("");
+  void urgency;
+ 
+  const matches = workers
+    .filter(
+      (w) =>
+        (!trade || w.trade === trade) &&
+        (!zone ||
+          w.zone === zone ||
+          (w.service_zones || []).includes(zone)) &&
+        w.available
+    )
+    .sort((a, b) => b.rating - a.rating)
+    .slice(0, 3);
+ 
+  return (
+    <Sheet onClose={onClose} title="Encuentra tu profesional">
+      {/* Progress */}
+      <div style={{ display: "flex", gap: 4, marginBottom: 20 }}>
+        {[0, 1, 2, 3].map((s) => (
+          <div
+            key={s}
+            style={{
+              flex: 1,
+              height: 4,
+              borderRadius: 99,
+              background: s <= step ? C.accent : C.border,
+              transition: "background 0.3s",
+            }}
+          />
+        ))}
+      </div>
+ 
+      {step === 0 && (
+        <>
+          <p
+            style={{
+              fontWeight: 700,
+              color: C.text,
+              fontSize: 15,
+              marginBottom: 4,
+            }}
+          >
+            ¿Qué profesional necesitas?
+          </p>
+          <p
+            style={{
+              fontSize: 12,
+              color: C.muted,
+              marginBottom: 14,
+            }}
+          >
+            Selecciona el tipo de servicio
+          </p>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 8,
+              marginBottom: 20,
+            }}
+          >
+            {OFICIOS.map((t) => (
+              <button
+                key={t}
+                onClick={() => {
+                  setTrade(t);
+                  setStep(1);
+                }}
+                style={{
+                  padding: "10px 14px",
+                  borderRadius: 10,
+                  border:
+                    "1px solid " + (trade === t ? C.accent : C.border),
+                  background:
+                    trade === t ? C.accent + "18" : C.surface,
+                  color: trade === t ? C.accent : C.text,
+                  cursor: "pointer",
+                  fontSize: 13,
+                  fontFamily: "'DM Sans',sans-serif",
+                  fontWeight: 600,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  transition: "all 0.15s",
+                }}
+              >
+                <span>{OFICIO_ICONS[t] || "🔧"}</span>
+                {t}
+              </button>
+            ))}
+          </div>
+          <Btn
+            outline
+            full
+            onClick={() => setStep(1)}
+            color={C.muted}
+            small
+          >
+            Saltar → Ver todos
+          </Btn>
+        </>
+      )}
+ 
+      {step === 1 && (
+        <>
+          <p
+            style={{
+              fontWeight: 700,
+              color: C.text,
+              fontSize: 15,
+              marginBottom: 4,
+            }}
+          >
+            ¿En qué zona de Sevilla?
+          </p>
+          <p
+            style={{
+              fontSize: 12,
+              color: C.muted,
+              marginBottom: 14,
+            }}
+          >
+            Para mostrarte los más cercanos
+          </p>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 7,
+              marginBottom: 20,
+            }}
+          >
+            {SEVILLA_ZONAS.slice(0, 12).map((z) => (
+              <button
+                key={z}
+                onClick={() => {
+                  setZone(z);
+                  setStep(2);
+                }}
+                style={{
+                  padding: "8px 12px",
+                  borderRadius: 10,
+                  border:
+                    "1px solid " + (zone === z ? C.blue : C.border),
+                  background:
+                    zone === z ? C.blue + "18" : C.surface,
+                  color: zone === z ? C.blue : C.text,
+                  cursor: "pointer",
+                  fontSize: 12,
+                  fontFamily: "'DM Sans',sans-serif",
+                  fontWeight: zone === z ? 700 : 400,
+                  transition: "all 0.15s",
+                }}
+              >
+                {z}
+              </button>
+            ))}
+          </div>
+          <Btn
+            outline
+            full
+            onClick={() => setStep(2)}
+            color={C.muted}
+            small
+          >
+            No importa la zona →
+          </Btn>
+        </>
+      )}
+ 
+      {step === 2 && (
+        <>
+          <p
+            style={{
+              fontWeight: 700,
+              color: C.text,
+              fontSize: 15,
+              marginBottom: 4,
+            }}
+          >
+            ¿Con qué urgencia?
+          </p>
+          <p
+            style={{
+              fontSize: 12,
+              color: C.muted,
+              marginBottom: 14,
+            }}
+          >
+            Te mostramos los que pueden verte antes
+          </p>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 10,
+              marginBottom: 20,
+            }}
+          >
+            {[
+              {
+                v: "now",
+                l: "🚨 Urgente — necesito ayuda hoy",
+                c: C.red,
+              },
+              {
+                v: "week",
+                l: "📅 Esta semana — tengo tiempo",
+                c: C.blue,
+              },
+              {
+                v: "quote",
+                l: "💬 Solo quiero un presupuesto",
+                c: C.green,
+              },
+            ].map((o) => (
+              <button
+                key={o.v}
+                onClick={() => {
+                  setUrgency(o.v);
+                  setStep(3);
+                }}
+                style={{
+                  padding: "14px 16px",
+                  borderRadius: 10,
+                  border: "1px solid " + o.c + "44",
+                  background: o.c + "12",
+                  color: C.text,
+                  cursor: "pointer",
+                  fontSize: 13,
+                  fontFamily: "'DM Sans',sans-serif",
+                  fontWeight: 600,
+                  textAlign: "left",
+                  transition: "all 0.15s",
+                }}
+              >
+                {o.l}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+ 
+      {step === 3 && (
+        <>
+          <p
+            style={{
+              fontWeight: 700,
+              color: C.text,
+              fontSize: 15,
+              marginBottom: 4,
+            }}
+          >
+            {matches.length > 0
+              ? `✅ Encontramos ${matches.length} profesional${
+                  matches.length > 1 ? "es" : ""
+                }`
+              : "😔 Sin resultados exactos"}
+          </p>
+          <p
+            style={{
+              fontSize: 12,
+              color: C.muted,
+              marginBottom: 14,
+            }}
+          >
+            {trade && (
+              <span style={{ color: C.accent, fontWeight: 600 }}>
+                {OFICIO_ICONS[trade]} {trade}
+              </span>
+            )}
+            {zone && (
+              <span style={{ color: C.blue }}> · {zone}</span>
+            )}
+          </p>
+ 
+          {matches.length === 0 && (
+            <div
+              style={{
+                textAlign: "center",
+                padding: 20,
+                color: C.muted,
+                marginBottom: 14,
+              }}
+            >
+              <p style={{ fontSize: 13 }}>
+                No hay profesionales disponibles ahora con esos
+                filtros
+              </p>
+              <button
+                onClick={() => {
+                  setTrade("");
+                  setZone("");
+                  setStep(3);
+                }}
+                style={{
+                  marginTop: 10,
+                  background: "none",
+                  border: "none",
+                  color: C.accent,
+                  cursor: "pointer",
+                  fontSize: 12,
+                  fontWeight: 700,
+                }}
+              >
+                Ver todos los disponibles →
+              </button>
+            </div>
+          )}
+ 
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 10,
+              marginBottom: 14,
+            }}
+          >
+            {matches.map((w) => {
+              const col = wColor(w.id);
+              return (
+                <GCard
+                  key={w.id}
+                  onClick={() => onSelect(w)}
+                  glow={col}
+                  style={{ padding: 14 }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 12,
+                      alignItems: "center",
+                    }}
+                  >
+                    <Ava
+                      s={w.name.substring(0, 2).toUpperCase()}
+                      size={44}
+                      color={col}
+                      online
+                    />
+                    <div style={{ flex: 1 }}>
+                      <p
+                        style={{
+                          fontWeight: 700,
+                          color: C.text,
+                          fontSize: 14,
+                        }}
+                      >
+                        {w.name}
+                      </p>
+                      <p style={{ fontSize: 12, color: col }}>
+                        {OFICIO_ICONS[w.trade || ""] || "🔧"}{" "}
+                        {w.trade}
+                      </p>
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: 5,
+                          alignItems: "center",
+                          marginTop: 2,
+                        }}
+                      >
+                        <Stars n={w.rating} size={10} />
+                        <span
+                          style={{
+                            fontSize: 11,
+                            color: C.text,
+                            fontWeight: 700,
+                          }}
+                        >
+                          {w.rating > 0
+                            ? w.rating.toFixed(1)
+                            : "Nuevo"}
+                        </span>
+                        {w.free_quote && (
+                          <span
+                            style={{
+                              fontSize: 10,
+                              color: C.green,
+                            }}
+                          >
+                            · Presupuesto gratis
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div style={{ textAlign: "right" }}>
+                      <p
+                        style={{
+                          fontWeight: 800,
+                          fontSize: 18,
+                          color: C.accent,
+                        }}
+                      >
+                        {w.price}€
+                        <span
+                          style={{
+                            fontSize: 10,
+                            color: C.muted,
+                          }}
+                        >
+                          /h
+                        </span>
+                      </p>
+                      <p
+                        style={{
+                          fontSize: 10,
+                          color: C.green,
+                        }}
+                      >
+                        ● Disponible
+                      </p>
+                    </div>
+                  </div>
+                </GCard>
+              );
+            })}
+          </div>
+ 
+          <Btn full onClick={onClose} color={C.accent}>
+            Ver todos los profesionales →
+          </Btn>
+        </>
+      )}
+    </Sheet>
+  );
 }
-
-
-// ─── SEVILLA MAP COMPONENT ───
+ 
+// ─── SEVILLA MAP COMPONENT ───────────────────────────────────────────
 const PUEBLOS_CERCANOS = [
-{id:"Dos Hermanas",label:"Dos Hermanas",lat:37.296,lng:-5.922},
-{id:"Alcalá de Guadaíra",label:"Alcalá de Guadaíra",lat:37.339,lng:-5.840},
-{id:"Mairena del Aljarafe",label:"Mairena del Aljarafe",lat:37.347,lng:-6.062},
-{id:"Camas",label:"Camas",lat:37.399,lng:-6.031},
-{id:"San Juan de Aznalfarache",label:"San Juan de Aznalfarache",lat:37.370,lng:-6.025},
-{id:"Bormujos",label:"Bormujos",lat:37.362,lng:-6.071},
-{id:"Tomares",label:"Tomares",lat:37.371,lng:-6.047},
-{id:"Gelves",label:"Gelves",lat:37.340,lng:-6.013},
-{id:"La Rinconada",label:"La Rinconada",lat:37.476,lng:-5.981},
-{id:"Mairena del Alcor",label:"Mairena del Alcor",lat:37.369,lng:-5.757},
-{id:"Utrera",label:"Utrera",lat:37.185,lng:-5.781},
-{id:"Carmona",label:"Carmona",lat:37.471,lng:-5.644},
-{id:"Écija",label:"Écija",lat:37.541,lng:-5.082},
-{id:"Morón de la Frontera",label:"Morón de la Frontera",lat:37.125,lng:-5.453},
-
-{id:"Lebrija",label:"Lebrija",lat:36.921,lng:-6.081},
+  { id: "Dos Hermanas", label: "Dos Hermanas", lat: 37.296, lng: -5.922 },
+  { id: "Alcalá de Guadaíra", label: "Alcalá de Guadaíra", lat: 37.339, lng: -5.84 },
+  { id: "Mairena del Aljarafe", label: "Mairena del Aljarafe", lat: 37.347, lng: -6.062 },
+  { id: "Camas", label: "Camas", lat: 37.399, lng: -6.031 },
+  { id: "San Juan de Aznalfarache", label: "San Juan", lat: 37.37, lng: -6.025 },
+  { id: "Bormujos", label: "Bormujos", lat: 37.362, lng: -6.071 },
+  { id: "Tomares", label: "Tomares", lat: 37.371, lng: -6.047 },
+  { id: "Gelves", label: "Gelves", lat: 37.34, lng: -6.013 },
+  { id: "La Rinconada", label: "La Rinconada", lat: 37.476, lng: -5.981 },
+  { id: "Mairena del Alcor", label: "Mairena del Alcor", lat: 37.369, lng: -5.757 },
+  { id: "Utrera", label: "Utrera", lat: 37.185, lng: -5.781 },
+  { id: "Carmona", label: "Carmona", lat: 37.471, lng: -5.644 },
+  { id: "Écija", label: "Écija", lat: 37.541, lng: -5.082 },
+  { id: "Morón de la Frontera", label: "Morón de la Frontera", lat: 37.125, lng: -5.453 },
+  { id: "Lebrija", label: "Lebrija", lat: 36.921, lng: -6.081 },
 ];
-// REAL GeoJSON coordinates for Sevilla barrios (from OpenStreetMap data)
+ 
 const BARRIOS_SEVILLA = [
-{id:"Centro",color:"#FFD700",latlngs:[[37.3961,-5.9953],[37.3958,-5.9916],[37.3944,-5.9873],
-[37.3921,-5.9836],[37.3896,-5.9823],[37.3872,-5.9829],[37.3854,-5.9851],[37.3851,-5.9883],[
-37.3862,-5.9921],[37.3886,-5.9952],[37.3916,-5.9967],[37.3944,-5.9965]]},
-{id:"Triana",color:"#FF6B6B",latlngs:[[37.3989,-6.0156],[37.3991,-6.0098],[37.3978,-6.0052],[
-37.3955,-6.0012],[37.3921,-5.9988],[37.3892,-5.9981],[37.3869,-5.9991],[37.3851,-6.0018],[
-37.3843,-6.0058],[37.3851,-6.0101],[37.3874,-6.0138],[37.3909,-6.0158],[37.3946,-6.0162],[
-37.3971,-6.0158]]},
-{id:"LosRemedios",color:"#4ECDC4",latlngs:[[37.3851,-6.0018],[37.3843,-6.0058],[37.3851,-6.0101],
-[37.3836,-6.0098],[37.3798,-6.0071],[37.3768,-6.0038],[37.3754,-5.9998],[37.3758,-5.9958],[
-37.3779,-5.9928],[37.3812,-5.9918],[37.3843,-5.9934],[37.3869,-5.9991]]},
-{id:"Nervión",color:"#45B7D1",latlngs:[[37.3961,-5.9953],[37.3944,-5.9965],[37.3960,-5.9895]
-,[37.3988,-5.9833],[37.4008,-5.9776],[37.4001,-5.9718],[37.3978,-5.9678],[37.3954,-5.9668],
-[37.3928,-5.9689],[37.3911,-5.9728],[37.3913,-5.9772],[37.3929,-5.9810],[37.3944,-5.9837],[
-37.3961,-5.9873]]},
-{id:"LaMacarena",color:"#A78BFA",latlngs:[[37.4098,-5.9988],[37.4121,-5.9941],[37.4128,-5.9881],[
-37.4118,-5.9821],[37.4091,-5.9773],[37.4058,-5.9743],[37.4021,-5.9738],[37.3988,-5.9758],[
-37.3972,-5.9791],[37.3961,-5.9831],[37.3961,-5.9873],[37.3988,-5.9833],[37.4008,-5.9776],[
-37.4038,-5.9761],[37.4068,-5.9771],[37.4088,-5.9801],[37.4091,-5.9851],[37.4078,-5.9901],[
-37.4058,-5.9941]]},
-{id:"SanPablo",color:"#FB923C",latlngs:[[37.4098,-5.9988],[37.4058,-5.9941],[37.4078,-5.9901],[37.4
-091,-5.9851],[37.4088,-5.9801],[37.4121,-5.9741],[37.4148,-5.9701],[37.4168,-5.9638],[37.4
-158,-5.9578],[37.4131,-5.9541],[37.4098,-5.9531],[37.4068,-5.9548],[37.4048,-5.9578],[37.4
-038,-5.9621],[37.4041,-5.9671],[37.4058,-5.9718],[37.4088,-5.9738]]},
-{id:"Bellavista",color:"#34D399",latlngs:[[37.3758,-5.9958],[37.3754,-5.9998],[37.3768,-6.003
-8],[37.3748,-6.0031],[37.3718,-5.9998],[37.3694,-5.9951],[37.3681,-5.9898],[37.3686,-5.984
-1],[37.3708,-5.9798],[37.3738,-5.9778],[37.3768,-5.9788],[37.3791,-5.9818],[37.3798,-5.985
-8],[37.3791,-5.9901],[37.3779,-5.9928],[37.3758,-5.9958]]},
-{id:"Cerro-Amate",color:"#60A5FA",latlngs:[[37.3978,-5.9678],[37.4001,-5.9718],[37.4008,-5.
-9776],[37.3988,-5.9833],[37.3961,-5.9873],[37.3944,-5.9837],[37.3928,-5.9810],[37.3911,-5.
-9771],[37.3898,-5.9721],[37.3891,-5.9661],[37.3901,-5.9601],[37.3924,-5.9558],[37.3954,-5.
-9541],[37.3984,-5.9558],[37.4001,-5.9594],[37.4001,-5.9638]]},
-{id:"Sur",color:"#F472B6",latlngs:[[37.3791,-5.9818],[37.3768,-5.9788],[37.3738,-5.9778],[37.
-3718,-5.9798],[37.3698,-5.9841],[37.3691,-5.9888],[37.3664,-5.9871],[37.3638,-5.9838],[37.
-
-3624,-5.9791],[37.3628,-5.9741],[37.3651,-5.9701],[37.3681,-5.9678],[37.3714,-5.9678],[37.
-3744,-5.9694],[37.3764,-5.9724],[37.3771,-5.9771]]},
-{id:"Torreblanca",color:"#FBBF24",latlngs:[[37.3978,-5.9678],[37.4001,-5.9638],[37.4001,-5.9
-594],[37.3984,-5.9558],[37.3984,-5.9491],[37.4001,-5.9431],[37.4028,-5.9391],[37.4061,-5.9
-368],[37.4098,-5.9368],[37.4128,-5.9391],[37.4141,-5.9431],[37.4131,-5.9481],[37.4104,-5.9
-518],[37.4068,-5.9531],[37.4038,-5.9541],[37.4001,-5.9578],[37.3984,-5.9628]]},
-{id:"Norte",color:"#6EE7B7",latlngs:[[37.4128,-5.9881],[37.4148,-5.9941],[37.4168,-5.9988],[
-37.4188,-6.0028],[37.4198,-6.0078],[37.4188,-6.0121],[37.4158,-6.0148],[37.4121,-6.0151],[
-37.4088,-6.0128],[37.4068,-6.0091],[37.4068,-6.0041],[37.4088,-6.0001],[37.4118,-5.9971],[
-37.4128,-5.9928]]},
-{id:"PinoMontano",color:"#C4B5FD",latlngs:[[37.4168,-5.9638],[37.4188,-5.9578],[37.4208,-5.9511],[3
-7.4228,-5.9451],[37.4258,-5.9411],[37.4291,-5.9391],[37.4318,-5.9411],[37.4328,-5.9461],[37
-.4311,-5.9518],[37.4278,-5.9561],[37.4241,-5.9578],[37.4208,-5.9578],[37.4181,-5.9601]]},
-{id:"SevillaEste",color:"#F97316",latlngs:[[37.3984,-5.9491],[37.3984,-5.9428],[37.3998,-5.9368],[37.40
-21,-5.9311],[37.4054,-5.9268],[37.4091,-5.9241],[37.4131,-5.9241],[37.4161,-5.9268],[37.41
-71,-5.9318],[37.4158,-5.9368],[37.4131,-5.9391],[37.4098,-5.9368],[37.4061,-5.9368],[37.40
-28,-5.9391],[37.4001,-5.9431],[37.3984,-5.9491]]},
+  { id: "Centro", color: "#FFD700", latlngs: [[37.3961,-5.9953],[37.3958,-5.9916],[37.3944,-5.9873],[37.3921,-5.9836],[37.3896,-5.9823],[37.3872,-5.9829],[37.3854,-5.9851],[37.3851,-5.9883],[37.3862,-5.9921],[37.3886,-5.9952],[37.3916,-5.9967],[37.3944,-5.9965]] },
+  { id: "Triana", color: "#FF6B6B", latlngs: [[37.3989,-6.0156],[37.3991,-6.0098],[37.3978,-6.0052],[37.3955,-6.0012],[37.3921,-5.9988],[37.3892,-5.9981],[37.3869,-5.9991],[37.3851,-6.0018],[37.3843,-6.0058],[37.3851,-6.0101],[37.3874,-6.0138],[37.3909,-6.0158],[37.3946,-6.0162],[37.3971,-6.0158]] },
+  { id: "Los Remedios", color: "#4ECDC4", latlngs: [[37.3851,-6.0018],[37.3843,-6.0058],[37.3851,-6.0101],[37.3836,-6.0098],[37.3798,-6.0071],[37.3768,-6.0038],[37.3754,-5.9998],[37.3758,-5.9958],[37.3779,-5.9928],[37.3812,-5.9918],[37.3843,-5.9934],[37.3869,-5.9991]] },
+  { id: "Nervión", color: "#45B7D1", latlngs: [[37.3961,-5.9953],[37.3944,-5.9965],[37.396,-5.9895],[37.3988,-5.9833],[37.4008,-5.9776],[37.4001,-5.9718],[37.3978,-5.9678],[37.3954,-5.9668],[37.3928,-5.9689],[37.3911,-5.9728],[37.3913,-5.9772],[37.3929,-5.981],[37.3944,-5.9837],[37.3961,-5.9873]] },
+  { id: "La Macarena", color: "#A78BFA", latlngs: [[37.4098,-5.9988],[37.4121,-5.9941],[37.4128,-5.9881],[37.4118,-5.9821],[37.4091,-5.9773],[37.4058,-5.9743],[37.4021,-5.9738],[37.3988,-5.9758],[37.3972,-5.9791],[37.3961,-5.9831],[37.3961,-5.9873],[37.3988,-5.9833],[37.4008,-5.9776],[37.4038,-5.9761],[37.4068,-5.9771],[37.4088,-5.9801],[37.4091,-5.9851],[37.4078,-5.9901],[37.4058,-5.9941]] },
+  { id: "San Pablo", color: "#FB923C", latlngs: [[37.4098,-5.9988],[37.4058,-5.9941],[37.4078,-5.9901],[37.4091,-5.9851],[37.4088,-5.9801],[37.4121,-5.9741],[37.4148,-5.9701],[37.4168,-5.9638],[37.4158,-5.9578],[37.4131,-5.9541],[37.4098,-5.9531],[37.4068,-5.9548],[37.4048,-5.9578],[37.4038,-5.9621],[37.4041,-5.9671],[37.4058,-5.9718],[37.4088,-5.9738]] },
+  { id: "Bellavista", color: "#34D399", latlngs: [[37.3758,-5.9958],[37.3754,-5.9998],[37.3768,-6.0038],[37.3748,-6.0031],[37.3718,-5.9998],[37.3694,-5.9951],[37.3681,-5.9898],[37.3686,-5.9841],[37.3708,-5.9798],[37.3738,-5.9778],[37.3768,-5.9788],[37.3791,-5.9818],[37.3798,-5.9858],[37.3791,-5.9901],[37.3779,-5.9928],[37.3758,-5.9958]] },
+  { id: "Cerro-Amate", color: "#60A5FA", latlngs: [[37.3978,-5.9678],[37.4001,-5.9718],[37.4008,-5.9776],[37.3988,-5.9833],[37.3961,-5.9873],[37.3944,-5.9837],[37.3928,-5.981],[37.3911,-5.9771],[37.3898,-5.9721],[37.3891,-5.9661],[37.3901,-5.9601],[37.3924,-5.9558],[37.3954,-5.9541],[37.3984,-5.9558],[37.4001,-5.9594],[37.4001,-5.9638]] },
+  { id: "Sur", color: "#F472B6", latlngs: [[37.3791,-5.9818],[37.3768,-5.9788],[37.3738,-5.9778],[37.3718,-5.9798],[37.3698,-5.9841],[37.3691,-5.9888],[37.3664,-5.9871],[37.3638,-5.9838],[37.3624,-5.9791],[37.3628,-5.9741],[37.3651,-5.9701],[37.3681,-5.9678],[37.3714,-5.9678],[37.3744,-5.9694],[37.3764,-5.9724],[37.3771,-5.9771]] },
+  { id: "Torreblanca", color: "#FBBF24", latlngs: [[37.3978,-5.9678],[37.4001,-5.9638],[37.4001,-5.9594],[37.3984,-5.9558],[37.3984,-5.9491],[37.4001,-5.9431],[37.4028,-5.9391],[37.4061,-5.9368],[37.4098,-5.9368],[37.4128,-5.9391],[37.4141,-5.9431],[37.4131,-5.9481],[37.4104,-5.9518],[37.4068,-5.9531],[37.4038,-5.9541],[37.4001,-5.9578],[37.3984,-5.9628]] },
+  { id: "Norte", color: "#6EE7B7", latlngs: [[37.4128,-5.9881],[37.4148,-5.9941],[37.4168,-5.9988],[37.4188,-6.0028],[37.4198,-6.0078],[37.4188,-6.0121],[37.4158,-6.0148],[37.4121,-6.0151],[37.4088,-6.0128],[37.4068,-6.0091],[37.4068,-6.0041],[37.4088,-6.0001],[37.4118,-5.9971],[37.4128,-5.9928]] },
+  { id: "Pino Montano", color: "#C4B5FD", latlngs: [[37.4168,-5.9638],[37.4188,-5.9578],[37.4208,-5.9511],[37.4228,-5.9451],[37.4258,-5.9411],[37.4291,-5.9391],[37.4318,-5.9411],[37.4328,-5.9461],[37.4311,-5.9518],[37.4278,-5.9561],[37.4241,-5.9578],[37.4208,-5.9578],[37.4181,-5.9601]] },
+  { id: "Sevilla Este", color: "#F97316", latlngs: [[37.3984,-5.9491],[37.3984,-5.9428],[37.3998,-5.9368],[37.4021,-5.9311],[37.4054,-5.9268],[37.4091,-5.9241],[37.4131,-5.9241],[37.4161,-5.9268],[37.4171,-5.9318],[37.4158,-5.9368],[37.4131,-5.9391],[37.4098,-5.9368],[37.4061,-5.9368],[37.4028,-5.9391],[37.4001,-5.9431],[37.3984,-5.9491]] },
 ];
-function
-SevillaMap({selectedZone,onZoneSelect}:{selectedZone:string;onZoneSelect:(z:string)=>voi
-d}){
-const mapRef = useRef<HTMLDivElement>(null);
-const leafletRef = useRef<L.Map|null>(null);
-const polysRef = useRef<Record<string,L.Polygon>>({});
-const markersRef = useRef<Record<string,L.Marker>>({});
-const [filter,setFilter] = useState<"sevilla"|"pueblos">("sevilla");
-// Init map
-useEffect(()=>{
-if(!mapRef.current||leafletRef.current) return;
-const map = L.map(mapRef.current,{
-center:[37.388,-5.982],zoom:12,
-zoomControl:false,scrollWheelZoom:true,
-attributionControl:false,
-});
-L.control.zoom({position:"bottomright"}).addTo(map);
-L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png",{
-subdomains:"abcd",maxZoom:19,
-}).addTo(map);
-L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png",{
-subdomains:"abcd",maxZoom:19,opacity:0.6,
-}).addTo(map);
-
-// Draw barrios
-BARRIOS_SEVILLA.forEach(b=>{
-const coords = b.latlngs.map(c=>[c[0],c[1]] as L.LatLngTuple);
-const isActive = selectedZone===b.id;
-const poly = L.polygon(coords,{
-color:b.color,fillColor:b.color,
-fillOpacity:isActive?0.50:0.18,
-weight:isActive?2.5:1.2,opacity:isActive?1:0.65,
-dashArray:isActive?undefined:"5,4",smoothFactor:2,
-}).addTo(map);
-poly.on("mouseover",()=>{ if(selectedZone!==b.id)
-poly.setStyle({fillOpacity:0.38,dashArray:undefined,weight:2}); });
-poly.on("mouseout",()=>{ if(selectedZone!==b.id)
-poly.setStyle({fillOpacity:0.18,dashArray:"5,4",weight:1.2}); });
-poly.on("click",()=>onZoneSelect(selectedZone===b.id?"":b.id));
-polysRef.current[b.id]=poly;
-// Label
-const center = poly.getBounds().getCenter();
-const icon = L.divIcon({
-html:`<span
-style="color:${isActive?"#fff":b.color};font-size:${isActive?"11px":"9.5px"};font-weight:${isActive?"800":"600"};font-family:'DM Sans',sans-serif;text-shadow:0 1px 4pxrgba(0,0,0,0.95);white-space:nowrap;pointer-events:none;${isActive?"background:"+b.color+
-"44;padding:2px 6px;border-radius:4px;":""}">${b.id}</span>`,
-iconSize:[90,18],iconAnchor:[45,9],className:"",
-});
-markersRef.current[b.id]=L.marker(center,{icon,interactive:false,zIndexOffset:isActive?500:0}
-).addTo(map);
-});
-// Draw pueblos as dots
-PUEBLOS_CERCANOS.forEach(p=>{
-const isActive = selectedZone===p.id;
-const icon = L.divIcon({
-html:`<div
-style="display:flex;flex-direction:column;align-items:center;pointer-events:none;"><div
-style="width:${isActive?10:7}px;height:${isActive?10:7}px;border-radius:50%;background:${isActive?"#FFD700":"#4ECDC4"};box-shadow:0 0 8px${isActive?"#FFD700":"#4ECDC4"}88;border:2px solid
-${isActive?"#FFD700":"rgba(255,255,255,0.3)"}"></div><spanstyle="color:${isActive?"#FFD700":"#aaa"};font-size:9px;font-weight:${isActive?700:500};font
--family:'DM Sans',sans-serif;text-shadow:0 1px 3px
-rgba(0,0,0,0.9);margin-top:2px;white-space:nowrap">${p.label}</span></div>`,
-iconSize:[80,32],iconAnchor:[40,5],className:"",
-});
-
-const marker =
-L.marker([p.lat,p.lng],{icon,interactive:true,zIndexOffset:isActive?500:0}).addTo(map);
-marker.on("click",()=>onZoneSelect(selectedZone===p.id?"":p.id));
-});
-leafletRef.current=map;
-// Zoom handler — auto switch filter based on zoom
-map.on("zoomend",()=>{
-const z=map.getZoom();
-if(z>=13) setFilter("sevilla");
-else if(z<=11) setFilter("pueblos");
-});
-return ()=>{map.remove();leafletRef.current=null;};
-},[]);
-// Update poly styles when selection changes
-useEffect(()=>{
-BARRIOS_SEVILLA.forEach(b=>{
-const poly=polysRef.current[b.id];
-if(!poly) return;
-const isActive=selectedZone===b.id;
-poly.setStyle({fillOpacity:isActive?0.50:0.18,weight:isActive?2.5:1.2,dashArray:isActive?unde
-fined:"5,4",opacity:isActive?1:0.65});
-});
-},[selectedZone]);
-// Pan map when filter changes
-useEffect(()=>{
-const map=leafletRef.current;
-if(!map) return;
-if(filter==="sevilla") map.flyTo([37.388,-5.982],13,{duration:0.8});
-else map.flyTo([37.38,-6.0],11,{duration:0.8});
-},[filter]);
-return (
-<div style={{marginBottom:16,borderRadius:16,overflow:"hidden",border:"1px solid"+(selectedZone?C.accent+"55":C.border),background:C.card,boxShadow:"0 8px 32pxrgba(0,0,0,0.5)"}}>
-{/* Header */}
-<div style={{padding:"12px16px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"linear-gradient(135deg,"+C.card+",#0F0F1A)",borderBottom:"1px solid "+C.border}}>
-<div>
-<p style={{fontSize:13,fontWeight:700,color:C.text}}>
-Selecciona una zona</p>
-
-
-<p style={{fontSize:10,color:C.muted,marginTop:1}}>Haz clic en el mapa o usa los
-botones</p>
-</div>
-{selectedZone&&(
-<button onClick={()=>onZoneSelect("")}
-style={{display:"flex",alignItems:"center",gap:5,padding:"4px10px",background:C.accent+"15",border:"1px solid"+C.accent+"44",borderRadius:99,color:C.accent,cursor:"pointer",fontSize:11,fontWeight:700,fontFamily:"'DM Sans',sans-serif"}}>
-<span
-style={{maxWidth:120,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{sele
-ctedZone}</span>
-<span>✕</span>
-</button>
-)}
-</div>
-{/* Map */}
-<div ref={mapRef} style={{height:280,width:"100%"}} />
-{/* Filter tabs + pills */}
-<div style={{background:"linear-gradient(180deg,"+C.card+",#0F0F1A)",borderTop:"1pxsolid "+C.border}}>
-{/* Sevilla / Pueblos toggle */}
-<div style={{display:"flex",padding:"10px 12px 6px",gap:6}}>
-<button onClick={()=>setFilter("sevilla")}
-style={{flex:1,padding:"8px",borderRadius:10,border:"1px solid"+(filter==="sevilla"?C.accent:C.border),background:filter==="sevilla"?"linear-gradient(135deg,"+C.accent+"22,"+C.orange+"11)":"transparent",color:filter==="sevilla"?C.accent:C.muted,cursor:"pointer",fontFamily:"'DM
-Sans',sans-serif",fontSize:12,fontWeight:filter==="sevilla"?700:500,transition:"all 0.2s"}}>
-Sevilla capital
-</button>
-<button onClick={()=>setFilter("pueblos")}
-style={{flex:1,padding:"8px",borderRadius:10,border:"1px solid"+(filter==="pueblos"?C.cyan:C.border),background:filter==="pueblos"?"linear-gradient(135deg,"+C.cyan+"22,transparent)":"transparent",color:filter==="pueblos"?C.cyan:C.muted,cursor:"pointer",fontFamily:"'DM
-Sans',sans-serif",fontSize:12,fontWeight:filter==="pueblos"?700:500,transition:"all 0.2s"}}>
-Pueblos cercanos
-</button>
-</div>
-
-
-
-{/* Sevilla barrio pills */}
-{filter==="sevilla"&&(
-<div style={{padding:"4px 12px10px",display:"flex",gap:5,flexWrap:"wrap",maxHeight:75,overflowY:"auto"}}>
-{BARRIOS_SEVILLA.map(b=>{
-
-const isActive=selectedZone===b.id;
-return <button key={b.id} onClick={()=>onZoneSelect(isActive?"":b.id)}
-style={{padding:"4px 10px",borderRadius:99,border:"1px solid"+(isActive?b.color:C.border),background:isActive?b.color+"25":"transparent",color:isActive?
-b.color:C.muted,cursor:"pointer",fontSize:10,fontFamily:"'DMSans',sans-serif",fontWeight:isActive?700:400,transition:"all 0.15s",whiteSpace:"nowrap"}}>
-{b.id}
-</button>;
-})}
-</div>
-)}
-{/* Pueblos pills */}
-{filter==="pueblos"&&(
-<div style={{padding:"4px 12px10px",display:"flex",gap:5,flexWrap:"wrap",maxHeight:75,overflowY:"auto"}}>
-{PUEBLOS_CERCANOS.map(p=>{
-const isActive=selectedZone===p.id;
-return <button key={p.id} onClick={()=>onZoneSelect(isActive?"":p.id)}
-style={{padding:"4px 10px",borderRadius:99,border:"1px solid"+(isActive?C.cyan:C.border),background:isActive?C.cyan+"22":"transparent",color:isActive?
-C.cyan:C.muted,cursor:"pointer",fontSize:10,fontFamily:"'DMSans',sans-serif",fontWeight:isActive?700:400,transition:"all 0.15s",whiteSpace:"nowrap"}}>
-{p.label}
-</button>;
-})}
-</div>
-)}
-</div>
-</div>
-);
-}
-
-
-// ─── RANKING SECTION COMPONENT ───
-// =========================================================
-// NUEVOS COMPONENTES MODULARES DE ADMIN Y SOCIOS B2B
-// =========================================================
-
-export function AdminDashboard() {
+ 
+function SevillaMap({
+  selectedZone,
+  onZoneSelect,
+}: {
+  selectedZone: string;
+  onZoneSelect: (z: string) => void;
+}) {
+  const mapRef = useRef<HTMLDivElement>(null);
+  const leafletRef = useRef<L.Map | null>(null);
+  const polysRef = useRef<Record<string, L.Polygon>>({});
+  const [filter, setFilter] = useState<"sevilla" | "pueblos">("sevilla");
+ 
+  useEffect(() => {
+    if (!mapRef.current || leafletRef.current) return;
+    const map = L.map(mapRef.current, {
+      center: [37.388, -5.982],
+      zoom: 12,
+      zoomControl: false,
+      scrollWheelZoom: true,
+      attributionControl: false,
+    });
+    L.control.zoom({ position: "bottomright" }).addTo(map);
+    L.tileLayer(
+      "https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png",
+      { subdomains: "abcd", maxZoom: 19 }
+    ).addTo(map);
+    L.tileLayer(
+      "https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png",
+      { subdomains: "abcd", maxZoom: 19, opacity: 0.6 }
+    ).addTo(map);
+ 
+    BARRIOS_SEVILLA.forEach((b) => {
+      const coords = b.latlngs.map((c) => [c[0], c[1]] as L.LatLngTuple);
+      const isActive = selectedZone === b.id;
+      const poly = L.polygon(coords, {
+        color: b.color,
+        fillColor: b.color,
+        fillOpacity: isActive ? 0.5 : 0.18,
+        weight: isActive ? 2.5 : 1.2,
+        opacity: isActive ? 1 : 0.65,
+        dashArray: isActive ? undefined : "5,4",
+        smoothFactor: 2,
+      }).addTo(map);
+      poly.on("mouseover", () => {
+        if (selectedZone !== b.id)
+          poly.setStyle({ fillOpacity: 0.38, dashArray: undefined, weight: 2 });
+      });
+      poly.on("mouseout", () => {
+        if (selectedZone !== b.id)
+          poly.setStyle({ fillOpacity: 0.18, dashArray: "5,4", weight: 1.2 });
+      });
+      poly.on("click", () =>
+        onZoneSelect(selectedZone === b.id ? "" : b.id)
+      );
+      polysRef.current[b.id] = poly;
+ 
+      const center = poly.getBounds().getCenter();
+      const icon = L.divIcon({
+        html: `<span style="color:${isActive ? "#fff" : b.color};font-size:${isActive ? "11px" : "9.5px"};font-weight:${isActive ? "800" : "600"};font-family:'DM Sans',sans-serif;text-shadow:0 1px 4px rgba(0,0,0,0.95);white-space:nowrap;pointer-events:none;${isActive ? "background:" + b.color + "44;padding:2px 6px;border-radius:4px;" : ""}">${b.id}</span>`,
+        iconSize: [90, 18],
+        iconAnchor: [45, 9],
+        className: "",
+      });
+      L.marker(center, {
+        icon,
+        interactive: false,
+        zIndexOffset: isActive ? 500 : 0,
+      }).addTo(map);
+    });
+ 
+    PUEBLOS_CERCANOS.forEach((p) => {
+      const isActive = selectedZone === p.id;
+      const icon = L.divIcon({
+        html: `<div style="display:flex;flex-direction:column;align-items:center;pointer-events:none;"><div style="width:${isActive ? 10 : 7}px;height:${isActive ? 10 : 7}px;border-radius:50%;background:${isActive ? "#FFD700" : "#4ECDC4"};box-shadow:0 0 8px ${isActive ? "#FFD700" : "#4ECDC4"}88;border:2px solid ${isActive ? "#FFD700" : "rgba(255,255,255,0.3)"}"></div><span style="color:${isActive ? "#FFD700" : "#aaa"};font-size:9px;font-weight:${isActive ? 700 : 500};font-family:'DM Sans',sans-serif;text-shadow:0 1px 3px rgba(0,0,0,0.9);margin-top:2px;white-space:nowrap">${p.label}</span></div>`,
+        iconSize: [80, 32],
+        iconAnchor: [40, 5],
+        className: "",
+      });
+      const marker = L.marker([p.lat, p.lng], {
+        icon,
+        interactive: true,
+        zIndexOffset: isActive ? 500 : 0,
+      }).addTo(map);
+      marker.on("click", () =>
+        onZoneSelect(selectedZone === p.id ? "" : p.id)
+      );
+    });
+ 
+    leafletRef.current = map;
+    map.on("zoomend", () => {
+      const z = map.getZoom();
+      if (z >= 13) setFilter("sevilla");
+      else if (z <= 11) setFilter("pueblos");
+    });
+    return () => {
+      map.remove();
+      leafletRef.current = null;
+    };
+  }, []);
+ 
+  useEffect(() => {
+    BARRIOS_SEVILLA.forEach((b) => {
+      const poly = polysRef.current[b.id];
+      if (!poly) return;
+      const isActive = selectedZone === b.id;
+      poly.setStyle({
+        fillOpacity: isActive ? 0.5 : 0.18,
+        weight: isActive ? 2.5 : 1.2,
+        dashArray: isActive ? undefined : "5,4",
+        opacity: isActive ? 1 : 0.65,
+      });
+    });
+  }, [selectedZone]);
+ 
+  useEffect(() => {
+    const map = leafletRef.current;
+    if (!map) return;
+    if (filter === "sevilla") map.flyTo([37.388, -5.982], 13, { duration: 0.8 });
+    else map.flyTo([37.38, -6.0], 11, { duration: 0.8 });
+  }, [filter]);
+ 
   return (
-    <div style={{ padding: 20, background: "#0A0A0F", minHeight: "100vh" }}>
-      <h1 style={{ color: "#FFD700" }}>Panel de Control SúperAdmin</h1>
-      <p style={{ color: "#F0F0FA", opacity: 0.7 }}>Gestión de usuarios, reportes y moderación de reseñas de OficioYa Sevilla.</p>
+    <div
+      style={{
+        marginBottom: 16,
+        borderRadius: 16,
+        overflow: "hidden",
+        border:
+          "1px solid " +
+          (selectedZone ? C.accent + "55" : C.border),
+        background: C.card,
+        boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+      }}
+    >
+      <div
+        style={{
+          padding: "12px 16px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          background: `linear-gradient(135deg,${C.card},#0F0F1A)`,
+          borderBottom: "1px solid " + C.border,
+        }}
+      >
+        <div>
+          <p style={{ fontSize: 13, fontWeight: 700, color: C.text }}>
+            Selecciona una zona
+          </p>
+          <p style={{ fontSize: 10, color: C.muted, marginTop: 1 }}>
+            Haz clic en el mapa o usa los botones
+          </p>
+        </div>
+        {selectedZone && (
+          <button
+            onClick={() => onZoneSelect("")}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 5,
+              padding: "4px 10px",
+              background: C.accent + "15",
+              border: "1px solid " + C.accent + "44",
+              borderRadius: 99,
+              color: C.accent,
+              cursor: "pointer",
+              fontSize: 11,
+              fontWeight: 700,
+              fontFamily: "'DM Sans',sans-serif",
+            }}
+          >
+            <span
+              style={{
+                maxWidth: 120,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {selectedZone}
+            </span>
+            <span>✕</span>
+          </button>
+        )}
+      </div>
+ 
+      <div ref={mapRef} style={{ height: 280, width: "100%" }} />
+ 
+      <div
+        style={{
+          background: `linear-gradient(180deg,${C.card},#0F0F1A)`,
+          borderTop: "1px solid " + C.border,
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            padding: "10px 12px 6px",
+            gap: 6,
+          }}
+        >
+          <button
+            onClick={() => setFilter("sevilla")}
+            style={{
+              flex: 1,
+              padding: "8px",
+              borderRadius: 10,
+              border:
+                "1px solid " +
+                (filter === "sevilla" ? C.accent : C.border),
+              background:
+                filter === "sevilla"
+                  ? `linear-gradient(135deg,${C.accent}22,${C.orange}11)`
+                  : "transparent",
+              color: filter === "sevilla" ? C.accent : C.muted,
+              cursor: "pointer",
+              fontFamily: "'DM Sans',sans-serif",
+              fontSize: 12,
+              fontWeight: filter === "sevilla" ? 700 : 500,
+              transition: "all 0.2s",
+            }}
+          >
+            Sevilla capital
+          </button>
+          <button
+            onClick={() => setFilter("pueblos")}
+            style={{
+              flex: 1,
+              padding: "8px",
+              borderRadius: 10,
+              border:
+                "1px solid " +
+                (filter === "pueblos" ? C.cyan : C.border),
+              background:
+                filter === "pueblos"
+                  ? `linear-gradient(135deg,${C.cyan}22,transparent)`
+                  : "transparent",
+              color: filter === "pueblos" ? C.cyan : C.muted,
+              cursor: "pointer",
+              fontFamily: "'DM Sans',sans-serif",
+              fontSize: 12,
+              fontWeight: filter === "pueblos" ? 700 : 500,
+              transition: "all 0.2s",
+            }}
+          >
+            Pueblos cercanos
+          </button>
+        </div>
+ 
+        {filter === "sevilla" && (
+          <div
+            style={{
+              padding: "4px 12px 10px",
+              display: "flex",
+              gap: 5,
+              flexWrap: "wrap",
+              maxHeight: 75,
+              overflowY: "auto",
+            }}
+          >
+            {BARRIOS_SEVILLA.map((b) => {
+              const isActive = selectedZone === b.id;
+              return (
+                <button
+                  key={b.id}
+                  onClick={() => onZoneSelect(isActive ? "" : b.id)}
+                  style={{
+                    padding: "4px 10px",
+                    borderRadius: 99,
+                    border:
+                      "1px solid " + (isActive ? b.color : C.border),
+                    background: isActive ? b.color + "25" : "transparent",
+                    color: isActive ? b.color : C.muted,
+                    cursor: "pointer",
+                    fontSize: 10,
+                    fontFamily: "'DM Sans',sans-serif",
+                    fontWeight: isActive ? 700 : 400,
+                    transition: "all 0.15s",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {b.id}
+                </button>
+              );
+            })}
+          </div>
+        )}
+ 
+        {filter === "pueblos" && (
+          <div
+            style={{
+              padding: "4px 12px 10px",
+              display: "flex",
+              gap: 5,
+              flexWrap: "wrap",
+              maxHeight: 75,
+              overflowY: "auto",
+            }}
+          >
+            {PUEBLOS_CERCANOS.map((p) => {
+              const isActive = selectedZone === p.id;
+              return (
+                <button
+                  key={p.id}
+                  onClick={() => onZoneSelect(isActive ? "" : p.id)}
+                  style={{
+                    padding: "4px 10px",
+                    borderRadius: 99,
+                    border:
+                      "1px solid " + (isActive ? C.cyan : C.border),
+                    background: isActive ? C.cyan + "22" : "transparent",
+                    color: isActive ? C.cyan : C.muted,
+                    cursor: "pointer",
+                    fontSize: 10,
+                    fontFamily: "'DM Sans',sans-serif",
+                    fontWeight: isActive ? 700 : 400,
+                    transition: "all 0.15s",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {p.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
-
-export function FincasDashboard({ user }: { user: any }) {
+ 
+// ─── RANKING SECTION ─────────────────────────────────────────────────
+function RankingSection({
+  workers,
+  onSelect,
+}: {
+  workers: UserRow[];
+  onSelect: (w: UserRow) => void;
+}) {
+  const ranked = [...workers]
+    .filter((w) => w.type === "profesional")
+    .sort((a, b) => {
+      const order: Record<Plan, number> = {
+        elite: 3,
+        pro: 2,
+        basico: 1,
+        gratis: 0,
+      };
+      return (
+        order[b.plan as Plan] - order[a.plan as Plan] ||
+        b.rating - a.rating ||
+        b.reviews - a.reviews
+      );
+    })
+    .slice(0, 20);
+ 
+  const medals = ["🥇", "🥈", "🥉"];
+ 
   return (
-    <div style={{ padding: 20, background: "#0A0A0F", minHeight: "100vh" }}>
-      <h1 style={{ color: "#3B82F6" }}>Panel Corporativo: Administradores de Fincas</h1>
-      <p style={{ color: "#F0F0FA", opacity: 0.7 }}>Bienvenido, {user?.name || "Administrador"}. Registra incidencias y averías en comunidades.</p>
+    <>
+      <div style={{ padding: "22px 0 16px" }}>
+        <h2
+          style={{
+            fontWeight: 900,
+            fontSize: 24,
+            color: C.text,
+            letterSpacing: "-0.02em",
+            marginBottom: 4,
+          }}
+        >
+          🏆 Ranking de profesionales
+        </h2>
+        <p style={{ fontSize: 13, color: C.muted }}>
+          Los mejor valorados de Sevilla esta semana
+        </p>
+      </div>
+ 
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {ranked.map((w, idx) => {
+          const col = wColor(w.id);
+          return (
+            <GCard
+              key={w.id}
+              onClick={() => onSelect(w)}
+              glow={idx < 3 ? C.accent : col}
+              style={{ padding: "14px 16px" }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  gap: 12,
+                  alignItems: "center",
+                }}
+              >
+                <div
+                  style={{
+                    width: 32,
+                    textAlign: "center",
+                    fontSize: idx < 3 ? 22 : 14,
+                    fontWeight: 800,
+                    color: idx < 3 ? C.accent : C.muted,
+                    flexShrink: 0,
+                  }}
+                >
+                  {idx < 3 ? medals[idx] : `#${idx + 1}`}
+                </div>
+                <Ava
+                  s={w.name.substring(0, 2).toUpperCase()}
+                  size={44}
+                  color={col}
+                  online={w.available}
+                />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                      marginBottom: 2,
+                    }}
+                  >
+                    <p
+                      style={{
+                        fontWeight: 700,
+                        color: C.text,
+                        fontSize: 14,
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {w.name}
+                    </p>
+                    {w.verified && (
+                      <span
+                        style={{
+                          fontSize: 10,
+                          color: C.green,
+                          flexShrink: 0,
+                        }}
+                      >
+                        ✓
+                      </span>
+                    )}
+                    <Badge plan={w.plan} />
+                  </div>
+                  <p style={{ fontSize: 12, color: col, marginBottom: 3 }}>
+                    {OFICIO_ICONS[w.trade || ""] || "🔧"} {w.trade} ·{" "}
+                    {w.zone}
+                  </p>
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 6,
+                      alignItems: "center",
+                    }}
+                  >
+                    <Stars n={w.rating} size={11} />
+                    <span
+                      style={{
+                        fontSize: 11,
+                        color: C.text,
+                        fontWeight: 700,
+                      }}
+                    >
+                      {w.rating > 0 ? w.rating.toFixed(1) : "Nuevo"}
+                    </span>
+                    {w.reviews > 0 && (
+                      <span style={{ fontSize: 10, color: C.muted }}>
+                        ({w.reviews} reseñas)
+                      </span>
+                    )}
+                    {w.jobs > 0 && (
+                      <span style={{ fontSize: 10, color: C.muted }}>
+                        · {w.jobs} trabajos
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div style={{ textAlign: "right", flexShrink: 0 }}>
+                  <p
+                    style={{
+                      fontWeight: 800,
+                      fontSize: 18,
+                      color: C.accent,
+                    }}
+                  >
+                    {w.price}€
+                    <span style={{ fontSize: 10, color: C.muted }}>
+                      /h
+                    </span>
+                  </p>
+                  <span
+                    style={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: "50%",
+                      background: w.available ? C.green : C.red,
+                      display: "inline-block",
+                      marginRight: 4,
+                    }}
+                  />
+                  <span
+                    style={{
+                      fontSize: 10,
+                      color: w.available ? C.green : C.red,
+                    }}
+                  >
+                    {w.available ? "Disponible" : "Ocupado"}
+                  </span>
+                </div>
+              </div>
+            </GCard>
+          );
+        })}
+ 
+        {ranked.length === 0 && (
+          <div
+            style={{
+              textAlign: "center",
+              padding: 48,
+              color: C.muted,
+            }}
+          >
+            <p style={{ fontSize: 36, marginBottom: 8 }}>🏆</p>
+            <p style={{ fontWeight: 700, fontSize: 16 }}>
+              Sin profesionales en el ranking aún
+            </p>
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+ 
+// ─── ADMIN DASHBOARD (SuperAdmin) ────────────────────────────────────
+function AdminDashboard() {
+  const [tab, setTab] = useState<"usuarios" | "resenas" | "partners">(
+    "usuarios"
+  );
+  const [users, setUsers] = useState<UserRow[]>([]);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [partners, setPartners] = useState<UserRow[]>([]);
+  const [search, setSearch] = useState("");
+  const [onlyReported, setOnlyReported] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [msg, setMsg] = useState("");
+ 
+  useEffect(() => {
+    loadData();
+  }, [tab]);
+ 
+  async function loadData() {
+    setLoading(true);
+    if (tab === "usuarios") {
+      const { data } = await db
+        .from("users")
+        .select("*")
+        .order("created_at", { ascending: false });
+      setUsers(data || []);
+    } else if (tab === "resenas") {
+      const { data } = await db
+        .from("reviews")
+        .select("*")
+        .order("created_at", { ascending: false });
+      setReviews(data || []);
+    } else if (tab === "partners") {
+      const { data } = await db
+        .from("users")
+        .select("*")
+        .eq("role", "asesoria")
+        .order("created_at", { ascending: false });
+      setPartners(data || []);
+    }
+    setLoading(false);
+  }
+ 
+  async function setPlanElite(userId: string) {
+    await db.from("users").update({ plan: "elite" }).eq("id", userId);
+    setMsg("Plan actualizado a ÉLITE");
+    loadData();
+  }
+ 
+  async function toggleBan(u: UserRow) {
+    await db
+      .from("users")
+      .update({ banned: !(u as any).banned })
+      .eq("id", u.id);
+    setMsg((u as any).banned ? "Usuario desbaneado" : "Usuario baneado");
+    loadData();
+  }
+ 
+  async function deleteReview(id: string) {
+    await db.from("reviews").delete().eq("id", id);
+    setMsg("Reseña eliminada");
+    loadData();
+  }
+ 
+  async function approveReview(id: string) {
+    await db
+      .from("reviews")
+      .update({ approved: true, reported: false })
+      .eq("id", id);
+    setMsg("Reseña aprobada");
+    loadData();
+  }
+ 
+  async function generatePartnerCode(partner: UserRow) {
+    const code =
+      (partner.name || "PARTNER")
+        .toUpperCase()
+        .replace(/\s/g, "")
+        .slice(0, 10) + "26";
+    const { error } = await db.from("asesorias_codes").insert({
+      asesoria_id: partner.id,
+      code,
+      plan_to_grant: "elite",
+      months_duration: 1,
+    });
+    if (!error) setMsg(`✓ Código generado: ${code}`);
+    else setMsg("⚠ Error: puede que ya tenga código generado");
+  }
+ 
+  const filteredUsers = users.filter(
+    (u) =>
+      u.name?.toLowerCase().includes(search.toLowerCase()) ||
+      u.email?.toLowerCase().includes(search.toLowerCase())
+  );
+  const filteredReviews = onlyReported
+    ? reviews.filter((r) => r.reported)
+    : reviews;
+ 
+  const tabStyle = (t: string) => ({
+    padding: "10px 20px",
+    borderRadius: 8,
+    border: "1px solid " + (tab === t ? C.accent : C.border),
+    background: tab === t ? C.accent + "20" : "transparent",
+    color: tab === t ? C.accent : C.muted,
+    cursor: "pointer" as const,
+    fontFamily: "'DM Sans',sans-serif",
+    fontWeight: tab === t ? 700 : 400,
+    fontSize: 13,
+    transition: "all 0.15s",
+  });
+ 
+  return (
+    <div
+      style={{
+        minHeight: "100dvh",
+        background: C.bg,
+        padding: "24px 16px",
+        paddingBottom: 40,
+      }}
+    >
+      <div style={{ maxWidth: 900, margin: "0 auto" }}>
+        <div style={{ marginBottom: 24 }}>
+          <h1
+            style={{
+              fontWeight: 900,
+              fontSize: 28,
+              color: C.accent,
+              letterSpacing: "-0.02em",
+              marginBottom: 4,
+            }}
+          >
+            ⚡ Super Panel Admin
+          </h1>
+          <p style={{ fontSize: 13, color: C.muted }}>
+            OficioYa — Gestión de usuarios, reseñas y partners B2B
+          </p>
+        </div>
+ 
+        {msg && (
+          <div
+            style={{
+              marginBottom: 16,
+              padding: "12px 16px",
+              borderRadius: 10,
+              background: C.green + "15",
+              border: "1px solid " + C.green + "44",
+              color: C.green,
+              fontSize: 13,
+              fontWeight: 600,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            {msg}
+            <button
+              onClick={() => setMsg("")}
+              style={{
+                background: "none",
+                border: "none",
+                color: C.muted,
+                cursor: "pointer",
+                fontSize: 16,
+              }}
+            >
+              ✕
+            </button>
+          </div>
+        )}
+ 
+        {/* Tabs */}
+        <div
+          style={{ display: "flex", gap: 8, marginBottom: 20 }}
+        >
+          <button onClick={() => setTab("usuarios")} style={tabStyle("usuarios")}>
+            👤 Usuarios
+          </button>
+          <button onClick={() => setTab("resenas")} style={tabStyle("resenas")}>
+            ⭐ Reseñas
+          </button>
+          <button onClick={() => setTab("partners")} style={tabStyle("partners")}>
+            🤝 Partners
+          </button>
+        </div>
+ 
+        {loading && (
+          <div style={{ textAlign: "center", padding: 40 }}>
+            <Spin />
+          </div>
+        )}
+ 
+        {/* USUARIOS */}
+        {tab === "usuarios" && !loading && (
+          <div>
+            <input
+              type="text"
+              placeholder="🔍 Buscar por nombre o email..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "12px 16px",
+                borderRadius: 10,
+                marginBottom: 14,
+                background: C.card,
+                border: "1px solid " + C.border,
+                color: C.text,
+                fontFamily: "'DM Sans',sans-serif",
+                fontSize: 14,
+                outline: "none",
+              }}
+            />
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 8,
+              }}
+            >
+              {filteredUsers.map((u) => (
+                <GCard key={u.id} style={{ padding: "14px 16px", opacity: (u as any).banned ? 0.5 : 1 }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 12,
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <Ava
+                      s={(u.name || "?").substring(0, 2).toUpperCase()}
+                      size={40}
+                      color={u.type === "profesional" ? C.accent : C.blue}
+                    />
+                    <div style={{ flex: 1, minWidth: 120 }}>
+                      <p
+                        style={{
+                          fontWeight: 700,
+                          color: C.text,
+                          fontSize: 14,
+                        }}
+                      >
+                        {u.name || "—"}
+                      </p>
+                      <p style={{ fontSize: 11, color: C.muted }}>
+                        {u.email} ·{" "}
+                        <span style={{ color: PLAN_COLORS[u.plan as Plan] }}>
+                          {u.plan?.toUpperCase()}
+                        </span>{" "}
+                        · {u.type}
+                      </p>
+                      {(u as any).banned && (
+                        <span
+                          style={{
+                            fontSize: 10,
+                            color: C.red,
+                            fontWeight: 700,
+                          }}
+                        >
+                          BANEADO
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <button
+                        onClick={() => setPlanElite(u.id)}
+                        style={{
+                          padding: "7px 14px",
+                          borderRadius: 8,
+                          border: "none",
+                          background: C.accent,
+                          color: "#000",
+                          fontFamily: "'DM Sans',sans-serif",
+                          fontWeight: 700,
+                          fontSize: 12,
+                          cursor: "pointer",
+                        }}
+                      >
+                        → Élite
+                      </button>
+                      <button
+                        onClick={() => toggleBan(u)}
+                        style={{
+                          padding: "7px 14px",
+                          borderRadius: 8,
+                          border: "none",
+                          background: (u as any).banned
+                            ? C.green + "33"
+                            : C.red + "33",
+                          color: (u as any).banned ? C.green : C.red,
+                          fontFamily: "'DM Sans',sans-serif",
+                          fontWeight: 700,
+                          fontSize: 12,
+                          cursor: "pointer",
+                        }}
+                      >
+                        {(u as any).banned ? "Desbanear" : "Banear"}
+                      </button>
+                    </div>
+                  </div>
+                </GCard>
+              ))}
+              {filteredUsers.length === 0 && (
+                <p
+                  style={{
+                    textAlign: "center",
+                    color: C.muted,
+                    padding: 32,
+                    fontSize: 13,
+                  }}
+                >
+                  Sin resultados
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+ 
+        {/* RESEÑAS */}
+        {tab === "resenas" && !loading && (
+          <div>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                marginBottom: 14,
+              }}
+            >
+              <button
+                onClick={() => setOnlyReported(!onlyReported)}
+                style={{
+                  width: 40,
+                  height: 22,
+                  borderRadius: 99,
+                  background: onlyReported ? C.orange : C.border,
+                  border: "none",
+                  cursor: "pointer",
+                  position: "relative",
+                  transition: "background 0.2s",
+                  flexShrink: 0,
+                }}
+              >
+                <div
+                  style={{
+                    width: 14,
+                    height: 14,
+                    borderRadius: "50%",
+                    background: "#fff",
+                    position: "absolute",
+                    top: 4,
+                    left: onlyReported ? 22 : 4,
+                    transition: "left 0.2s",
+                  }}
+                />
+              </button>
+              <span style={{ fontSize: 13, color: C.text }}>
+                Solo reportadas (
+                {reviews.filter((r) => r.reported).length})
+              </span>
+            </div>
+ 
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 8,
+              }}
+            >
+              {filteredReviews.map((r) => (
+                <GCard
+                  key={r.id}
+                  style={{
+                    padding: 14,
+                    border:
+                      "1px solid " +
+                      (r.reported ? C.red + "44" : C.border),
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                      gap: 12,
+                    }}
+                  >
+                    <div style={{ flex: 1 }}>
+                      <p
+                        style={{
+                          fontWeight: 700,
+                          color: C.text,
+                          fontSize: 13,
+                          marginBottom: 4,
+                        }}
+                      >
+                        {r.client_name}{" "}
+                        <Stars n={r.stars || r.rating || 0} size={11} />
+                      </p>
+                      <p
+                        style={{
+                          fontSize: 12,
+                          color: C.mutedL,
+                          lineHeight: 1.5,
+                          marginBottom: 4,
+                        }}
+                      >
+                        "{r.text || r.comment}"
+                      </p>
+                      {r.reported && (
+                        <span
+                          style={{
+                            fontSize: 10,
+                            color: C.red,
+                            fontWeight: 700,
+                          }}
+                        >
+                          ⚠ REPORTADA
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ display: "flex", gap: 6 }}>
+                      <button
+                        onClick={() => approveReview(r.id)}
+                        style={{
+                          padding: "6px 12px",
+                          borderRadius: 8,
+                          border: "none",
+                          background: C.green + "22",
+                          color: C.green,
+                          fontFamily: "'DM Sans',sans-serif",
+                          fontWeight: 700,
+                          fontSize: 11,
+                          cursor: "pointer",
+                        }}
+                      >
+                        ✓ Aprobar
+                      </button>
+                      <button
+                        onClick={() => deleteReview(r.id)}
+                        style={{
+                          padding: "6px 12px",
+                          borderRadius: 8,
+                          border: "none",
+                          background: C.red + "22",
+                          color: C.red,
+                          fontFamily: "'DM Sans',sans-serif",
+                          fontWeight: 700,
+                          fontSize: 11,
+                          cursor: "pointer",
+                        }}
+                      >
+                        ✕ Eliminar
+                      </button>
+                    </div>
+                  </div>
+                </GCard>
+              ))}
+              {filteredReviews.length === 0 && (
+                <p
+                  style={{
+                    textAlign: "center",
+                    color: C.muted,
+                    padding: 32,
+                    fontSize: 13,
+                  }}
+                >
+                  Sin reseñas{onlyReported ? " reportadas" : ""}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+ 
+        {/* PARTNERS / ASESORÍAS */}
+        {tab === "partners" && !loading && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {partners.map((p) => (
+              <GCard key={p.id} style={{ padding: "14px 16px" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                  }}
+                >
+                  <Ava
+                    s={(p.name || "?").substring(0, 2).toUpperCase()}
+                    size={40}
+                    color={C.orange}
+                  />
+                  <div style={{ flex: 1 }}>
+                    <p
+                      style={{
+                        fontWeight: 700,
+                        color: C.text,
+                        fontSize: 14,
+                      }}
+                    >
+                      {p.name || (p as any).company_name || "—"}
+                    </p>
+                    <p style={{ fontSize: 11, color: C.muted }}>
+                      {p.email}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => generatePartnerCode(p)}
+                    style={{
+                      padding: "9px 16px",
+                      borderRadius: 10,
+                      border: "none",
+                      background: `linear-gradient(135deg,${C.orange},${C.accent})`,
+                      color: "#000",
+                      fontFamily: "'DM Sans',sans-serif",
+                      fontWeight: 700,
+                      fontSize: 12,
+                      cursor: "pointer",
+                    }}
+                  >
+                    🔑 Generar Código
+                  </button>
+                </div>
+              </GCard>
+            ))}
+            {partners.length === 0 && (
+              <div
+                style={{
+                  textAlign: "center",
+                  padding: 48,
+                  color: C.muted,
+                }}
+              >
+                <p style={{ fontSize: 36, marginBottom: 8 }}>🤝</p>
+                <p style={{ fontWeight: 700, fontSize: 15 }}>
+                  No hay asesorías registradas todavía
+                </p>
+                <p style={{ fontSize: 12, marginTop: 4 }}>
+                  Cuando una gestoría se registre con role=asesoria,
+                  aparecerá aquí
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
-
-export function AsesoriasDashboard({ user }: { user: any }) {
+ 
+// ─── FINCAS DASHBOARD ────────────────────────────────────────────────
+interface FincaIncident {
+  id: string;
+  finca_id: string;
+  community_name: string;
+  title: string;
+  description?: string;
+  trade_required?: string;
+  status: string;
+  assigned_worker_id?: string;
+  created_at: string;
+}
+ 
+function FincasDashboard({ user }: { user: UserRow }) {
+  const [incidents, setIncidents] = useState<FincaIncident[]>([]);
+  const [showForm, setShowForm] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({
+    community_name: "",
+    title: "",
+    description: "",
+    trade_required: "",
+  });
+  const [msg, setMsg] = useState("");
+ 
+  useEffect(() => {
+    loadIncidents();
+  }, []);
+ 
+  async function loadIncidents() {
+    setLoading(true);
+    const { data } = await db
+      .from("fincas_incidents")
+      .select("*")
+      .eq("finca_id", user.id)
+      .order("created_at", { ascending: false });
+    setIncidents(data || []);
+    setLoading(false);
+  }
+ 
+  async function submitIncident() {
+    if (!form.community_name || !form.title) {
+      setMsg("⚠ Rellena los campos obligatorios (comunidad y título)");
+      return;
+    }
+    const { error } = await db.from("fincas_incidents").insert({
+      finca_id: user.id,
+      ...form,
+      status: "pending",
+    });
+    if (!error) {
+      setMsg("✓ Incidencia reportada correctamente");
+      setForm({
+        community_name: "",
+        title: "",
+        description: "",
+        trade_required: "",
+      });
+      setShowForm(false);
+      loadIncidents();
+    }
+  }
+ 
+  const statusColor = (s: string) =>
+    s === "pending"
+      ? C.orange
+      : s === "assigned"
+      ? C.blue
+      : C.green;
+ 
+  const statusLabel = (s: string) =>
+    s === "pending"
+      ? "Pendiente"
+      : s === "assigned"
+      ? "Asignado"
+      : "Completado";
+ 
+  const inpStyle: React.CSSProperties = {
+    width: "100%",
+    padding: "11px 14px",
+    borderRadius: 8,
+    background: C.surface,
+    border: "1px solid " + C.border,
+    color: C.text,
+    fontFamily: "'DM Sans',sans-serif",
+    fontSize: 13,
+    outline: "none",
+  };
+ 
   return (
-    <div style={{ padding: 20, background: "#0A0A0F", minHeight: "100vh" }}>
-      <h1 style={{ color: "#06B6D4" }}>Programa de Partners: Asesorías y Gestorías</h1>
-      <p style={{ color: "#F0F0FA", opacity: 0.7 }}>Control de códigos premium asignados y monitorización de autónomos referidos.</p>
+    <div
+      style={{
+        minHeight: "100dvh",
+        background: C.bg,
+        padding: "24px 16px",
+        paddingBottom: 40,
+      }}
+    >
+      <div style={{ maxWidth: 800, margin: "0 auto" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: 24,
+            flexWrap: "wrap",
+            gap: 12,
+          }}
+        >
+          <div>
+            <h1
+              style={{
+                fontWeight: 900,
+                fontSize: 26,
+                color: C.blue,
+                letterSpacing: "-0.02em",
+                marginBottom: 4,
+              }}
+            >
+              🏢 Panel de Incidencias
+            </h1>
+            <p style={{ fontSize: 13, color: C.muted }}>
+              Administrador de Fincas · {user.name}
+            </p>
+          </div>
+          <Btn onClick={() => setShowForm(!showForm)} color={C.accent}>
+            {showForm ? "✕ Cancelar" : "+ Reportar Avería"}
+          </Btn>
+        </div>
+ 
+        {msg && (
+          <div
+            style={{
+              marginBottom: 16,
+              padding: "12px 16px",
+              borderRadius: 10,
+              background: msg.startsWith("⚠")
+                ? C.orange + "15"
+                : C.green + "15",
+              border:
+                "1px solid " +
+                (msg.startsWith("⚠") ? C.orange + "44" : C.green + "44"),
+              color: msg.startsWith("⚠") ? C.orange : C.green,
+              fontSize: 13,
+              fontWeight: 600,
+            }}
+          >
+            {msg}
+          </div>
+        )}
+ 
+        {showForm && (
+          <GCard style={{ marginBottom: 20, border: "1px solid " + C.accent + "44" }}>
+            <p
+              style={{
+                fontWeight: 700,
+                color: C.text,
+                fontSize: 15,
+                marginBottom: 16,
+              }}
+            >
+              Nueva Incidencia
+            </p>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 12,
+                marginBottom: 12,
+              }}
+            >
+              <div>
+                <p
+                  style={{
+                    fontSize: 11,
+                    color: C.muted,
+                    marginBottom: 6,
+                    fontWeight: 700,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.06em",
+                  }}
+                >
+                  Comunidad *
+                </p>
+                <input
+                  value={form.community_name}
+                  onChange={(e) =>
+                    setForm({ ...form, community_name: e.target.value })
+                  }
+                  placeholder="Ej: C/ Betis 12, Sevilla"
+                  style={inpStyle}
+                />
+              </div>
+              <div>
+                <p
+                  style={{
+                    fontSize: 11,
+                    color: C.muted,
+                    marginBottom: 6,
+                    fontWeight: 700,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.06em",
+                  }}
+                >
+                  Oficio requerido
+                </p>
+                <input
+                  value={form.trade_required}
+                  onChange={(e) =>
+                    setForm({ ...form, trade_required: e.target.value })
+                  }
+                  placeholder="Ej: Fontanero, Electricista..."
+                  style={inpStyle}
+                />
+              </div>
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              <p
+                style={{
+                  fontSize: 11,
+                  color: C.muted,
+                  marginBottom: 6,
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
+                }}
+              >
+                Título de la avería *
+              </p>
+              <input
+                value={form.title}
+                onChange={(e) =>
+                  setForm({ ...form, title: e.target.value })
+                }
+                placeholder="Ej: Fuga de agua en planta baja"
+                style={inpStyle}
+              />
+            </div>
+            <div style={{ marginBottom: 16 }}>
+              <p
+                style={{
+                  fontSize: 11,
+                  color: C.muted,
+                  marginBottom: 6,
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
+                }}
+              >
+                Descripción
+              </p>
+              <textarea
+                value={form.description}
+                onChange={(e) =>
+                  setForm({ ...form, description: e.target.value })
+                }
+                placeholder="Descripción detallada del problema..."
+                rows={3}
+                style={{ ...inpStyle, resize: "vertical" }}
+              />
+            </div>
+            <Btn full onClick={submitIncident} color={C.accent}>
+              Enviar Incidencia →
+            </Btn>
+          </GCard>
+        )}
+ 
+        {loading ? (
+          <Spin />
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {incidents.map((inc) => (
+              <GCard key={inc.id} style={{ padding: 16 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    justifyContent: "space-between",
+                    gap: 12,
+                  }}
+                >
+                  <div style={{ flex: 1 }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        marginBottom: 6,
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: 10,
+                          fontWeight: 700,
+                          padding: "3px 8px",
+                          borderRadius: 99,
+                          background: statusColor(inc.status) + "20",
+                          color: statusColor(inc.status),
+                          border:
+                            "1px solid " + statusColor(inc.status) + "44",
+                        }}
+                      >
+                        {statusLabel(inc.status)}
+                      </span>
+                      {inc.trade_required && (
+                        <span
+                          style={{
+                            fontSize: 11,
+                            color: C.muted,
+                          }}
+                        >
+                          🔧 {inc.trade_required}
+                        </span>
+                      )}
+                    </div>
+                    <p
+                      style={{
+                        fontWeight: 700,
+                        color: C.text,
+                        fontSize: 14,
+                        marginBottom: 4,
+                      }}
+                    >
+                      {inc.title}
+                    </p>
+                    <p style={{ fontSize: 12, color: C.muted, marginBottom: 4 }}>
+                      📍 {inc.community_name}
+                    </p>
+                    {inc.description && (
+                      <p style={{ fontSize: 12, color: C.mutedL }}>
+                        {inc.description}
+                      </p>
+                    )}
+                  </div>
+                  <p
+                    style={{
+                      fontSize: 11,
+                      color: C.muted,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {new Date(inc.created_at).toLocaleDateString("es-ES")}
+                  </p>
+                </div>
+              </GCard>
+            ))}
+            {incidents.length === 0 && (
+              <div
+                style={{
+                  textAlign: "center",
+                  padding: 48,
+                  color: C.muted,
+                }}
+              >
+                <p style={{ fontSize: 40, marginBottom: 8 }}>🏗️</p>
+                <p
+                  style={{
+                    fontWeight: 700,
+                    fontSize: 16,
+                    marginBottom: 4,
+                  }}
+                >
+                  No hay incidencias
+                </p>
+                <p style={{ fontSize: 13 }}>
+                  Usa el botón "Reportar Avería" para registrar una
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
-
-// ESTA TIENE QUE SER LA ÚLTIMA LÍNEA DE TODO TU ARCHIVO APP.TSX
-export default App;
+ 
+// ─── ASESORÍAS DASHBOARD ─────────────────────────────────────────────
+interface AsesoriaCode {
+  id: string;
+  asesoria_id: string;
+  code: string;
+  plan_to_grant: string;
+  months_duration: number;
+  uses_count: number;
+  created_at: string;
+}
+ 
+function AsesoriasDashboard({ user }: { user: UserRow }) {
+  const [codeData, setCodeData] = useState<AsesoriaCode | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
+ 
+  useEffect(() => {
+    loadCode();
+  }, []);
+ 
+  async function loadCode() {
+    const { data } = await db
+      .from("asesorias_codes")
+      .select("*")
+      .eq("asesoria_id", user.id)
+      .single();
+    setCodeData(data || null);
+    setLoading(false);
+  }
+ 
+  function copyCode() {
+    if (codeData?.code) {
+      navigator.clipboard.writeText(codeData.code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    }
+  }
+ 
+  const usagePercent = codeData
+    ? Math.min((codeData.uses_count / 50) * 100, 100)
+    : 0;
+ 
+  return (
+    <div
+      style={{
+        minHeight: "100dvh",
+        background: C.bg,
+        padding: "24px 16px",
+        paddingBottom: 40,
+      }}
+    >
+      <div style={{ maxWidth: 640, margin: "0 auto" }}>
+        <div style={{ marginBottom: 28 }}>
+          <h1
+            style={{
+              fontWeight: 900,
+              fontSize: 26,
+              color: C.cyan,
+              letterSpacing: "-0.02em",
+              marginBottom: 4,
+            }}
+          >
+            🤝 Panel de Asesoría
+          </h1>
+          <p style={{ fontSize: 13, color: C.muted }}>
+            {user.name || (user as any).company_name}
+          </p>
+        </div>
+ 
+        {loading ? (
+          <Spin />
+        ) : codeData ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {/* Código promo */}
+            <GCard
+              style={{
+                textAlign: "center",
+                padding: "32px 24px",
+                border: "2px solid " + C.accent + "66",
+                background: `linear-gradient(135deg,${C.accent}08,${C.card})`,
+              }}
+            >
+              <p
+                style={{
+                  fontSize: 11,
+                  color: C.muted,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.1em",
+                  marginBottom: 12,
+                  fontWeight: 700,
+                }}
+              >
+                Tu código de afiliación exclusivo
+              </p>
+              <p
+                style={{
+                  fontSize: 40,
+                  fontWeight: 900,
+                  color: C.accent,
+                  letterSpacing: "0.12em",
+                  marginBottom: 20,
+                  fontFamily: "monospace",
+                }}
+              >
+                {codeData.code}
+              </p>
+              <button
+                onClick={copyCode}
+                style={{
+                  padding: "12px 28px",
+                  borderRadius: 10,
+                  border: "none",
+                  background: copied
+                    ? C.green
+                    : `linear-gradient(135deg,${C.accent},${C.orange})`,
+                  color: "#000",
+                  fontFamily: "'DM Sans',sans-serif",
+                  fontWeight: 700,
+                  fontSize: 14,
+                  cursor: "pointer",
+                  transition: "all 0.3s",
+                }}
+              >
+                {copied ? "✓ ¡Copiado!" : "📋 Copiar código"}
+              </button>
+              <p
+                style={{
+                  fontSize: 11,
+                  color: C.muted,
+                  marginTop: 12,
+                }}
+              >
+                Plan:{" "}
+                <span style={{ color: C.orange, fontWeight: 700 }}>
+                  {codeData.plan_to_grant.toUpperCase()}
+                </span>{" "}
+                · {codeData.months_duration} mes gratis para tus clientes
+              </p>
+            </GCard>
+ 
+            {/* Estadísticas */}
+            <GCard style={{ padding: "20px 24px" }}>
+              <p
+                style={{
+                  fontWeight: 700,
+                  color: C.text,
+                  fontSize: 14,
+                  marginBottom: 16,
+                }}
+              >
+                📊 Estadísticas de uso
+              </p>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "flex-end",
+                  gap: 10,
+                  marginBottom: 12,
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: 52,
+                    fontWeight: 900,
+                    color: C.accent,
+                    lineHeight: 1,
+                  }}
+                >
+                  {codeData.uses_count}
+                </p>
+                <p style={{ fontSize: 14, color: C.muted, marginBottom: 8 }}>
+                  autónomos registrados
+                </p>
+              </div>
+              <div
+                style={{
+                  height: 8,
+                  background: C.border,
+                  borderRadius: 99,
+                  overflow: "hidden",
+                  marginBottom: 6,
+                }}
+              >
+                <div
+                  style={{
+                    width: usagePercent + "%",
+                    height: "100%",
+                    background: `linear-gradient(90deg,${C.accent},${C.orange})`,
+                    borderRadius: 99,
+                    transition: "width 0.8s ease",
+                  }}
+                />
+              </div>
+              <p style={{ fontSize: 11, color: C.muted }}>
+                {codeData.uses_count} de 50 usos · Renovación mensual
+              </p>
+            </GCard>
+ 
+            {/* Instrucciones */}
+            <GCard style={{ padding: "20px 24px" }}>
+              <p
+                style={{
+                  fontWeight: 700,
+                  color: C.text,
+                  fontSize: 14,
+                  marginBottom: 14,
+                }}
+              >
+                💡 Cómo funciona
+              </p>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 12,
+                }}
+              >
+                {[
+                  {
+                    n: "1",
+                    t: `Comparte tu código `,
+                    b: codeData.code,
+                    s: " con tus clientes autónomos",
+                  },
+                  {
+                    n: "2",
+                    t: "Al registrarse en OficioYa, introducen tu código en el campo \"Código promocional\"",
+                  },
+                  {
+                    n: "3",
+                    t: `Obtienen `,
+                    b: `${codeData.months_duration} mes gratis`,
+                    s: ` en el plan ${codeData.plan_to_grant}`,
+                  },
+                  {
+                    n: "4",
+                    t: "Ves en tiempo real cuántos se han registrado en este panel",
+                  },
+                ].map((item) => (
+                  <div
+                    key={item.n}
+                    style={{
+                      display: "flex",
+                      gap: 12,
+                      alignItems: "flex-start",
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: "50%",
+                        background: C.accent + "22",
+                        border: "1px solid " + C.accent + "44",
+                        color: C.accent,
+                        fontSize: 11,
+                        fontWeight: 700,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {item.n}
+                    </span>
+                    <p style={{ fontSize: 13, color: C.mutedL, lineHeight: 1.5 }}>
+                      {item.t}
+                      {item.b && (
+                        <strong style={{ color: C.accent }}>{item.b}</strong>
+                      )}
+                      {item.s}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </GCard>
+          </div>
+        ) : (
+          <GCard
+            style={{
+              textAlign: "center",
+              padding: "48px 24px",
+              border: "1px dashed " + C.border,
+            }}
+          >
+            <p style={{ fontSize: 40, marginBottom: 12 }}>🔑</p>
+            <p
+              style={{
+                fontWeight: 700,
+                color: C.text,
+                fontSize: 16,
+                marginBottom: 8,
+              }}
+            >
+              Tu código aún no está generado
+            </p>
+            <p style={{ fontSize: 13, color: C.muted }}>
+              Contacta con el equipo de OficioYa para activar tu cuenta de
+              partner
+            </p>
+          </GCard>
+        )}
+      </div>
+    </div>
+  );
+}
+ 
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// APP ROOT — este export default va SIEMPRE AL FINAL del archivo
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+export default function App() {
+  const [user, setUser] = useState<UserRow | null>(null);
+  const [ready, setReady] = useState(false);
+ 
+  useEffect(() => {
+    const s = localStorage.getItem("oy_user");
+    if (s) {
+      try {
+        setUser(JSON.parse(s));
+      } catch {
+        localStorage.removeItem("oy_user");
+      }
+    }
+    setReady(true);
+    db.from("visits").insert({ page: "home", user_id: null }).then(() => {});
+  }, []);
+ 
+  const login = (u: UserRow) => {
+    setUser(u);
+    localStorage.setItem("oy_user", JSON.stringify(u));
+  };
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem("oy_user");
+  };
+  const update = (u: UserRow) => {
+    setUser(u);
+    localStorage.setItem("oy_user", JSON.stringify(u));
+  };
+ 
+  if (!ready)
+    return (
+      <div
+        style={{
+          minHeight: "100dvh",
+          background: C.bg,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Spin />
+      </div>
+    );
+ 
+  return (
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap');
+        *{box-sizing:border-box;margin:0;padding:0;}
+        html{overflow-x:hidden;background:#0A0A0F;}
+        body{background:#0A0A0F;color:#F0F0FA;font-family:'DM Sans',sans-serif;overflow-x:hidden;min-height:100dvh;}
+        #root{min-height:100dvh;background:#0A0A0F;}
+        input,textarea,select{box-sizing:border-box;}
+        input::placeholder,textarea::placeholder{color:#44445A;}
+        select option{background:#16161F;color:#F0F0FA;}
+        ::-webkit-scrollbar{width:4px;}
+        ::-webkit-scrollbar-track{background:transparent;}
+        ::-webkit-scrollbar-thumb{background:#1E1E30;border-radius:99px;}
+        @keyframes spin{to{transform:rotate(360deg);}}
+        @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+      `}</style>
+ 
+      {/* Sin usuario → pantalla de login */}
+      {!user && <Auth onLogin={login} />}
+ 
+      {/* Admin CRM completo (componente Admin ya existente) */}
+      {user && user.type === "admin" && <Admin onLogout={logout} />}
+ 
+      {/* Profesional autónomo */}
+      {user && user.type === "profesional" && (
+        <ProDashboard user={user} onLogout={logout} onUpdate={update} />
+      )}
+ 
+      {/* Cliente buscando profesionales */}
+      {user && user.type === "cliente" && (
+        <ClientHome user={user} onLogout={logout} />
+      )}
+ 
+      {/* NUEVOS SOCIOS B2B — usan user.role, no user.type */}
+      {user && (user as any).role === "fincas" && (
+        <FincasDashboard user={user} />
+      )}
+      {user && (user as any).role === "asesoria" && (
+        <AsesoriasDashboard user={user} />
+      )}
+    </>
+  );
+}
+ 
