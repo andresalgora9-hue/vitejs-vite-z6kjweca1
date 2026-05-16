@@ -148,10 +148,8 @@ function Inp({ label, value, onChange, type = "text", placeholder = "" }: any) {
 async function getLeadsUsed(pro_id: string) {
   try {
     const m = monthKey();
-    const { data, error } = await db.from('leads_log').select('count').match({ pro_id, month: m });
-    // supabase doesn't return count like this; use rpc or select with count, but to keep compatible we query list then count
-    const { data: rows, error: e2 } = await db.from('leads_log').select('*').eq('pro_id', pro_id).eq('month', m).eq('blocked', false);
-    if (e2) throw e2;
+    const { data: rows, error } = await db.from('leads_log').select('*').eq('pro_id', pro_id).eq('month', m).eq('blocked', false);
+    if (error) throw error;
     return (rows || []).length;
   } catch (e) {
     console.error('getLeadsUsed', e);
@@ -164,7 +162,7 @@ async function recordLead(params: { pro_id: string; visitor_id?: string | null; 
   try {
     const { data, error } = await db.from('leads_log').insert([{ pro_id: params.pro_id, visitor_id: params.visitor_id || null, visitor_zone: params.visitor_zone || null, type: params.type, blocked: !!params.blocked, month: m }]);
     if (error) throw error;
-    return data?.[0];
+    return data?.[0] ?? null;
   } catch (e) {
     console.error('recordLead', e);
     return null;
@@ -247,7 +245,7 @@ function WorkerSheet({ pro, visitor, onClose }: { pro: UserRow; visitor: UserRow
       }
       // insert visit request
       const { data, error } = await db.from('visit_requests').insert([{ pro_id: pro.id, client_id: visitor?.id || null, client_name: visitor?.name || 'Anon', date: visitDate, slot: visitSlot, description: visitDesc, photo_url: url }]).select().single();
-      if (error) throw error;
+      if (error || !data) throw error || new Error('No data');
       // consume lead
       await recordLead({ pro_id: pro.id, visitor_id: visitor?.id || null, visitor_zone: visitor?.zone || null, type: 'message', blocked: false });
       alert('Solicitud enviada. El profesional la verá en su panel.');
