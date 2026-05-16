@@ -1784,2191 +1784,816 @@ onClose={()=>setChatUser(null)} />}
 </div>
 );
 }
-// ─── ADMIN ───
-// ─── ADMIN DASHBOARD ───
-// ─── ADMIN CRM DASHBOARD ───
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// SUSTITUYE DESDE "// ─── ADMIN ───" HASTA EL FINAL DE App.tsx
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// ─── ADMIN CRM DASHBOARD ─────────────────────────────────────────
 function Admin({onLogout}:{onLogout:()=>void}){
-type AdminTab = "overview"|"funnel"|"usuarios"|"registros"|"trabajos"|"mensajes"|"trafico";
-const [tab,setTab]=useState<AdminTab>("overview");
-const [users,setUsers]=useState<UserRow[]>([]);
-const [jobs,setJobs]=useState<JobRow[]>([]);
-const [msgs,setMsgs]=useState<MessageRow[]>([]);
-const
-[reviews,setReviews]=useState<{id:string;worker_id:string;client_name:string;stars:number;t
-ext:string;photo:string;photo_url?:string;approved?:boolean;created_at:string}[]>([]);
-const [loading,setLoading]=useState(true);
-const [period,setPeriod]=useState<"7d"|"30d"|"90d"|"all">("30d");
-// Filters
-const [filterType,setFilterType]=useState<"all"|"cliente"|"profesional">("all");
-const [filterPlan,setFilterPlan]=useState<"all"|Plan>("all");
-const [filterStatus,setFilterStatus]=useState<"all"|"paying"|"trial"|"expired">("all");
-const [filterZone,setFilterZone]=useState("all");
-const [filterTrade,setFilterTrade]=useState("all");
-const [filterSearch,setFilterSearch]=useState("");
-const [dateFrom,setDateFrom]=useState("");
-const [dateTo,setDateTo]=useState("");
-// Detail panel
-const [selectedUser,setSelectedUser]=useState<UserRow|null>(null);
-const [supportMsg,setSupportMsg]=useState("");
-const [sendingMsg,setSendingMsg]=useState(false);
-// Expanded sections
-const [expandedKpi,setExpandedKpi]=useState<string|null>(null);
-useEffect(()=>{
-const load=async()=>{
-const [u,j,m,r]=await Promise.all([
+  type AdminTab = "overview"|"funnel"|"usuarios"|"registros"|"trabajos"|"mensajes"|"trafico";
+  const [tab,setTab]=useState<AdminTab>("overview");
+  const [users,setUsers]=useState<UserRow[]>([]);
+  const [jobs,setJobs]=useState<JobRow[]>([]);
+  const [msgs,setMsgs]=useState<MessageRow[]>([]);
+  const [reviews,setReviews]=useState<{id:string;worker_id:string;client_name:string;stars:number;text:string;photo:string;photo_url?:string;approved?:boolean;reported?:boolean;created_at:string}[]>([]);
+  const [loading,setLoading]=useState(true);
+  const [period,setPeriod]=useState<"7d"|"30d"|"90d"|"all">("30d");
+  const [filterType,setFilterType]=useState<"all"|"cliente"|"profesional">("all");
+  const [filterPlan,setFilterPlan]=useState<"all"|Plan>("all");
+  const [filterStatus,setFilterStatus]=useState<"all"|"paying"|"trial"|"expired">("all");
+  const [filterZone,setFilterZone]=useState("all");
+  const [filterTrade,setFilterTrade]=useState("all");
+  const [filterSearch,setFilterSearch]=useState("");
+  const [dateFrom,setDateFrom]=useState("");
+  const [dateTo,setDateTo]=useState("");
+  const [selectedUser,setSelectedUser]=useState<UserRow|null>(null);
+  const [supportMsg,setSupportMsg]=useState("");
+  const [sendingMsg,setSendingMsg]=useState(false);
+  const [expandedKpi,setExpandedKpi]=useState<string|null>(null);
+  const [toastMsg,setToastMsg]=useState<string|null>(null);
 
-db.from("users").select("*").neq("type","admin").order("joined_at",{ascending:false}),
-db.from("jobs").select("*").order("created_at",{ascending:false}),
-db.from("messages").select("*").order("created_at",{ascending:false}),
-db.from("reviews").select("*").order("created_at",{ascending:false}),
-]);
-setUsers((u.data||[]) as UserRow[]);
-setJobs((j.data||[]) as JobRow[]);
-setMsgs((m.data||[]) as MessageRow[]);
-setReviews((r.data||[]) as any[]);
-setLoading(false);
-};
-load();
-},[]);
-const now = new Date();
-// Period filter
-const periodDays = period==="7d"?7:period==="30d"?30:period==="90d"?90:36500;
-const periodCutoff = new Date(Date.now()-periodDays*86400000);
-const inPeriod = (iso:string) => period==="all"||new Date(iso)>=periodCutoff;
-// User status helpers
-const isPaying = (u:UserRow) => u.type==="profesional"&&u.plan!=="gratis";
-const isTrial = (u:UserRow) => u.type==="profesional"&&u.plan==="gratis"&&new
-Date(u.trial_end)>now;
-const isExpired = (u:UserRow) => u.type==="profesional"&&u.plan==="gratis"&&new
-Date(u.trial_end)<=now;
-const trialDays = (u:UserRow) => Math.max(0,Math.ceil((new
-Date(u.trial_end).getTime()-now.getTime())/86400000));
-// Apply all filters
-const applyFilters = (list:UserRow[]) => list.filter(u=>{
-if(filterType!=="all"&&u.type!==filterType) return false;
-if(filterPlan!=="all"&&u.plan!==filterPlan) return false;
-if(filterZone!=="all"&&u.zone!==filterZone) return false;
-if(filterTrade!=="all"&&u.trade!==filterTrade) return false;
-if(filterStatus==="paying"&&!isPaying(u)) return false;
-if(filterStatus==="trial"&&!isTrial(u)) return false;
-if(filterStatus==="expired"&&!isExpired(u)) return false;
-if(filterSearch&&!u.name.toLowerCase().includes(filterSearch.toLowerCase())&&!u.email.toL
-owerCase().includes(filterSearch.toLowerCase())&&!(u.phone||"").includes(filterSearch))
-return false;
-if(dateFrom&&new Date(u.joined_at)<new Date(dateFrom)) return false;
-if(dateTo&&new Date(u.joined_at)>new Date(dateTo+"T23:59:59")) return false;
-return true;
-});
+  useEffect(()=>{
+    const load=async()=>{
+      const [u,j,m,r]=await Promise.all([
+        db.from("users").select("*").neq("type","admin").order("joined_at",{ascending:false}),
+        db.from("jobs").select("*").order("created_at",{ascending:false}),
+        db.from("messages").select("*").order("created_at",{ascending:false}),
+        db.from("reviews").select("*").order("created_at",{ascending:false}),
+      ]);
+      setUsers((u.data||[]) as UserRow[]);
+      setJobs((j.data||[]) as JobRow[]);
+      setMsgs((m.data||[]) as MessageRow[]);
+      setReviews((r.data||[]) as any[]);
+      setLoading(false);
+    };
+    load();
+  },[]);
 
-const pros = users.filter(u=>u.type==="profesional");
-const clients = users.filter(u=>u.type==="cliente");
-const payingUsers = pros.filter(isPaying);
-const trialUsers = pros.filter(isTrial);
-const expiredUsers = pros.filter(isExpired);
-const mrr = payingUsers.reduce((s,u)=>s+PLAN_PRICES[u.plan as Plan],0);
-// Chart data — registros por día
-const chartData = (()=>{
-const days = period==="all"?30:periodDays;
-const result:Record<string,{users:number;pros:number;clients:number}> = {};
-for(let i=days-1;i>=0;i--){
-const d=new Date(Date.now()-i*86400000);
-const k=d.toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit"});
-result[k]={users:0,pros:0,clients:0};
-}
-users.forEach(u=>{
-const k=new
-Date(u.joined_at).toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit"});
-if(k in result){result[k].users++;if(u.type==="profesional")result[k].pros++;else
-result[k].clients++;}
-});
-return Object.entries(result).map(([date,v])=>({date,...v}));
-})();
-const maxBar = Math.max(...chartData.map(d=>d.users),1);
-// Funnel data
-const funnelSteps = [
-{label:"Visitas totales",value:users.length*8+42,desc:"Usuarios que llegaron a la app"},
-{label:"Vieron un profesional",value:users.length*5+20,desc:"Abrieron al menos 1 perfil"},
-{label:"Se registraron",value:users.length,desc:"Crearon una cuenta"},
-{label:"Contactaron unpro",value:msgs.filter(m=>clients.some(c=>c.id===m.from_id)).length,desc:"Enviaron almenos 1 mensaje"},
-{label:"Profesionales activos",value:pros.length,desc:"Con perfil publicado"},
-{label:"Pagando",value:payingUsers.length,desc:"Con suscripción activa"},
-];
-const funnelMax = funnelSteps[0].value||1;
-// Send support message
-const sendSupport = async() => {
-if(!selectedUser||!supportMsg.trim()) return;
-setSendingMsg(true);
-const adminId = "admin-support";
-await db.from("messages").insert({from_id:adminId,to_id:selectedUser.id,text:"[SoporteOfficioYa] "+supportMsg,read:false});
-setSupportMsg(""); setSendingMsg(false);
-setToastMsg("✓ Mensaje enviado a "+selectedUser.name);
+  const now = new Date();
+  const periodDays = period==="7d"?7:period==="30d"?30:period==="90d"?90:36500;
+  const periodCutoff = new Date(Date.now()-periodDays*86400000);
+  const inPeriod = (iso:string) => period==="all"||new Date(iso)>=periodCutoff;
 
-setTimeout(()=>setToastMsg(null),3000);
-};
-const [toastMsg,setToastMsg]=useState<string|null>(null);
-const filteredUsers = applyFilters(users);
-const filteredInPeriod = filteredUsers.filter(u=>inPeriod(u.joined_at));
-// KPI segments for drill-down
-const kpiGroups:Record<string,UserRow[]> = {
-"total":users,
-"pros":pros,
-"clients":clients,
-"paying":payingUsers,
-"trial":trialUsers,
-"expired":expiredUsers,
-};
-const PERIOD_BTNS = (
-<div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
-{(["7d","30d","90d","all"] as const).map(p=>(
-<button key={p} onClick={()=>setPeriod(p)} style={{padding:"4px9px",borderRadius:6,border:"1px solid"+(period===p?C.accent:C.border),background:period===p?C.accent+"18":"transparent",color:period===p?C.accent:C.muted,cursor:"pointer",fontSize:10,fontFamily:"'DM
-Sans',sans-serif",fontWeight:period===p?700:400}}>
-{p==="7d"?"7d":p==="30d"?"30d":p==="90d"?"90d":"Todo"}
-</button>
-))}
-</div>
-);
-const UserRow2 = ({u,showDetail=true}:{u:UserRow;showDetail?:boolean}) => (
-<GCard onClick={showDetail?()=>setSelectedUser(u):undefined}
-glow={selectedUser?.id===u.id?C.accent:""} style={{padding:"11px14px",border:selectedUser?.id===u.id?"1px solid "+C.accent+"66":undefined}}>
-<div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
-<Ava s={u.name.substring(0,2).toUpperCase()} size={34}
-color={u.type==="profesional"?C.accent:C.blue} />
-<div style={{flex:1,minWidth:100}}>
-<p style={{fontWeight:700,color:C.text,fontSize:13}}>{u.name}</p>
-<p style={{fontSize:10,color:C.muted}}>{u.email}{u.phone?" · "+u.phone:""}</p>
-{u.zone&&<p style={{fontSize:10,color:C.muted}}> {u.zone}{u.trade?" ·"+u.trade:""}</p>}
-</div>
-<div style={{display:"flex",flexDirection:"column",gap:3,alignItems:"flex-end"}}>
-<div style={{display:"flex",gap:4,flexWrap:"wrap",justifyContent:"flex-end"}}>
+  const isPaying = (u:UserRow) => u.type==="profesional"&&u.plan!=="gratis";
+  const isTrial = (u:UserRow) => u.type==="profesional"&&u.plan==="gratis"&&new Date(u.trial_end)>now;
+  const isExpired = (u:UserRow) => u.type==="profesional"&&u.plan==="gratis"&&new Date(u.trial_end)<=now;
+  const trialDays = (u:UserRow) => Math.max(0,Math.ceil((new Date(u.trial_end).getTime()-now.getTime())/86400000));
 
-
-<span
-style={{fontSize:9,color:u.type==="profesional"?C.accent:C.blue,background:(u.type==="profesional"?C.accent:C.blue)+"22",padding:"1px6px",borderRadius:3,fontWeight:700}}>{u.type==="profesional"?"PRO":"CLI"}</span>
-{isPaying(u)&&<span
-style={{fontSize:9,color:C.green,background:C.green+"18",padding:"1px6px",borderRadius:3,fontWeight:700}}>
-{PLAN_PRICES[u.plan as Plan]}€/m</span>}
-{isTrial(u)&&<span
-style={{fontSize:9,color:C.cyan,background:C.cyan+"18",padding:"1px6px",borderRadius:3,fontWeight:700}}>⏱ {trialDays(u)}d</span>}
-{isExpired(u)&&<span
-style={{fontSize:9,color:C.red,background:C.red+"18",padding:"1px6px",borderRadius:3,fontWeight:700}}>
-EXP</span>}
-</div>
-<span style={{fontSize:9,color:C.muted}}>{new
-Date(u.joined_at).toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"})}</
-span>
-{u.phone&&<a href={"tel:"+u.phone} onClick={e=>e.stopPropagation()}
-style={{fontSize:9,color:C.green,textDecoration:"none",fontWeight:700}}> </a>}
-</div>
-</div>
-</GCard>
-);
-
-
-
-return (
-<div style={{minHeight:"100dvh",background:C.bg,paddingBottom:72}}>
-<header
-style={{background:"rgba(10,10,15,0.95)",backdropFilter:"blur(20px)",borderBottom:"1pxsolid "+C.accent+"22",position:"sticky",top:0,zIndex:100}}>
-<div style={{maxWidth:1100,margin:"0 auto",padding:"016px",display:"flex",alignItems:"center",justifyContent:"space-between",height:52}}>
-<span style={{fontWeight:800,fontSize:16}}><span style={{color:C.accent}}>⚙ Admin
-CRM</span><span style={{color:C.muted}}> · OfficioYa</span></span>
-<div style={{display:"flex",gap:6,alignItems:"center"}}>
-<span style={{fontSize:11,color:C.green,background:C.green+"15",padding:"3px8px",borderRadius:4,fontWeight:700}}>MRR: {mrr.toFixed(0)}€</span>
-<button onClick={onLogout} style={{background:"none",border:"1px solid"+C.border,borderRadius:6,color:C.muted,cursor:"pointer",padding:"4px10px",fontSize:11}}>Salir</button>
-</div>
-</div>
-</header>
-{toastMsg&&<div
-style={{position:"fixed",bottom:88,left:"50%",transform:"translateX(-50%)",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",color:"#000",borderRadius:10,padding:"10px20px",fontWeight:700,fontSize:13,zIndex:9999,whiteSpace:"nowrap"}}>{toastMsg}</div>}
-
-{/* User detail side panel */}
-{selectedUser&&(
-<div
-style={{position:"fixed",top:52,right:0,width:300,bottom:72,background:"linear-gradient(170deg,#12121E,#0A0A14)",borderLeft:"1px solid"+C.accent+"33",zIndex:90,overflowY:"auto",padding:16,boxShadow:"-8px 0 30px
-rgba(0,0,0,0.4)"}}>
-<div
-style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-<p style={{fontWeight:800,color:C.text,fontSize:14}}>Detalle de usuario</p>
-<button onClick={()=>setSelectedUser(null)}
-style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:16}}>✕</b
-utton>
-</div>
-<div style={{textAlign:"center",marginBottom:14}}>
-<Ava s={selectedUser.name.substring(0,2).toUpperCase()} size={54}
-color={selectedUser.type==="profesional"?C.accent:C.blue} />
-<p
-style={{fontWeight:800,color:C.text,fontSize:16,marginTop:8}}>{selectedUser.name}</p>
-<p style={{fontSize:12,color:C.muted}}>{selectedUser.email}</p>
-{selectedUser.phone&&<a href={"tel:"+selectedUser.phone}
-style={{fontSize:12,color:C.green,textDecoration:"none",display:"block",marginTop:3}}>
-{selectedUser.phone}</a>}
-</div>
-<div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:14}}>
-{[
-{l:"Tipo",v:selectedUser.type.toUpperCase()},
-{l:"Plan",v:selectedUser.plan.toUpperCase()},
-{l:"Estado",v:isPaying(selectedUser)?"Pagando":isTrial(selectedUser)?"⏱ Trial("+trialDays(selectedUser)+"d)":isExpired(selectedUser)?"
-Expirado":"—"},
-{l:"Registro",v:new
-Date(selectedUser.joined_at).toLocaleDateString("es-ES",{day:"2-digit",month:"long",year:"numeric"})},
-{l:"Trial hasta",v:new
-Date(selectedUser.trial_end).toLocaleDateString("es-ES",{day:"2-digit",month:"short",year:"numeric"})},
-{l:"Zona",v:selectedUser.zone||"—"},
-{l:"Oficio",v:selectedUser.trade||"—"},
-{l:"Precio",v:selectedUser.price?(selectedUser.price+"€/h"):"—"},
-{l:"Trabajos",v:String(selectedUser.jobs)},
-{l:"Valoración",v:selectedUser.rating>0?selectedUser.rating.toFixed(1)+"★":"Sinvalorar"},
-{l:"Mensajes recibidos",v:String(msgs.filter(m=>m.to_id===selectedUser.id).length)},
-].map(r=>(
-<div key={r.l} style={{display:"flex",justifyContent:"space-between",padding:"5px0",borderBottom:"1px solid "+C.border}}>
-<span style={{fontSize:11,color:C.muted}}>{r.l}</span>
-<span style={{fontSize:11,color:C.text,fontWeight:600}}>{r.v}</span>
-
-
-
-
-</div>
-))}
-</div>
-{/* Ingreso mensual si paga */}
-{isPaying(selectedUser)&&(
-<div style={{padding:"10px",background:C.green+"12",borderRadius:8,border:"1pxsolid "+C.green+"22",marginBottom:12,textAlign:"center"}}>
-<p style={{fontSize:11,color:C.muted,marginBottom:2}}>Factura mensual</p>
-<p
-style={{fontWeight:800,fontSize:20,color:C.green}}>{PLAN_PRICES[selectedUser.plan as
-Plan]}€/mes</p>
-<p style={{fontSize:10,color:C.muted}}>{(PLAN_PRICES[selectedUser.plan as
-Plan]*12).toFixed(0)}€/año</p>
-</div>
-)}
-{/* Send support message */}
-<div>
-<p
-style={{fontSize:11,color:C.muted,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:6}}>Enviar mensaje de soporte</p>
-<textarea value={supportMsg} onChange={e=>setSupportMsg(e.target.value)}
-placeholder="Escribe un mensaje al usuario..."
-style={{width:"100%",background:C.card,border:"1px solid"+C.border,borderRadius:8,color:C.text,fontFamily:"inherit",fontSize:12,padding:"8px10px",resize:"vertical",minHeight:60,outline:"none",marginBottom:8}} />
-<Btn full small disabled={sendingMsg||!supportMsg.trim()} onClick={sendSupport}
-color={C.accent}>{sendingMsg?"Enviando...":"Enviar mensaje"}</Btn>
-</div>
-</div>
-)}
-<div style={{maxWidth:selectedUser?800:1100,margin:"0 auto",padding:"16px16px",transition:"max-width 0.2s"}}>
-{loading?<Spin />:(<>
-{tab==="overview"&&(<>
-<div
-style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14,fle
-xWrap:"wrap",gap:8}}>
-<h2
-style={{fontWeight:800,fontSize:20,color:C.text,letterSpacing:"-0.02em"}}>Overview · {new
-Date().toLocaleDateString("es-ES",{weekday:"long",day:"numeric",month:"long"})}</h2>
-{PERIOD_BTNS}
-</div>
-{/* KPI cards — clickable drill down */}
-
-<div
-style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(130px,1fr))",gap:8,margi
-nBottom:16}}>
-{[
-{key:"total",l:"Usuarios",v:users.length,c:C.blue,i:" ",sub:"total registrados"},
-{key:"pros",l:"Profesionales",v:pros.length,c:C.accent,i:" ",sub:"en laplataforma"},
-{key:"clients",l:"Clientes",v:clients.length,c:C.green,i:" ",sub:"registrados"},
-
-
-{key:"paying",l:"Pagando",v:payingUsers.length,c:C.green,i:"✅",sub:mrr.toFixed(0)+"€/mes"}
-,
-
-
-{key:"trial",l:"En trial",v:trialUsers.length,c:C.cyan,i:"⏱",sub:"30d gratuitos"},
-{key:"expired",l:"Expirados",v:expiredUsers.length,c:C.red,i:" ",sub:"sinconvertir"},
-
-💰",sub:(mrr*12).toFixed(0)+"€/año"},
-
-{key:"mrr",l:"MRR",v:mrr.toFixed(0)+"€",c:C.orange,i:"
-
-{key:"conv",l:"Conversión",v:pros.length>0?Math.round(payingUsers.length/pros.length*100)
-+"%":"0%",c:C.purple,i:" ",sub:"trial → pago"},
-].map(s=>(
-<div key={s.key} onClick={()=>setExpandedKpi(expandedKpi===s.key?null:s.key)}
-style={{background:expandedKpi===s.key?s.c+"18":C.card,borderRadius:12,border:"1pxsolid "+(expandedKpi===s.key?s.c+"66":C.border),padding:"12px8px",textAlign:"center",cursor:"pointer",transition:"all
-0.15s",boxShadow:expandedKpi===s.key?"0 4px 20px "+s.c+"22":"none"}}>
-<div style={{fontSize:16,marginBottom:3}}>{s.i}</div>
-<p style={{fontWeight:800,fontSize:20,color:s.c}}>{s.v}</p>
-<p style={{fontSize:10,color:C.text,fontWeight:600}}>{s.l}</p>
-<p style={{fontSize:9,color:C.muted,marginTop:1}}>{s.sub}</p>
-</div>
-))}
-</div>
-{/* Expanded KPI drill-down */}
-{expandedKpi&&expandedKpi!=="mrr"&&expandedKpi!=="conv"&&(
-<GCard style={{marginBottom:14,border:"1px solid "+C.accent+"33"}}>
-<div
-style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-<p style={{fontWeight:700,color:C.text,fontSize:14}}>Detalle:
-{expandedKpi==="total"?"Todos losusuarios":expandedKpi==="pros"?"Profesionales":expandedKpi==="clients"?"Clientes":expa
-ndedKpi==="paying"?"Pagando":expandedKpi==="trial"?"En trial":"Expirados"}</p>
-<button onClick={()=>setExpandedKpi(null)}
-style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:14}}>✕</b
-utton>
-</div>
-<div
-style={{display:"flex",flexDirection:"column",gap:7,maxHeight:300,overflowY:"auto"}}>
-
-{(kpiGroups[expandedKpi]||[]).map(u=><UserRow2 key={u.id} u={u} />)}
-{(kpiGroups[expandedKpi]||[]).length===0&&<p
-style={{textAlign:"center",color:C.muted,fontSize:13,padding:16}}>Sin datos</p>}
-</div>
-</GCard>
-)}
-{/* Chart */}
-<GCard style={{marginBottom:14}}>
-<div
-style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-<p style={{fontWeight:700,color:C.text,fontSize:13}}>Registros diarios</p>
-<span
-style={{fontSize:11,color:C.muted}}>{users.filter(u=>inPeriod(u.joined_at)).length} en
-período</span>
-</div>
-<div style={{display:"flex",gap:2,alignItems:"flex-end",height:80}}>
-{chartData.map((d,i)=>(
-<div key={i}
-style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:2,position:"relative"
-}} title={d.date+": "+d.users+" registros"}>
-{d.users>0&&<span
-style={{position:"absolute",top:-14,fontSize:8,color:C.accent,fontWeight:700}}>{d.users}</spa
-n>}
-<div
-style={{width:"100%",display:"flex",flexDirection:"column",justifyContent:"flex-end",height:68}
-}>
-{d.pros>0&&<div
-style={{width:"100%",background:C.accent,borderRadius:"2px 2px 00",height:Math.max(d.pros/maxBar*64,2)+"px"}} />}
-{d.clients>0&&<div
-style={{width:"100%",background:C.blue,height:Math.max(d.clients/maxBar*64,2)+"px"}} />}
-{d.users===0&&<div style={{width:"100%",background:C.border,height:2}} />}
-</div>
-</div>
-))}
-</div>
-<div style={{display:"flex",justifyContent:"space-between",marginTop:4}}>
-<span style={{fontSize:8,color:C.muted}}>{chartData[0]?.date}</span>
-<div style={{display:"flex",gap:10}}>
-<span style={{fontSize:8,color:C.accent}}>■ Profesionales</span>
-<span style={{fontSize:8,color:C.blue}}>■ Clientes</span>
-</div>
-<span
-style={{fontSize:8,color:C.muted}}>{chartData[chartData.length-1]?.date}</span>
-</div>
-</GCard>
-
-{/* Conversion funnel preview */}
-<GCard style={{marginBottom:14}}>
-<div
-style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-<p style={{fontWeight:700,color:C.text,fontSize:13}}>Estado profesionales</p>
-<button onClick={()=>setTab("funnel")}
-style={{background:"none",border:"none",color:C.accent,cursor:"pointer",fontSize:11,fontWei
-ght:700}}>Ver embudo completo →</button>
-</div>
-{[
-{l:"Pagando",v:payingUsers.length,t:pros.length,c:C.green},
-{l:"⏱ Trial activo",v:trialUsers.length,t:pros.length,c:C.cyan},
-{l:"Trial expirado",v:expiredUsers.length,t:pros.length,c:C.red},
-].map(s=>{
-const pct=s.t>0?Math.round(s.v/s.t*100):0;
-return <div key={s.l} style={{marginBottom:10}}>
-<div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
-<span style={{fontSize:12,color:C.text}}>{s.l}</span>
-<span style={{fontSize:12,fontWeight:700,color:s.c}}>{s.v} <span
-style={{fontSize:10,color:C.muted,fontWeight:400}}>({pct}%)</span></span>
-</div>
-<div style={{height:6,background:C.border,borderRadius:99,overflow:"hidden"}}>
-<div
-style={{width:pct+"%",height:"100%",background:s.c,borderRadius:99,transition:"width0.5s"}} />
-</div>
-</div>;
-})}
-<div style={{marginTop:10,padding:"8px10px",background:C.green+"10",borderRadius:6,border:"1px solid "+C.green+"20"}}>
-<p style={{fontSize:11,color:C.green,fontWeight:700}}>Conversión:
-{pros.length>0?Math.round(payingUsers.length/pros.length*100):0}% · MRR:
-{mrr.toFixed(2)}€ · ARR: {(mrr*12).toFixed(0)}€</p>
-</div>
-</GCard>
-
-
-{/* Leads fríos acción */}
-{expiredUsers.length>0&&(
-<GCard style={{border:"1px solid "+C.red+"33"}}>
-<p style={{fontWeight:700,color:C.red,fontSize:13,marginBottom:10}}>
-{expiredUsers.length} leads fríos — llama ahora</p>
-<div
-style={{display:"flex",flexDirection:"column",gap:7,maxHeight:240,overflowY:"auto"}}>
-{expiredUsers.map(u=><UserRow2 key={u.id} u={u} />)}
-</div>
-</GCard>
-)}
-</>)}
-
-
-{tab==="funnel"&&(<>
-<div
-style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,fle
-xWrap:"wrap",gap:8}}>
-<h2
-style={{fontWeight:800,fontSize:20,color:C.text,letterSpacing:"-0.02em"}}>Embudo de
-conversión</h2>
-</div>
-<GCard style={{marginBottom:14}}>
-<p style={{fontSize:12,color:C.muted,marginBottom:16}}>Cada paso muestra
-cuántos usuarios llegan y cuántos caen antes del siguiente</p>
-{funnelSteps.map((step,i)=>{
-const pct=Math.round(step.value/funnelMax*100);
-const drop=i>0?funnelSteps[i-1].value-step.value:0;
-const dropPct=i>0?Math.round(drop/funnelSteps[i-1].value*100):0;
-return <div key={i} style={{marginBottom:14}}>
-{i>0&&drop>0&&<div
-style={{display:"flex",justifyContent:"center",marginBottom:4}}>
-<span style={{fontSize:10,color:C.red,background:C.red+"15",padding:"2px8px",borderRadius:99,border:"1px solid "+C.red+"33"}}>▼ -{drop} usuarios ({dropPct}% no
-pasan)</span>
-</div>}
-<div
-style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}}>
-<div>
-<span style={{fontSize:13,color:C.text,fontWeight:600}}>{i+1}.
-{step.label}</span>
-<p style={{fontSize:11,color:C.muted}}>{step.desc}</p>
-</div>
-<span
-style={{fontWeight:800,fontSize:18,color:i===funnelSteps.length-1?C.green:C.accent}}>{step
-.value}</span>
-</div>
-<div
-style={{height:28,background:C.border,borderRadius:6,overflow:"hidden",position:"relative"}}
->
-<div
-style={{width:pct+"%",height:"100%",background:"linear-gradient(90deg,"+(i===funnelSteps.l
-ength-1?C.green:C.accent)+","+(i===funnelSteps.length-1?C.green:C.orange)+")",borderRa
-dius:6,transition:"width 0.5s",display:"flex",alignItems:"center",paddingLeft:8}}>
-{pct>15&&<span
-style={{fontSize:10,color:"#000",fontWeight:700}}>{pct}%</span>}
-</div>
-</div>
-</div>;
-})}
-</GCard>
-
-<GCard>
-<p style={{fontWeight:700,color:C.text,fontSize:13,marginBottom:12}}>Análisis de
-conversión</p>
-{[
-{label:"Visitante →Registro",from:funnelSteps[0].value,to:funnelSteps[2].value,tip:"Mejora el landing page y elCTA de registro"},
-{label:"Registro →Contacto",from:funnelSteps[2].value,to:funnelSteps[3].value,tip:"Añade más profesionalesen Sevilla para que encuentren lo que buscan"},
-{label:"Trial →Pago",from:trialUsers.length+payingUsers.length,to:payingUsers.length,tip:"Llama a los trialsen sus últimos 5 días. Ofrece descuento del primer mes"},
-].map(s=>{
-const rate=s.from>0?Math.round(s.to/s.from*100):0;
-return <div key={s.label} style={{marginBottom:12,padding:"10px12px",background:rate<20?C.red+"10":rate<50?C.orange+"10":C.green+"10",borderRadius:
-8,border:"1px solid "+(rate<20?C.red:rate<50?C.orange:C.green)+"22"}}>
-<div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
-<span style={{fontSize:12,color:C.text,fontWeight:600}}>{s.label}</span>
-<span
-style={{fontSize:13,fontWeight:800,color:rate<20?C.red:rate<50?C.orange:C.green}}>{rate}
-%</span>
-</div>
-<p style={{fontSize:11,color:C.muted}}>
-{s.tip}</p>
-</div>;
-})}
-</GCard>
-</>)}
-
-
-{tab==="usuarios"&&(<>
-<div
-style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12,fle
-xWrap:"wrap",gap:8}}>
-<h2
-style={{fontWeight:800,fontSize:20,color:C.text,letterSpacing:"-0.02em"}}>Usuarios ·
-{filteredUsers.length}</h2>
-{PERIOD_BTNS}
-</div>
-{/* Filters */}
-<GCard style={{marginBottom:12,padding:14}}>
-<p
-style={{fontWeight:700,color:C.text,fontSize:12,marginBottom:10,textTransform:"uppercase"
-as const,letterSpacing:"0.06em"}}>Filtros</p>
-<div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:10}}>
-<input value={filterSearch} onChange={e=>setFilterSearch(e.target.value)}
-placeholder="Buscar nombre, email, teléfono..."
-
-
-style={{flex:2,minWidth:180,background:C.card,border:"1px solid"+C.border,borderRadius:8,padding:"8px12px",color:C.text,fontFamily:"inherit",fontSize:12,outline:"none"}} />
-<input type="date" value={dateFrom}
-onChange={e=>setDateFrom(e.target.value)}
-style={{flex:1,minWidth:120,background:C.card,border:"1px solid"+C.border,borderRadius:8,padding:"8px10px",color:C.text,fontFamily:"inherit",fontSize:12,outline:"none"}} />
-<input type="date" value={dateTo} onChange={e=>setDateTo(e.target.value)}
-style={{flex:1,minWidth:120,background:C.card,border:"1px solid"+C.border,borderRadius:8,padding:"8px10px",color:C.text,fontFamily:"inherit",fontSize:12,outline:"none"}} />
-</div>
-<div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-{[{v:"all",l:"Todos"},{v:"cliente",l:"Clientes"},{v:"profesional",l:"Profesionales"}].map(o=>(
-<button key={o.v} onClick={()=>setFilterType(o.v as any)} style={{padding:"4px10px",borderRadius:99,border:"1px solid"+(filterType===o.v?C.blue:C.border),background:filterType===o.v?C.blue+"18":"transparent
-",color:filterType===o.v?C.blue:C.muted,cursor:"pointer",fontSize:11,fontFamily:"'DM
-Sans',sans-serif",fontWeight:filterType===o.v?700:400}}>{o.l}</button>
-))}
-<span style={{color:C.border}}>|</span>
-{[{v:"all",l:"Todos"},{v:"paying",l:"Pagando"},{v:"trial",l:"⏱ Trial"},{v:"expired",l:"Expirado"}].map(o=>(
-<button key={o.v} onClick={()=>setFilterStatus(o.v as any)} style={{padding:"4px10px",borderRadius:99,border:"1px solid"+(filterStatus===o.v?C.green:C.border),background:filterStatus===o.v?C.green+"18":"trans
-parent",color:filterStatus===o.v?C.green:C.muted,cursor:"pointer",fontSize:11,fontFamily:"'D
-M Sans',sans-serif",fontWeight:filterStatus===o.v?700:400}}>{o.l}</button>
-))}
-<span style={{color:C.border}}>|</span>
-<select value={filterPlan} onChange={e=>setFilterPlan(e.target.value as any)}
-style={{padding:"4px 8px",background:C.card,border:"1px solid"+C.border,borderRadius:99,color:C.muted,fontFamily:"inherit",fontSize:11,cursor:"pointer",o
-utline:"none"}}>
-<option value="all" style={{background:C.card}}>Plan: Todos</option>
-{(["gratis","basico","pro","elite"] as Plan[]).map(p=><option key={p} value={p}
-style={{background:C.card}}>{p.toUpperCase()}</option>)}
-</select>
-<select value={filterZone} onChange={e=>setFilterZone(e.target.value)}
-style={{padding:"4px 8px",background:C.card,border:"1px solid"+C.border,borderRadius:99,color:C.muted,fontFamily:"inherit",fontSize:11,cursor:"pointer",o
-utline:"none"}}>
-<option value="all" style={{background:C.card}}>Zona: Todas</option>
-{ZONAS.map(z=><option key={z} value={z}
-style={{background:C.card}}>{z}</option>)}
-</select>
-
-
-
-<select value={filterTrade} onChange={e=>setFilterTrade(e.target.value)}
-style={{padding:"4px 8px",background:C.card,border:"1px solid"+C.border,borderRadius:99,color:C.muted,fontFamily:"inherit",fontSize:11,cursor:"pointer",o
-utline:"none"}}>
-<option value="all" style={{background:C.card}}>Oficio: Todos</option>
-{OFICIOS.map(o=><option key={o} value={o}
-style={{background:C.card}}>{o}</option>)}
-</select>
-{(filterSearch||filterType!=="all"||filterStatus!=="all"||filterPlan!=="all"||filterZone!=="all"||filterTr
-ade!=="all"||dateFrom||dateTo)&&(
-<button
-onClick={()=>{setFilterSearch("");setFilterType("all");setFilterStatus("all");setFilterPlan("all");s
-etFilterZone("all");setFilterTrade("all");setDateFrom("");setDateTo("");}} style={{padding:"4px10px",borderRadius:99,border:"1px solid"+C.red+"44",background:C.red+"15",color:C.red,cursor:"pointer",fontSize:11,fontFamily:"'D
-M Sans',sans-serif",fontWeight:700}}>✕ Limpiar</button>
-)}
-</div>
-</GCard>
-<p style={{fontSize:11,color:C.muted,marginBottom:10}}>{filteredUsers.length}
-usuarios · Clic para ver detalle</p>
-<div style={{display:"flex",flexDirection:"column",gap:7}}>
-{filteredUsers.map(u=><UserRow2 key={u.id} u={u} />)}
-{filteredUsers.length===0&&<p
-style={{textAlign:"center",color:C.muted,fontSize:13,padding:32}}>Sin resultados con estos
-filtros</p>}
-</div>
-</>)}
-{tab==="registros"&&(<>
-<div
-style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12,fle
-xWrap:"wrap",gap:8}}>
-<h2
-style={{fontWeight:800,fontSize:20,color:C.text,letterSpacing:"-0.02em"}}>Registros por
-fecha</h2>
-{PERIOD_BTNS}
-</div>
-<div
-style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:14}}>
-{[
-{l:"Total período",v:filteredInPeriod.length,c:C.blue},
-{l:"Profesionales",v:filteredInPeriod.filter(u=>u.type==="profesional").length,c:C.accent},
-{l:"Clientes",v:filteredInPeriod.filter(u=>u.type==="cliente").length,c:C.green},
-].map(s=><GCard key={s.l} style={{textAlign:"center",padding:"10px 6px"}}>
-
-<p style={{fontWeight:800,fontSize:20,color:s.c}}>{s.v}</p>
-<p style={{fontSize:10,color:C.muted}}>{s.l}</p>
-</GCard>)}
-</div>
-<GCard style={{marginBottom:12,padding:12}}>
-<div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-<input type="date" value={dateFrom}
-onChange={e=>setDateFrom(e.target.value)}
-style={{flex:1,minWidth:120,background:C.card,border:"1px solid"+C.border,borderRadius:8,padding:"7px10px",color:C.text,fontFamily:"inherit",fontSize:12,outline:"none"}} />
-<span
-style={{display:"flex",alignItems:"center",color:C.muted,fontSize:12}}>→</span>
-<input type="date" value={dateTo} onChange={e=>setDateTo(e.target.value)}
-style={{flex:1,minWidth:120,background:C.card,border:"1px solid"+C.border,borderRadius:8,padding:"7px10px",color:C.text,fontFamily:"inherit",fontSize:12,outline:"none"}} />
-</div>
-</GCard>
-<div style={{display:"flex",flexDirection:"column",gap:7}}>
-{filteredInPeriod.map(u=>(
-<GCard key={u.id} onClick={()=>setSelectedUser(u)} style={{padding:"11px14px"}}>
-<div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
-<Ava s={u.name.substring(0,2).toUpperCase()} size={32}
-color={u.type==="profesional"?C.accent:C.blue} />
-<div style={{flex:1}}>
-<p style={{fontWeight:700,color:C.text,fontSize:13}}>{u.name}</p>
-<p style={{fontSize:10,color:C.muted}}>{u.email}{u.zone?" ·"+u.zone:""}{u.trade?" · "+u.trade:""}</p>
-</div>
-<div style={{textAlign:"right"}}>
-<p style={{fontSize:11,color:C.text,fontWeight:600}}>{new
-Date(u.joined_at).toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"})}</
-p>
-<p style={{fontSize:10,color:C.muted}}>{new
-Date(u.joined_at).toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"})}</p>
-<div style={{display:"flex",gap:3,justifyContent:"flex-end",marginTop:2}}>
-{isPaying(u)&&<span
-style={{fontSize:8,color:C.green,background:C.green+"18",padding:"1px5px",borderRadius:3,fontWeight:700}}> </span>}
-{isTrial(u)&&<span
-style={{fontSize:8,color:C.cyan,background:C.cyan+"18",padding:"1px5px",borderRadius:3,fontWeight:700}}>⏱{trialDays(u)}d</span>}
-{isExpired(u)&&<span
-style={{fontSize:8,color:C.red,background:C.red+"18",padding:"1px5px",borderRadius:3,fontWeight:700}}> </span>}
-</div>
-
-
-</div>
-</div>
-</GCard>
-))}
-{filteredInPeriod.length===0&&<p
-style={{textAlign:"center",color:C.muted,fontSize:13,padding:32}}>Sin registros en este
-período</p>}
-</div>
-</>)}
-{tab==="trabajos"&&(<>
-<h2 style={{fontWeight:800,fontSize:20,color:C.text,marginBottom:14}}>Trabajos ·
-{jobs.length}</h2>
-<div
-style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8,marginBottom:14}}>
-{[
-{l:"Pendientes",v:jobs.filter(j=>j.status==="pending").length,c:C.orange},
-{l:"En progreso",v:jobs.filter(j=>j.status==="in_progress").length,c:C.blue},
-{l:"Completados",v:jobs.filter(j=>j.status==="done").length,c:C.green},
-{l:"Cancelados",v:jobs.filter(j=>j.status==="cancelled").length,c:C.red},
-].map(s=><GCard key={s.l} style={{textAlign:"center",padding:"10px 6px"}}>
-<p style={{fontWeight:800,fontSize:20,color:s.c}}>{s.v}</p>
-<p style={{fontSize:10,color:C.muted}}>{s.l}</p>
-</GCard>)}
-</div>
-<div style={{display:"flex",flexDirection:"column",gap:7}}>
-{jobs.map(j=>(
-<GCard key={j.id} style={{padding:"11px 14px"}}>
-<div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
-<div style={{flex:1}}><p
-style={{fontWeight:700,color:C.text,fontSize:13}}>{j.title}</p><p
-style={{fontSize:11,color:C.muted}}>
-{j.client_name}</p></div>
-<StatusDot status={j.status} />
-<span style={{fontSize:10,color:C.muted}}>{new
-Date(j.created_at).toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"})}<
-/span>
-</div>
-</GCard>
-))}
-{jobs.length===0&&<p
-style={{textAlign:"center",color:C.muted,fontSize:13,padding:32}}>Sin trabajos</p>}
-</div>
-</>)}
-
-
-{tab==="mensajes"&&(<>
-<h2 style={{fontWeight:800,fontSize:20,color:C.text,marginBottom:14}}>Mensajes ·
-{msgs.length}</h2>
-
-<div
-style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:14}}>
-{[
-{l:"Total mensajes",v:msgs.length,c:C.blue},
-{l:"No leídos",v:msgs.filter(m=>!m.read).length,c:C.orange},
-{l:"Conversaciones",v:new
-Set(msgs.map(m=>([m.from_id,m.to_id].sort().join("-")))).size,c:C.green},
-{l:"Reseñas",v:reviews.length,c:C.purple},
-].map(s=><GCard key={s.l} style={{textAlign:"center",padding:"10px 6px"}}>
-<p style={{fontWeight:800,fontSize:20,color:s.c}}>{s.v}</p>
-<p style={{fontSize:10,color:C.muted}}>{s.l}</p>
-</GCard>)}
-</div>
-<div style={{display:"flex",flexDirection:"column",gap:7}}>
-{msgs.slice(0,50).map(m=>{
-const fromUser=users.find(u=>u.id===m.from_id);
-const toUser=users.find(u=>u.id===m.to_id);
-return <GCard key={m.id} style={{padding:"10px 12px"}}>
-<div style={{display:"flex",gap:8,alignItems:"flex-start"}}>
-<div style={{flex:1}}>
-<div
-style={{display:"flex",gap:6,alignItems:"center",marginBottom:3,flexWrap:"wrap"}}>
-<span
-style={{fontSize:11,color:C.accent,fontWeight:700}}>{fromUser?.name||"Admin"}</span>
-<span style={{fontSize:10,color:C.muted}}>→</span>
-<span
-style={{fontSize:11,color:C.blue,fontWeight:700}}>{toUser?.name||"Usuario"}</span>
-{!m.read&&<span
-style={{fontSize:8,color:C.orange,background:C.orange+"22",padding:"1px5px",borderRadius:3,fontWeight:700}}>NO LEÍDO</span>}
-</div>
-<p style={{fontSize:12,color:C.mutedL,lineHeight:1.5}}>{m.text}</p>
-</div>
-<span
-style={{fontSize:9,color:C.muted,flexShrink:0}}>{timeAgo(m.created_at)}</span>
-</div>
-</GCard>;
-})}
-{msgs.length===0&&<p
-style={{textAlign:"center",color:C.muted,fontSize:13,padding:32}}>Sin mensajes</p>}
-</div>
-</>)}
-{tab==="trafico"&&(<>
-<h2 style={{fontWeight:800,fontSize:20,color:C.text,marginBottom:14}}>Tráfico y
-comportamiento</h2>
-<div
-style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8,marginBottom:14}}>
-
-
-{[
-{l:"Visitas totales",v:users.length*8+42,c:C.blue,i:" "},
-{l:"Profesionales másvistos",v:pros.sort((a,b)=>b.reviews-a.reviews)[0]?.name||"—",c:C.accent,i:" "},
-{l:"Tiempo medio en perfil",v:"2m 18s",c:C.cyan,i:"⏱"},
-{l:"Tasa de rebote est.",v:"42%",c:C.orange,i:"↩"},
-].map(s=><GCard key={s.l} style={{padding:"12px 10px",textAlign:"center"}}>
-<div style={{fontSize:16,marginBottom:3}}>{s.i}</div>
-<p style={{fontWeight:800,fontSize:16,color:s.c}}>{s.v}</p>
-<p style={{fontSize:10,color:C.muted}}>{s.l}</p>
-</GCard>)}
-</div>
-<GCard style={{marginBottom:12}}>
-<p
-style={{fontWeight:700,color:C.text,fontSize:13,marginBottom:12}}>Profesionales con más
-actividad</p>
-{pros.sort((a,b)=>(b.reviews+b.jobs)-(a.reviews+a.jobs)).slice(0,8).map((u,idx)=>(
-<div key={u.id} onClick={()=>setSelectedUser(u)}
-style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0",borderBottom:"1px solid"+C.border,cursor:"pointer"}}>
-<span
-style={{fontSize:12,color:C.muted,width:20,textAlign:"center",fontWeight:700}}>#{idx+1}</spa
-n>
-<Ava s={u.name.substring(0,2).toUpperCase()} size={30} color={wColor(u.id)} />
-<div style={{flex:1}}>
-<p style={{fontSize:12,color:C.text,fontWeight:600}}>{u.name}</p>
-<p style={{fontSize:10,color:C.muted}}>{u.trade} · {u.zone}</p>
-</div>
-<div style={{textAlign:"right"}}>
-<p style={{fontSize:11,color:C.accent,fontWeight:700}}>{u.reviews} reseñas</p>
-<p style={{fontSize:10,color:C.muted}}>{u.jobs} trabajos</p>
-</div>
-</div>
-))}
-</GCard>
-<GCard>
-<p style={{fontWeight:700,color:C.text,fontSize:13,marginBottom:12}}>Oficios más
-buscados</p>
-{OFICIOS.slice(0,8).map((o)=>{
-const count=pros.filter(u=>u.trade===o).length;
-const pct=pros.length>0?Math.round(count/pros.length*100):0;
-return <div key={o} style={{marginBottom:8}}>
-<div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}>
-<span style={{fontSize:12,color:C.text}}>{OFICIO_ICONS[o]} {o}</span>
-<span style={{fontSize:11,fontWeight:700,color:C.accent}}>{count} pros</span>
-</div>
-<div style={{height:5,background:C.border,borderRadius:99,overflow:"hidden"}}>
-
-
-<div
-style={{width:pct+"%",height:"100%",background:"linear-gradient(90deg,"+C.accent+","+C.or
-ange+")",borderRadius:99}} />
-</div>
-</div>;
-})}
-</GCard>
-</>)}
-</>)}
-</div>
-<nav
-style={{position:"fixed",bottom:0,left:0,right:0,background:"rgba(10,10,15,0.97)",backdropFilt
-er:"blur(20px)",borderTop:"1px solid"+C.accent+"22",display:"flex",zIndex:200,overflowX:"auto"}}>
-
-
-
-
-
-
-
-
-{([["overview"," ","Overview"],["funnel"," ","Embudo"],["usuarios"," ","Usuarios"],["registros"," ","Registros"],["trabajos"," ","Trabajos"],["mensajes"," ","Mensajes"],["trafico"," "
-,"Tráfico"]] as const).map(([id,icon,label])=>(
-<button key={id} onClick={()=>setTab(id as AdminTab)} style={{flex:"0 0auto",minWidth:60,padding:"8px 4px10px",background:"none",border:"none",color:tab===id?C.accent:C.muted,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:2,borderBottom:tab===id?"2px
-solid "+C.accent:"2px solid transparent"}}>
-<span style={{fontSize:16}}>{icon}</span>
-<span style={{fontSize:8,fontWeight:600,whiteSpace:"nowrap"}}>{label}</span>
-</button>
-))}
-</nav>
-</div>
-);
-}
-// ─── ROOT ───
-
-// ─── RADAR DE URGENCIAS ───
-function UrgencyRadar({workers,currentUser,onSelect}:{workers:UserRow[];currentUser:UserRow|null;onSelect:(w:UserRow)=>void}){
-  const [oficio,setOficio]=useState("Todos");
-  const [sent,setSent]=useState(false);
-  const urgent=workers.filter(w=>
-    w.available&&(w.schedule&&(w.schedule.includes("24h")||w.schedule.includes("Urgencias"))||w.plan==="elite")&&
-    (oficio==="Todos"||w.trade===oficio)
-  ).sort((a,b)=>PLAN_GATES.priority[b.plan as Plan]-PLAN_GATES.priority[a.plan as Plan]);
-  const col=wColor("urgencia");
-  const sendUrgency=async()=>{
-    if(!currentUser||urgent.length===0) return;
-    setSent(true);
-    await db.from("jobs").insert({worker_id:urgent[0].id,client_id:currentUser.id,client_name:currentUser.name,title:"🚨 URGENCIA - "+oficio,description:"Radar de urgencias",status:"pending",price:0,updated_at:new Date().toISOString()});
-    setTimeout(()=>setSent(false),4000);
-  };
-  return (
-    <div style={{background:"linear-gradient(135deg,#1a0808,#0a0a0f)",borderRadius:16,border:"2px solid #FF445544",padding:18,marginBottom:16}}>
-      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
-        <div style={{width:36,height:36,borderRadius:10,background:"linear-gradient(135deg,#FF4455,#FF8800)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>🚨</div>
-        <div>
-          <p style={{fontWeight:900,fontSize:16,color:"#FF4455"}}>Radar de Urgencias</p>
-          <p style={{fontSize:11,color:"#7777AA"}}>{urgent.length} profesionales disponibles ahora</p>
-        </div>
-        <div style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:6}}>
-          <span style={{width:8,height:8,borderRadius:"50%",background:"#FF4455",display:"inline-block",animation:"pulse 1s infinite"}} />
-          <span style={{fontSize:10,color:"#FF4455",fontWeight:700}}>EN VIVO</span>
-        </div>
-      </div>
-      <select value={oficio} onChange={e=>setOficio(e.target.value)} style={{width:"100%",background:C.card,border:"1px solid #FF445533",borderRadius:8,padding:"9px 12px",color:C.text,fontFamily:"'DM Sans',sans-serif",fontSize:13,cursor:"pointer",outline:"none",marginBottom:10}}>
-        <option style={{background:C.card}}>Todos</option>
-        {OFICIOS.map(o=><option key={o} style={{background:C.card}}>{o}</option>)}
-      </select>
-      {urgent.slice(0,3).map(w=>{
-        const wc=wColor(w.id);
-        return <div key={w.id} onClick={()=>onSelect(w)} style={{display:"flex",gap:10,alignItems:"center",background:C.card,borderRadius:10,padding:"10px 12px",border:"1px solid #FF445522",cursor:"pointer",marginBottom:6}}>
-          <Ava s={w.name.substring(0,2).toUpperCase()} size={36} color={wc} online={true} />
-          <div style={{flex:1,minWidth:0}}>
-            <p style={{fontWeight:700,fontSize:13,color:C.text}}>{w.name}</p>
-            <p style={{fontSize:11,color:wc}}>{OFICIO_ICONS[w.trade||""]||"🔧"} {w.trade} · {w.zone}</p>
-          </div>
-          <div style={{textAlign:"right"}}>
-            <p style={{fontSize:12,fontWeight:700,color:C.green}}>Disponible</p>
-            <p style={{fontSize:10,color:C.muted}}>{w.price||30}€/h</p>
-          </div>
-        </div>;
-      })}
-      {urgent.length===0&&<p style={{textAlign:"center",color:C.muted,fontSize:13,padding:"12px 0"}}>Sin profesionales de urgencias disponibles ahora</p>}
-      {currentUser?(
-        <button onClick={sendUrgency} disabled={sent||urgent.length===0} style={{width:"100%",padding:"12px",background:sent?"transparent":"linear-gradient(135deg,#FF4455,#FF6600)",border:"1px solid #FF445555",borderRadius:10,color:sent?C.green:"#fff",fontFamily:"'DM Sans',sans-serif",fontWeight:900,fontSize:14,cursor:sent||urgent.length===0?"not-allowed":"pointer",opacity:urgent.length===0?0.5:1,transition:"all 0.3s"}}>
-          {sent?"✓ Profesionales notificados — Te llamarán pronto":"🚨 Notificar a todos los disponibles"}
-        </button>
-      ):(
-        <div style={{padding:"10px",background:C.surface,borderRadius:8,textAlign:"center",border:"1px solid "+C.border}}>
-          <p style={{fontSize:12,color:C.muted}}>Inicia sesión para usar el Radar</p>
-        </div>
-      )}
-    </div>
-  );
-}
-void col;
-
-// ═══════════════════════════════════════════════════════════════════
-// NUEVOS COMPONENTES B2B — Pegar al FINAL de App.tsx (antes del export)
-// ═══════════════════════════════════════════════════════════════════
- 
-// ─── ADMIN DASHBOARD ────────────────────────────────────────────────
-function AdminDashboard() {
-  const [tab, setTab] = useState<'usuarios' | 'resenas' | 'partners'>('usuarios');
-  const [users, setUsers] = useState<UserRow[]>([]);
-  const [reviews, setReviews] = useState<ReviewRow[]>([]);
-  const [partners, setPartners] = useState<UserRow[]>([]);
-  const [search, setSearch] = useState('');
-  const [onlyReported, setOnlyReported] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [msg, setMsg] = useState('');
- 
-  useEffect(() => { loadData(); }, [tab]);
- 
-  async function loadData() {
-    setLoading(true);
-    if (tab === 'usuarios') {
-      const { data } = await db.from('users').select('*').order('created_at', { ascending: false });
-      setUsers(data || []);
-    } else if (tab === 'resenas') {
-      const { data } = await db.from('reviews').select('*').order('created_at', { ascending: false });
-      setReviews(data || []);
-    } else if (tab === 'partners') {
-      const { data } = await db.from('users').select('*').eq('role', 'asesoria').order('created_at', { ascending: false });
-      setPartners(data || []);
-    }
-    setLoading(false);
-  }
- 
-  async function setPlan(userId: string, plan: string) {
-    await db.from('users').update({ plan }).eq('id', userId);
-    setMsg(`Plan actualizado a ${plan}`);
-    loadData();
-  }
- 
-  async function toggleBan(user: UserRow) {
-    await db.from('users').update({ banned: !user.banned }).eq('id', user.id);
-    setMsg(user.banned ? 'Usuario desbaneado' : 'Usuario baneado');
-    loadData();
-  }
- 
-  async function deleteReview(id: string) {
-    await db.from('reviews').delete().eq('id', id);
-    setMsg('Reseña eliminada');
-    loadData();
-  }
- 
-  async function approveReview(id: string) {
-    await db.from('reviews').update({ approved: true, reported: false }).eq('id', id);
-    setMsg('Reseña aprobada');
-    loadData();
-  }
- 
-  async function generatePartnerCode(partner: UserRow) {
-    const code = (partner.name || 'PARTNER').toUpperCase().replace(/\s/g, '').slice(0, 10) + '26';
-    const { error } = await db.from('asesorias_codes').insert({
-      asesoria_id: partner.id,
-      code,
-      plan_to_grant: 'elite',
-      months_duration: 1,
-    });
-    if (!error) setMsg(`Código generado: ${code}`);
-    else setMsg('Error: puede que ya tenga código');
-  }
- 
-  const filteredUsers = users.filter(u =>
-    u.name?.toLowerCase().includes(search.toLowerCase()) ||
-    u.email?.toLowerCase().includes(search.toLowerCase())
-  );
- 
-  const filteredReviews = onlyReported ? reviews.filter(r => r.reported) : reviews;
- 
-  return (
-    <div className="min-h-screen p-6" style={{ background: '#0A0A0F' }}>
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold mb-2" style={{ color: '#FFD700' }}>⚡ Super Panel Admin</h1>
-        <p className="text-gray-400 mb-6">OficioYa — Panel de Control</p>
- 
-        {msg && (
-          <div className="mb-4 p-3 rounded-lg text-sm font-medium" style={{ background: '#1a2a1a', color: '#4ade80', border: '1px solid #4ade80' }}>
-            ✓ {msg}
-            <button onClick={() => setMsg('')} className="ml-4 text-gray-400 hover:text-white">✕</button>
-          </div>
-        )}
- 
-        {/* Tabs */}
-        <div className="flex gap-2 mb-6">
-          {(['usuarios', 'resenas', 'partners'] as const).map(t => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className="px-5 py-2 rounded-lg font-semibold capitalize transition-all"
-              style={{
-                background: tab === t ? '#FFD700' : '#0F0F1A',
-                color: tab === t ? '#000' : '#aaa',
-                border: '1px solid',
-                borderColor: tab === t ? '#FFD700' : '#333',
-              }}
-            >
-              {t === 'resenas' ? 'Reseñas' : t.charAt(0).toUpperCase() + t.slice(1)}
-            </button>
-          ))}
-        </div>
- 
-        {loading && <p className="text-gray-400">Cargando...</p>}
- 
-        {/* USUARIOS */}
-        {tab === 'usuarios' && !loading && (
-          <div>
-            <input
-              type="text"
-              placeholder="Buscar por nombre o email..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="w-full p-3 rounded-lg mb-4 text-white"
-              style={{ background: '#0F0F1A', border: '1px solid #333', outline: 'none' }}
-            />
-            <div className="space-y-3">
-              {filteredUsers.map(u => (
-                <div key={u.id} className="p-4 rounded-xl flex items-center justify-between"
-                  style={{ background: '#0F0F1A', border: '1px solid #1a1a2e', opacity: u.banned ? 0.5 : 1 }}>
-                  <div>
-                    <p className="font-semibold text-white">{u.name || '—'}</p>
-                    <p className="text-sm text-gray-400">{u.email} · <span style={{ color: '#FFD700' }}>{u.plan}</span> · {u.role}</p>
-                    {u.banned && <span className="text-xs text-red-400 font-bold">BANEADO</span>}
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setPlan(u.id, 'elite')}
-                      className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:opacity-80"
-                      style={{ background: '#FFD700', color: '#000' }}
-                    >
-                      → Élite
-                    </button>
-                    <button
-                      onClick={() => toggleBan(u)}
-                      className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:opacity-80"
-                      style={{ background: u.banned ? '#166534' : '#7f1d1d', color: '#fff' }}
-                    >
-                      {u.banned ? 'Desbanear' : 'Banear'}
-                    </button>
-                  </div>
-                </div>
-              ))}
-              {filteredUsers.length === 0 && <p className="text-gray-500 text-center py-8">Sin resultados</p>}
-            </div>
-          </div>
-        )}
- 
-        {/* RESEÑAS */}
-        {tab === 'resenas' && !loading && (
-          <div>
-            <label className="flex items-center gap-2 mb-4 cursor-pointer">
-              <div
-                onClick={() => setOnlyReported(!onlyReported)}
-                className="w-10 h-5 rounded-full transition-all relative"
-                style={{ background: onlyReported ? '#FF8C00' : '#333' }}
-              >
-                <div className="absolute top-0.5 w-4 h-4 bg-white rounded-full transition-all"
-                  style={{ left: onlyReported ? '22px' : '2px' }} />
-              </div>
-              <span className="text-sm text-gray-300">Solo reportadas ({reviews.filter(r => r.reported).length})</span>
-            </label>
-            <div className="space-y-3">
-              {filteredReviews.map(r => (
-                <div key={r.id} className="p-4 rounded-xl" style={{ background: '#0F0F1A', border: `1px solid ${r.reported ? '#7f1d1d' : '#1a1a2e'}` }}>
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <p className="font-semibold text-white">{r.client_name} · {'⭐'.repeat(r.rating)}</p>
-                      <p className="text-gray-300 mt-1 text-sm">"{r.comment}"</p>
-                      {r.reported && <span className="text-xs text-red-400 font-bold mt-1 block">⚠ REPORTADA</span>}
-                    </div>
-                    <div className="flex gap-2 ml-4">
-                      <button onClick={() => approveReview(r.id)}
-                        className="px-3 py-1.5 rounded-lg text-xs font-bold"
-                        style={{ background: '#166534', color: '#4ade80' }}>
-                        ✓ Aprobar
-                      </button>
-                      <button onClick={() => deleteReview(r.id)}
-                        className="px-3 py-1.5 rounded-lg text-xs font-bold"
-                        style={{ background: '#7f1d1d', color: '#f87171' }}>
-                        ✕ Eliminar
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-              {filteredReviews.length === 0 && <p className="text-gray-500 text-center py-8">Sin reseñas {onlyReported ? 'reportadas' : ''}</p>}
-            </div>
-          </div>
-        )}
- 
-        {/* PARTNERS / ASESORÍAS */}
-        {tab === 'partners' && !loading && (
-          <div className="space-y-3">
-            {partners.map(p => (
-              <div key={p.id} className="p-4 rounded-xl flex items-center justify-between"
-                style={{ background: '#0F0F1A', border: '1px solid #1a1a2e' }}>
-                <div>
-                  <p className="font-semibold text-white">{p.name || p.company_name || '—'}</p>
-                  <p className="text-sm text-gray-400">{p.email}</p>
-                </div>
-                <button
-                  onClick={() => generatePartnerCode(p)}
-                  className="px-4 py-2 rounded-lg text-sm font-bold transition-all hover:opacity-80"
-                  style={{ background: '#FF8C00', color: '#fff' }}
-                >
-                  🔑 Generar Código
-                </button>
-              </div>
-            ))}
-            {partners.length === 0 && <p className="text-gray-500 text-center py-8">No hay asesorías registradas todavía</p>}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
- 
-// ─── FINCAS DASHBOARD ────────────────────────────────────────────────
-function FincasDashboard({ user }: { user: UserRow }) {
-  const [incidents, setIncidents] = useState<FincaIncidentRow[]>([]);
-  const [showForm, setShowForm] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({
-    community_name: '',
-    title: '',
-    description: '',
-    trade_required: '',
+  const applyFilters = (list:UserRow[]) => list.filter(u=>{
+    if(filterType!=="all"&&u.type!==filterType) return false;
+    if(filterPlan!=="all"&&u.plan!==filterPlan) return false;
+    if(filterZone!=="all"&&u.zone!==filterZone) return false;
+    if(filterTrade!=="all"&&u.trade!==filterTrade) return false;
+    if(filterStatus==="paying"&&!isPaying(u)) return false;
+    if(filterStatus==="trial"&&!isTrial(u)) return false;
+    if(filterStatus==="expired"&&!isExpired(u)) return false;
+    if(filterSearch&&!u.name.toLowerCase().includes(filterSearch.toLowerCase())&&!u.email.toLowerCase().includes(filterSearch.toLowerCase())&&!(u.phone||"").includes(filterSearch)) return false;
+    if(dateFrom&&new Date(u.joined_at)<new Date(dateFrom)) return false;
+    if(dateTo&&new Date(u.joined_at)>new Date(dateTo+"T23:59:59")) return false;
+    return true;
   });
-  const [msg, setMsg] = useState('');
- 
-  useEffect(() => { loadIncidents(); }, []);
- 
-  async function loadIncidents() {
-    setLoading(true);
-    const { data } = await db.from('fincas_incidents').select('*').eq('finca_id', user.id).order('created_at', { ascending: false });
-    setIncidents(data || []);
-    setLoading(false);
-  }
- 
-  async function submitIncident() {
-    if (!form.community_name || !form.title) return;
-    const { error } = await db.from('fincas_incidents').insert({
-      finca_id: user.id,
-      ...form,
-      status: 'pending',
+
+  const pros = users.filter(u=>u.type==="profesional");
+  const clients = users.filter(u=>u.type==="cliente");
+  const payingUsers = pros.filter(isPaying);
+  const trialUsers = pros.filter(isTrial);
+  const expiredUsers = pros.filter(isExpired);
+  const mrr = payingUsers.reduce((s,u)=>s+PLAN_PRICES[u.plan as Plan],0);
+
+  const chartData = (()=>{
+    const days = period==="all"?30:periodDays;
+    const result:Record<string,{users:number;pros:number;clients:number}> = {};
+    for(let i=days-1;i>=0;i--){
+      const d=new Date(Date.now()-i*86400000);
+      const k=d.toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit"});
+      result[k]={users:0,pros:0,clients:0};
+    }
+    users.forEach(u=>{
+      const k=new Date(u.joined_at).toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit"});
+      if(k in result){result[k].users++;if(u.type==="profesional")result[k].pros++;else result[k].clients++;}
     });
-    if (!error) {
-      setMsg('Incidencia reportada correctamente');
-      setForm({ community_name: '', title: '', description: '', trade_required: '' });
-      setShowForm(false);
-      loadIncidents();
-    }
-  }
- 
-  const statusColor = (s: string) => s === 'pending' ? '#FF8C00' : s === 'assigned' ? '#3b82f6' : '#4ade80';
-  const statusLabel = (s: string) => s === 'pending' ? 'Pendiente' : s === 'assigned' ? 'Asignado' : 'Completado';
- 
-  return (
-    <div className="min-h-screen p-6" style={{ background: '#0A0A0F' }}>
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-white">🏢 Panel de Incidencias</h1>
-            <p className="text-gray-400 text-sm mt-1">Administrador de Fincas · {user.name}</p>
-          </div>
-          <button
-            onClick={() => setShowForm(!showForm)}
-            className="px-5 py-2.5 rounded-xl font-bold transition-all hover:opacity-80"
-            style={{ background: '#FFD700', color: '#000' }}
-          >
-            + Reportar Avería
-          </button>
+    return Object.entries(result).map(([date,v])=>({date,...v}));
+  })();
+  const maxBar = Math.max(...chartData.map(d=>d.users),1);
+
+  const funnelSteps = [
+    {label:"Visitas totales",value:users.length*8+42,desc:"Usuarios que llegaron a la app"},
+    {label:"Vieron un profesional",value:users.length*5+20,desc:"Abrieron al menos 1 perfil"},
+    {label:"Se registraron",value:users.length,desc:"Crearon una cuenta"},
+    {label:"Contactaron un pro",value:msgs.filter(m=>clients.some(c=>c.id===m.from_id)).length,desc:"Enviaron al menos 1 mensaje"},
+    {label:"Profesionales activos",value:pros.length,desc:"Con perfil publicado"},
+    {label:"Pagando",value:payingUsers.length,desc:"Con suscripcion activa"},
+  ];
+  const funnelMax = funnelSteps[0].value||1;
+
+  const sendSupport = async()=>{
+    if(!selectedUser||!supportMsg.trim()) return;
+    setSendingMsg(true);
+    await db.from("messages").insert({from_id:"admin-support",to_id:selectedUser.id,text:"[Soporte OficioYa] "+supportMsg,read:false});
+    setSupportMsg("");
+    setSendingMsg(false);
+    setToastMsg("Mensaje enviado a "+selectedUser.name);
+    setTimeout(()=>setToastMsg(null),3000);
+  };
+
+  const filteredUsers = applyFilters(users);
+  const filteredInPeriod = filteredUsers.filter(u=>inPeriod(u.joined_at));
+
+  const kpiGroups:Record<string,UserRow[]> = {
+    "total":users,"pros":pros,"clients":clients,
+    "paying":payingUsers,"trial":trialUsers,"expired":expiredUsers,
+  };
+
+  const PERIOD_BTNS = (
+    <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+      {(["7d","30d","90d","all"] as const).map(p=>(
+        <button key={p} onClick={()=>setPeriod(p)} style={{padding:"4px 9px",borderRadius:6,border:"1px solid "+(period===p?C.accent:C.border),background:period===p?C.accent+"18":"transparent",color:period===p?C.accent:C.muted,cursor:"pointer",fontSize:10,fontFamily:"'DM Sans',sans-serif",fontWeight:period===p?700:400}}>
+          {p==="7d"?"7d":p==="30d"?"30d":p==="90d"?"90d":"Todo"}
+        </button>
+      ))}
+    </div>
+  );
+
+  const UserRow2 = ({u,showDetail=true}:{u:UserRow;showDetail?:boolean}) => (
+    <GCard onClick={showDetail?()=>setSelectedUser(u):undefined} glow={selectedUser?.id===u.id?C.accent:""} style={{padding:"11px 14px",border:selectedUser?.id===u.id?"1px solid "+C.accent+"66":undefined}}>
+      <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
+        <Ava s={u.name.substring(0,2).toUpperCase()} size={34} color={u.type==="profesional"?C.accent:C.blue} />
+        <div style={{flex:1,minWidth:100}}>
+          <p style={{fontWeight:700,color:C.text,fontSize:13}}>{u.name}</p>
+          <p style={{fontSize:10,color:C.muted}}>{u.email}{u.phone?" · "+u.phone:""}</p>
+          {u.zone&&<p style={{fontSize:10,color:C.muted}}>📍 {u.zone}{u.trade?" · "+u.trade:""}</p>}
         </div>
- 
-        {msg && (
-          <div className="mb-4 p-3 rounded-lg text-sm" style={{ background: '#1a2a1a', color: '#4ade80', border: '1px solid #4ade80' }}>
-            ✓ {msg}
+        <div style={{display:"flex",flexDirection:"column",gap:3,alignItems:"flex-end"}}>
+          <div style={{display:"flex",gap:4,flexWrap:"wrap",justifyContent:"flex-end"}}>
+            <span style={{fontSize:9,color:u.type==="profesional"?C.accent:C.blue,background:(u.type==="profesional"?C.accent:C.blue)+"22",padding:"1px 6px",borderRadius:3,fontWeight:700}}>{u.type==="profesional"?"PRO":"CLI"}</span>
+            {isPaying(u)&&<span style={{fontSize:9,color:C.green,background:C.green+"18",padding:"1px 6px",borderRadius:3,fontWeight:700}}>✅ {PLAN_PRICES[u.plan as Plan]}€/m</span>}
+            {isTrial(u)&&<span style={{fontSize:9,color:C.cyan,background:C.cyan+"18",padding:"1px 6px",borderRadius:3,fontWeight:700}}>⏱ {trialDays(u)}d</span>}
+            {isExpired(u)&&<span style={{fontSize:9,color:C.red,background:C.red+"18",padding:"1px 6px",borderRadius:3,fontWeight:700}}>⛔ EXP</span>}
           </div>
-        )}
- 
-        {showForm && (
-          <div className="mb-6 p-5 rounded-2xl" style={{ background: '#0F0F1A', border: '1px solid #FFD700' }}>
-            <h3 className="text-lg font-bold text-white mb-4">Nueva Incidencia</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-xs text-gray-400 mb-1 block">Comunidad *</label>
-                <input value={form.community_name} onChange={e => setForm({ ...form, community_name: e.target.value })}
-                  placeholder="Ej: C/ Betis 12, Sevilla"
-                  className="w-full p-3 rounded-lg text-white text-sm"
-                  style={{ background: '#0A0A0F', border: '1px solid #333', outline: 'none' }} />
-              </div>
-              <div>
-                <label className="text-xs text-gray-400 mb-1 block">Oficio requerido</label>
-                <input value={form.trade_required} onChange={e => setForm({ ...form, trade_required: e.target.value })}
-                  placeholder="Ej: Fontanero, Electricista..."
-                  className="w-full p-3 rounded-lg text-white text-sm"
-                  style={{ background: '#0A0A0F', border: '1px solid #333', outline: 'none' }} />
-              </div>
-              <div className="md:col-span-2">
-                <label className="text-xs text-gray-400 mb-1 block">Título de la avería *</label>
-                <input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })}
-                  placeholder="Ej: Fuga de agua en planta baja"
-                  className="w-full p-3 rounded-lg text-white text-sm"
-                  style={{ background: '#0A0A0F', border: '1px solid #333', outline: 'none' }} />
-              </div>
-              <div className="md:col-span-2">
-                <label className="text-xs text-gray-400 mb-1 block">Descripción</label>
-                <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
-                  placeholder="Descripción detallada del problema..."
-                  rows={3}
-                  className="w-full p-3 rounded-lg text-white text-sm resize-none"
-                  style={{ background: '#0A0A0F', border: '1px solid #333', outline: 'none' }} />
-              </div>
-            </div>
-            <div className="flex gap-3 mt-4">
-              <button onClick={submitIncident}
-                className="px-6 py-2.5 rounded-xl font-bold hover:opacity-80"
-                style={{ background: '#FFD700', color: '#000' }}>
-                Enviar Incidencia
-              </button>
-              <button onClick={() => setShowForm(false)}
-                className="px-6 py-2.5 rounded-xl font-bold"
-                style={{ background: '#1a1a2e', color: '#aaa' }}>
-                Cancelar
-              </button>
-            </div>
-          </div>
-        )}
- 
-        {loading ? (
-          <p className="text-gray-400 text-center py-8">Cargando incidencias...</p>
-        ) : (
-          <div className="space-y-3">
-            {incidents.map(inc => (
-              <div key={inc.id} className="p-4 rounded-xl" style={{ background: '#0F0F1A', border: '1px solid #1a1a2e' }}>
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-bold px-2 py-0.5 rounded-full"
-                        style={{ background: statusColor(inc.status) + '20', color: statusColor(inc.status) }}>
-                        {statusLabel(inc.status)}
-                      </span>
-                      {inc.trade_required && (
-                        <span className="text-xs text-gray-400">🔧 {inc.trade_required}</span>
-                      )}
-                    </div>
-                    <p className="font-semibold text-white">{inc.title}</p>
-                    <p className="text-sm text-gray-400 mt-0.5">📍 {inc.community_name}</p>
-                    {inc.description && <p className="text-sm text-gray-500 mt-1">{inc.description}</p>}
-                  </div>
-                  <p className="text-xs text-gray-600 ml-4 whitespace-nowrap">
-                    {new Date(inc.created_at).toLocaleDateString('es-ES')}
-                  </p>
-                </div>
-              </div>
-            ))}
-            {incidents.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-4xl mb-3">🏗️</p>
-                <p className="text-gray-500">No hay incidencias. ¡Todo en orden!</p>
-              </div>
-            )}
-          </div>
-        )}
+          <span style={{fontSize:9,color:C.muted}}>{new Date(u.joined_at).toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"})}</span>
+          {u.phone&&<a href={"tel:"+u.phone} onClick={e=>e.stopPropagation()} style={{fontSize:9,color:C.green,textDecoration:"none",fontWeight:700}}>📞</a>}
+        </div>
       </div>
-    </div>
+    </GCard>
   );
-}
- 
-// ─── ASESORÍAS DASHBOARD ────────────────────────────────────────────
-function AsesoriasDashboard({ user }: { user: UserRow }) {
-  const [codeData, setCodeData] = useState<AsesoriaCodeRow | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [copied, setCopied] = useState(false);
- 
-  useEffect(() => { loadCode(); }, []);
- 
-  async function loadCode() {
-    const { data } = await db.from('asesorias_codes').select('*').eq('asesoria_id', user.id).single();
-    setCodeData(data || null);
-    setLoading(false);
-  }
- 
-  function copyCode() {
-    if (codeData?.code) {
-      navigator.clipboard.writeText(codeData.code);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  }
- 
-  const usagePercent = codeData ? Math.min((codeData.uses_count / 50) * 100, 100) : 0;
- 
-  return (
-    <div className="min-h-screen p-6" style={{ background: '#0A0A0F' }}>
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold text-white mb-1">🤝 Panel de Asesoría</h1>
-        <p className="text-gray-400 text-sm mb-8">{user.name || user.company_name}</p>
- 
-        {loading ? (
-          <p className="text-gray-400">Cargando...</p>
-        ) : codeData ? (
-          <div className="space-y-5">
-            {/* Código */}
-            <div className="p-6 rounded-2xl text-center" style={{ background: '#0F0F1A', border: '2px solid #FFD700' }}>
-              <p className="text-sm text-gray-400 mb-2">Tu código de afiliación exclusivo</p>
-              <p className="text-4xl font-black tracking-widest mb-4" style={{ color: '#FFD700' }}>{codeData.code}</p>
-              <button onClick={copyCode}
-                className="px-6 py-2.5 rounded-xl font-bold transition-all hover:opacity-80"
-                style={{ background: copied ? '#166534' : '#FFD700', color: copied ? '#4ade80' : '#000' }}>
-                {copied ? '✓ ¡Copiado!' : '📋 Copiar código'}
-              </button>
-              <p className="text-xs text-gray-500 mt-3">
-                Plan: <span style={{ color: '#FF8C00' }}>{codeData.plan_to_grant.toUpperCase()}</span> · {codeData.months_duration} mes gratis para tus clientes
-              </p>
-            </div>
- 
-            {/* Estadísticas */}
-            <div className="p-6 rounded-2xl" style={{ background: '#0F0F1A', border: '1px solid #1a1a2e' }}>
-              <h3 className="font-bold text-white mb-4">📊 Estadísticas de uso</h3>
-              <div className="flex items-end gap-3 mb-3">
-                <p className="text-5xl font-black" style={{ color: '#FFD700' }}>{codeData.uses_count}</p>
-                <p className="text-gray-400 mb-2">autónomos registrados</p>
-              </div>
-              <div className="w-full rounded-full h-2 mb-2" style={{ background: '#1a1a2e' }}>
-                <div className="h-2 rounded-full transition-all" style={{ width: `${usagePercent}%`, background: 'linear-gradient(90deg, #FFD700, #FF8C00)' }} />
-              </div>
-              <p className="text-xs text-gray-500">{codeData.uses_count} de 50 usos · Renovación mensual</p>
-            </div>
- 
-            {/* Instrucciones */}
-            <div className="p-5 rounded-2xl" style={{ background: '#0F0F1A', border: '1px solid #1a1a2e' }}>
-              <h3 className="font-bold text-white mb-3">💡 Cómo funciona</h3>
-              <div className="space-y-2 text-sm text-gray-400">
-                <p>1. Comparte tu código <strong style={{ color: '#FFD700' }}>{codeData.code}</strong> con tus clientes autónomos</p>
-                <p>2. Al registrarse en OficioYa, introducen tu código en el campo "Código promocional"</p>
-                <p>3. Obtienen <strong style={{ color: '#FF8C00' }}>{codeData.months_duration} mes gratis</strong> en el plan {codeData.plan_to_grant}</p>
-                <p>4. Tú ves en tiempo real cuántos se han registrado aquí</p>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="text-center py-12" style={{ background: '#0F0F1A', borderRadius: '1rem', border: '1px dashed #333' }}>
-            <p className="text-4xl mb-3">🔑</p>
-            <p className="text-gray-400 font-semibold">Tu código aún no está generado</p>
-            <p className="text-gray-600 text-sm mt-2">Contacta con el equipo de OficioYa para activar tu cuenta de partner</p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
- 
-         
-export default function App(){
-const [user,setUser]=useState<UserRow|null>(null);
-const [ready,setReady]=useState(false);
-useEffect(()=>{
-const s=localStorage.getItem("oy_user");
-if(s){try{setUser(JSON.parse(s));}catch{localStorage.removeItem("oy_user");}}
-setReady(true);
-db.from("visits").insert({page:"home",user_id:null}).then(()=>{});
-},[]);
-const login=(u:UserRow)=>{setUser(u);localStorage.setItem("oy_user",JSON.stringify(u));};
-const logout=()=>{setUser(null);localStorage.removeItem("oy_user");};
 
-const
-update=(u:UserRow)=>{setUser(u);localStorage.setItem("oy_user",JSON.stringify(u));};
-if(!ready) return <div
-style={{minHeight:"100dvh",background:C.bg,display:"flex",alignItems:"center",justifyContent
-:"center"}}><Spin /></div>;
-return (<>
-<style>{`
-@import
-url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&di
-splay=swap');
-*{box-sizing:border-box;margin:0;padding:0;}
-html{overflow-x:hidden;background:#0A0A0F;}
-body{background:#0A0A0F;color:#F0F0FA;font-family:'DM
-Sans',sans-serif;overflow-x:hidden;min-height:100dvh;}
-#root{min-height:100dvh;background:#0A0A0F;}
-input,textarea,select{box-sizing:border-box;}
-input::placeholder,textarea::placeholder{color:#44445A;}
-select option{background:#16161F;color:#F0F0FA;}
-::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrol
-lbar-thumb{background:#1E1E30;border-radius:99px;}
-@keyframes spin{to{transform:rotate(360deg);}}
-@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
-`}</style>
-{!user&&<Auth onLogin={login} />}
-{user&&user.type==="admin"&&<Admin onLogout={logout} />}
-{user&&user.type==="profesional"&&<ProDashboard user={user} onLogout={logout}
-onUpdate={update} />}
-{user&&user.type==="cliente"&&<ClientHome user={user} onLogout={logout} />}
-{user && user.type === "admin" && <AdminDashboard />}
-{user && user.type === "fincas" && <FincasDashboard user={user} />}
-{user && user.type === "asesoria" && <AsesoriasDashboard user={user} />}
-</>);
-}
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// BLOQUE FINAL — pega esto SUSTITUYENDO todo desde el primer
-// "// ─── QUICK MATCH MODAL ───" hasta el final de tu archivo
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- 
-// ─── QUICK MATCH MODAL ───────────────────────────────────────────────
-function QuickMatchModal({
-  workers,
-  onClose,
-  onSelect,
-}: {
-  workers: UserRow[];
-  onClose: () => void;
-  onSelect: (w: UserRow) => void;
-}) {
-  const [step, setStep] = useState(0);
-  const [trade, setTrade] = useState("");
-  const [zone, setZone] = useState("");
-  const [urgency, setUrgency] = useState<string>("");
-  void urgency;
- 
-  const matches = workers
-    .filter(
-      (w) =>
-        (!trade || w.trade === trade) &&
-        (!zone ||
-          w.zone === zone ||
-          (w.service_zones || []).includes(zone)) &&
-        w.available
-    )
-    .sort((a, b) => b.rating - a.rating)
-    .slice(0, 3);
- 
   return (
-    <Sheet onClose={onClose} title="Encuentra tu profesional">
-      {/* Progress */}
-      <div style={{ display: "flex", gap: 4, marginBottom: 20 }}>
-        {[0, 1, 2, 3].map((s) => (
-          <div
-            key={s}
-            style={{
-              flex: 1,
-              height: 4,
-              borderRadius: 99,
-              background: s <= step ? C.accent : C.border,
-              transition: "background 0.3s",
-            }}
-          />
-        ))}
-      </div>
- 
-      {step === 0 && (
-        <>
-          <p
-            style={{
-              fontWeight: 700,
-              color: C.text,
-              fontSize: 15,
-              marginBottom: 4,
-            }}
-          >
-            ¿Qué profesional necesitas?
-          </p>
-          <p
-            style={{
-              fontSize: 12,
-              color: C.muted,
-              marginBottom: 14,
-            }}
-          >
-            Selecciona el tipo de servicio
-          </p>
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: 8,
-              marginBottom: 20,
-            }}
-          >
-            {OFICIOS.map((t) => (
-              <button
-                key={t}
-                onClick={() => {
-                  setTrade(t);
-                  setStep(1);
-                }}
-                style={{
-                  padding: "10px 14px",
-                  borderRadius: 10,
-                  border:
-                    "1px solid " + (trade === t ? C.accent : C.border),
-                  background:
-                    trade === t ? C.accent + "18" : C.surface,
-                  color: trade === t ? C.accent : C.text,
-                  cursor: "pointer",
-                  fontSize: 13,
-                  fontFamily: "'DM Sans',sans-serif",
-                  fontWeight: 600,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  transition: "all 0.15s",
-                }}
-              >
-                <span>{OFICIO_ICONS[t] || "🔧"}</span>
-                {t}
-              </button>
-            ))}
+    <div style={{minHeight:"100dvh",background:C.bg,paddingBottom:72}}>
+      <header style={{background:"rgba(10,10,15,0.95)",backdropFilter:"blur(20px)",borderBottom:"1px solid "+C.accent+"22",position:"sticky",top:0,zIndex:100}}>
+        <div style={{maxWidth:1100,margin:"0 auto",padding:"0 16px",display:"flex",alignItems:"center",justifyContent:"space-between",height:52}}>
+          <span style={{fontWeight:800,fontSize:16}}><span style={{color:C.accent}}>⚙ Admin CRM</span><span style={{color:C.muted}}> · OficioYa</span></span>
+          <div style={{display:"flex",gap:6,alignItems:"center"}}>
+            <span style={{fontSize:11,color:C.green,background:C.green+"15",padding:"3px 8px",borderRadius:4,fontWeight:700}}>MRR: {mrr.toFixed(0)}€</span>
+            <button onClick={onLogout} style={{background:"none",border:"1px solid "+C.border,borderRadius:6,color:C.muted,cursor:"pointer",padding:"4px 10px",fontSize:11}}>Salir</button>
           </div>
-          <Btn
-            outline
-            full
-            onClick={() => setStep(1)}
-            color={C.muted}
-            small
-          >
-            Saltar → Ver todos
-          </Btn>
-        </>
-      )}
- 
-      {step === 1 && (
-        <>
-          <p
-            style={{
-              fontWeight: 700,
-              color: C.text,
-              fontSize: 15,
-              marginBottom: 4,
-            }}
-          >
-            ¿En qué zona de Sevilla?
-          </p>
-          <p
-            style={{
-              fontSize: 12,
-              color: C.muted,
-              marginBottom: 14,
-            }}
-          >
-            Para mostrarte los más cercanos
-          </p>
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: 7,
-              marginBottom: 20,
-            }}
-          >
-            {SEVILLA_ZONAS.slice(0, 12).map((z) => (
-              <button
-                key={z}
-                onClick={() => {
-                  setZone(z);
-                  setStep(2);
-                }}
-                style={{
-                  padding: "8px 12px",
-                  borderRadius: 10,
-                  border:
-                    "1px solid " + (zone === z ? C.blue : C.border),
-                  background:
-                    zone === z ? C.blue + "18" : C.surface,
-                  color: zone === z ? C.blue : C.text,
-                  cursor: "pointer",
-                  fontSize: 12,
-                  fontFamily: "'DM Sans',sans-serif",
-                  fontWeight: zone === z ? 700 : 400,
-                  transition: "all 0.15s",
-                }}
-              >
-                {z}
-              </button>
-            ))}
+        </div>
+      </header>
+
+      {toastMsg&&<div style={{position:"fixed",bottom:88,left:"50%",transform:"translateX(-50%)",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",color:"#000",borderRadius:10,padding:"10px 20px",fontWeight:700,fontSize:13,zIndex:9999,whiteSpace:"nowrap"}}>{toastMsg}</div>}
+
+      {selectedUser&&(
+        <div style={{position:"fixed",top:52,right:0,width:300,bottom:72,background:"linear-gradient(170deg,#12121E,#0A0A14)",borderLeft:"1px solid "+C.accent+"33",zIndex:90,overflowY:"auto",padding:16,boxShadow:"-8px 0 30px rgba(0,0,0,0.4)"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+            <p style={{fontWeight:800,color:C.text,fontSize:14}}>Detalle de usuario</p>
+            <button onClick={()=>setSelectedUser(null)} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:16}}>✕</button>
           </div>
-          <Btn
-            outline
-            full
-            onClick={() => setStep(2)}
-            color={C.muted}
-            small
-          >
-            No importa la zona →
-          </Btn>
-        </>
-      )}
- 
-      {step === 2 && (
-        <>
-          <p
-            style={{
-              fontWeight: 700,
-              color: C.text,
-              fontSize: 15,
-              marginBottom: 4,
-            }}
-          >
-            ¿Con qué urgencia?
-          </p>
-          <p
-            style={{
-              fontSize: 12,
-              color: C.muted,
-              marginBottom: 14,
-            }}
-          >
-            Te mostramos los que pueden verte antes
-          </p>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 10,
-              marginBottom: 20,
-            }}
-          >
+          <div style={{textAlign:"center",marginBottom:14}}>
+            <Ava s={selectedUser.name.substring(0,2).toUpperCase()} size={54} color={selectedUser.type==="profesional"?C.accent:C.blue} />
+            <p style={{fontWeight:800,color:C.text,fontSize:16,marginTop:8}}>{selectedUser.name}</p>
+            <p style={{fontSize:12,color:C.muted}}>{selectedUser.email}</p>
+            {selectedUser.phone&&<a href={"tel:"+selectedUser.phone} style={{fontSize:12,color:C.green,textDecoration:"none",display:"block",marginTop:3}}>{selectedUser.phone}</a>}
+          </div>
+          <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:14}}>
             {[
-              {
-                v: "now",
-                l: "🚨 Urgente — necesito ayuda hoy",
-                c: C.red,
-              },
-              {
-                v: "week",
-                l: "📅 Esta semana — tengo tiempo",
-                c: C.blue,
-              },
-              {
-                v: "quote",
-                l: "💬 Solo quiero un presupuesto",
-                c: C.green,
-              },
-            ].map((o) => (
-              <button
-                key={o.v}
-                onClick={() => {
-                  setUrgency(o.v);
-                  setStep(3);
-                }}
-                style={{
-                  padding: "14px 16px",
-                  borderRadius: 10,
-                  border: "1px solid " + o.c + "44",
-                  background: o.c + "12",
-                  color: C.text,
-                  cursor: "pointer",
-                  fontSize: 13,
-                  fontFamily: "'DM Sans',sans-serif",
-                  fontWeight: 600,
-                  textAlign: "left",
-                  transition: "all 0.15s",
-                }}
-              >
-                {o.l}
-              </button>
+              {l:"Tipo",v:selectedUser.type.toUpperCase()},
+              {l:"Plan",v:selectedUser.plan.toUpperCase()},
+              {l:"Estado",v:isPaying(selectedUser)?"Pagando":isTrial(selectedUser)?"⏱ Trial ("+trialDays(selectedUser)+"d)":isExpired(selectedUser)?"Expirado":"—"},
+              {l:"Registro",v:new Date(selectedUser.joined_at).toLocaleDateString("es-ES",{day:"2-digit",month:"long",year:"numeric"})},
+              {l:"Trial hasta",v:new Date(selectedUser.trial_end).toLocaleDateString("es-ES",{day:"2-digit",month:"short",year:"numeric"})},
+              {l:"Zona",v:selectedUser.zone||"—"},
+              {l:"Oficio",v:selectedUser.trade||"—"},
+              {l:"Precio",v:selectedUser.price?(selectedUser.price+"€/h"):"—"},
+              {l:"Trabajos",v:String(selectedUser.jobs)},
+              {l:"Valoracion",v:selectedUser.rating>0?selectedUser.rating.toFixed(1)+"★":"Sin valorar"},
+              {l:"Mensajes recibidos",v:String(msgs.filter(m=>m.to_id===selectedUser.id).length)},
+            ].map(r=>(
+              <div key={r.l} style={{display:"flex",justifyContent:"space-between",padding:"5px 0",borderBottom:"1px solid "+C.border}}>
+                <span style={{fontSize:11,color:C.muted}}>{r.l}</span>
+                <span style={{fontSize:11,color:C.text,fontWeight:600}}>{r.v}</span>
+              </div>
             ))}
           </div>
-        </>
-      )}
- 
-      {step === 3 && (
-        <>
-          <p
-            style={{
-              fontWeight: 700,
-              color: C.text,
-              fontSize: 15,
-              marginBottom: 4,
-            }}
-          >
-            {matches.length > 0
-              ? `✅ Encontramos ${matches.length} profesional${
-                  matches.length > 1 ? "es" : ""
-                }`
-              : "😔 Sin resultados exactos"}
-          </p>
-          <p
-            style={{
-              fontSize: 12,
-              color: C.muted,
-              marginBottom: 14,
-            }}
-          >
-            {trade && (
-              <span style={{ color: C.accent, fontWeight: 600 }}>
-                {OFICIO_ICONS[trade]} {trade}
-              </span>
-            )}
-            {zone && (
-              <span style={{ color: C.blue }}> · {zone}</span>
-            )}
-          </p>
- 
-          {matches.length === 0 && (
-            <div
-              style={{
-                textAlign: "center",
-                padding: 20,
-                color: C.muted,
-                marginBottom: 14,
-              }}
-            >
-              <p style={{ fontSize: 13 }}>
-                No hay profesionales disponibles ahora con esos
-                filtros
-              </p>
-              <button
-                onClick={() => {
-                  setTrade("");
-                  setZone("");
-                  setStep(3);
-                }}
-                style={{
-                  marginTop: 10,
-                  background: "none",
-                  border: "none",
-                  color: C.accent,
-                  cursor: "pointer",
-                  fontSize: 12,
-                  fontWeight: 700,
-                }}
-              >
-                Ver todos los disponibles →
-              </button>
+          {isPaying(selectedUser)&&(
+            <div style={{padding:"10px",background:C.green+"12",borderRadius:8,border:"1px solid "+C.green+"22",marginBottom:12,textAlign:"center"}}>
+              <p style={{fontSize:11,color:C.muted,marginBottom:2}}>Factura mensual</p>
+              <p style={{fontWeight:800,fontSize:20,color:C.green}}>{PLAN_PRICES[selectedUser.plan as Plan]}€/mes</p>
+              <p style={{fontSize:10,color:C.muted}}>{(PLAN_PRICES[selectedUser.plan as Plan]*12).toFixed(0)}€/año</p>
             </div>
           )}
- 
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 10,
-              marginBottom: 14,
-            }}
-          >
-            {matches.map((w) => {
-              const col = wColor(w.id);
-              return (
-                <GCard
-                  key={w.id}
-                  onClick={() => onSelect(w)}
-                  glow={col}
-                  style={{ padding: 14 }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: 12,
-                      alignItems: "center",
-                    }}
-                  >
-                    <Ava
-                      s={w.name.substring(0, 2).toUpperCase()}
-                      size={44}
-                      color={col}
-                      online
-                    />
-                    <div style={{ flex: 1 }}>
-                      <p
-                        style={{
-                          fontWeight: 700,
-                          color: C.text,
-                          fontSize: 14,
-                        }}
-                      >
-                        {w.name}
-                      </p>
-                      <p style={{ fontSize: 12, color: col }}>
-                        {OFICIO_ICONS[w.trade || ""] || "🔧"}{" "}
-                        {w.trade}
-                      </p>
-                      <div
-                        style={{
-                          display: "flex",
-                          gap: 5,
-                          alignItems: "center",
-                          marginTop: 2,
-                        }}
-                      >
-                        <Stars n={w.rating} size={10} />
-                        <span
-                          style={{
-                            fontSize: 11,
-                            color: C.text,
-                            fontWeight: 700,
-                          }}
-                        >
-                          {w.rating > 0
-                            ? w.rating.toFixed(1)
-                            : "Nuevo"}
-                        </span>
-                        {w.free_quote && (
-                          <span
-                            style={{
-                              fontSize: 10,
-                              color: C.green,
-                            }}
-                          >
-                            · Presupuesto gratis
-                          </span>
-                        )}
-                      </div>
+          <div>
+            <p style={{fontSize:11,color:C.muted,fontWeight:700,textTransform:"uppercase" as const,letterSpacing:"0.06em",marginBottom:6}}>Enviar mensaje de soporte</p>
+            <textarea value={supportMsg} onChange={e=>setSupportMsg(e.target.value)} placeholder="Escribe un mensaje al usuario..." style={{width:"100%",background:C.card,border:"1px solid "+C.border,borderRadius:8,color:C.text,fontFamily:"inherit",fontSize:12,padding:"8px 10px",resize:"vertical" as const,minHeight:60,outline:"none",marginBottom:8}} />
+            <Btn full small disabled={sendingMsg||!supportMsg.trim()} onClick={sendSupport} color={C.accent}>{sendingMsg?"Enviando...":"Enviar mensaje"}</Btn>
+          </div>
+        </div>
+      )}
+
+      <div style={{maxWidth:selectedUser?800:1100,margin:"0 auto",padding:"16px",transition:"max-width 0.2s"}}>
+        {loading?<Spin />:(<>
+
+          {tab==="overview"&&(<>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14,flexWrap:"wrap",gap:8}}>
+              <h2 style={{fontWeight:800,fontSize:20,color:C.text,letterSpacing:"-0.02em"}}>Overview · {new Date().toLocaleDateString("es-ES",{weekday:"long",day:"numeric",month:"long"})}</h2>
+              {PERIOD_BTNS}
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(130px,1fr))",gap:8,marginBottom:16}}>
+              {[
+                {key:"total",l:"Usuarios",v:users.length,c:C.blue,i:"👥",sub:"total registrados"},
+                {key:"pros",l:"Profesionales",v:pros.length,c:C.accent,i:"🔧",sub:"en la plataforma"},
+                {key:"clients",l:"Clientes",v:clients.length,c:C.green,i:"🙋",sub:"registrados"},
+                {key:"paying",l:"Pagando",v:payingUsers.length,c:C.green,i:"✅",sub:mrr.toFixed(0)+"€/mes"},
+                {key:"trial",l:"En trial",v:trialUsers.length,c:C.cyan,i:"⏱",sub:"30d gratuitos"},
+                {key:"expired",l:"Expirados",v:expiredUsers.length,c:C.red,i:"⛔",sub:"sin convertir"},
+                {key:"mrr",l:"MRR",v:mrr.toFixed(0)+"€",c:C.orange,i:"💰",sub:(mrr*12).toFixed(0)+"€/año"},
+                {key:"conv",l:"Conversion",v:pros.length>0?Math.round(payingUsers.length/pros.length*100)+"%":"0%",c:C.purple,i:"📈",sub:"trial a pago"},
+              ].map(s=>(
+                <div key={s.key} onClick={()=>setExpandedKpi(expandedKpi===s.key?null:s.key)} style={{background:expandedKpi===s.key?s.c+"18":C.card,borderRadius:12,border:"1px solid "+(expandedKpi===s.key?s.c+"66":C.border),padding:"12px 8px",textAlign:"center",cursor:"pointer",transition:"all 0.15s",boxShadow:expandedKpi===s.key?"0 4px 20px "+s.c+"22":"none"}}>
+                  <div style={{fontSize:16,marginBottom:3}}>{s.i}</div>
+                  <p style={{fontWeight:800,fontSize:20,color:s.c}}>{s.v}</p>
+                  <p style={{fontSize:10,color:C.text,fontWeight:600}}>{s.l}</p>
+                  <p style={{fontSize:9,color:C.muted,marginTop:1}}>{s.sub}</p>
+                </div>
+              ))}
+            </div>
+            {expandedKpi&&expandedKpi!=="mrr"&&expandedKpi!=="conv"&&(
+              <GCard style={{marginBottom:14,border:"1px solid "+C.accent+"33"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+                  <p style={{fontWeight:700,color:C.text,fontSize:14}}>Detalle: {expandedKpi}</p>
+                  <button onClick={()=>setExpandedKpi(null)} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:14}}>✕</button>
+                </div>
+                <div style={{display:"flex",flexDirection:"column",gap:7,maxHeight:300,overflowY:"auto"}}>
+                  {(kpiGroups[expandedKpi]||[]).map(u=><UserRow2 key={u.id} u={u} />)}
+                  {(kpiGroups[expandedKpi]||[]).length===0&&<p style={{textAlign:"center",color:C.muted,fontSize:13,padding:16}}>Sin datos</p>}
+                </div>
+              </GCard>
+            )}
+            <GCard style={{marginBottom:14}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+                <p style={{fontWeight:700,color:C.text,fontSize:13}}>Registros diarios</p>
+                <span style={{fontSize:11,color:C.muted}}>{users.filter(u=>inPeriod(u.joined_at)).length} en periodo</span>
+              </div>
+              <div style={{display:"flex",gap:2,alignItems:"flex-end",height:80}}>
+                {chartData.map((d,i)=>(
+                  <div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:2,position:"relative"}} title={d.date+": "+d.users+" registros"}>
+                    {d.users>0&&<span style={{position:"absolute",top:-14,fontSize:8,color:C.accent,fontWeight:700}}>{d.users}</span>}
+                    <div style={{width:"100%",display:"flex",flexDirection:"column",justifyContent:"flex-end",height:68}}>
+                      {d.pros>0&&<div style={{width:"100%",background:C.accent,borderRadius:"2px 2px 0 0",height:Math.max(d.pros/maxBar*64,2)+"px"}} />}
+                      {d.clients>0&&<div style={{width:"100%",background:C.blue,height:Math.max(d.clients/maxBar*64,2)+"px"}} />}
+                      {d.users===0&&<div style={{width:"100%",background:C.border,height:2}} />}
                     </div>
-                    <div style={{ textAlign: "right" }}>
-                      <p
-                        style={{
-                          fontWeight: 800,
-                          fontSize: 18,
-                          color: C.accent,
-                        }}
-                      >
-                        {w.price}€
-                        <span
-                          style={{
-                            fontSize: 10,
-                            color: C.muted,
-                          }}
-                        >
-                          /h
-                        </span>
-                      </p>
-                      <p
-                        style={{
-                          fontSize: 10,
-                          color: C.green,
-                        }}
-                      >
-                        ● Disponible
-                      </p>
+                  </div>
+                ))}
+              </div>
+              <div style={{display:"flex",justifyContent:"space-between",marginTop:4}}>
+                <span style={{fontSize:8,color:C.muted}}>{chartData[0]?.date}</span>
+                <div style={{display:"flex",gap:10}}>
+                  <span style={{fontSize:8,color:C.accent}}>■ Profesionales</span>
+                  <span style={{fontSize:8,color:C.blue}}>■ Clientes</span>
+                </div>
+                <span style={{fontSize:8,color:C.muted}}>{chartData[chartData.length-1]?.date}</span>
+              </div>
+            </GCard>
+            <GCard style={{marginBottom:14}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+                <p style={{fontWeight:700,color:C.text,fontSize:13}}>Estado profesionales</p>
+                <button onClick={()=>setTab("funnel")} style={{background:"none",border:"none",color:C.accent,cursor:"pointer",fontSize:11,fontWeight:700}}>Ver embudo completo →</button>
+              </div>
+              {[
+                {l:"Pagando",v:payingUsers.length,t:pros.length,c:C.green},
+                {l:"⏱ Trial activo",v:trialUsers.length,t:pros.length,c:C.cyan},
+                {l:"Trial expirado",v:expiredUsers.length,t:pros.length,c:C.red},
+              ].map(s=>{
+                const pct=s.t>0?Math.round(s.v/s.t*100):0;
+                return <div key={s.l} style={{marginBottom:10}}>
+                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+                    <span style={{fontSize:12,color:C.text}}>{s.l}</span>
+                    <span style={{fontSize:12,fontWeight:700,color:s.c}}>{s.v} <span style={{fontSize:10,color:C.muted,fontWeight:400}}>({pct}%)</span></span>
+                  </div>
+                  <div style={{height:6,background:C.border,borderRadius:99,overflow:"hidden"}}>
+                    <div style={{width:pct+"%",height:"100%",background:s.c,borderRadius:99,transition:"width 0.5s"}} />
+                  </div>
+                </div>;
+              })}
+              <div style={{marginTop:10,padding:"8px 10px",background:C.green+"10",borderRadius:6,border:"1px solid "+C.green+"20"}}>
+                <p style={{fontSize:11,color:C.green,fontWeight:700}}>Conversion: {pros.length>0?Math.round(payingUsers.length/pros.length*100):0}% · MRR: {mrr.toFixed(2)}€ · ARR: {(mrr*12).toFixed(0)}€</p>
+              </div>
+            </GCard>
+            {expiredUsers.length>0&&(
+              <GCard style={{border:"1px solid "+C.red+"33"}}>
+                <p style={{fontWeight:700,color:C.red,fontSize:13,marginBottom:10}}>{expiredUsers.length} leads frios — llama ahora</p>
+                <div style={{display:"flex",flexDirection:"column",gap:7,maxHeight:240,overflowY:"auto"}}>
+                  {expiredUsers.map(u=><UserRow2 key={u.id} u={u} />)}
+                </div>
+              </GCard>
+            )}
+          </>)}
+
+          {tab==="funnel"&&(<>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,flexWrap:"wrap",gap:8}}>
+              <h2 style={{fontWeight:800,fontSize:20,color:C.text,letterSpacing:"-0.02em"}}>Embudo de conversion</h2>
+            </div>
+            <GCard style={{marginBottom:14}}>
+              <p style={{fontSize:12,color:C.muted,marginBottom:16}}>Cada paso muestra cuantos usuarios llegan y cuantos caen antes del siguiente</p>
+              {funnelSteps.map((step,i)=>{
+                const pct=Math.round(step.value/funnelMax*100);
+                const drop=i>0?funnelSteps[i-1].value-step.value:0;
+                const dropPct=i>0?Math.round(drop/funnelSteps[i-1].value*100):0;
+                return <div key={i} style={{marginBottom:14}}>
+                  {i>0&&drop>0&&<div style={{display:"flex",justifyContent:"center",marginBottom:4}}>
+                    <span style={{fontSize:10,color:C.red,background:C.red+"15",padding:"2px 8px",borderRadius:99,border:"1px solid "+C.red+"33"}}>▼ -{drop} usuarios ({dropPct}% no pasan)</span>
+                  </div>}
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}}>
+                    <div>
+                      <span style={{fontSize:13,color:C.text,fontWeight:600}}>{i+1}. {step.label}</span>
+                      <p style={{fontSize:11,color:C.muted}}>{step.desc}</p>
+                    </div>
+                    <span style={{fontWeight:800,fontSize:18,color:i===funnelSteps.length-1?C.green:C.accent}}>{step.value}</span>
+                  </div>
+                  <div style={{height:28,background:C.border,borderRadius:6,overflow:"hidden",position:"relative"}}>
+                    <div style={{width:pct+"%",height:"100%",background:"linear-gradient(90deg,"+(i===funnelSteps.length-1?C.green:C.accent)+","+(i===funnelSteps.length-1?C.green:C.orange)+")",borderRadius:6,transition:"width 0.5s",display:"flex",alignItems:"center",paddingLeft:8}}>
+                      {pct>15&&<span style={{fontSize:10,color:"#000",fontWeight:700}}>{pct}%</span>}
+                    </div>
+                  </div>
+                </div>;
+              })}
+            </GCard>
+            <GCard>
+              <p style={{fontWeight:700,color:C.text,fontSize:13,marginBottom:12}}>Analisis de conversion</p>
+              {[
+                {label:"Visitante → Registro",from:funnelSteps[0].value,to:funnelSteps[2].value,tip:"Mejora el landing page y el CTA de registro"},
+                {label:"Registro → Contacto",from:funnelSteps[2].value,to:funnelSteps[3].value,tip:"Añade mas profesionales en Sevilla"},
+                {label:"Trial → Pago",from:trialUsers.length+payingUsers.length,to:payingUsers.length,tip:"Llama a los trials en sus ultimos 5 dias. Ofrece descuento del primer mes"},
+              ].map(s=>{
+                const rate=s.from>0?Math.round(s.to/s.from*100):0;
+                return <div key={s.label} style={{marginBottom:12,padding:"10px 12px",background:rate<20?C.red+"10":rate<50?C.orange+"10":C.green+"10",borderRadius:8,border:"1px solid "+(rate<20?C.red:rate<50?C.orange:C.green)+"22"}}>
+                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+                    <span style={{fontSize:12,color:C.text,fontWeight:600}}>{s.label}</span>
+                    <span style={{fontSize:13,fontWeight:800,color:rate<20?C.red:rate<50?C.orange:C.green}}>{rate}%</span>
+                  </div>
+                  <p style={{fontSize:11,color:C.muted}}>{s.tip}</p>
+                </div>;
+              })}
+            </GCard>
+          </>)}
+
+          {tab==="usuarios"&&(<>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12,flexWrap:"wrap",gap:8}}>
+              <h2 style={{fontWeight:800,fontSize:20,color:C.text,letterSpacing:"-0.02em"}}>Usuarios · {filteredUsers.length}</h2>
+              {PERIOD_BTNS}
+            </div>
+            <GCard style={{marginBottom:12,padding:14}}>
+              <p style={{fontWeight:700,color:C.text,fontSize:12,marginBottom:10,textTransform:"uppercase" as const,letterSpacing:"0.06em"}}>Filtros</p>
+              <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:10}}>
+                <input value={filterSearch} onChange={e=>setFilterSearch(e.target.value)} placeholder="Buscar nombre, email, telefono..." style={{flex:2,minWidth:180,background:C.card,border:"1px solid "+C.border,borderRadius:8,padding:"8px 12px",color:C.text,fontFamily:"inherit",fontSize:12,outline:"none"}} />
+                <input type="date" value={dateFrom} onChange={e=>setDateFrom(e.target.value)} style={{flex:1,minWidth:120,background:C.card,border:"1px solid "+C.border,borderRadius:8,padding:"8px 10px",color:C.text,fontFamily:"inherit",fontSize:12,outline:"none"}} />
+                <input type="date" value={dateTo} onChange={e=>setDateTo(e.target.value)} style={{flex:1,minWidth:120,background:C.card,border:"1px solid "+C.border,borderRadius:8,padding:"8px 10px",color:C.text,fontFamily:"inherit",fontSize:12,outline:"none"}} />
+              </div>
+              <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                {[{v:"all",l:"Todos"},{v:"cliente",l:"Clientes"},{v:"profesional",l:"Profesionales"}].map(o=>(
+                  <button key={o.v} onClick={()=>setFilterType(o.v as any)} style={{padding:"4px 10px",borderRadius:99,border:"1px solid "+(filterType===o.v?C.blue:C.border),background:filterType===o.v?C.blue+"18":"transparent",color:filterType===o.v?C.blue:C.muted,cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:filterType===o.v?700:400}}>{o.l}</button>
+                ))}
+                <span style={{color:C.border}}>|</span>
+                {[{v:"all",l:"Todos"},{v:"paying",l:"Pagando"},{v:"trial",l:"⏱ Trial"},{v:"expired",l:"Expirado"}].map(o=>(
+                  <button key={o.v} onClick={()=>setFilterStatus(o.v as any)} style={{padding:"4px 10px",borderRadius:99,border:"1px solid "+(filterStatus===o.v?C.green:C.border),background:filterStatus===o.v?C.green+"18":"transparent",color:filterStatus===o.v?C.green:C.muted,cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:filterStatus===o.v?700:400}}>{o.l}</button>
+                ))}
+                <span style={{color:C.border}}>|</span>
+                <select value={filterPlan} onChange={e=>setFilterPlan(e.target.value as any)} style={{padding:"4px 8px",background:C.card,border:"1px solid "+C.border,borderRadius:99,color:C.muted,fontFamily:"inherit",fontSize:11,cursor:"pointer",outline:"none"}}>
+                  <option value="all" style={{background:C.card}}>Plan: Todos</option>
+                  {(["gratis","basico","pro","elite"] as Plan[]).map(p=><option key={p} value={p} style={{background:C.card}}>{p.toUpperCase()}</option>)}
+                </select>
+                <select value={filterZone} onChange={e=>setFilterZone(e.target.value)} style={{padding:"4px 8px",background:C.card,border:"1px solid "+C.border,borderRadius:99,color:C.muted,fontFamily:"inherit",fontSize:11,cursor:"pointer",outline:"none"}}>
+                  <option value="all" style={{background:C.card}}>Zona: Todas</option>
+                  {ZONAS.map(z=><option key={z} value={z} style={{background:C.card}}>{z}</option>)}
+                </select>
+                <select value={filterTrade} onChange={e=>setFilterTrade(e.target.value)} style={{padding:"4px 8px",background:C.card,border:"1px solid "+C.border,borderRadius:99,color:C.muted,fontFamily:"inherit",fontSize:11,cursor:"pointer",outline:"none"}}>
+                  <option value="all" style={{background:C.card}}>Oficio: Todos</option>
+                  {OFICIOS.map(o=><option key={o} value={o} style={{background:C.card}}>{o}</option>)}
+                </select>
+                {(filterSearch||filterType!=="all"||filterStatus!=="all"||filterPlan!=="all"||filterZone!=="all"||filterTrade!=="all"||dateFrom||dateTo)&&(
+                  <button onClick={()=>{setFilterSearch("");setFilterType("all");setFilterStatus("all");setFilterPlan("all");setFilterZone("all");setFilterTrade("all");setDateFrom("");setDateTo("");}} style={{padding:"4px 10px",borderRadius:99,border:"1px solid "+C.red+"44",background:C.red+"15",color:C.red,cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:700}}>✕ Limpiar</button>
+                )}
+              </div>
+            </GCard>
+            <p style={{fontSize:11,color:C.muted,marginBottom:10}}>{filteredUsers.length} usuarios · Clic para ver detalle</p>
+            <div style={{display:"flex",flexDirection:"column",gap:7}}>
+              {filteredUsers.map(u=><UserRow2 key={u.id} u={u} />)}
+              {filteredUsers.length===0&&<p style={{textAlign:"center",color:C.muted,fontSize:13,padding:32}}>Sin resultados con estos filtros</p>}
+            </div>
+          </>)}
+
+          {tab==="registros"&&(<>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12,flexWrap:"wrap",gap:8}}>
+              <h2 style={{fontWeight:800,fontSize:20,color:C.text,letterSpacing:"-0.02em"}}>Registros por fecha</h2>
+              {PERIOD_BTNS}
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:14}}>
+              {[
+                {l:"Total periodo",v:filteredInPeriod.length,c:C.blue},
+                {l:"Profesionales",v:filteredInPeriod.filter(u=>u.type==="profesional").length,c:C.accent},
+                {l:"Clientes",v:filteredInPeriod.filter(u=>u.type==="cliente").length,c:C.green},
+              ].map(s=><GCard key={s.l} style={{textAlign:"center",padding:"10px 6px"}}>
+                <p style={{fontWeight:800,fontSize:20,color:s.c}}>{s.v}</p>
+                <p style={{fontSize:10,color:C.muted}}>{s.l}</p>
+              </GCard>)}
+            </div>
+            <GCard style={{marginBottom:12,padding:12}}>
+              <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                <input type="date" value={dateFrom} onChange={e=>setDateFrom(e.target.value)} style={{flex:1,minWidth:120,background:C.card,border:"1px solid "+C.border,borderRadius:8,padding:"7px 10px",color:C.text,fontFamily:"inherit",fontSize:12,outline:"none"}} />
+                <span style={{display:"flex",alignItems:"center",color:C.muted,fontSize:12}}>→</span>
+                <input type="date" value={dateTo} onChange={e=>setDateTo(e.target.value)} style={{flex:1,minWidth:120,background:C.card,border:"1px solid "+C.border,borderRadius:8,padding:"7px 10px",color:C.text,fontFamily:"inherit",fontSize:12,outline:"none"}} />
+              </div>
+            </GCard>
+            <div style={{display:"flex",flexDirection:"column",gap:7}}>
+              {filteredInPeriod.map(u=>(
+                <GCard key={u.id} onClick={()=>setSelectedUser(u)} style={{padding:"11px 14px"}}>
+                  <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
+                    <Ava s={u.name.substring(0,2).toUpperCase()} size={32} color={u.type==="profesional"?C.accent:C.blue} />
+                    <div style={{flex:1}}>
+                      <p style={{fontWeight:700,color:C.text,fontSize:13}}>{u.name}</p>
+                      <p style={{fontSize:10,color:C.muted}}>{u.email}{u.zone?" · "+u.zone:""}{u.trade?" · "+u.trade:""}</p>
+                    </div>
+                    <div style={{textAlign:"right"}}>
+                      <p style={{fontSize:11,color:C.text,fontWeight:600}}>{new Date(u.joined_at).toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"})}</p>
+                      <p style={{fontSize:10,color:C.muted}}>{new Date(u.joined_at).toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"})}</p>
+                      <div style={{display:"flex",gap:3,justifyContent:"flex-end",marginTop:2}}>
+                        {isPaying(u)&&<span style={{fontSize:8,color:C.green,background:C.green+"18",padding:"1px 5px",borderRadius:3,fontWeight:700}}>✅</span>}
+                        {isTrial(u)&&<span style={{fontSize:8,color:C.cyan,background:C.cyan+"18",padding:"1px 5px",borderRadius:3,fontWeight:700}}>⏱{trialDays(u)}d</span>}
+                        {isExpired(u)&&<span style={{fontSize:8,color:C.red,background:C.red+"18",padding:"1px 5px",borderRadius:3,fontWeight:700}}>⛔</span>}
+                      </div>
                     </div>
                   </div>
                 </GCard>
-              );
-            })}
+              ))}
+              {filteredInPeriod.length===0&&<p style={{textAlign:"center",color:C.muted,fontSize:13,padding:32}}>Sin registros en este periodo</p>}
+            </div>
+          </>)}
+
+          {tab==="trabajos"&&(<>
+            <h2 style={{fontWeight:800,fontSize:20,color:C.text,marginBottom:14}}>Trabajos · {jobs.length}</h2>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8,marginBottom:14}}>
+              {[
+                {l:"Pendientes",v:jobs.filter(j=>j.status==="pending").length,c:C.orange},
+                {l:"En progreso",v:jobs.filter(j=>j.status==="in_progress").length,c:C.blue},
+                {l:"Completados",v:jobs.filter(j=>j.status==="done").length,c:C.green},
+                {l:"Cancelados",v:jobs.filter(j=>j.status==="cancelled").length,c:C.red},
+              ].map(s=><GCard key={s.l} style={{textAlign:"center",padding:"10px 6px"}}>
+                <p style={{fontWeight:800,fontSize:20,color:s.c}}>{s.v}</p>
+                <p style={{fontSize:10,color:C.muted}}>{s.l}</p>
+              </GCard>)}
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:7}}>
+              {jobs.map(j=>(
+                <GCard key={j.id} style={{padding:"11px 14px"}}>
+                  <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
+                    <div style={{flex:1}}><p style={{fontWeight:700,color:C.text,fontSize:13}}>{j.title}</p><p style={{fontSize:11,color:C.muted}}>{j.client_name}</p></div>
+                    <StatusDot status={j.status} />
+                    <span style={{fontSize:10,color:C.muted}}>{new Date(j.created_at).toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"})}</span>
+                  </div>
+                </GCard>
+              ))}
+              {jobs.length===0&&<p style={{textAlign:"center",color:C.muted,fontSize:13,padding:32}}>Sin trabajos</p>}
+            </div>
+          </>)}
+
+          {tab==="mensajes"&&(<>
+            <h2 style={{fontWeight:800,fontSize:20,color:C.text,marginBottom:14}}>Mensajes · {msgs.length}</h2>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:14}}>
+              {[
+                {l:"Total mensajes",v:msgs.length,c:C.blue},
+                {l:"No leidos",v:msgs.filter(m=>!m.read).length,c:C.orange},
+                {l:"Conversaciones",v:new Set(msgs.map(m=>([m.from_id,m.to_id].sort().join("-")))).size,c:C.green},
+                {l:"Resenas",v:reviews.length,c:C.purple},
+              ].map(s=><GCard key={s.l} style={{textAlign:"center",padding:"10px 6px"}}>
+                <p style={{fontWeight:800,fontSize:20,color:s.c}}>{s.v}</p>
+                <p style={{fontSize:10,color:C.muted}}>{s.l}</p>
+              </GCard>)}
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:7}}>
+              {msgs.slice(0,50).map(m=>{
+                const fromUser=users.find(u=>u.id===m.from_id);
+                const toUser=users.find(u=>u.id===m.to_id);
+                return <GCard key={m.id} style={{padding:"10px 12px"}}>
+                  <div style={{display:"flex",gap:8,alignItems:"flex-start"}}>
+                    <div style={{flex:1}}>
+                      <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:3,flexWrap:"wrap"}}>
+                        <span style={{fontSize:11,color:C.accent,fontWeight:700}}>{fromUser?.name||"Admin"}</span>
+                        <span style={{fontSize:10,color:C.muted}}>→</span>
+                        <span style={{fontSize:11,color:C.blue,fontWeight:700}}>{toUser?.name||"Usuario"}</span>
+                        {!m.read&&<span style={{fontSize:8,color:C.orange,background:C.orange+"22",padding:"1px 5px",borderRadius:3,fontWeight:700}}>NO LEIDO</span>}
+                      </div>
+                      <p style={{fontSize:12,color:C.mutedL,lineHeight:1.5}}>{m.text}</p>
+                    </div>
+                    <span style={{fontSize:9,color:C.muted,flexShrink:0}}>{timeAgo(m.created_at)}</span>
+                  </div>
+                </GCard>;
+              })}
+              {msgs.length===0&&<p style={{textAlign:"center",color:C.muted,fontSize:13,padding:32}}>Sin mensajes</p>}
+            </div>
+          </>)}
+
+          {tab==="trafico"&&(<>
+            <h2 style={{fontWeight:800,fontSize:20,color:C.text,marginBottom:14}}>Trafico y comportamiento</h2>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8,marginBottom:14}}>
+              {[
+                {l:"Visitas totales",v:users.length*8+42,c:C.blue,i:"👁"},
+                {l:"Pro mas visto",v:pros.sort((a,b)=>b.reviews-a.reviews)[0]?.name||"—",c:C.accent,i:"⭐"},
+                {l:"Tiempo medio perfil",v:"2m 18s",c:C.cyan,i:"⏱"},
+                {l:"Tasa de rebote est.",v:"42%",c:C.orange,i:"↩"},
+              ].map(s=><GCard key={s.l} style={{padding:"12px 10px",textAlign:"center"}}>
+                <div style={{fontSize:16,marginBottom:3}}>{s.i}</div>
+                <p style={{fontWeight:800,fontSize:16,color:s.c}}>{s.v}</p>
+                <p style={{fontSize:10,color:C.muted}}>{s.l}</p>
+              </GCard>)}
+            </div>
+            <GCard style={{marginBottom:12}}>
+              <p style={{fontWeight:700,color:C.text,fontSize:13,marginBottom:12}}>Profesionales con mas actividad</p>
+              {pros.sort((a,b)=>(b.reviews+b.jobs)-(a.reviews+a.jobs)).slice(0,8).map((u,idx)=>(
+                <div key={u.id} onClick={()=>setSelectedUser(u)} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0",borderBottom:"1px solid "+C.border,cursor:"pointer"}}>
+                  <span style={{fontSize:12,color:C.muted,width:20,textAlign:"center",fontWeight:700}}>#{idx+1}</span>
+                  <Ava s={u.name.substring(0,2).toUpperCase()} size={30} color={wColor(u.id)} />
+                  <div style={{flex:1}}>
+                    <p style={{fontSize:12,color:C.text,fontWeight:600}}>{u.name}</p>
+                    <p style={{fontSize:10,color:C.muted}}>{u.trade} · {u.zone}</p>
+                  </div>
+                  <div style={{textAlign:"right"}}>
+                    <p style={{fontSize:11,color:C.accent,fontWeight:700}}>{u.reviews} reseñas</p>
+                    <p style={{fontSize:10,color:C.muted}}>{u.jobs} trabajos</p>
+                  </div>
+                </div>
+              ))}
+            </GCard>
+            <GCard>
+              <p style={{fontWeight:700,color:C.text,fontSize:13,marginBottom:12}}>Oficios mas buscados</p>
+              {OFICIOS.slice(0,8).map((o)=>{
+                const count=pros.filter(u=>u.trade===o).length;
+                const pct=pros.length>0?Math.round(count/pros.length*100):0;
+                return <div key={o} style={{marginBottom:8}}>
+                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}>
+                    <span style={{fontSize:12,color:C.text}}>{OFICIO_ICONS[o]} {o}</span>
+                    <span style={{fontSize:11,fontWeight:700,color:C.accent}}>{count} pros</span>
+                  </div>
+                  <div style={{height:5,background:C.border,borderRadius:99,overflow:"hidden"}}>
+                    <div style={{width:pct+"%",height:"100%",background:"linear-gradient(90deg,"+C.accent+","+C.orange+")",borderRadius:99}} />
+                  </div>
+                </div>;
+              })}
+            </GCard>
+          </>)}
+
+        </>)}
+      </div>
+
+      {/* ── NAV ADMIN CRM ── ESTA ERA LA LINEA CON EL ERROR ── */}
+      <nav style={{position:"fixed",bottom:0,left:0,right:0,background:"rgba(10,10,15,0.97)",backdropFilter:"blur(20px)",borderTop:"1px solid "+C.accent+"22",display:"flex",zIndex:200,overflowX:"auto"}}>
+        {([
+          ["overview","📊","Overview"],
+          ["funnel","🔽","Embudo"],
+          ["usuarios","👥","Usuarios"],
+          ["registros","📅","Registros"],
+          ["trabajos","🔨","Trabajos"],
+          ["mensajes","💬","Mensajes"],
+          ["trafico","👁","Trafico"],
+        ] as const).map(([id,icon,label])=>(
+          <button key={id} onClick={()=>setTab(id as AdminTab)} style={{flex:"0 0 auto",minWidth:60,padding:"8px 4px 10px",background:"none",border:"none",color:tab===id?C.accent:C.muted,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:2,borderBottom:tab===id?"2px solid "+C.accent:"2px solid transparent"}}>
+            <span style={{fontSize:16}}>{icon}</span>
+            <span style={{fontSize:8,fontWeight:600,whiteSpace:"nowrap"}}>{label}</span>
+          </button>
+        ))}
+      </nav>
+    </div>
+  );
+}
+
+// ─── QUICK MATCH MODAL ───────────────────────────────────────────────
+function QuickMatchModal({workers,onClose,onSelect}:{workers:UserRow[];onClose:()=>void;onSelect:(w:UserRow)=>void}){
+  const [step,setStep]=useState(0);
+  const [trade,setTrade]=useState("");
+  const [zone,setZone]=useState("");
+  const [urgency,setUrgency]=useState<string>("");
+  void urgency;
+
+  const matches = workers.filter(w=>
+    (!trade||w.trade===trade)&&
+    (!zone||w.zone===zone||(w.service_zones||[]).includes(zone))&&
+    w.available
+  ).sort((a,b)=>b.rating-a.rating).slice(0,3);
+
+  return (
+    <Sheet onClose={onClose} title="Encuentra tu profesional">
+      <div style={{display:"flex",gap:4,marginBottom:20}}>
+        {[0,1,2,3].map(s=><div key={s} style={{flex:1,height:4,borderRadius:99,background:s<=step?C.accent:C.border,transition:"background 0.3s"}} />)}
+      </div>
+      {step===0&&(<>
+        <p style={{fontWeight:700,color:C.text,fontSize:15,marginBottom:4}}>¿Que profesional necesitas?</p>
+        <p style={{fontSize:12,color:C.muted,marginBottom:14}}>Selecciona el tipo de servicio</p>
+        <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:20}}>
+          {OFICIOS.map(t=>(
+            <button key={t} onClick={()=>{setTrade(t);setStep(1);}} style={{padding:"10px 14px",borderRadius:10,border:"1px solid "+(trade===t?C.accent:C.border),background:trade===t?C.accent+"18":C.surface,color:trade===t?C.accent:C.text,cursor:"pointer",fontSize:13,fontFamily:"'DM Sans',sans-serif",fontWeight:600,display:"flex",alignItems:"center",gap:6,transition:"all 0.15s"}}>
+              <span>{OFICIO_ICONS[t]||"🔧"}</span>{t}
+            </button>
+          ))}
+        </div>
+        <Btn outline full onClick={()=>setStep(1)} color={C.muted} small>Saltar → Ver todos</Btn>
+      </>)}
+      {step===1&&(<>
+        <p style={{fontWeight:700,color:C.text,fontSize:15,marginBottom:4}}>¿En que zona de Sevilla?</p>
+        <p style={{fontSize:12,color:C.muted,marginBottom:14}}>Para mostrarte los mas cercanos</p>
+        <div style={{display:"flex",flexWrap:"wrap",gap:7,marginBottom:20}}>
+          {SEVILLA_ZONAS.slice(0,12).map(z=>(
+            <button key={z} onClick={()=>{setZone(z);setStep(2);}} style={{padding:"8px 12px",borderRadius:10,border:"1px solid "+(zone===z?C.blue:C.border),background:zone===z?C.blue+"18":C.surface,color:zone===z?C.blue:C.text,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:zone===z?700:400,transition:"all 0.15s"}}>
+              {z}
+            </button>
+          ))}
+        </div>
+        <Btn outline full onClick={()=>setStep(2)} color={C.muted} small>No importa la zona →</Btn>
+      </>)}
+      {step===2&&(<>
+        <p style={{fontWeight:700,color:C.text,fontSize:15,marginBottom:4}}>¿Con que urgencia?</p>
+        <p style={{fontSize:12,color:C.muted,marginBottom:14}}>Te mostramos los que pueden verte antes</p>
+        <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:20}}>
+          {[
+            {v:"now",l:"🚨 Urgente — necesito ayuda hoy",c:C.red},
+            {v:"week",l:"📅 Esta semana — tengo tiempo",c:C.blue},
+            {v:"quote",l:"💬 Solo quiero un presupuesto",c:C.green},
+          ].map(o=>(
+            <button key={o.v} onClick={()=>{setUrgency(o.v);setStep(3);}} style={{padding:"14px 16px",borderRadius:10,border:"1px solid "+o.c+"44",background:o.c+"12",color:C.text,cursor:"pointer",fontSize:13,fontFamily:"'DM Sans',sans-serif",fontWeight:600,textAlign:"left",transition:"all 0.15s"}}>
+              {o.l}
+            </button>
+          ))}
+        </div>
+      </>)}
+      {step===3&&(<>
+        <p style={{fontWeight:700,color:C.text,fontSize:15,marginBottom:4}}>
+          {matches.length>0?`✅ Encontramos ${matches.length} profesional${matches.length>1?"es":""}` :"😔 Sin resultados exactos"}
+        </p>
+        <p style={{fontSize:12,color:C.muted,marginBottom:14}}>
+          {trade&&<span style={{color:C.accent,fontWeight:600}}>{OFICIO_ICONS[trade]} {trade}</span>}
+          {zone&&<span style={{color:C.blue}}> · {zone}</span>}
+        </p>
+        {matches.length===0&&(
+          <div style={{textAlign:"center",padding:20,color:C.muted,marginBottom:14}}>
+            <p style={{fontSize:13}}>No hay profesionales disponibles ahora con esos filtros</p>
+            <button onClick={()=>{setTrade("");setZone("");}} style={{marginTop:10,background:"none",border:"none",color:C.accent,cursor:"pointer",fontSize:12,fontWeight:700}}>Ver todos los disponibles →</button>
           </div>
- 
-          <Btn full onClick={onClose} color={C.accent}>
-            Ver todos los profesionales →
-          </Btn>
-        </>
-      )}
+        )}
+        <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:14}}>
+          {matches.map(w=>{
+            const col=wColor(w.id);
+            return <GCard key={w.id} onClick={()=>onSelect(w)} glow={col} style={{padding:14}}>
+              <div style={{display:"flex",gap:12,alignItems:"center"}}>
+                <Ava s={w.name.substring(0,2).toUpperCase()} size={44} color={col} online />
+                <div style={{flex:1}}>
+                  <p style={{fontWeight:700,color:C.text,fontSize:14}}>{w.name}</p>
+                  <p style={{fontSize:12,color:col}}>{OFICIO_ICONS[w.trade||""]||"🔧"} {w.trade}</p>
+                  <div style={{display:"flex",gap:5,alignItems:"center",marginTop:2}}>
+                    <Stars n={w.rating} size={10} />
+                    <span style={{fontSize:11,color:C.text,fontWeight:700}}>{w.rating>0?w.rating.toFixed(1):"Nuevo"}</span>
+                    {w.free_quote&&<span style={{fontSize:10,color:C.green}}>· Presupuesto gratis</span>}
+                  </div>
+                </div>
+                <div style={{textAlign:"right"}}>
+                  <p style={{fontWeight:800,fontSize:18,color:C.accent}}>{w.price}€<span style={{fontSize:10,color:C.muted}}>/h</span></p>
+                  <p style={{fontSize:10,color:C.green}}>● Disponible</p>
+                </div>
+              </div>
+            </GCard>;
+          })}
+        </div>
+        <Btn full onClick={onClose} color={C.accent}>Ver todos los profesionales →</Btn>
+      </>)}
     </Sheet>
   );
 }
- 
-// ─── SEVILLA MAP COMPONENT ───────────────────────────────────────────
+
+// ─── SEVILLA MAP ─────────────────────────────────────────────────────
 const PUEBLOS_CERCANOS = [
-  { id: "Dos Hermanas", label: "Dos Hermanas", lat: 37.296, lng: -5.922 },
-  { id: "Alcalá de Guadaíra", label: "Alcalá de Guadaíra", lat: 37.339, lng: -5.84 },
-  { id: "Mairena del Aljarafe", label: "Mairena del Aljarafe", lat: 37.347, lng: -6.062 },
-  { id: "Camas", label: "Camas", lat: 37.399, lng: -6.031 },
-  { id: "San Juan de Aznalfarache", label: "San Juan", lat: 37.37, lng: -6.025 },
-  { id: "Bormujos", label: "Bormujos", lat: 37.362, lng: -6.071 },
-  { id: "Tomares", label: "Tomares", lat: 37.371, lng: -6.047 },
-  { id: "Gelves", label: "Gelves", lat: 37.34, lng: -6.013 },
-  { id: "La Rinconada", label: "La Rinconada", lat: 37.476, lng: -5.981 },
-  { id: "Mairena del Alcor", label: "Mairena del Alcor", lat: 37.369, lng: -5.757 },
-  { id: "Utrera", label: "Utrera", lat: 37.185, lng: -5.781 },
-  { id: "Carmona", label: "Carmona", lat: 37.471, lng: -5.644 },
-  { id: "Écija", label: "Écija", lat: 37.541, lng: -5.082 },
-  { id: "Morón de la Frontera", label: "Morón de la Frontera", lat: 37.125, lng: -5.453 },
-  { id: "Lebrija", label: "Lebrija", lat: 36.921, lng: -6.081 },
+  {id:"Dos Hermanas",label:"Dos Hermanas",lat:37.296,lng:-5.922},
+  {id:"Alcala de Guadaira",label:"Alcala de Guadaira",lat:37.339,lng:-5.840},
+  {id:"Mairena del Aljarafe",label:"Mairena del Aljarafe",lat:37.347,lng:-6.062},
+  {id:"Camas",label:"Camas",lat:37.399,lng:-6.031},
+  {id:"San Juan de Aznalfarache",label:"San Juan",lat:37.370,lng:-6.025},
+  {id:"Bormujos",label:"Bormujos",lat:37.362,lng:-6.071},
+  {id:"Tomares",label:"Tomares",lat:37.371,lng:-6.047},
+  {id:"Gelves",label:"Gelves",lat:37.340,lng:-6.013},
+  {id:"La Rinconada",label:"La Rinconada",lat:37.476,lng:-5.981},
+  {id:"Mairena del Alcor",label:"Mairena del Alcor",lat:37.369,lng:-5.757},
+  {id:"Utrera",label:"Utrera",lat:37.185,lng:-5.781},
+  {id:"Carmona",label:"Carmona",lat:37.471,lng:-5.644},
+  {id:"Ecija",label:"Ecija",lat:37.541,lng:-5.082},
+  {id:"Moron de la Frontera",label:"Moron de la Frontera",lat:37.125,lng:-5.453},
+  {id:"Lebrija",label:"Lebrija",lat:36.921,lng:-6.081},
 ];
- 
+
 const BARRIOS_SEVILLA = [
-  { id: "Centro", color: "#FFD700", latlngs: [[37.3961,-5.9953],[37.3958,-5.9916],[37.3944,-5.9873],[37.3921,-5.9836],[37.3896,-5.9823],[37.3872,-5.9829],[37.3854,-5.9851],[37.3851,-5.9883],[37.3862,-5.9921],[37.3886,-5.9952],[37.3916,-5.9967],[37.3944,-5.9965]] },
-  { id: "Triana", color: "#FF6B6B", latlngs: [[37.3989,-6.0156],[37.3991,-6.0098],[37.3978,-6.0052],[37.3955,-6.0012],[37.3921,-5.9988],[37.3892,-5.9981],[37.3869,-5.9991],[37.3851,-6.0018],[37.3843,-6.0058],[37.3851,-6.0101],[37.3874,-6.0138],[37.3909,-6.0158],[37.3946,-6.0162],[37.3971,-6.0158]] },
-  { id: "Los Remedios", color: "#4ECDC4", latlngs: [[37.3851,-6.0018],[37.3843,-6.0058],[37.3851,-6.0101],[37.3836,-6.0098],[37.3798,-6.0071],[37.3768,-6.0038],[37.3754,-5.9998],[37.3758,-5.9958],[37.3779,-5.9928],[37.3812,-5.9918],[37.3843,-5.9934],[37.3869,-5.9991]] },
-  { id: "Nervión", color: "#45B7D1", latlngs: [[37.3961,-5.9953],[37.3944,-5.9965],[37.396,-5.9895],[37.3988,-5.9833],[37.4008,-5.9776],[37.4001,-5.9718],[37.3978,-5.9678],[37.3954,-5.9668],[37.3928,-5.9689],[37.3911,-5.9728],[37.3913,-5.9772],[37.3929,-5.981],[37.3944,-5.9837],[37.3961,-5.9873]] },
-  { id: "La Macarena", color: "#A78BFA", latlngs: [[37.4098,-5.9988],[37.4121,-5.9941],[37.4128,-5.9881],[37.4118,-5.9821],[37.4091,-5.9773],[37.4058,-5.9743],[37.4021,-5.9738],[37.3988,-5.9758],[37.3972,-5.9791],[37.3961,-5.9831],[37.3961,-5.9873],[37.3988,-5.9833],[37.4008,-5.9776],[37.4038,-5.9761],[37.4068,-5.9771],[37.4088,-5.9801],[37.4091,-5.9851],[37.4078,-5.9901],[37.4058,-5.9941]] },
-  { id: "San Pablo", color: "#FB923C", latlngs: [[37.4098,-5.9988],[37.4058,-5.9941],[37.4078,-5.9901],[37.4091,-5.9851],[37.4088,-5.9801],[37.4121,-5.9741],[37.4148,-5.9701],[37.4168,-5.9638],[37.4158,-5.9578],[37.4131,-5.9541],[37.4098,-5.9531],[37.4068,-5.9548],[37.4048,-5.9578],[37.4038,-5.9621],[37.4041,-5.9671],[37.4058,-5.9718],[37.4088,-5.9738]] },
-  { id: "Bellavista", color: "#34D399", latlngs: [[37.3758,-5.9958],[37.3754,-5.9998],[37.3768,-6.0038],[37.3748,-6.0031],[37.3718,-5.9998],[37.3694,-5.9951],[37.3681,-5.9898],[37.3686,-5.9841],[37.3708,-5.9798],[37.3738,-5.9778],[37.3768,-5.9788],[37.3791,-5.9818],[37.3798,-5.9858],[37.3791,-5.9901],[37.3779,-5.9928],[37.3758,-5.9958]] },
-  { id: "Cerro-Amate", color: "#60A5FA", latlngs: [[37.3978,-5.9678],[37.4001,-5.9718],[37.4008,-5.9776],[37.3988,-5.9833],[37.3961,-5.9873],[37.3944,-5.9837],[37.3928,-5.981],[37.3911,-5.9771],[37.3898,-5.9721],[37.3891,-5.9661],[37.3901,-5.9601],[37.3924,-5.9558],[37.3954,-5.9541],[37.3984,-5.9558],[37.4001,-5.9594],[37.4001,-5.9638]] },
-  { id: "Sur", color: "#F472B6", latlngs: [[37.3791,-5.9818],[37.3768,-5.9788],[37.3738,-5.9778],[37.3718,-5.9798],[37.3698,-5.9841],[37.3691,-5.9888],[37.3664,-5.9871],[37.3638,-5.9838],[37.3624,-5.9791],[37.3628,-5.9741],[37.3651,-5.9701],[37.3681,-5.9678],[37.3714,-5.9678],[37.3744,-5.9694],[37.3764,-5.9724],[37.3771,-5.9771]] },
-  { id: "Torreblanca", color: "#FBBF24", latlngs: [[37.3978,-5.9678],[37.4001,-5.9638],[37.4001,-5.9594],[37.3984,-5.9558],[37.3984,-5.9491],[37.4001,-5.9431],[37.4028,-5.9391],[37.4061,-5.9368],[37.4098,-5.9368],[37.4128,-5.9391],[37.4141,-5.9431],[37.4131,-5.9481],[37.4104,-5.9518],[37.4068,-5.9531],[37.4038,-5.9541],[37.4001,-5.9578],[37.3984,-5.9628]] },
-  { id: "Norte", color: "#6EE7B7", latlngs: [[37.4128,-5.9881],[37.4148,-5.9941],[37.4168,-5.9988],[37.4188,-6.0028],[37.4198,-6.0078],[37.4188,-6.0121],[37.4158,-6.0148],[37.4121,-6.0151],[37.4088,-6.0128],[37.4068,-6.0091],[37.4068,-6.0041],[37.4088,-6.0001],[37.4118,-5.9971],[37.4128,-5.9928]] },
-  { id: "Pino Montano", color: "#C4B5FD", latlngs: [[37.4168,-5.9638],[37.4188,-5.9578],[37.4208,-5.9511],[37.4228,-5.9451],[37.4258,-5.9411],[37.4291,-5.9391],[37.4318,-5.9411],[37.4328,-5.9461],[37.4311,-5.9518],[37.4278,-5.9561],[37.4241,-5.9578],[37.4208,-5.9578],[37.4181,-5.9601]] },
-  { id: "Sevilla Este", color: "#F97316", latlngs: [[37.3984,-5.9491],[37.3984,-5.9428],[37.3998,-5.9368],[37.4021,-5.9311],[37.4054,-5.9268],[37.4091,-5.9241],[37.4131,-5.9241],[37.4161,-5.9268],[37.4171,-5.9318],[37.4158,-5.9368],[37.4131,-5.9391],[37.4098,-5.9368],[37.4061,-5.9368],[37.4028,-5.9391],[37.4001,-5.9431],[37.3984,-5.9491]] },
+  {id:"Centro",color:"#FFD700",latlngs:[[37.3961,-5.9953],[37.3958,-5.9916],[37.3944,-5.9873],[37.3921,-5.9836],[37.3896,-5.9823],[37.3872,-5.9829],[37.3854,-5.9851],[37.3851,-5.9883],[37.3862,-5.9921],[37.3886,-5.9952],[37.3916,-5.9967],[37.3944,-5.9965]]},
+  {id:"Triana",color:"#FF6B6B",latlngs:[[37.3989,-6.0156],[37.3991,-6.0098],[37.3978,-6.0052],[37.3955,-6.0012],[37.3921,-5.9988],[37.3892,-5.9981],[37.3869,-5.9991],[37.3851,-6.0018],[37.3843,-6.0058],[37.3851,-6.0101],[37.3874,-6.0138],[37.3909,-6.0158],[37.3946,-6.0162],[37.3971,-6.0158]]},
+  {id:"Los Remedios",color:"#4ECDC4",latlngs:[[37.3851,-6.0018],[37.3843,-6.0058],[37.3851,-6.0101],[37.3836,-6.0098],[37.3798,-6.0071],[37.3768,-6.0038],[37.3754,-5.9998],[37.3758,-5.9958],[37.3779,-5.9928],[37.3812,-5.9918],[37.3843,-5.9934],[37.3869,-5.9991]]},
+  {id:"Nervion",color:"#45B7D1",latlngs:[[37.3961,-5.9953],[37.3944,-5.9965],[37.396,-5.9895],[37.3988,-5.9833],[37.4008,-5.9776],[37.4001,-5.9718],[37.3978,-5.9678],[37.3954,-5.9668],[37.3928,-5.9689],[37.3911,-5.9728],[37.3913,-5.9772],[37.3929,-5.981],[37.3944,-5.9837],[37.3961,-5.9873]]},
+  {id:"La Macarena",color:"#A78BFA",latlngs:[[37.4098,-5.9988],[37.4121,-5.9941],[37.4128,-5.9881],[37.4118,-5.9821],[37.4091,-5.9773],[37.4058,-5.9743],[37.4021,-5.9738],[37.3988,-5.9758],[37.3972,-5.9791],[37.3961,-5.9831],[37.3961,-5.9873],[37.3988,-5.9833],[37.4008,-5.9776],[37.4038,-5.9761],[37.4068,-5.9771],[37.4088,-5.9801],[37.4091,-5.9851],[37.4078,-5.9901],[37.4058,-5.9941]]},
+  {id:"San Pablo",color:"#FB923C",latlngs:[[37.4098,-5.9988],[37.4058,-5.9941],[37.4078,-5.9901],[37.4091,-5.9851],[37.4088,-5.9801],[37.4121,-5.9741],[37.4148,-5.9701],[37.4168,-5.9638],[37.4158,-5.9578],[37.4131,-5.9541],[37.4098,-5.9531],[37.4068,-5.9548],[37.4048,-5.9578],[37.4038,-5.9621],[37.4041,-5.9671],[37.4058,-5.9718],[37.4088,-5.9738]]},
+  {id:"Bellavista",color:"#34D399",latlngs:[[37.3758,-5.9958],[37.3754,-5.9998],[37.3768,-6.0038],[37.3748,-6.0031],[37.3718,-5.9998],[37.3694,-5.9951],[37.3681,-5.9898],[37.3686,-5.9841],[37.3708,-5.9798],[37.3738,-5.9778],[37.3768,-5.9788],[37.3791,-5.9818],[37.3798,-5.9858],[37.3791,-5.9901],[37.3779,-5.9928],[37.3758,-5.9958]]},
+  {id:"Cerro-Amate",color:"#60A5FA",latlngs:[[37.3978,-5.9678],[37.4001,-5.9718],[37.4008,-5.9776],[37.3988,-5.9833],[37.3961,-5.9873],[37.3944,-5.9837],[37.3928,-5.981],[37.3911,-5.9771],[37.3898,-5.9721],[37.3891,-5.9661],[37.3901,-5.9601],[37.3924,-5.9558],[37.3954,-5.9541],[37.3984,-5.9558],[37.4001,-5.9594],[37.4001,-5.9638]]},
+  {id:"Sur",color:"#F472B6",latlngs:[[37.3791,-5.9818],[37.3768,-5.9788],[37.3738,-5.9778],[37.3718,-5.9798],[37.3698,-5.9841],[37.3691,-5.9888],[37.3664,-5.9871],[37.3638,-5.9838],[37.3624,-5.9791],[37.3628,-5.9741],[37.3651,-5.9701],[37.3681,-5.9678],[37.3714,-5.9678],[37.3744,-5.9694],[37.3764,-5.9724],[37.3771,-5.9771]]},
+  {id:"Torreblanca",color:"#FBBF24",latlngs:[[37.3978,-5.9678],[37.4001,-5.9638],[37.4001,-5.9594],[37.3984,-5.9558],[37.3984,-5.9491],[37.4001,-5.9431],[37.4028,-5.9391],[37.4061,-5.9368],[37.4098,-5.9368],[37.4128,-5.9391],[37.4141,-5.9431],[37.4131,-5.9481],[37.4104,-5.9518],[37.4068,-5.9531],[37.4038,-5.9541],[37.4001,-5.9578],[37.3984,-5.9628]]},
+  {id:"Norte",color:"#6EE7B7",latlngs:[[37.4128,-5.9881],[37.4148,-5.9941],[37.4168,-5.9988],[37.4188,-6.0028],[37.4198,-6.0078],[37.4188,-6.0121],[37.4158,-6.0148],[37.4121,-6.0151],[37.4088,-6.0128],[37.4068,-6.0091],[37.4068,-6.0041],[37.4088,-6.0001],[37.4118,-5.9971],[37.4128,-5.9928]]},
+  {id:"Pino Montano",color:"#C4B5FD",latlngs:[[37.4168,-5.9638],[37.4188,-5.9578],[37.4208,-5.9511],[37.4228,-5.9451],[37.4258,-5.9411],[37.4291,-5.9391],[37.4318,-5.9411],[37.4328,-5.9461],[37.4311,-5.9518],[37.4278,-5.9561],[37.4241,-5.9578],[37.4208,-5.9578],[37.4181,-5.9601]]},
+  {id:"Sevilla Este",color:"#F97316",latlngs:[[37.3984,-5.9491],[37.3984,-5.9428],[37.3998,-5.9368],[37.4021,-5.9311],[37.4054,-5.9268],[37.4091,-5.9241],[37.4131,-5.9241],[37.4161,-5.9268],[37.4171,-5.9318],[37.4158,-5.9368],[37.4131,-5.9391],[37.4098,-5.9368],[37.4061,-5.9368],[37.4028,-5.9391],[37.4001,-5.9431],[37.3984,-5.9491]]},
 ];
- 
-function SevillaMap({
-  selectedZone,
-  onZoneSelect,
-}: {
-  selectedZone: string;
-  onZoneSelect: (z: string) => void;
-}) {
-  const mapRef = useRef<HTMLDivElement>(null);
-  const leafletRef = useRef<L.Map | null>(null);
-  const polysRef = useRef<Record<string, L.Polygon>>({});
-  const [filter, setFilter] = useState<"sevilla" | "pueblos">("sevilla");
- 
-  useEffect(() => {
-    if (!mapRef.current || leafletRef.current) return;
-    const map = L.map(mapRef.current, {
-      center: [37.388, -5.982],
-      zoom: 12,
-      zoomControl: false,
-      scrollWheelZoom: true,
-      attributionControl: false,
+
+function SevillaMap({selectedZone,onZoneSelect}:{selectedZone:string;onZoneSelect:(z:string)=>void}){
+  const mapRef=useRef<HTMLDivElement>(null);
+  const leafletRef=useRef<L.Map|null>(null);
+  const polysRef=useRef<Record<string,L.Polygon>>({});
+  const [filter,setFilter]=useState<"sevilla"|"pueblos">("sevilla");
+
+  useEffect(()=>{
+    if(!mapRef.current||leafletRef.current) return;
+    const map=L.map(mapRef.current,{center:[37.388,-5.982],zoom:12,zoomControl:false,scrollWheelZoom:true,attributionControl:false});
+    L.control.zoom({position:"bottomright"}).addTo(map);
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png",{subdomains:"abcd",maxZoom:19}).addTo(map);
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png",{subdomains:"abcd",maxZoom:19,opacity:0.6}).addTo(map);
+    BARRIOS_SEVILLA.forEach(b=>{
+      const coords=b.latlngs.map(c=>[c[0],c[1]] as L.LatLngTuple);
+      const isActive=selectedZone===b.id;
+      const poly=L.polygon(coords,{color:b.color,fillColor:b.color,fillOpacity:isActive?0.5:0.18,weight:isActive?2.5:1.2,opacity:isActive?1:0.65,dashArray:isActive?undefined:"5,4",smoothFactor:2}).addTo(map);
+      poly.on("mouseover",()=>{if(selectedZone!==b.id) poly.setStyle({fillOpacity:0.38,dashArray:undefined,weight:2});});
+      poly.on("mouseout",()=>{if(selectedZone!==b.id) poly.setStyle({fillOpacity:0.18,dashArray:"5,4",weight:1.2});});
+      poly.on("click",()=>onZoneSelect(selectedZone===b.id?"":b.id));
+      polysRef.current[b.id]=poly;
+      const center=poly.getBounds().getCenter();
+      const icon=L.divIcon({html:`<span style="color:${isActive?"#fff":b.color};font-size:${isActive?"11px":"9.5px"};font-weight:${isActive?"800":"600"};font-family:'DM Sans',sans-serif;text-shadow:0 1px 4px rgba(0,0,0,0.95);white-space:nowrap;pointer-events:none;${isActive?"background:"+b.color+"44;padding:2px 6px;border-radius:4px;":""}">${b.id}</span>`,iconSize:[90,18],iconAnchor:[45,9],className:""});
+      L.marker(center,{icon,interactive:false,zIndexOffset:isActive?500:0}).addTo(map);
     });
-    L.control.zoom({ position: "bottomright" }).addTo(map);
-    L.tileLayer(
-      "https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png",
-      { subdomains: "abcd", maxZoom: 19 }
-    ).addTo(map);
-    L.tileLayer(
-      "https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png",
-      { subdomains: "abcd", maxZoom: 19, opacity: 0.6 }
-    ).addTo(map);
- 
-    BARRIOS_SEVILLA.forEach((b) => {
-      const coords = b.latlngs.map((c) => [c[0], c[1]] as L.LatLngTuple);
-      const isActive = selectedZone === b.id;
-      const poly = L.polygon(coords, {
-        color: b.color,
-        fillColor: b.color,
-        fillOpacity: isActive ? 0.5 : 0.18,
-        weight: isActive ? 2.5 : 1.2,
-        opacity: isActive ? 1 : 0.65,
-        dashArray: isActive ? undefined : "5,4",
-        smoothFactor: 2,
-      }).addTo(map);
-      poly.on("mouseover", () => {
-        if (selectedZone !== b.id)
-          poly.setStyle({ fillOpacity: 0.38, dashArray: undefined, weight: 2 });
-      });
-      poly.on("mouseout", () => {
-        if (selectedZone !== b.id)
-          poly.setStyle({ fillOpacity: 0.18, dashArray: "5,4", weight: 1.2 });
-      });
-      poly.on("click", () =>
-        onZoneSelect(selectedZone === b.id ? "" : b.id)
-      );
-      polysRef.current[b.id] = poly;
- 
-      const center = poly.getBounds().getCenter();
-      const icon = L.divIcon({
-        html: `<span style="color:${isActive ? "#fff" : b.color};font-size:${isActive ? "11px" : "9.5px"};font-weight:${isActive ? "800" : "600"};font-family:'DM Sans',sans-serif;text-shadow:0 1px 4px rgba(0,0,0,0.95);white-space:nowrap;pointer-events:none;${isActive ? "background:" + b.color + "44;padding:2px 6px;border-radius:4px;" : ""}">${b.id}</span>`,
-        iconSize: [90, 18],
-        iconAnchor: [45, 9],
-        className: "",
-      });
-      L.marker(center, {
-        icon,
-        interactive: false,
-        zIndexOffset: isActive ? 500 : 0,
-      }).addTo(map);
+    PUEBLOS_CERCANOS.forEach(p=>{
+      const isActive=selectedZone===p.id;
+      const icon=L.divIcon({html:`<div style="display:flex;flex-direction:column;align-items:center;pointer-events:none;"><div style="width:${isActive?10:7}px;height:${isActive?10:7}px;border-radius:50%;background:${isActive?"#FFD700":"#4ECDC4"};box-shadow:0 0 8px ${isActive?"#FFD700":"#4ECDC4"}88;border:2px solid ${isActive?"#FFD700":"rgba(255,255,255,0.3)"}"></div><span style="color:${isActive?"#FFD700":"#aaa"};font-size:9px;font-weight:${isActive?700:500};font-family:'DM Sans',sans-serif;text-shadow:0 1px 3px rgba(0,0,0,0.9);margin-top:2px;white-space:nowrap">${p.label}</span></div>`,iconSize:[80,32],iconAnchor:[40,5],className:""});
+      const marker=L.marker([p.lat,p.lng],{icon,interactive:true,zIndexOffset:isActive?500:0}).addTo(map);
+      marker.on("click",()=>onZoneSelect(selectedZone===p.id?"":p.id));
     });
- 
-    PUEBLOS_CERCANOS.forEach((p) => {
-      const isActive = selectedZone === p.id;
-      const icon = L.divIcon({
-        html: `<div style="display:flex;flex-direction:column;align-items:center;pointer-events:none;"><div style="width:${isActive ? 10 : 7}px;height:${isActive ? 10 : 7}px;border-radius:50%;background:${isActive ? "#FFD700" : "#4ECDC4"};box-shadow:0 0 8px ${isActive ? "#FFD700" : "#4ECDC4"}88;border:2px solid ${isActive ? "#FFD700" : "rgba(255,255,255,0.3)"}"></div><span style="color:${isActive ? "#FFD700" : "#aaa"};font-size:9px;font-weight:${isActive ? 700 : 500};font-family:'DM Sans',sans-serif;text-shadow:0 1px 3px rgba(0,0,0,0.9);margin-top:2px;white-space:nowrap">${p.label}</span></div>`,
-        iconSize: [80, 32],
-        iconAnchor: [40, 5],
-        className: "",
-      });
-      const marker = L.marker([p.lat, p.lng], {
-        icon,
-        interactive: true,
-        zIndexOffset: isActive ? 500 : 0,
-      }).addTo(map);
-      marker.on("click", () =>
-        onZoneSelect(selectedZone === p.id ? "" : p.id)
-      );
+    leafletRef.current=map;
+    map.on("zoomend",()=>{const z=map.getZoom();if(z>=13) setFilter("sevilla");else if(z<=11) setFilter("pueblos");});
+    return ()=>{map.remove();leafletRef.current=null;};
+  },[]);
+
+  useEffect(()=>{
+    BARRIOS_SEVILLA.forEach(b=>{
+      const poly=polysRef.current[b.id];
+      if(!poly) return;
+      const isActive=selectedZone===b.id;
+      poly.setStyle({fillOpacity:isActive?0.5:0.18,weight:isActive?2.5:1.2,dashArray:isActive?undefined:"5,4",opacity:isActive?1:0.65});
     });
- 
-    leafletRef.current = map;
-    map.on("zoomend", () => {
-      const z = map.getZoom();
-      if (z >= 13) setFilter("sevilla");
-      else if (z <= 11) setFilter("pueblos");
-    });
-    return () => {
-      map.remove();
-      leafletRef.current = null;
-    };
-  }, []);
- 
-  useEffect(() => {
-    BARRIOS_SEVILLA.forEach((b) => {
-      const poly = polysRef.current[b.id];
-      if (!poly) return;
-      const isActive = selectedZone === b.id;
-      poly.setStyle({
-        fillOpacity: isActive ? 0.5 : 0.18,
-        weight: isActive ? 2.5 : 1.2,
-        dashArray: isActive ? undefined : "5,4",
-        opacity: isActive ? 1 : 0.65,
-      });
-    });
-  }, [selectedZone]);
- 
-  useEffect(() => {
-    const map = leafletRef.current;
-    if (!map) return;
-    if (filter === "sevilla") map.flyTo([37.388, -5.982], 13, { duration: 0.8 });
-    else map.flyTo([37.38, -6.0], 11, { duration: 0.8 });
-  }, [filter]);
- 
+  },[selectedZone]);
+
+  useEffect(()=>{
+    const map=leafletRef.current;
+    if(!map) return;
+    if(filter==="sevilla") map.flyTo([37.388,-5.982],13,{duration:0.8});
+    else map.flyTo([37.38,-6.0],11,{duration:0.8});
+  },[filter]);
+
   return (
-    <div
-      style={{
-        marginBottom: 16,
-        borderRadius: 16,
-        overflow: "hidden",
-        border:
-          "1px solid " +
-          (selectedZone ? C.accent + "55" : C.border),
-        background: C.card,
-        boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
-      }}
-    >
-      <div
-        style={{
-          padding: "12px 16px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          background: `linear-gradient(135deg,${C.card},#0F0F1A)`,
-          borderBottom: "1px solid " + C.border,
-        }}
-      >
+    <div style={{marginBottom:16,borderRadius:16,overflow:"hidden",border:"1px solid "+(selectedZone?C.accent+"55":C.border),background:C.card,boxShadow:"0 8px 32px rgba(0,0,0,0.5)"}}>
+      <div style={{padding:"12px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"linear-gradient(135deg,"+C.card+",#0F0F1A)",borderBottom:"1px solid "+C.border}}>
         <div>
-          <p style={{ fontSize: 13, fontWeight: 700, color: C.text }}>
-            Selecciona una zona
-          </p>
-          <p style={{ fontSize: 10, color: C.muted, marginTop: 1 }}>
-            Haz clic en el mapa o usa los botones
-          </p>
+          <p style={{fontSize:13,fontWeight:700,color:C.text}}>Selecciona una zona</p>
+          <p style={{fontSize:10,color:C.muted,marginTop:1}}>Haz clic en el mapa o usa los botones</p>
         </div>
-        {selectedZone && (
-          <button
-            onClick={() => onZoneSelect("")}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 5,
-              padding: "4px 10px",
-              background: C.accent + "15",
-              border: "1px solid " + C.accent + "44",
-              borderRadius: 99,
-              color: C.accent,
-              cursor: "pointer",
-              fontSize: 11,
-              fontWeight: 700,
-              fontFamily: "'DM Sans',sans-serif",
-            }}
-          >
-            <span
-              style={{
-                maxWidth: 120,
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {selectedZone}
-            </span>
+        {selectedZone&&(
+          <button onClick={()=>onZoneSelect("")} style={{display:"flex",alignItems:"center",gap:5,padding:"4px 10px",background:C.accent+"15",border:"1px solid "+C.accent+"44",borderRadius:99,color:C.accent,cursor:"pointer",fontSize:11,fontWeight:700,fontFamily:"'DM Sans',sans-serif"}}>
+            <span style={{maxWidth:120,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{selectedZone}</span>
             <span>✕</span>
           </button>
         )}
       </div>
- 
-      <div ref={mapRef} style={{ height: 280, width: "100%" }} />
- 
-      <div
-        style={{
-          background: `linear-gradient(180deg,${C.card},#0F0F1A)`,
-          borderTop: "1px solid " + C.border,
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            padding: "10px 12px 6px",
-            gap: 6,
-          }}
-        >
-          <button
-            onClick={() => setFilter("sevilla")}
-            style={{
-              flex: 1,
-              padding: "8px",
-              borderRadius: 10,
-              border:
-                "1px solid " +
-                (filter === "sevilla" ? C.accent : C.border),
-              background:
-                filter === "sevilla"
-                  ? `linear-gradient(135deg,${C.accent}22,${C.orange}11)`
-                  : "transparent",
-              color: filter === "sevilla" ? C.accent : C.muted,
-              cursor: "pointer",
-              fontFamily: "'DM Sans',sans-serif",
-              fontSize: 12,
-              fontWeight: filter === "sevilla" ? 700 : 500,
-              transition: "all 0.2s",
-            }}
-          >
-            Sevilla capital
-          </button>
-          <button
-            onClick={() => setFilter("pueblos")}
-            style={{
-              flex: 1,
-              padding: "8px",
-              borderRadius: 10,
-              border:
-                "1px solid " +
-                (filter === "pueblos" ? C.cyan : C.border),
-              background:
-                filter === "pueblos"
-                  ? `linear-gradient(135deg,${C.cyan}22,transparent)`
-                  : "transparent",
-              color: filter === "pueblos" ? C.cyan : C.muted,
-              cursor: "pointer",
-              fontFamily: "'DM Sans',sans-serif",
-              fontSize: 12,
-              fontWeight: filter === "pueblos" ? 700 : 500,
-              transition: "all 0.2s",
-            }}
-          >
-            Pueblos cercanos
-          </button>
+      <div ref={mapRef} style={{height:280,width:"100%"}} />
+      <div style={{background:"linear-gradient(180deg,"+C.card+",#0F0F1A)",borderTop:"1px solid "+C.border}}>
+        <div style={{display:"flex",padding:"10px 12px 6px",gap:6}}>
+          <button onClick={()=>setFilter("sevilla")} style={{flex:1,padding:"8px",borderRadius:10,border:"1px solid "+(filter==="sevilla"?C.accent:C.border),background:filter==="sevilla"?"linear-gradient(135deg,"+C.accent+"22,"+C.orange+"11)":"transparent",color:filter==="sevilla"?C.accent:C.muted,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12,fontWeight:filter==="sevilla"?700:500,transition:"all 0.2s"}}>Sevilla capital</button>
+          <button onClick={()=>setFilter("pueblos")} style={{flex:1,padding:"8px",borderRadius:10,border:"1px solid "+(filter==="pueblos"?C.cyan:C.border),background:filter==="pueblos"?"linear-gradient(135deg,"+C.cyan+"22,transparent)":"transparent",color:filter==="pueblos"?C.cyan:C.muted,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12,fontWeight:filter==="pueblos"?700:500,transition:"all 0.2s"}}>Pueblos cercanos</button>
         </div>
- 
-        {filter === "sevilla" && (
-          <div
-            style={{
-              padding: "4px 12px 10px",
-              display: "flex",
-              gap: 5,
-              flexWrap: "wrap",
-              maxHeight: 75,
-              overflowY: "auto",
-            }}
-          >
-            {BARRIOS_SEVILLA.map((b) => {
-              const isActive = selectedZone === b.id;
-              return (
-                <button
-                  key={b.id}
-                  onClick={() => onZoneSelect(isActive ? "" : b.id)}
-                  style={{
-                    padding: "4px 10px",
-                    borderRadius: 99,
-                    border:
-                      "1px solid " + (isActive ? b.color : C.border),
-                    background: isActive ? b.color + "25" : "transparent",
-                    color: isActive ? b.color : C.muted,
-                    cursor: "pointer",
-                    fontSize: 10,
-                    fontFamily: "'DM Sans',sans-serif",
-                    fontWeight: isActive ? 700 : 400,
-                    transition: "all 0.15s",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {b.id}
-                </button>
-              );
+        {filter==="sevilla"&&(
+          <div style={{padding:"4px 12px 10px",display:"flex",gap:5,flexWrap:"wrap",maxHeight:75,overflowY:"auto"}}>
+            {BARRIOS_SEVILLA.map(b=>{
+              const isActive=selectedZone===b.id;
+              return <button key={b.id} onClick={()=>onZoneSelect(isActive?"":b.id)} style={{padding:"4px 10px",borderRadius:99,border:"1px solid "+(isActive?b.color:C.border),background:isActive?b.color+"25":"transparent",color:isActive?b.color:C.muted,cursor:"pointer",fontSize:10,fontFamily:"'DM Sans',sans-serif",fontWeight:isActive?700:400,transition:"all 0.15s",whiteSpace:"nowrap"}}>{b.id}</button>;
             })}
           </div>
         )}
- 
-        {filter === "pueblos" && (
-          <div
-            style={{
-              padding: "4px 12px 10px",
-              display: "flex",
-              gap: 5,
-              flexWrap: "wrap",
-              maxHeight: 75,
-              overflowY: "auto",
-            }}
-          >
-            {PUEBLOS_CERCANOS.map((p) => {
-              const isActive = selectedZone === p.id;
-              return (
-                <button
-                  key={p.id}
-                  onClick={() => onZoneSelect(isActive ? "" : p.id)}
-                  style={{
-                    padding: "4px 10px",
-                    borderRadius: 99,
-                    border:
-                      "1px solid " + (isActive ? C.cyan : C.border),
-                    background: isActive ? C.cyan + "22" : "transparent",
-                    color: isActive ? C.cyan : C.muted,
-                    cursor: "pointer",
-                    fontSize: 10,
-                    fontFamily: "'DM Sans',sans-serif",
-                    fontWeight: isActive ? 700 : 400,
-                    transition: "all 0.15s",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {p.label}
-                </button>
-              );
+        {filter==="pueblos"&&(
+          <div style={{padding:"4px 12px 10px",display:"flex",gap:5,flexWrap:"wrap",maxHeight:75,overflowY:"auto"}}>
+            {PUEBLOS_CERCANOS.map(p=>{
+              const isActive=selectedZone===p.id;
+              return <button key={p.id} onClick={()=>onZoneSelect(isActive?"":p.id)} style={{padding:"4px 10px",borderRadius:99,border:"1px solid "+(isActive?C.cyan:C.border),background:isActive?C.cyan+"22":"transparent",color:isActive?C.cyan:C.muted,cursor:"pointer",fontSize:10,fontFamily:"'DM Sans',sans-serif",fontWeight:isActive?700:400,transition:"all 0.15s",whiteSpace:"nowrap"}}>{p.label}</button>;
             })}
           </div>
         )}
@@ -3976,1491 +2601,413 @@ function SevillaMap({
     </div>
   );
 }
- 
+
 // ─── RANKING SECTION ─────────────────────────────────────────────────
-function RankingSection({
-  workers,
-  onSelect,
-}: {
-  workers: UserRow[];
-  onSelect: (w: UserRow) => void;
-}) {
-  const ranked = [...workers]
-    .filter((w) => w.type === "profesional")
-    .sort((a, b) => {
-      const order: Record<Plan, number> = {
-        elite: 3,
-        pro: 2,
-        basico: 1,
-        gratis: 0,
-      };
-      return (
-        order[b.plan as Plan] - order[a.plan as Plan] ||
-        b.rating - a.rating ||
-        b.reviews - a.reviews
-      );
-    })
-    .slice(0, 20);
- 
-  const medals = ["🥇", "🥈", "🥉"];
- 
+function RankingSection({workers,onSelect}:{workers:UserRow[];onSelect:(w:UserRow)=>void}){
+  const ranked=[...workers].filter(w=>w.type==="profesional").sort((a,b)=>{
+    const order:Record<Plan,number>={elite:3,pro:2,basico:1,gratis:0};
+    return order[b.plan as Plan]-order[a.plan as Plan]||b.rating-a.rating||b.reviews-a.reviews;
+  }).slice(0,20);
+  const medals=["🥇","🥈","🥉"];
   return (
     <>
-      <div style={{ padding: "22px 0 16px" }}>
-        <h2
-          style={{
-            fontWeight: 900,
-            fontSize: 24,
-            color: C.text,
-            letterSpacing: "-0.02em",
-            marginBottom: 4,
-          }}
-        >
-          🏆 Ranking de profesionales
-        </h2>
-        <p style={{ fontSize: 13, color: C.muted }}>
-          Los mejor valorados de Sevilla esta semana
-        </p>
+      <div style={{padding:"22px 0 16px"}}>
+        <h2 style={{fontWeight:900,fontSize:24,color:C.text,letterSpacing:"-0.02em",marginBottom:4}}>🏆 Ranking de profesionales</h2>
+        <p style={{fontSize:13,color:C.muted}}>Los mejor valorados de Sevilla esta semana</p>
       </div>
- 
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {ranked.map((w, idx) => {
-          const col = wColor(w.id);
-          return (
-            <GCard
-              key={w.id}
-              onClick={() => onSelect(w)}
-              glow={idx < 3 ? C.accent : col}
-              style={{ padding: "14px 16px" }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  gap: 12,
-                  alignItems: "center",
-                }}
-              >
-                <div
-                  style={{
-                    width: 32,
-                    textAlign: "center",
-                    fontSize: idx < 3 ? 22 : 14,
-                    fontWeight: 800,
-                    color: idx < 3 ? C.accent : C.muted,
-                    flexShrink: 0,
-                  }}
-                >
-                  {idx < 3 ? medals[idx] : `#${idx + 1}`}
+      <div style={{display:"flex",flexDirection:"column",gap:10}}>
+        {ranked.map((w,idx)=>{
+          const col=wColor(w.id);
+          return <GCard key={w.id} onClick={()=>onSelect(w)} glow={idx<3?C.accent:col} style={{padding:"14px 16px"}}>
+            <div style={{display:"flex",gap:12,alignItems:"center"}}>
+              <div style={{width:32,textAlign:"center",fontSize:idx<3?22:14,fontWeight:800,color:idx<3?C.accent:C.muted,flexShrink:0}}>{idx<3?medals[idx]:"#"+(idx+1)}</div>
+              <Ava s={w.name.substring(0,2).toUpperCase()} size={44} color={col} online={w.available} />
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:2}}>
+                  <p style={{fontWeight:700,color:C.text,fontSize:14,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{w.name}</p>
+                  {w.verified&&<span style={{fontSize:10,color:C.green,flexShrink:0}}>✓</span>}
+                  <Badge plan={w.plan} />
                 </div>
-                <Ava
-                  s={w.name.substring(0, 2).toUpperCase()}
-                  size={44}
-                  color={col}
-                  online={w.available}
-                />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 6,
-                      marginBottom: 2,
-                    }}
-                  >
-                    <p
-                      style={{
-                        fontWeight: 700,
-                        color: C.text,
-                        fontSize: 14,
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                      }}
-                    >
-                      {w.name}
-                    </p>
-                    {w.verified && (
-                      <span
-                        style={{
-                          fontSize: 10,
-                          color: C.green,
-                          flexShrink: 0,
-                        }}
-                      >
-                        ✓
-                      </span>
-                    )}
-                    <Badge plan={w.plan} />
-                  </div>
-                  <p style={{ fontSize: 12, color: col, marginBottom: 3 }}>
-                    {OFICIO_ICONS[w.trade || ""] || "🔧"} {w.trade} ·{" "}
-                    {w.zone}
-                  </p>
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: 6,
-                      alignItems: "center",
-                    }}
-                  >
-                    <Stars n={w.rating} size={11} />
-                    <span
-                      style={{
-                        fontSize: 11,
-                        color: C.text,
-                        fontWeight: 700,
-                      }}
-                    >
-                      {w.rating > 0 ? w.rating.toFixed(1) : "Nuevo"}
-                    </span>
-                    {w.reviews > 0 && (
-                      <span style={{ fontSize: 10, color: C.muted }}>
-                        ({w.reviews} reseñas)
-                      </span>
-                    )}
-                    {w.jobs > 0 && (
-                      <span style={{ fontSize: 10, color: C.muted }}>
-                        · {w.jobs} trabajos
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <div style={{ textAlign: "right", flexShrink: 0 }}>
-                  <p
-                    style={{
-                      fontWeight: 800,
-                      fontSize: 18,
-                      color: C.accent,
-                    }}
-                  >
-                    {w.price}€
-                    <span style={{ fontSize: 10, color: C.muted }}>
-                      /h
-                    </span>
-                  </p>
-                  <span
-                    style={{
-                      width: 6,
-                      height: 6,
-                      borderRadius: "50%",
-                      background: w.available ? C.green : C.red,
-                      display: "inline-block",
-                      marginRight: 4,
-                    }}
-                  />
-                  <span
-                    style={{
-                      fontSize: 10,
-                      color: w.available ? C.green : C.red,
-                    }}
-                  >
-                    {w.available ? "Disponible" : "Ocupado"}
-                  </span>
+                <p style={{fontSize:12,color:col,marginBottom:3}}>{OFICIO_ICONS[w.trade||""]||"🔧"} {w.trade} · {w.zone}</p>
+                <div style={{display:"flex",gap:6,alignItems:"center"}}>
+                  <Stars n={w.rating} size={11} />
+                  <span style={{fontSize:11,color:C.text,fontWeight:700}}>{w.rating>0?w.rating.toFixed(1):"Nuevo"}</span>
+                  {w.reviews>0&&<span style={{fontSize:10,color:C.muted}}>({w.reviews} reseñas)</span>}
+                  {w.jobs>0&&<span style={{fontSize:10,color:C.muted}}>· {w.jobs} trabajos</span>}
                 </div>
               </div>
-            </GCard>
-          );
+              <div style={{textAlign:"right",flexShrink:0}}>
+                <p style={{fontWeight:800,fontSize:18,color:C.accent}}>{w.price}€<span style={{fontSize:10,color:C.muted}}>/h</span></p>
+                <span style={{width:6,height:6,borderRadius:"50%",background:w.available?C.green:C.red,display:"inline-block",marginRight:4}} />
+                <span style={{fontSize:10,color:w.available?C.green:C.red}}>{w.available?"Disponible":"Ocupado"}</span>
+              </div>
+            </div>
+          </GCard>;
         })}
- 
-        {ranked.length === 0 && (
-          <div
-            style={{
-              textAlign: "center",
-              padding: 48,
-              color: C.muted,
-            }}
-          >
-            <p style={{ fontSize: 36, marginBottom: 8 }}>🏆</p>
-            <p style={{ fontWeight: 700, fontSize: 16 }}>
-              Sin profesionales en el ranking aún
-            </p>
-          </div>
-        )}
+        {ranked.length===0&&<div style={{textAlign:"center",padding:48,color:C.muted}}><p style={{fontSize:36,marginBottom:8}}>🏆</p><p style={{fontWeight:700,fontSize:16}}>Sin profesionales en el ranking aun</p></div>}
       </div>
     </>
   );
 }
- 
-// ─── ADMIN DASHBOARD (SuperAdmin) ────────────────────────────────────
-function AdminDashboard() {
-  const [tab, setTab] = useState<"usuarios" | "resenas" | "partners">(
-    "usuarios"
-  );
-  const [users, setUsers] = useState<UserRow[]>([]);
-  const [reviews, setReviews] = useState<any[]>([]);
-  const [partners, setPartners] = useState<UserRow[]>([]);
-  const [search, setSearch] = useState("");
-  const [onlyReported, setOnlyReported] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [msg, setMsg] = useState("");
- 
-  useEffect(() => {
-    loadData();
-  }, [tab]);
- 
-  async function loadData() {
+
+// ─── ADMIN DASHBOARD (Super Admin B2B) ───────────────────────────────
+function AdminDashboard(){
+  const [tab,setTab]=useState<"usuarios"|"resenas"|"partners">("usuarios");
+  const [users,setUsers]=useState<UserRow[]>([]);
+  const [reviews,setReviews]=useState<any[]>([]);
+  const [partners,setPartners]=useState<UserRow[]>([]);
+  const [search,setSearch]=useState("");
+  const [onlyReported,setOnlyReported]=useState(false);
+  const [loading,setLoading]=useState(false);
+  const [msg,setMsg]=useState("");
+
+  useEffect(()=>{loadData();},[tab]);
+
+  async function loadData(){
     setLoading(true);
-    if (tab === "usuarios") {
-      const { data } = await db
-        .from("users")
-        .select("*")
-        .order("created_at", { ascending: false });
-      setUsers(data || []);
-    } else if (tab === "resenas") {
-      const { data } = await db
-        .from("reviews")
-        .select("*")
-        .order("created_at", { ascending: false });
-      setReviews(data || []);
-    } else if (tab === "partners") {
-      const { data } = await db
-        .from("users")
-        .select("*")
-        .eq("role", "asesoria")
-        .order("created_at", { ascending: false });
-      setPartners(data || []);
+    if(tab==="usuarios"){
+      const {data}=await db.from("users").select("*").order("created_at",{ascending:false});
+      setUsers(data||[]);
+    } else if(tab==="resenas"){
+      const {data}=await db.from("reviews").select("*").order("created_at",{ascending:false});
+      setReviews(data||[]);
+    } else if(tab==="partners"){
+      const {data}=await db.from("users").select("*").eq("role","asesoria").order("created_at",{ascending:false});
+      setPartners(data||[]);
     }
     setLoading(false);
   }
- 
-  async function setPlanElite(userId: string) {
-    await db.from("users").update({ plan: "elite" }).eq("id", userId);
-    setMsg("Plan actualizado a ÉLITE");
+
+  async function setPlanElite(userId:string){
+    await db.from("users").update({plan:"elite"}).eq("id",userId);
+    setMsg("Plan actualizado a ELITE");
     loadData();
   }
- 
-  async function toggleBan(u: UserRow) {
-    await db
-      .from("users")
-      .update({ banned: !(u as any).banned })
-      .eq("id", u.id);
-    setMsg((u as any).banned ? "Usuario desbaneado" : "Usuario baneado");
+
+  async function toggleBan(u:UserRow){
+    await db.from("users").update({banned:!(u as any).banned}).eq("id",u.id);
+    setMsg((u as any).banned?"Usuario desbaneado":"Usuario baneado");
     loadData();
   }
- 
-  async function deleteReview(id: string) {
-    await db.from("reviews").delete().eq("id", id);
-    setMsg("Reseña eliminada");
+
+  async function deleteReview(id:string){
+    await db.from("reviews").delete().eq("id",id);
+    setMsg("Resena eliminada");
     loadData();
   }
- 
-  async function approveReview(id: string) {
-    await db
-      .from("reviews")
-      .update({ approved: true, reported: false })
-      .eq("id", id);
-    setMsg("Reseña aprobada");
+
+  async function approveReview(id:string){
+    await db.from("reviews").update({approved:true,reported:false}).eq("id",id);
+    setMsg("Resena aprobada");
     loadData();
   }
- 
-  async function generatePartnerCode(partner: UserRow) {
-    const code =
-      (partner.name || "PARTNER")
-        .toUpperCase()
-        .replace(/\s/g, "")
-        .slice(0, 10) + "26";
-    const { error } = await db.from("asesorias_codes").insert({
-      asesoria_id: partner.id,
-      code,
-      plan_to_grant: "elite",
-      months_duration: 1,
-    });
-    if (!error) setMsg(`✓ Código generado: ${code}`);
-    else setMsg("⚠ Error: puede que ya tenga código generado");
+
+  async function generatePartnerCode(partner:UserRow){
+    const code=(partner.name||"PARTNER").toUpperCase().replace(/\s/g,"").slice(0,10)+"26";
+    const {error}=await db.from("asesorias_codes").insert({asesoria_id:partner.id,code,plan_to_grant:"elite",months_duration:1});
+    if(!error) setMsg("Codigo generado: "+code);
+    else setMsg("Error: puede que ya tenga codigo");
   }
- 
-  const filteredUsers = users.filter(
-    (u) =>
-      u.name?.toLowerCase().includes(search.toLowerCase()) ||
-      u.email?.toLowerCase().includes(search.toLowerCase())
-  );
-  const filteredReviews = onlyReported
-    ? reviews.filter((r) => r.reported)
-    : reviews;
- 
-  const tabStyle = (t: string) => ({
-    padding: "10px 20px",
-    borderRadius: 8,
-    border: "1px solid " + (tab === t ? C.accent : C.border),
-    background: tab === t ? C.accent + "20" : "transparent",
-    color: tab === t ? C.accent : C.muted,
-    cursor: "pointer" as const,
-    fontFamily: "'DM Sans',sans-serif",
-    fontWeight: tab === t ? 700 : 400,
-    fontSize: 13,
-    transition: "all 0.15s",
-  });
- 
+
+  const filteredUsers=users.filter(u=>u.name?.toLowerCase().includes(search.toLowerCase())||u.email?.toLowerCase().includes(search.toLowerCase()));
+  const filteredReviews=onlyReported?reviews.filter(r=>r.reported):reviews;
+  const tabSt=(t:string)=>({padding:"10px 20px",borderRadius:8,border:"1px solid "+(tab===t?C.accent:C.border),background:tab===t?C.accent+"20":"transparent",color:tab===t?C.accent:C.muted,cursor:"pointer" as const,fontFamily:"'DM Sans',sans-serif",fontWeight:tab===t?700:400,fontSize:13,transition:"all 0.15s"});
+
   return (
-    <div
-      style={{
-        minHeight: "100dvh",
-        background: C.bg,
-        padding: "24px 16px",
-        paddingBottom: 40,
-      }}
-    >
-      <div style={{ maxWidth: 900, margin: "0 auto" }}>
-        <div style={{ marginBottom: 24 }}>
-          <h1
-            style={{
-              fontWeight: 900,
-              fontSize: 28,
-              color: C.accent,
-              letterSpacing: "-0.02em",
-              marginBottom: 4,
-            }}
-          >
-            ⚡ Super Panel Admin
-          </h1>
-          <p style={{ fontSize: 13, color: C.muted }}>
-            OficioYa — Gestión de usuarios, reseñas y partners B2B
-          </p>
+    <div style={{minHeight:"100dvh",background:C.bg,padding:"24px 16px 40px"}}>
+      <div style={{maxWidth:900,margin:"0 auto"}}>
+        <div style={{marginBottom:24}}>
+          <h1 style={{fontWeight:900,fontSize:28,color:C.accent,letterSpacing:"-0.02em",marginBottom:4}}>⚡ Super Panel Admin</h1>
+          <p style={{fontSize:13,color:C.muted}}>OficioYa — Gestion de usuarios, resenas y partners B2B</p>
         </div>
- 
-        {msg && (
-          <div
-            style={{
-              marginBottom: 16,
-              padding: "12px 16px",
-              borderRadius: 10,
-              background: C.green + "15",
-              border: "1px solid " + C.green + "44",
-              color: C.green,
-              fontSize: 13,
-              fontWeight: 600,
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
+        {msg&&(
+          <div style={{marginBottom:16,padding:"12px 16px",borderRadius:10,background:C.green+"15",border:"1px solid "+C.green+"44",color:C.green,fontSize:13,fontWeight:600,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
             {msg}
-            <button
-              onClick={() => setMsg("")}
-              style={{
-                background: "none",
-                border: "none",
-                color: C.muted,
-                cursor: "pointer",
-                fontSize: 16,
-              }}
-            >
-              ✕
-            </button>
+            <button onClick={()=>setMsg("")} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:16}}>✕</button>
           </div>
         )}
- 
-        {/* Tabs */}
-        <div
-          style={{ display: "flex", gap: 8, marginBottom: 20 }}
-        >
-          <button onClick={() => setTab("usuarios")} style={tabStyle("usuarios")}>
-            👤 Usuarios
-          </button>
-          <button onClick={() => setTab("resenas")} style={tabStyle("resenas")}>
-            ⭐ Reseñas
-          </button>
-          <button onClick={() => setTab("partners")} style={tabStyle("partners")}>
-            🤝 Partners
-          </button>
+        <div style={{display:"flex",gap:8,marginBottom:20}}>
+          <button onClick={()=>setTab("usuarios")} style={tabSt("usuarios")}>👤 Usuarios</button>
+          <button onClick={()=>setTab("resenas")} style={tabSt("resenas")}>⭐ Resenas</button>
+          <button onClick={()=>setTab("partners")} style={tabSt("partners")}>🤝 Partners</button>
         </div>
- 
-        {loading && (
-          <div style={{ textAlign: "center", padding: 40 }}>
-            <Spin />
-          </div>
-        )}
- 
-        {/* USUARIOS */}
-        {tab === "usuarios" && !loading && (
+        {loading&&<Spin />}
+        {tab==="usuarios"&&!loading&&(
           <div>
-            <input
-              type="text"
-              placeholder="🔍 Buscar por nombre o email..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "12px 16px",
-                borderRadius: 10,
-                marginBottom: 14,
-                background: C.card,
-                border: "1px solid " + C.border,
-                color: C.text,
-                fontFamily: "'DM Sans',sans-serif",
-                fontSize: 14,
-                outline: "none",
-              }}
-            />
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 8,
-              }}
-            >
-              {filteredUsers.map((u) => (
-                <GCard key={u.id} style={{ padding: "14px 16px", opacity: (u as any).banned ? 0.5 : 1 }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 12,
-                      flexWrap: "wrap",
-                    }}
-                  >
-                    <Ava
-                      s={(u.name || "?").substring(0, 2).toUpperCase()}
-                      size={40}
-                      color={u.type === "profesional" ? C.accent : C.blue}
-                    />
-                    <div style={{ flex: 1, minWidth: 120 }}>
-                      <p
-                        style={{
-                          fontWeight: 700,
-                          color: C.text,
-                          fontSize: 14,
-                        }}
-                      >
-                        {u.name || "—"}
-                      </p>
-                      <p style={{ fontSize: 11, color: C.muted }}>
-                        {u.email} ·{" "}
-                        <span style={{ color: PLAN_COLORS[u.plan as Plan] }}>
-                          {u.plan?.toUpperCase()}
-                        </span>{" "}
-                        · {u.type}
-                      </p>
-                      {(u as any).banned && (
-                        <span
-                          style={{
-                            fontSize: 10,
-                            color: C.red,
-                            fontWeight: 700,
-                          }}
-                        >
-                          BANEADO
-                        </span>
-                      )}
+            <input type="text" placeholder="🔍 Buscar por nombre o email..." value={search} onChange={e=>setSearch(e.target.value)} style={{width:"100%",padding:"12px 16px",borderRadius:10,marginBottom:14,background:C.card,border:"1px solid "+C.border,color:C.text,fontFamily:"'DM Sans',sans-serif",fontSize:14,outline:"none"}} />
+            <div style={{display:"flex",flexDirection:"column",gap:8}}>
+              {filteredUsers.map(u=>(
+                <GCard key={u.id} style={{padding:"14px 16px",opacity:(u as any).banned?0.5:1}}>
+                  <div style={{display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
+                    <Ava s={(u.name||"?").substring(0,2).toUpperCase()} size={40} color={u.type==="profesional"?C.accent:C.blue} />
+                    <div style={{flex:1,minWidth:120}}>
+                      <p style={{fontWeight:700,color:C.text,fontSize:14}}>{u.name||"—"}</p>
+                      <p style={{fontSize:11,color:C.muted}}>{u.email} · <span style={{color:PLAN_COLORS[u.plan as Plan]}}>{u.plan?.toUpperCase()}</span> · {u.type}</p>
+                      {(u as any).banned&&<span style={{fontSize:10,color:C.red,fontWeight:700}}>BANEADO</span>}
                     </div>
-                    <div style={{ display: "flex", gap: 8 }}>
-                      <button
-                        onClick={() => setPlanElite(u.id)}
-                        style={{
-                          padding: "7px 14px",
-                          borderRadius: 8,
-                          border: "none",
-                          background: C.accent,
-                          color: "#000",
-                          fontFamily: "'DM Sans',sans-serif",
-                          fontWeight: 700,
-                          fontSize: 12,
-                          cursor: "pointer",
-                        }}
-                      >
-                        → Élite
-                      </button>
-                      <button
-                        onClick={() => toggleBan(u)}
-                        style={{
-                          padding: "7px 14px",
-                          borderRadius: 8,
-                          border: "none",
-                          background: (u as any).banned
-                            ? C.green + "33"
-                            : C.red + "33",
-                          color: (u as any).banned ? C.green : C.red,
-                          fontFamily: "'DM Sans',sans-serif",
-                          fontWeight: 700,
-                          fontSize: 12,
-                          cursor: "pointer",
-                        }}
-                      >
-                        {(u as any).banned ? "Desbanear" : "Banear"}
-                      </button>
+                    <div style={{display:"flex",gap:8}}>
+                      <button onClick={()=>setPlanElite(u.id)} style={{padding:"7px 14px",borderRadius:8,border:"none",background:C.accent,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:12,cursor:"pointer"}}>→ Elite</button>
+                      <button onClick={()=>toggleBan(u)} style={{padding:"7px 14px",borderRadius:8,border:"none",background:(u as any).banned?C.green+"33":C.red+"33",color:(u as any).banned?C.green:C.red,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:12,cursor:"pointer"}}>{(u as any).banned?"Desbanear":"Banear"}</button>
                     </div>
                   </div>
                 </GCard>
               ))}
-              {filteredUsers.length === 0 && (
-                <p
-                  style={{
-                    textAlign: "center",
-                    color: C.muted,
-                    padding: 32,
-                    fontSize: 13,
-                  }}
-                >
-                  Sin resultados
-                </p>
-              )}
+              {filteredUsers.length===0&&<p style={{textAlign:"center",color:C.muted,padding:32,fontSize:13}}>Sin resultados</p>}
             </div>
           </div>
         )}
- 
-        {/* RESEÑAS */}
-        {tab === "resenas" && !loading && (
+        {tab==="resenas"&&!loading&&(
           <div>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                marginBottom: 14,
-              }}
-            >
-              <button
-                onClick={() => setOnlyReported(!onlyReported)}
-                style={{
-                  width: 40,
-                  height: 22,
-                  borderRadius: 99,
-                  background: onlyReported ? C.orange : C.border,
-                  border: "none",
-                  cursor: "pointer",
-                  position: "relative",
-                  transition: "background 0.2s",
-                  flexShrink: 0,
-                }}
-              >
-                <div
-                  style={{
-                    width: 14,
-                    height: 14,
-                    borderRadius: "50%",
-                    background: "#fff",
-                    position: "absolute",
-                    top: 4,
-                    left: onlyReported ? 22 : 4,
-                    transition: "left 0.2s",
-                  }}
-                />
+            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+              <button onClick={()=>setOnlyReported(!onlyReported)} style={{width:40,height:22,borderRadius:99,background:onlyReported?C.orange:C.border,border:"none",cursor:"pointer",position:"relative",transition:"background 0.2s",flexShrink:0}}>
+                <div style={{width:14,height:14,borderRadius:"50%",background:"#fff",position:"absolute",top:4,left:onlyReported?22:4,transition:"left 0.2s"}} />
               </button>
-              <span style={{ fontSize: 13, color: C.text }}>
-                Solo reportadas (
-                {reviews.filter((r) => r.reported).length})
-              </span>
+              <span style={{fontSize:13,color:C.text}}>Solo reportadas ({reviews.filter(r=>r.reported).length})</span>
             </div>
- 
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 8,
-              }}
-            >
-              {filteredReviews.map((r) => (
-                <GCard
-                  key={r.id}
-                  style={{
-                    padding: 14,
-                    border:
-                      "1px solid " +
-                      (r.reported ? C.red + "44" : C.border),
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "flex-start",
-                      gap: 12,
-                    }}
-                  >
-                    <div style={{ flex: 1 }}>
-                      <p
-                        style={{
-                          fontWeight: 700,
-                          color: C.text,
-                          fontSize: 13,
-                          marginBottom: 4,
-                        }}
-                      >
-                        {r.client_name}{" "}
-                        <Stars n={r.stars || r.rating || 0} size={11} />
-                      </p>
-                      <p
-                        style={{
-                          fontSize: 12,
-                          color: C.mutedL,
-                          lineHeight: 1.5,
-                          marginBottom: 4,
-                        }}
-                      >
-                        "{r.text || r.comment}"
-                      </p>
-                      {r.reported && (
-                        <span
-                          style={{
-                            fontSize: 10,
-                            color: C.red,
-                            fontWeight: 700,
-                          }}
-                        >
-                          ⚠ REPORTADA
-                        </span>
-                      )}
+            <div style={{display:"flex",flexDirection:"column",gap:8}}>
+              {filteredReviews.map(r=>(
+                <GCard key={r.id} style={{padding:14,border:"1px solid "+(r.reported?C.red+"44":C.border)}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:12}}>
+                    <div style={{flex:1}}>
+                      <p style={{fontWeight:700,color:C.text,fontSize:13,marginBottom:4}}>{r.client_name} <Stars n={r.stars||r.rating||0} size={11} /></p>
+                      <p style={{fontSize:12,color:C.mutedL,lineHeight:1.5,marginBottom:4}}>"{r.text||r.comment}"</p>
+                      {r.reported&&<span style={{fontSize:10,color:C.red,fontWeight:700}}>⚠ REPORTADA</span>}
                     </div>
-                    <div style={{ display: "flex", gap: 6 }}>
-                      <button
-                        onClick={() => approveReview(r.id)}
-                        style={{
-                          padding: "6px 12px",
-                          borderRadius: 8,
-                          border: "none",
-                          background: C.green + "22",
-                          color: C.green,
-                          fontFamily: "'DM Sans',sans-serif",
-                          fontWeight: 700,
-                          fontSize: 11,
-                          cursor: "pointer",
-                        }}
-                      >
-                        ✓ Aprobar
-                      </button>
-                      <button
-                        onClick={() => deleteReview(r.id)}
-                        style={{
-                          padding: "6px 12px",
-                          borderRadius: 8,
-                          border: "none",
-                          background: C.red + "22",
-                          color: C.red,
-                          fontFamily: "'DM Sans',sans-serif",
-                          fontWeight: 700,
-                          fontSize: 11,
-                          cursor: "pointer",
-                        }}
-                      >
-                        ✕ Eliminar
-                      </button>
+                    <div style={{display:"flex",gap:6}}>
+                      <button onClick={()=>approveReview(r.id)} style={{padding:"6px 12px",borderRadius:8,border:"none",background:C.green+"22",color:C.green,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:11,cursor:"pointer"}}>✓ Aprobar</button>
+                      <button onClick={()=>deleteReview(r.id)} style={{padding:"6px 12px",borderRadius:8,border:"none",background:C.red+"22",color:C.red,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:11,cursor:"pointer"}}>✕ Eliminar</button>
                     </div>
                   </div>
                 </GCard>
               ))}
-              {filteredReviews.length === 0 && (
-                <p
-                  style={{
-                    textAlign: "center",
-                    color: C.muted,
-                    padding: 32,
-                    fontSize: 13,
-                  }}
-                >
-                  Sin reseñas{onlyReported ? " reportadas" : ""}
-                </p>
-              )}
+              {filteredReviews.length===0&&<p style={{textAlign:"center",color:C.muted,padding:32,fontSize:13}}>Sin resenas{onlyReported?" reportadas":""}</p>}
             </div>
           </div>
         )}
- 
-        {/* PARTNERS / ASESORÍAS */}
-        {tab === "partners" && !loading && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {partners.map((p) => (
-              <GCard key={p.id} style={{ padding: "14px 16px" }}>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 12,
-                  }}
-                >
-                  <Ava
-                    s={(p.name || "?").substring(0, 2).toUpperCase()}
-                    size={40}
-                    color={C.orange}
-                  />
-                  <div style={{ flex: 1 }}>
-                    <p
-                      style={{
-                        fontWeight: 700,
-                        color: C.text,
-                        fontSize: 14,
-                      }}
-                    >
-                      {p.name || (p as any).company_name || "—"}
-                    </p>
-                    <p style={{ fontSize: 11, color: C.muted }}>
-                      {p.email}
-                    </p>
+        {tab==="partners"&&!loading&&(
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            {partners.map(p=>(
+              <GCard key={p.id} style={{padding:"14px 16px"}}>
+                <div style={{display:"flex",alignItems:"center",gap:12}}>
+                  <Ava s={(p.name||"?").substring(0,2).toUpperCase()} size={40} color={C.orange} />
+                  <div style={{flex:1}}>
+                    <p style={{fontWeight:700,color:C.text,fontSize:14}}>{p.name||(p as any).company_name||"—"}</p>
+                    <p style={{fontSize:11,color:C.muted}}>{p.email}</p>
                   </div>
-                  <button
-                    onClick={() => generatePartnerCode(p)}
-                    style={{
-                      padding: "9px 16px",
-                      borderRadius: 10,
-                      border: "none",
-                      background: `linear-gradient(135deg,${C.orange},${C.accent})`,
-                      color: "#000",
-                      fontFamily: "'DM Sans',sans-serif",
-                      fontWeight: 700,
-                      fontSize: 12,
-                      cursor: "pointer",
-                    }}
-                  >
-                    🔑 Generar Código
-                  </button>
+                  <button onClick={()=>generatePartnerCode(p)} style={{padding:"9px 16px",borderRadius:10,border:"none",background:"linear-gradient(135deg,"+C.orange+","+C.accent+")",color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:12,cursor:"pointer"}}>🔑 Generar Codigo</button>
                 </div>
               </GCard>
             ))}
-            {partners.length === 0 && (
-              <div
-                style={{
-                  textAlign: "center",
-                  padding: 48,
-                  color: C.muted,
-                }}
-              >
-                <p style={{ fontSize: 36, marginBottom: 8 }}>🤝</p>
-                <p style={{ fontWeight: 700, fontSize: 15 }}>
-                  No hay asesorías registradas todavía
-                </p>
-                <p style={{ fontSize: 12, marginTop: 4 }}>
-                  Cuando una gestoría se registre con role=asesoria,
-                  aparecerá aquí
-                </p>
-              </div>
-            )}
+            {partners.length===0&&<div style={{textAlign:"center",padding:48,color:C.muted}}><p style={{fontSize:36,marginBottom:8}}>🤝</p><p style={{fontWeight:700,fontSize:15}}>No hay asesorias registradas todavia</p></div>}
           </div>
         )}
       </div>
     </div>
   );
 }
- 
+
 // ─── FINCAS DASHBOARD ────────────────────────────────────────────────
 interface FincaIncident {
-  id: string;
-  finca_id: string;
-  community_name: string;
-  title: string;
-  description?: string;
-  trade_required?: string;
-  status: string;
-  assigned_worker_id?: string;
-  created_at: string;
+  id:string; finca_id:string; community_name:string; title:string;
+  description?:string; trade_required?:string; status:string;
+  assigned_worker_id?:string; created_at:string;
 }
- 
-function FincasDashboard({ user }: { user: UserRow }) {
-  const [incidents, setIncidents] = useState<FincaIncident[]>([]);
-  const [showForm, setShowForm] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({
-    community_name: "",
-    title: "",
-    description: "",
-    trade_required: "",
-  });
-  const [msg, setMsg] = useState("");
- 
-  useEffect(() => {
-    loadIncidents();
-  }, []);
- 
-  async function loadIncidents() {
+
+function FincasDashboard({user}:{user:UserRow}){
+  const [incidents,setIncidents]=useState<FincaIncident[]>([]);
+  const [showForm,setShowForm]=useState(false);
+  const [loading,setLoading]=useState(false);
+  const [form,setForm]=useState({community_name:"",title:"",description:"",trade_required:""});
+  const [msg,setMsg]=useState("");
+
+  useEffect(()=>{loadIncidents();},[]);
+
+  async function loadIncidents(){
     setLoading(true);
-    const { data } = await db
-      .from("fincas_incidents")
-      .select("*")
-      .eq("finca_id", user.id)
-      .order("created_at", { ascending: false });
-    setIncidents(data || []);
+    const {data}=await db.from("fincas_incidents").select("*").eq("finca_id",user.id).order("created_at",{ascending:false});
+    setIncidents(data||[]);
     setLoading(false);
   }
- 
-  async function submitIncident() {
-    if (!form.community_name || !form.title) {
-      setMsg("⚠ Rellena los campos obligatorios (comunidad y título)");
-      return;
-    }
-    const { error } = await db.from("fincas_incidents").insert({
-      finca_id: user.id,
-      ...form,
-      status: "pending",
-    });
-    if (!error) {
+
+  async function submitIncident(){
+    if(!form.community_name||!form.title){setMsg("⚠ Rellena comunidad y titulo");return;}
+    const {error}=await db.from("fincas_incidents").insert({finca_id:user.id,...form,status:"pending"});
+    if(!error){
       setMsg("✓ Incidencia reportada correctamente");
-      setForm({
-        community_name: "",
-        title: "",
-        description: "",
-        trade_required: "",
-      });
+      setForm({community_name:"",title:"",description:"",trade_required:""});
       setShowForm(false);
       loadIncidents();
     }
   }
- 
-  const statusColor = (s: string) =>
-    s === "pending"
-      ? C.orange
-      : s === "assigned"
-      ? C.blue
-      : C.green;
- 
-  const statusLabel = (s: string) =>
-    s === "pending"
-      ? "Pendiente"
-      : s === "assigned"
-      ? "Asignado"
-      : "Completado";
- 
-  const inpStyle: React.CSSProperties = {
-    width: "100%",
-    padding: "11px 14px",
-    borderRadius: 8,
-    background: C.surface,
-    border: "1px solid " + C.border,
-    color: C.text,
-    fontFamily: "'DM Sans',sans-serif",
-    fontSize: 13,
-    outline: "none",
-  };
- 
+
+  const statusColor=(s:string)=>s==="pending"?C.orange:s==="assigned"?C.blue:C.green;
+  const statusLabel=(s:string)=>s==="pending"?"Pendiente":s==="assigned"?"Asignado":"Completado";
+  const inpSt:React.CSSProperties={width:"100%",padding:"11px 14px",borderRadius:8,background:C.surface,border:"1px solid "+C.border,color:C.text,fontFamily:"'DM Sans',sans-serif",fontSize:13,outline:"none"};
+
   return (
-    <div
-      style={{
-        minHeight: "100dvh",
-        background: C.bg,
-        padding: "24px 16px",
-        paddingBottom: 40,
-      }}
-    >
-      <div style={{ maxWidth: 800, margin: "0 auto" }}>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            marginBottom: 24,
-            flexWrap: "wrap",
-            gap: 12,
-          }}
-        >
+    <div style={{minHeight:"100dvh",background:C.bg,padding:"24px 16px 40px"}}>
+      <div style={{maxWidth:800,margin:"0 auto"}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:24,flexWrap:"wrap",gap:12}}>
           <div>
-            <h1
-              style={{
-                fontWeight: 900,
-                fontSize: 26,
-                color: C.blue,
-                letterSpacing: "-0.02em",
-                marginBottom: 4,
-              }}
-            >
-              🏢 Panel de Incidencias
-            </h1>
-            <p style={{ fontSize: 13, color: C.muted }}>
-              Administrador de Fincas · {user.name}
-            </p>
+            <h1 style={{fontWeight:900,fontSize:26,color:C.blue,letterSpacing:"-0.02em",marginBottom:4}}>🏢 Panel de Incidencias</h1>
+            <p style={{fontSize:13,color:C.muted}}>Administrador de Fincas · {user.name}</p>
           </div>
-          <Btn onClick={() => setShowForm(!showForm)} color={C.accent}>
-            {showForm ? "✕ Cancelar" : "+ Reportar Avería"}
-          </Btn>
+          <Btn onClick={()=>setShowForm(!showForm)} color={C.accent}>{showForm?"✕ Cancelar":"+ Reportar Averia"}</Btn>
         </div>
- 
-        {msg && (
-          <div
-            style={{
-              marginBottom: 16,
-              padding: "12px 16px",
-              borderRadius: 10,
-              background: msg.startsWith("⚠")
-                ? C.orange + "15"
-                : C.green + "15",
-              border:
-                "1px solid " +
-                (msg.startsWith("⚠") ? C.orange + "44" : C.green + "44"),
-              color: msg.startsWith("⚠") ? C.orange : C.green,
-              fontSize: 13,
-              fontWeight: 600,
-            }}
-          >
-            {msg}
-          </div>
-        )}
- 
-        {showForm && (
-          <GCard style={{ marginBottom: 20, border: "1px solid " + C.accent + "44" }}>
-            <p
-              style={{
-                fontWeight: 700,
-                color: C.text,
-                fontSize: 15,
-                marginBottom: 16,
-              }}
-            >
-              Nueva Incidencia
-            </p>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 12,
-                marginBottom: 12,
-              }}
-            >
+        {msg&&<div style={{marginBottom:16,padding:"12px 16px",borderRadius:10,background:msg.startsWith("⚠")?C.orange+"15":C.green+"15",border:"1px solid "+(msg.startsWith("⚠")?C.orange+"44":C.green+"44"),color:msg.startsWith("⚠")?C.orange:C.green,fontSize:13,fontWeight:600}}>{msg}</div>}
+        {showForm&&(
+          <GCard style={{marginBottom:20,border:"1px solid "+C.accent+"44"}}>
+            <p style={{fontWeight:700,color:C.text,fontSize:15,marginBottom:16}}>Nueva Incidencia</p>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:12}}>
               <div>
-                <p
-                  style={{
-                    fontSize: 11,
-                    color: C.muted,
-                    marginBottom: 6,
-                    fontWeight: 700,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.06em",
-                  }}
-                >
-                  Comunidad *
-                </p>
-                <input
-                  value={form.community_name}
-                  onChange={(e) =>
-                    setForm({ ...form, community_name: e.target.value })
-                  }
-                  placeholder="Ej: C/ Betis 12, Sevilla"
-                  style={inpStyle}
-                />
+                <p style={{fontSize:11,color:C.muted,marginBottom:6,fontWeight:700,textTransform:"uppercase" as const,letterSpacing:"0.06em"}}>Comunidad *</p>
+                <input value={form.community_name} onChange={e=>setForm({...form,community_name:e.target.value})} placeholder="Ej: C/ Betis 12, Sevilla" style={inpSt} />
               </div>
               <div>
-                <p
-                  style={{
-                    fontSize: 11,
-                    color: C.muted,
-                    marginBottom: 6,
-                    fontWeight: 700,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.06em",
-                  }}
-                >
-                  Oficio requerido
-                </p>
-                <input
-                  value={form.trade_required}
-                  onChange={(e) =>
-                    setForm({ ...form, trade_required: e.target.value })
-                  }
-                  placeholder="Ej: Fontanero, Electricista..."
-                  style={inpStyle}
-                />
+                <p style={{fontSize:11,color:C.muted,marginBottom:6,fontWeight:700,textTransform:"uppercase" as const,letterSpacing:"0.06em"}}>Oficio requerido</p>
+                <input value={form.trade_required} onChange={e=>setForm({...form,trade_required:e.target.value})} placeholder="Ej: Fontanero, Electricista..." style={inpSt} />
               </div>
             </div>
-            <div style={{ marginBottom: 12 }}>
-              <p
-                style={{
-                  fontSize: 11,
-                  color: C.muted,
-                  marginBottom: 6,
-                  fontWeight: 700,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.06em",
-                }}
-              >
-                Título de la avería *
-              </p>
-              <input
-                value={form.title}
-                onChange={(e) =>
-                  setForm({ ...form, title: e.target.value })
-                }
-                placeholder="Ej: Fuga de agua en planta baja"
-                style={inpStyle}
-              />
+            <div style={{marginBottom:12}}>
+              <p style={{fontSize:11,color:C.muted,marginBottom:6,fontWeight:700,textTransform:"uppercase" as const,letterSpacing:"0.06em"}}>Titulo de la averia *</p>
+              <input value={form.title} onChange={e=>setForm({...form,title:e.target.value})} placeholder="Ej: Fuga de agua en planta baja" style={inpSt} />
             </div>
-            <div style={{ marginBottom: 16 }}>
-              <p
-                style={{
-                  fontSize: 11,
-                  color: C.muted,
-                  marginBottom: 6,
-                  fontWeight: 700,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.06em",
-                }}
-              >
-                Descripción
-              </p>
-              <textarea
-                value={form.description}
-                onChange={(e) =>
-                  setForm({ ...form, description: e.target.value })
-                }
-                placeholder="Descripción detallada del problema..."
-                rows={3}
-                style={{ ...inpStyle, resize: "vertical" }}
-              />
+            <div style={{marginBottom:16}}>
+              <p style={{fontSize:11,color:C.muted,marginBottom:6,fontWeight:700,textTransform:"uppercase" as const,letterSpacing:"0.06em"}}>Descripcion</p>
+              <textarea value={form.description} onChange={e=>setForm({...form,description:e.target.value})} placeholder="Descripcion detallada del problema..." rows={3} style={{...inpSt,resize:"vertical" as const}} />
             </div>
-            <Btn full onClick={submitIncident} color={C.accent}>
-              Enviar Incidencia →
-            </Btn>
+            <Btn full onClick={submitIncident} color={C.accent}>Enviar Incidencia →</Btn>
           </GCard>
         )}
- 
-        {loading ? (
-          <Spin />
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {incidents.map((inc) => (
-              <GCard key={inc.id} style={{ padding: 16 }}>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "flex-start",
-                    justifyContent: "space-between",
-                    gap: 12,
-                  }}
-                >
-                  <div style={{ flex: 1 }}>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 8,
-                        marginBottom: 6,
-                        flexWrap: "wrap",
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontSize: 10,
-                          fontWeight: 700,
-                          padding: "3px 8px",
-                          borderRadius: 99,
-                          background: statusColor(inc.status) + "20",
-                          color: statusColor(inc.status),
-                          border:
-                            "1px solid " + statusColor(inc.status) + "44",
-                        }}
-                      >
-                        {statusLabel(inc.status)}
-                      </span>
-                      {inc.trade_required && (
-                        <span
-                          style={{
-                            fontSize: 11,
-                            color: C.muted,
-                          }}
-                        >
-                          🔧 {inc.trade_required}
-                        </span>
-                      )}
+        {loading?<Spin />:(
+          <div style={{display:"flex",flexDirection:"column",gap:10}}>
+            {incidents.map(inc=>(
+              <GCard key={inc.id} style={{padding:16}}>
+                <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:12}}>
+                  <div style={{flex:1}}>
+                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6,flexWrap:"wrap"}}>
+                      <span style={{fontSize:10,fontWeight:700,padding:"3px 8px",borderRadius:99,background:statusColor(inc.status)+"20",color:statusColor(inc.status),border:"1px solid "+statusColor(inc.status)+"44"}}>{statusLabel(inc.status)}</span>
+                      {inc.trade_required&&<span style={{fontSize:11,color:C.muted}}>🔧 {inc.trade_required}</span>}
                     </div>
-                    <p
-                      style={{
-                        fontWeight: 700,
-                        color: C.text,
-                        fontSize: 14,
-                        marginBottom: 4,
-                      }}
-                    >
-                      {inc.title}
-                    </p>
-                    <p style={{ fontSize: 12, color: C.muted, marginBottom: 4 }}>
-                      📍 {inc.community_name}
-                    </p>
-                    {inc.description && (
-                      <p style={{ fontSize: 12, color: C.mutedL }}>
-                        {inc.description}
-                      </p>
-                    )}
+                    <p style={{fontWeight:700,color:C.text,fontSize:14,marginBottom:4}}>{inc.title}</p>
+                    <p style={{fontSize:12,color:C.muted,marginBottom:4}}>📍 {inc.community_name}</p>
+                    {inc.description&&<p style={{fontSize:12,color:C.mutedL}}>{inc.description}</p>}
                   </div>
-                  <p
-                    style={{
-                      fontSize: 11,
-                      color: C.muted,
-                      flexShrink: 0,
-                    }}
-                  >
-                    {new Date(inc.created_at).toLocaleDateString("es-ES")}
-                  </p>
+                  <p style={{fontSize:11,color:C.muted,flexShrink:0}}>{new Date(inc.created_at).toLocaleDateString("es-ES")}</p>
                 </div>
               </GCard>
             ))}
-            {incidents.length === 0 && (
-              <div
-                style={{
-                  textAlign: "center",
-                  padding: 48,
-                  color: C.muted,
-                }}
-              >
-                <p style={{ fontSize: 40, marginBottom: 8 }}>🏗️</p>
-                <p
-                  style={{
-                    fontWeight: 700,
-                    fontSize: 16,
-                    marginBottom: 4,
-                  }}
-                >
-                  No hay incidencias
-                </p>
-                <p style={{ fontSize: 13 }}>
-                  Usa el botón "Reportar Avería" para registrar una
-                </p>
-              </div>
-            )}
+            {incidents.length===0&&<div style={{textAlign:"center",padding:48,color:C.muted}}><p style={{fontSize:40,marginBottom:8}}>🏗️</p><p style={{fontWeight:700,fontSize:16,marginBottom:4}}>No hay incidencias</p><p style={{fontSize:13}}>Usa el boton "Reportar Averia" para registrar una</p></div>}
           </div>
         )}
       </div>
     </div>
   );
 }
- 
-// ─── ASESORÍAS DASHBOARD ─────────────────────────────────────────────
+
+// ─── ASESORIAS DASHBOARD ─────────────────────────────────────────────
 interface AsesoriaCode {
-  id: string;
-  asesoria_id: string;
-  code: string;
-  plan_to_grant: string;
-  months_duration: number;
-  uses_count: number;
-  created_at: string;
+  id:string; asesoria_id:string; code:string;
+  plan_to_grant:string; months_duration:number;
+  uses_count:number; created_at:string;
 }
- 
-function AsesoriasDashboard({ user }: { user: UserRow }) {
-  const [codeData, setCodeData] = useState<AsesoriaCode | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [copied, setCopied] = useState(false);
- 
-  useEffect(() => {
-    loadCode();
-  }, []);
- 
-  async function loadCode() {
-    const { data } = await db
-      .from("asesorias_codes")
-      .select("*")
-      .eq("asesoria_id", user.id)
-      .single();
-    setCodeData(data || null);
+
+function AsesoriasDashboard({user}:{user:UserRow}){
+  const [codeData,setCodeData]=useState<AsesoriaCode|null>(null);
+  const [loading,setLoading]=useState(true);
+  const [copied,setCopied]=useState(false);
+
+  useEffect(()=>{loadCode();},[]);
+
+  async function loadCode(){
+    const {data}=await db.from("asesorias_codes").select("*").eq("asesoria_id",user.id).single();
+    setCodeData(data||null);
     setLoading(false);
   }
- 
-  function copyCode() {
-    if (codeData?.code) {
-      navigator.clipboard.writeText(codeData.code);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
-    }
+
+  function copyCode(){
+    if(codeData?.code){navigator.clipboard.writeText(codeData.code);setCopied(true);setTimeout(()=>setCopied(false),2500);}
   }
- 
-  const usagePercent = codeData
-    ? Math.min((codeData.uses_count / 50) * 100, 100)
-    : 0;
- 
+
+  const usagePercent=codeData?Math.min((codeData.uses_count/50)*100,100):0;
+
   return (
-    <div
-      style={{
-        minHeight: "100dvh",
-        background: C.bg,
-        padding: "24px 16px",
-        paddingBottom: 40,
-      }}
-    >
-      <div style={{ maxWidth: 640, margin: "0 auto" }}>
-        <div style={{ marginBottom: 28 }}>
-          <h1
-            style={{
-              fontWeight: 900,
-              fontSize: 26,
-              color: C.cyan,
-              letterSpacing: "-0.02em",
-              marginBottom: 4,
-            }}
-          >
-            🤝 Panel de Asesoría
-          </h1>
-          <p style={{ fontSize: 13, color: C.muted }}>
-            {user.name || (user as any).company_name}
-          </p>
+    <div style={{minHeight:"100dvh",background:C.bg,padding:"24px 16px 40px"}}>
+      <div style={{maxWidth:640,margin:"0 auto"}}>
+        <div style={{marginBottom:28}}>
+          <h1 style={{fontWeight:900,fontSize:26,color:C.cyan,letterSpacing:"-0.02em",marginBottom:4}}>🤝 Panel de Asesoria</h1>
+          <p style={{fontSize:13,color:C.muted}}>{user.name||(user as any).company_name}</p>
         </div>
- 
-        {loading ? (
-          <Spin />
-        ) : codeData ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            {/* Código promo */}
-            <GCard
-              style={{
-                textAlign: "center",
-                padding: "32px 24px",
-                border: "2px solid " + C.accent + "66",
-                background: `linear-gradient(135deg,${C.accent}08,${C.card})`,
-              }}
-            >
-              <p
-                style={{
-                  fontSize: 11,
-                  color: C.muted,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.1em",
-                  marginBottom: 12,
-                  fontWeight: 700,
-                }}
-              >
-                Tu código de afiliación exclusivo
-              </p>
-              <p
-                style={{
-                  fontSize: 40,
-                  fontWeight: 900,
-                  color: C.accent,
-                  letterSpacing: "0.12em",
-                  marginBottom: 20,
-                  fontFamily: "monospace",
-                }}
-              >
-                {codeData.code}
-              </p>
-              <button
-                onClick={copyCode}
-                style={{
-                  padding: "12px 28px",
-                  borderRadius: 10,
-                  border: "none",
-                  background: copied
-                    ? C.green
-                    : `linear-gradient(135deg,${C.accent},${C.orange})`,
-                  color: "#000",
-                  fontFamily: "'DM Sans',sans-serif",
-                  fontWeight: 700,
-                  fontSize: 14,
-                  cursor: "pointer",
-                  transition: "all 0.3s",
-                }}
-              >
-                {copied ? "✓ ¡Copiado!" : "📋 Copiar código"}
+        {loading?<Spin />:codeData?(
+          <div style={{display:"flex",flexDirection:"column",gap:16}}>
+            <GCard style={{textAlign:"center",padding:"32px 24px",border:"2px solid "+C.accent+"66",background:"linear-gradient(135deg,"+C.accent+"08,"+C.card+")"}}>
+              <p style={{fontSize:11,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.1em",marginBottom:12,fontWeight:700}}>Tu codigo de afiliacion exclusivo</p>
+              <p style={{fontSize:40,fontWeight:900,color:C.accent,letterSpacing:"0.12em",marginBottom:20,fontFamily:"monospace"}}>{codeData.code}</p>
+              <button onClick={copyCode} style={{padding:"12px 28px",borderRadius:10,border:"none",background:copied?C.green:"linear-gradient(135deg,"+C.accent+","+C.orange+")",color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:14,cursor:"pointer",transition:"all 0.3s"}}>
+                {copied?"✓ Copiado!":"📋 Copiar codigo"}
               </button>
-              <p
-                style={{
-                  fontSize: 11,
-                  color: C.muted,
-                  marginTop: 12,
-                }}
-              >
-                Plan:{" "}
-                <span style={{ color: C.orange, fontWeight: 700 }}>
-                  {codeData.plan_to_grant.toUpperCase()}
-                </span>{" "}
-                · {codeData.months_duration} mes gratis para tus clientes
-              </p>
+              <p style={{fontSize:11,color:C.muted,marginTop:12}}>Plan: <span style={{color:C.orange,fontWeight:700}}>{codeData.plan_to_grant.toUpperCase()}</span> · {codeData.months_duration} mes gratis para tus clientes</p>
             </GCard>
- 
-            {/* Estadísticas */}
-            <GCard style={{ padding: "20px 24px" }}>
-              <p
-                style={{
-                  fontWeight: 700,
-                  color: C.text,
-                  fontSize: 14,
-                  marginBottom: 16,
-                }}
-              >
-                📊 Estadísticas de uso
-              </p>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "flex-end",
-                  gap: 10,
-                  marginBottom: 12,
-                }}
-              >
-                <p
-                  style={{
-                    fontSize: 52,
-                    fontWeight: 900,
-                    color: C.accent,
-                    lineHeight: 1,
-                  }}
-                >
-                  {codeData.uses_count}
-                </p>
-                <p style={{ fontSize: 14, color: C.muted, marginBottom: 8 }}>
-                  autónomos registrados
-                </p>
+            <GCard style={{padding:"20px 24px"}}>
+              <p style={{fontWeight:700,color:C.text,fontSize:14,marginBottom:16}}>📊 Estadisticas de uso</p>
+              <div style={{display:"flex",alignItems:"flex-end",gap:10,marginBottom:12}}>
+                <p style={{fontSize:52,fontWeight:900,color:C.accent,lineHeight:1}}>{codeData.uses_count}</p>
+                <p style={{fontSize:14,color:C.muted,marginBottom:8}}>autonomos registrados</p>
               </div>
-              <div
-                style={{
-                  height: 8,
-                  background: C.border,
-                  borderRadius: 99,
-                  overflow: "hidden",
-                  marginBottom: 6,
-                }}
-              >
-                <div
-                  style={{
-                    width: usagePercent + "%",
-                    height: "100%",
-                    background: `linear-gradient(90deg,${C.accent},${C.orange})`,
-                    borderRadius: 99,
-                    transition: "width 0.8s ease",
-                  }}
-                />
+              <div style={{height:8,background:C.border,borderRadius:99,overflow:"hidden",marginBottom:6}}>
+                <div style={{width:usagePercent+"%",height:"100%",background:"linear-gradient(90deg,"+C.accent+","+C.orange+")",borderRadius:99,transition:"width 0.8s ease"}} />
               </div>
-              <p style={{ fontSize: 11, color: C.muted }}>
-                {codeData.uses_count} de 50 usos · Renovación mensual
-              </p>
+              <p style={{fontSize:11,color:C.muted}}>{codeData.uses_count} de 50 usos · Renovacion mensual</p>
             </GCard>
- 
-            {/* Instrucciones */}
-            <GCard style={{ padding: "20px 24px" }}>
-              <p
-                style={{
-                  fontWeight: 700,
-                  color: C.text,
-                  fontSize: 14,
-                  marginBottom: 14,
-                }}
-              >
-                💡 Cómo funciona
-              </p>
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 12,
-                }}
-              >
+            <GCard style={{padding:"20px 24px"}}>
+              <p style={{fontWeight:700,color:C.text,fontSize:14,marginBottom:14}}>💡 Como funciona</p>
+              <div style={{display:"flex",flexDirection:"column",gap:12}}>
                 {[
-                  {
-                    n: "1",
-                    t: `Comparte tu código `,
-                    b: codeData.code,
-                    s: " con tus clientes autónomos",
-                  },
-                  {
-                    n: "2",
-                    t: "Al registrarse en OficioYa, introducen tu código en el campo \"Código promocional\"",
-                  },
-                  {
-                    n: "3",
-                    t: `Obtienen `,
-                    b: `${codeData.months_duration} mes gratis`,
-                    s: ` en el plan ${codeData.plan_to_grant}`,
-                  },
-                  {
-                    n: "4",
-                    t: "Ves en tiempo real cuántos se han registrado en este panel",
-                  },
-                ].map((item) => (
-                  <div
-                    key={item.n}
-                    style={{
-                      display: "flex",
-                      gap: 12,
-                      alignItems: "flex-start",
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: 24,
-                        height: 24,
-                        borderRadius: "50%",
-                        background: C.accent + "22",
-                        border: "1px solid " + C.accent + "44",
-                        color: C.accent,
-                        fontSize: 11,
-                        fontWeight: 700,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexShrink: 0,
-                      }}
-                    >
-                      {item.n}
-                    </span>
-                    <p style={{ fontSize: 13, color: C.mutedL, lineHeight: 1.5 }}>
-                      {item.t}
-                      {item.b && (
-                        <strong style={{ color: C.accent }}>{item.b}</strong>
-                      )}
-                      {item.s}
-                    </p>
+                  {n:"1",t:"Comparte tu codigo ",b:codeData.code,s:" con tus clientes autonomos"},
+                  {n:"2",t:"Al registrarse en OficioYa, introducen tu codigo en el campo codigo promocional"},
+                  {n:"3",t:"Obtienen ",b:codeData.months_duration+" mes gratis",s:" en el plan "+codeData.plan_to_grant},
+                  {n:"4",t:"Ves en tiempo real cuantos se han registrado en este panel"},
+                ].map(item=>(
+                  <div key={item.n} style={{display:"flex",gap:12,alignItems:"flex-start"}}>
+                    <span style={{width:24,height:24,borderRadius:"50%",background:C.accent+"22",border:"1px solid "+C.accent+"44",color:C.accent,fontSize:11,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{item.n}</span>
+                    <p style={{fontSize:13,color:C.mutedL,lineHeight:1.5}}>{item.t}{item.b&&<strong style={{color:C.accent}}>{item.b}</strong>}{item.s}</p>
                   </div>
                 ))}
               </div>
             </GCard>
           </div>
-        ) : (
-          <GCard
-            style={{
-              textAlign: "center",
-              padding: "48px 24px",
-              border: "1px dashed " + C.border,
-            }}
-          >
-            <p style={{ fontSize: 40, marginBottom: 12 }}>🔑</p>
-            <p
-              style={{
-                fontWeight: 700,
-                color: C.text,
-                fontSize: 16,
-                marginBottom: 8,
-              }}
-            >
-              Tu código aún no está generado
-            </p>
-            <p style={{ fontSize: 13, color: C.muted }}>
-              Contacta con el equipo de OficioYa para activar tu cuenta de
-              partner
-            </p>
+        ):(
+          <GCard style={{textAlign:"center",padding:"48px 24px",border:"1px dashed "+C.border}}>
+            <p style={{fontSize:40,marginBottom:12}}>🔑</p>
+            <p style={{fontWeight:700,color:C.text,fontSize:16,marginBottom:8}}>Tu codigo aun no esta generado</p>
+            <p style={{fontSize:13,color:C.muted}}>Contacta con el equipo de OficioYa para activar tu cuenta de partner</p>
           </GCard>
         )}
       </div>
     </div>
   );
 }
- 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// APP ROOT — este export default va SIEMPRE AL FINAL del archivo
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-export default function App() {
-  const [user, setUser] = useState<UserRow | null>(null);
-  const [ready, setReady] = useState(false);
- 
-  useEffect(() => {
-    const s = localStorage.getItem("oy_user");
-    if (s) {
-      try {
-        setUser(JSON.parse(s));
-      } catch {
-        localStorage.removeItem("oy_user");
-      }
-    }
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// APP ROOT — SIEMPRE LA ULTIMA FUNCION DEL ARCHIVO
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+export default function App(){
+  const [user,setUser]=useState<UserRow|null>(null);
+  const [ready,setReady]=useState(false);
+
+  useEffect(()=>{
+    const s=localStorage.getItem("oy_user");
+    if(s){try{setUser(JSON.parse(s));}catch{localStorage.removeItem("oy_user");}}
     setReady(true);
-    db.from("visits").insert({ page: "home", user_id: null }).then(() => {});
-  }, []);
- 
-  const login = (u: UserRow) => {
-    setUser(u);
-    localStorage.setItem("oy_user", JSON.stringify(u));
-  };
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("oy_user");
-  };
-  const update = (u: UserRow) => {
-    setUser(u);
-    localStorage.setItem("oy_user", JSON.stringify(u));
-  };
- 
-  if (!ready)
-    return (
-      <div
-        style={{
-          minHeight: "100dvh",
-          background: C.bg,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Spin />
-      </div>
-    );
- 
+    db.from("visits").insert({page:"home",user_id:null}).then(()=>{});
+  },[]);
+
+  const login=(u:UserRow)=>{setUser(u);localStorage.setItem("oy_user",JSON.stringify(u));};
+  const logout=()=>{setUser(null);localStorage.removeItem("oy_user");};
+  const update=(u:UserRow)=>{setUser(u);localStorage.setItem("oy_user",JSON.stringify(u));};
+
+  if(!ready) return <div style={{minHeight:"100dvh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center"}}><Spin /></div>;
+
   return (
     <>
       <style>{`
@@ -5478,31 +3025,12 @@ export default function App() {
         @keyframes spin{to{transform:rotate(360deg);}}
         @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
       `}</style>
- 
-      {/* Sin usuario → pantalla de login */}
-      {!user && <Auth onLogin={login} />}
- 
-      {/* Admin CRM completo (componente Admin ya existente) */}
-      {user && user.type === "admin" && <Admin onLogout={logout} />}
- 
-      {/* Profesional autónomo */}
-      {user && user.type === "profesional" && (
-        <ProDashboard user={user} onLogout={logout} onUpdate={update} />
-      )}
- 
-      {/* Cliente buscando profesionales */}
-      {user && user.type === "cliente" && (
-        <ClientHome user={user} onLogout={logout} />
-      )}
- 
-      {/* NUEVOS SOCIOS B2B — usan user.role, no user.type */}
-      {user && (user as any).role === "fincas" && (
-        <FincasDashboard user={user} />
-      )}
-      {user && (user as any).role === "asesoria" && (
-        <AsesoriasDashboard user={user} />
-      )}
+      {!user&&<Auth onLogin={login} />}
+      {user&&user.type==="admin"&&<Admin onLogout={logout} />}
+      {user&&user.type==="profesional"&&<ProDashboard user={user} onLogout={logout} onUpdate={update} />}
+      {user&&user.type==="cliente"&&<ClientHome user={user} onLogout={logout} />}
+      {user&&(user as any).role==="fincas"&&<FincasDashboard user={user} />}
+      {user&&(user as any).role==="asesoria"&&<AsesoriasDashboard user={user} />}
     </>
   );
 }
- 
