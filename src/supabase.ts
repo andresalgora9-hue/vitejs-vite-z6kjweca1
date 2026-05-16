@@ -34,7 +34,7 @@ export interface UserRow {
   free_quote?: boolean
   experience_years?: number
   specialties?: string[]
-  schedule?: string[]
+  schedule?: string[] | string
   whatsapp?: string
   photo_url?: string
   location_lat?: number
@@ -99,5 +99,6 @@ export interface PhotoRow {
   worker_id: string
   url: string
   description?: string
+  caption?: string
   created_at: string
 }
