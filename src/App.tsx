@@ -3551,102 +3551,36 @@ C.cyan:C.muted,cursor:"pointer",fontSize:10,fontFamily:"'DMSans',sans-serif",fon
 
 
 // ─── RANKING SECTION COMPONENT ───
-function
-RankingSection({workers,onSelect}:{workers:UserRow[];onSelect:(w:UserRow)=>void}){
-const [filterZone,setFilterZone]=useState("Todas");
-const [filterTrade,setFilterTrade]=useState("Todos");
-const eligible=workers.filter(w=>
-PLAN_GATES.ranking[w.plan as Plan]&&
-(filterZone==="Todas"||w.zone===filterZone)&&
-(filterTrade==="Todos"||w.trade===filterTrade)
-).sort((a,b)=>b.rating*b.reviews-a.rating*a.reviews);
-const pCol=["#FFD700","#C0C0C0","#CD7F32"];
-return (
+// =========================================================
+// NUEVOS COMPONENTES MODULARES DE ADMIN Y SOCIOS B2B
+// =========================================================
 
-<div style={{padding:"22px 0 16px"}}>
-<h2 style={{fontWeight:900,fontSize:24,letterSpacing:"-0.02em",marginBottom:4}}><span
-style={{color:C.text}}>
-Ranking de</span> <span
-style={{color:C.accent}}>Profesionales</span></h2>
-<p style={{fontSize:13,color:C.muted,marginBottom:16}}>Los mejores valorados de la
-plataforma</p>
-
-
-<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:16}}>
-<select value={filterZone} onChange={e=>setFilterZone(e.target.value)}
-style={{padding:"10px 12px",background:C.card,border:"1px solid"+C.border,borderRadius:8,color:C.text,fontFamily:"inherit",fontSize:13,cursor:"pointer",outlin
-e:"none"}}>
-<option style={{background:C.card}}>Todas</option>
-{ZONAS.map(z=><option key={z} style={{background:C.card}}>{z}</option>)}
-</select>
-<select value={filterTrade} onChange={e=>setFilterTrade(e.target.value)}
-style={{padding:"10px 12px",background:C.card,border:"1px solid"+C.border,borderRadius:8,color:C.text,fontFamily:"inherit",fontSize:13,cursor:"pointer",outlin
-e:"none"}}>
-<option style={{background:C.card}}>Todos</option>
-{OFICIOS.map(o=><option key={o} style={{background:C.card}}>{o}</option>)}
-</select>
-</div>
-
-
-{eligible.length===0&&<div style={{textAlign:"center",padding:40,color:C.muted}}>
-<p style={{fontSize:32,marginBottom:8}}> </p>
-<p style={{fontWeight:700,fontSize:16,marginBottom:6}}>Sin profesionales en el
-ranking</p>
-<p style={{fontSize:13}}>El ranking muestra profesionales con plan Pro o Élite</p>
-</div>}
-{/* Podium top 3 */}
-{eligible.length>=3&&(
-<div style={{display:"grid",gridTemplateColumns:"1fr 1fr1fr",gap:10,marginBottom:16,alignItems:"flex-end"}}>
-{[eligible[1],eligible[0],eligible[2]].map((w,i)=>{
-const positions=[2,1,3];
-const heights=[110,150,90];
-const col=pCol[i];
-const pos=positions[i];
-return <div key={w.id} style={{textAlign:"center",cursor:"pointer"}}
-onClick={()=>onSelect(w)}>
-<div style={{display:"flex",justifyContent:"center",marginBottom:6}}>
-<Ava s={w.name.substring(0,2).toUpperCase()} size={pos===1?58:44} color={col}
-/>
-</div>
-
-<p
-style={{fontWeight:700,color:C.text,fontSize:pos===1?14:12,marginBottom:2}}>{w.name.split
-(" ")[0]}</p>
-<p style={{fontSize:10,color:C.muted,marginBottom:4}}>{w.zone}</p>
-<Stars n={w.rating} size={pos===1?13:10} />
-<div
-style={{height:heights[i],background:"linear-gradient(180deg,"+col+"20,transparent)",border:"1px solid "+col+"55",borderRadius:"8px 8px 00",display:"flex",alignItems:"center",justifyContent:"center",marginTop:8}}>
-<span
-style={{fontFamily:"monospace",fontSize:36,fontWeight:900,color:col}}>#{pos}</span>
-</div>
-</div>;
-})}
-</div>
-)}
-{/* Rest of ranking */}
-<div style={{display:"flex",flexDirection:"column",gap:8}}>
-{eligible.slice(eligible.length>=3?3:0).map((w,i)=>{
-const col=wColor(w.id);
-return <GCard key={w.id} onClick={()=>onSelect(w)} glow={col} style={{padding:"12px16px",display:"flex",alignItems:"center",gap:12}}>
-<span
-style={{fontWeight:800,fontSize:18,color:C.muted,width:28,textAlign:"center"}}>#{i+(eligible.l
-ength>=3?4:1)}</span>
-<Ava s={w.name.substring(0,2).toUpperCase()} size={38} color={col}
-online={w.available} />
-<div style={{flex:1,minWidth:0}}>
-<p style={{fontWeight:700,color:C.text,fontSize:13}}>{w.name}</p>
-<p style={{fontSize:11,color:C.muted}}>{w.trade} · {w.zone}</p>
-</div>
-<div style={{textAlign:"right"}}>
-<Stars n={w.rating} size={11} />
-<p
-style={{fontSize:11,fontWeight:700,color:C.accent}}>{w.rating>0?w.rating.toFixed(1):"Nuevo"
-}</p>
-<p style={{fontSize:10,color:C.muted}}>({w.reviews})</p>
-</div>
-</GCard>;
-})}
-</div>
-</div>
-);
+export function AdminDashboard() {
+  return (
+    <div style={{ padding: 20, background: "#0A0A0F", minHeight: "100vh" }}>
+      <h1 style={{ color: "#FFD700" }}>Panel de Control SúperAdmin</h1>
+      <p style={{ color: "#F0F0FA", opacity: 0.7 }}>Gestión de usuarios, reportes y moderación de reseñas de OficioYa Sevilla.</p>
+    </div>
+  );
 }
+
+export function FincasDashboard({ user }: { user: any }) {
+  return (
+    <div style={{ padding: 20, background: "#0A0A0F", minHeight: "100vh" }}>
+      <h1 style={{ color: "#3B82F6" }}>Panel Corporativo: Administradores de Fincas</h1>
+      <p style={{ color: "#F0F0FA", opacity: 0.7 }}>Bienvenido, {user?.name || "Administrador"}. Registra incidencias y averías en comunidades.</p>
+    </div>
+  );
+}
+
+export function AsesoriasDashboard({ user }: { user: any }) {
+  return (
+    <div style={{ padding: 20, background: "#0A0A0F", minHeight: "100vh" }}>
+      <h1 style={{ color: "#06B6D4" }}>Programa de Partners: Asesorías y Gestorías</h1>
+      <p style={{ color: "#F0F0FA", opacity: 0.7 }}>Control de códigos premium asignados y monitorización de autónomos referidos.</p>
+    </div>
+  );
+}
+
+// ESTA TIENE QUE SER LA ÚLTIMA LÍNEA DE TODO TU ARCHIVO APP.TSX
+export default App;
