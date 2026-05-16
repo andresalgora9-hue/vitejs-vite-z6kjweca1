@@ -1,39 +1,12 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#FFD700" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="OfficioYa" />
-    <meta name="description" content="Encuentra profesionales verificados en tu zona. Electricistas, fontaneros, pintores y más en Sevilla." />
-    <meta property="og:title" content="OfficioYa — Profesionales de confianza" />
-    <meta property="og:description" content="Conectamos clientes con los mejores profesionales de tu zona." />
-    <meta property="og:type" content="website" />
-    <title>OfficioYa — Profesionales de confianza</title>
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" href="/icon-192.png" />
-    <link rel="manifest" href="/manifest.json" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <style>
-      .leaflet-tooltip-dark{background:#16161F;border:1px solid #FFD70055;color:#FFD700;font-family:"DM Sans",sans-serif;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,0.5);}
-      .leaflet-control-zoom a{background:#16161F!important;color:#FFD700!important;border-color:#1E1E30!important;}
-      .leaflet-control-zoom a:hover{background:#1C1C28!important;}
-    </style>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-    <script>
-      if('serviceWorker' in navigator){
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then(r => console.log('SW registered:', r.scope))
-            .catch(e => console.log('SW error:', e));
-        });
-      }
-    </script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OfficioYa</title>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/App.tsx"></script>
+</body>
 </html>
