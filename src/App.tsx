@@ -2660,6 +2660,465 @@ function UrgencyRadar({workers,currentUser,onSelect}:{workers:UserRow[];currentU
 }
 void col;
 
+// ═══════════════════════════════════════════════════════════════════
+// NUEVOS COMPONENTES B2B — Pegar al FINAL de App.tsx (antes del export)
+// ═══════════════════════════════════════════════════════════════════
+ 
+// ─── ADMIN DASHBOARD ────────────────────────────────────────────────
+function AdminDashboard() {
+  const [tab, setTab] = useState<'usuarios' | 'resenas' | 'partners'>('usuarios');
+  const [users, setUsers] = useState<UserRow[]>([]);
+  const [reviews, setReviews] = useState<ReviewRow[]>([]);
+  const [partners, setPartners] = useState<UserRow[]>([]);
+  const [search, setSearch] = useState('');
+  const [onlyReported, setOnlyReported] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [msg, setMsg] = useState('');
+ 
+  useEffect(() => { loadData(); }, [tab]);
+ 
+  async function loadData() {
+    setLoading(true);
+    if (tab === 'usuarios') {
+      const { data } = await db.from('users').select('*').order('created_at', { ascending: false });
+      setUsers(data || []);
+    } else if (tab === 'resenas') {
+      const { data } = await db.from('reviews').select('*').order('created_at', { ascending: false });
+      setReviews(data || []);
+    } else if (tab === 'partners') {
+      const { data } = await db.from('users').select('*').eq('role', 'asesoria').order('created_at', { ascending: false });
+      setPartners(data || []);
+    }
+    setLoading(false);
+  }
+ 
+  async function setPlan(userId: string, plan: string) {
+    await db.from('users').update({ plan }).eq('id', userId);
+    setMsg(`Plan actualizado a ${plan}`);
+    loadData();
+  }
+ 
+  async function toggleBan(user: UserRow) {
+    await db.from('users').update({ banned: !user.banned }).eq('id', user.id);
+    setMsg(user.banned ? 'Usuario desbaneado' : 'Usuario baneado');
+    loadData();
+  }
+ 
+  async function deleteReview(id: string) {
+    await db.from('reviews').delete().eq('id', id);
+    setMsg('Reseña eliminada');
+    loadData();
+  }
+ 
+  async function approveReview(id: string) {
+    await db.from('reviews').update({ approved: true, reported: false }).eq('id', id);
+    setMsg('Reseña aprobada');
+    loadData();
+  }
+ 
+  async function generatePartnerCode(partner: UserRow) {
+    const code = (partner.name || 'PARTNER').toUpperCase().replace(/\s/g, '').slice(0, 10) + '26';
+    const { error } = await db.from('asesorias_codes').insert({
+      asesoria_id: partner.id,
+      code,
+      plan_to_grant: 'elite',
+      months_duration: 1,
+    });
+    if (!error) setMsg(`Código generado: ${code}`);
+    else setMsg('Error: puede que ya tenga código');
+  }
+ 
+  const filteredUsers = users.filter(u =>
+    u.name?.toLowerCase().includes(search.toLowerCase()) ||
+    u.email?.toLowerCase().includes(search.toLowerCase())
+  );
+ 
+  const filteredReviews = onlyReported ? reviews.filter(r => r.reported) : reviews;
+ 
+  return (
+    <div className="min-h-screen p-6" style={{ background: '#0A0A0F' }}>
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-3xl font-bold mb-2" style={{ color: '#FFD700' }}>⚡ Super Panel Admin</h1>
+        <p className="text-gray-400 mb-6">OficioYa — Panel de Control</p>
+ 
+        {msg && (
+          <div className="mb-4 p-3 rounded-lg text-sm font-medium" style={{ background: '#1a2a1a', color: '#4ade80', border: '1px solid #4ade80' }}>
+            ✓ {msg}
+            <button onClick={() => setMsg('')} className="ml-4 text-gray-400 hover:text-white">✕</button>
+          </div>
+        )}
+ 
+        {/* Tabs */}
+        <div className="flex gap-2 mb-6">
+          {(['usuarios', 'resenas', 'partners'] as const).map(t => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className="px-5 py-2 rounded-lg font-semibold capitalize transition-all"
+              style={{
+                background: tab === t ? '#FFD700' : '#0F0F1A',
+                color: tab === t ? '#000' : '#aaa',
+                border: '1px solid',
+                borderColor: tab === t ? '#FFD700' : '#333',
+              }}
+            >
+              {t === 'resenas' ? 'Reseñas' : t.charAt(0).toUpperCase() + t.slice(1)}
+            </button>
+          ))}
+        </div>
+ 
+        {loading && <p className="text-gray-400">Cargando...</p>}
+ 
+        {/* USUARIOS */}
+        {tab === 'usuarios' && !loading && (
+          <div>
+            <input
+              type="text"
+              placeholder="Buscar por nombre o email..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-full p-3 rounded-lg mb-4 text-white"
+              style={{ background: '#0F0F1A', border: '1px solid #333', outline: 'none' }}
+            />
+            <div className="space-y-3">
+              {filteredUsers.map(u => (
+                <div key={u.id} className="p-4 rounded-xl flex items-center justify-between"
+                  style={{ background: '#0F0F1A', border: '1px solid #1a1a2e', opacity: u.banned ? 0.5 : 1 }}>
+                  <div>
+                    <p className="font-semibold text-white">{u.name || '—'}</p>
+                    <p className="text-sm text-gray-400">{u.email} · <span style={{ color: '#FFD700' }}>{u.plan}</span> · {u.role}</p>
+                    {u.banned && <span className="text-xs text-red-400 font-bold">BANEADO</span>}
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setPlan(u.id, 'elite')}
+                      className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:opacity-80"
+                      style={{ background: '#FFD700', color: '#000' }}
+                    >
+                      → Élite
+                    </button>
+                    <button
+                      onClick={() => toggleBan(u)}
+                      className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:opacity-80"
+                      style={{ background: u.banned ? '#166534' : '#7f1d1d', color: '#fff' }}
+                    >
+                      {u.banned ? 'Desbanear' : 'Banear'}
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {filteredUsers.length === 0 && <p className="text-gray-500 text-center py-8">Sin resultados</p>}
+            </div>
+          </div>
+        )}
+ 
+        {/* RESEÑAS */}
+        {tab === 'resenas' && !loading && (
+          <div>
+            <label className="flex items-center gap-2 mb-4 cursor-pointer">
+              <div
+                onClick={() => setOnlyReported(!onlyReported)}
+                className="w-10 h-5 rounded-full transition-all relative"
+                style={{ background: onlyReported ? '#FF8C00' : '#333' }}
+              >
+                <div className="absolute top-0.5 w-4 h-4 bg-white rounded-full transition-all"
+                  style={{ left: onlyReported ? '22px' : '2px' }} />
+              </div>
+              <span className="text-sm text-gray-300">Solo reportadas ({reviews.filter(r => r.reported).length})</span>
+            </label>
+            <div className="space-y-3">
+              {filteredReviews.map(r => (
+                <div key={r.id} className="p-4 rounded-xl" style={{ background: '#0F0F1A', border: `1px solid ${r.reported ? '#7f1d1d' : '#1a1a2e'}` }}>
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <p className="font-semibold text-white">{r.client_name} · {'⭐'.repeat(r.rating)}</p>
+                      <p className="text-gray-300 mt-1 text-sm">"{r.comment}"</p>
+                      {r.reported && <span className="text-xs text-red-400 font-bold mt-1 block">⚠ REPORTADA</span>}
+                    </div>
+                    <div className="flex gap-2 ml-4">
+                      <button onClick={() => approveReview(r.id)}
+                        className="px-3 py-1.5 rounded-lg text-xs font-bold"
+                        style={{ background: '#166534', color: '#4ade80' }}>
+                        ✓ Aprobar
+                      </button>
+                      <button onClick={() => deleteReview(r.id)}
+                        className="px-3 py-1.5 rounded-lg text-xs font-bold"
+                        style={{ background: '#7f1d1d', color: '#f87171' }}>
+                        ✕ Eliminar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {filteredReviews.length === 0 && <p className="text-gray-500 text-center py-8">Sin reseñas {onlyReported ? 'reportadas' : ''}</p>}
+            </div>
+          </div>
+        )}
+ 
+        {/* PARTNERS / ASESORÍAS */}
+        {tab === 'partners' && !loading && (
+          <div className="space-y-3">
+            {partners.map(p => (
+              <div key={p.id} className="p-4 rounded-xl flex items-center justify-between"
+                style={{ background: '#0F0F1A', border: '1px solid #1a1a2e' }}>
+                <div>
+                  <p className="font-semibold text-white">{p.name || p.company_name || '—'}</p>
+                  <p className="text-sm text-gray-400">{p.email}</p>
+                </div>
+                <button
+                  onClick={() => generatePartnerCode(p)}
+                  className="px-4 py-2 rounded-lg text-sm font-bold transition-all hover:opacity-80"
+                  style={{ background: '#FF8C00', color: '#fff' }}
+                >
+                  🔑 Generar Código
+                </button>
+              </div>
+            ))}
+            {partners.length === 0 && <p className="text-gray-500 text-center py-8">No hay asesorías registradas todavía</p>}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+ 
+// ─── FINCAS DASHBOARD ────────────────────────────────────────────────
+function FincasDashboard({ user }: { user: UserRow }) {
+  const [incidents, setIncidents] = useState<FincaIncidentRow[]>([]);
+  const [showForm, setShowForm] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({
+    community_name: '',
+    title: '',
+    description: '',
+    trade_required: '',
+  });
+  const [msg, setMsg] = useState('');
+ 
+  useEffect(() => { loadIncidents(); }, []);
+ 
+  async function loadIncidents() {
+    setLoading(true);
+    const { data } = await db.from('fincas_incidents').select('*').eq('finca_id', user.id).order('created_at', { ascending: false });
+    setIncidents(data || []);
+    setLoading(false);
+  }
+ 
+  async function submitIncident() {
+    if (!form.community_name || !form.title) return;
+    const { error } = await db.from('fincas_incidents').insert({
+      finca_id: user.id,
+      ...form,
+      status: 'pending',
+    });
+    if (!error) {
+      setMsg('Incidencia reportada correctamente');
+      setForm({ community_name: '', title: '', description: '', trade_required: '' });
+      setShowForm(false);
+      loadIncidents();
+    }
+  }
+ 
+  const statusColor = (s: string) => s === 'pending' ? '#FF8C00' : s === 'assigned' ? '#3b82f6' : '#4ade80';
+  const statusLabel = (s: string) => s === 'pending' ? 'Pendiente' : s === 'assigned' ? 'Asignado' : 'Completado';
+ 
+  return (
+    <div className="min-h-screen p-6" style={{ background: '#0A0A0F' }}>
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-white">🏢 Panel de Incidencias</h1>
+            <p className="text-gray-400 text-sm mt-1">Administrador de Fincas · {user.name}</p>
+          </div>
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="px-5 py-2.5 rounded-xl font-bold transition-all hover:opacity-80"
+            style={{ background: '#FFD700', color: '#000' }}
+          >
+            + Reportar Avería
+          </button>
+        </div>
+ 
+        {msg && (
+          <div className="mb-4 p-3 rounded-lg text-sm" style={{ background: '#1a2a1a', color: '#4ade80', border: '1px solid #4ade80' }}>
+            ✓ {msg}
+          </div>
+        )}
+ 
+        {showForm && (
+          <div className="mb-6 p-5 rounded-2xl" style={{ background: '#0F0F1A', border: '1px solid #FFD700' }}>
+            <h3 className="text-lg font-bold text-white mb-4">Nueva Incidencia</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs text-gray-400 mb-1 block">Comunidad *</label>
+                <input value={form.community_name} onChange={e => setForm({ ...form, community_name: e.target.value })}
+                  placeholder="Ej: C/ Betis 12, Sevilla"
+                  className="w-full p-3 rounded-lg text-white text-sm"
+                  style={{ background: '#0A0A0F', border: '1px solid #333', outline: 'none' }} />
+              </div>
+              <div>
+                <label className="text-xs text-gray-400 mb-1 block">Oficio requerido</label>
+                <input value={form.trade_required} onChange={e => setForm({ ...form, trade_required: e.target.value })}
+                  placeholder="Ej: Fontanero, Electricista..."
+                  className="w-full p-3 rounded-lg text-white text-sm"
+                  style={{ background: '#0A0A0F', border: '1px solid #333', outline: 'none' }} />
+              </div>
+              <div className="md:col-span-2">
+                <label className="text-xs text-gray-400 mb-1 block">Título de la avería *</label>
+                <input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })}
+                  placeholder="Ej: Fuga de agua en planta baja"
+                  className="w-full p-3 rounded-lg text-white text-sm"
+                  style={{ background: '#0A0A0F', border: '1px solid #333', outline: 'none' }} />
+              </div>
+              <div className="md:col-span-2">
+                <label className="text-xs text-gray-400 mb-1 block">Descripción</label>
+                <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
+                  placeholder="Descripción detallada del problema..."
+                  rows={3}
+                  className="w-full p-3 rounded-lg text-white text-sm resize-none"
+                  style={{ background: '#0A0A0F', border: '1px solid #333', outline: 'none' }} />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-4">
+              <button onClick={submitIncident}
+                className="px-6 py-2.5 rounded-xl font-bold hover:opacity-80"
+                style={{ background: '#FFD700', color: '#000' }}>
+                Enviar Incidencia
+              </button>
+              <button onClick={() => setShowForm(false)}
+                className="px-6 py-2.5 rounded-xl font-bold"
+                style={{ background: '#1a1a2e', color: '#aaa' }}>
+                Cancelar
+              </button>
+            </div>
+          </div>
+        )}
+ 
+        {loading ? (
+          <p className="text-gray-400 text-center py-8">Cargando incidencias...</p>
+        ) : (
+          <div className="space-y-3">
+            {incidents.map(inc => (
+              <div key={inc.id} className="p-4 rounded-xl" style={{ background: '#0F0F1A', border: '1px solid #1a1a2e' }}>
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-bold px-2 py-0.5 rounded-full"
+                        style={{ background: statusColor(inc.status) + '20', color: statusColor(inc.status) }}>
+                        {statusLabel(inc.status)}
+                      </span>
+                      {inc.trade_required && (
+                        <span className="text-xs text-gray-400">🔧 {inc.trade_required}</span>
+                      )}
+                    </div>
+                    <p className="font-semibold text-white">{inc.title}</p>
+                    <p className="text-sm text-gray-400 mt-0.5">📍 {inc.community_name}</p>
+                    {inc.description && <p className="text-sm text-gray-500 mt-1">{inc.description}</p>}
+                  </div>
+                  <p className="text-xs text-gray-600 ml-4 whitespace-nowrap">
+                    {new Date(inc.created_at).toLocaleDateString('es-ES')}
+                  </p>
+                </div>
+              </div>
+            ))}
+            {incidents.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-4xl mb-3">🏗️</p>
+                <p className="text-gray-500">No hay incidencias. ¡Todo en orden!</p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+ 
+// ─── ASESORÍAS DASHBOARD ────────────────────────────────────────────
+function AsesoriasDashboard({ user }: { user: UserRow }) {
+  const [codeData, setCodeData] = useState<AsesoriaCodeRow | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
+ 
+  useEffect(() => { loadCode(); }, []);
+ 
+  async function loadCode() {
+    const { data } = await db.from('asesorias_codes').select('*').eq('asesoria_id', user.id).single();
+    setCodeData(data || null);
+    setLoading(false);
+  }
+ 
+  function copyCode() {
+    if (codeData?.code) {
+      navigator.clipboard.writeText(codeData.code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  }
+ 
+  const usagePercent = codeData ? Math.min((codeData.uses_count / 50) * 100, 100) : 0;
+ 
+  return (
+    <div className="min-h-screen p-6" style={{ background: '#0A0A0F' }}>
+      <div className="max-w-2xl mx-auto">
+        <h1 className="text-2xl font-bold text-white mb-1">🤝 Panel de Asesoría</h1>
+        <p className="text-gray-400 text-sm mb-8">{user.name || user.company_name}</p>
+ 
+        {loading ? (
+          <p className="text-gray-400">Cargando...</p>
+        ) : codeData ? (
+          <div className="space-y-5">
+            {/* Código */}
+            <div className="p-6 rounded-2xl text-center" style={{ background: '#0F0F1A', border: '2px solid #FFD700' }}>
+              <p className="text-sm text-gray-400 mb-2">Tu código de afiliación exclusivo</p>
+              <p className="text-4xl font-black tracking-widest mb-4" style={{ color: '#FFD700' }}>{codeData.code}</p>
+              <button onClick={copyCode}
+                className="px-6 py-2.5 rounded-xl font-bold transition-all hover:opacity-80"
+                style={{ background: copied ? '#166534' : '#FFD700', color: copied ? '#4ade80' : '#000' }}>
+                {copied ? '✓ ¡Copiado!' : '📋 Copiar código'}
+              </button>
+              <p className="text-xs text-gray-500 mt-3">
+                Plan: <span style={{ color: '#FF8C00' }}>{codeData.plan_to_grant.toUpperCase()}</span> · {codeData.months_duration} mes gratis para tus clientes
+              </p>
+            </div>
+ 
+            {/* Estadísticas */}
+            <div className="p-6 rounded-2xl" style={{ background: '#0F0F1A', border: '1px solid #1a1a2e' }}>
+              <h3 className="font-bold text-white mb-4">📊 Estadísticas de uso</h3>
+              <div className="flex items-end gap-3 mb-3">
+                <p className="text-5xl font-black" style={{ color: '#FFD700' }}>{codeData.uses_count}</p>
+                <p className="text-gray-400 mb-2">autónomos registrados</p>
+              </div>
+              <div className="w-full rounded-full h-2 mb-2" style={{ background: '#1a1a2e' }}>
+                <div className="h-2 rounded-full transition-all" style={{ width: `${usagePercent}%`, background: 'linear-gradient(90deg, #FFD700, #FF8C00)' }} />
+              </div>
+              <p className="text-xs text-gray-500">{codeData.uses_count} de 50 usos · Renovación mensual</p>
+            </div>
+ 
+            {/* Instrucciones */}
+            <div className="p-5 rounded-2xl" style={{ background: '#0F0F1A', border: '1px solid #1a1a2e' }}>
+              <h3 className="font-bold text-white mb-3">💡 Cómo funciona</h3>
+              <div className="space-y-2 text-sm text-gray-400">
+                <p>1. Comparte tu código <strong style={{ color: '#FFD700' }}>{codeData.code}</strong> con tus clientes autónomos</p>
+                <p>2. Al registrarse en OficioYa, introducen tu código en el campo "Código promocional"</p>
+                <p>3. Obtienen <strong style={{ color: '#FF8C00' }}>{codeData.months_duration} mes gratis</strong> en el plan {codeData.plan_to_grant}</p>
+                <p>4. Tú ves en tiempo real cuántos se han registrado aquí</p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="text-center py-12" style={{ background: '#0F0F1A', borderRadius: '1rem', border: '1px dashed #333' }}>
+            <p className="text-4xl mb-3">🔑</p>
+            <p className="text-gray-400 font-semibold">Tu código aún no está generado</p>
+            <p className="text-gray-600 text-sm mt-2">Contacta con el equipo de OficioYa para activar tu cuenta de partner</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+ 
+         
 export default function App(){
 const [user,setUser]=useState<UserRow|null>(null);
 const [ready,setReady]=useState(false);
@@ -2700,6 +3159,9 @@ lbar-thumb{background:#1E1E30;border-radius:99px;}
 {user&&user.type==="profesional"&&<ProDashboard user={user} onLogout={logout}
 onUpdate={update} />}
 {user&&user.type==="cliente"&&<ClientHome user={user} onLogout={logout} />}
+{user && user.type === "admin" && <AdminDashboard />}
+{user && user.type === "fincas" && <FincasDashboard user={user} />}
+{user && user.type === "asesoria" && <AsesoriasDashboard user={user} />}
 </>);
 }
 
