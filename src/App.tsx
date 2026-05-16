@@ -15,7 +15,6 @@ const C = {
 const ZONAS = [
   "Sevilla","Madrid","Barcelona","Valencia","Málaga","Bilbao","Zaragoza","Alicante","Granada","Cádiz","Córdoba","Huelva",
 ];
-// Sevilla neighborhoods for map filtering
 const SEVILLA_ZONAS = [
   "Centro / Casco Antiguo","Triana","Los Remedios","Nervión","La Macarena",
   "San Pablo / Santa Justa","Bellavista / La Palmera","Cerro-Amate","Sur","Este / Alcosa / Torreblanca",
@@ -23,12 +22,10 @@ const SEVILLA_ZONAS = [
   "San Juan de Aznalfarache","Bormujos","Tomares","Gelves","La Rinconada"
 ];
 const OFICIOS = [
-  // Técnicos y servicios
   "Electricista","Fontanero","Pintor","Albañil","Carpintero","Cerrajero","Jardinero",
   "Soldador","Climatización","Reformas Integrales","Instalador Solar","Yesero",
   "Técnico de Gas","Fumigador","Techador","Tapicero","Mecánico","Cocinero","Zapatero",
   "Montador de Estructuras",
-  // Tradición sevillana
   "Ceramista / Alfarero","Bordador de Oro y Seda","Orfebre","Guarnicionero",
   "Costurero/a Flamenca","Lutier","Imaginero / Escultor","Abaniquero",
   "Encuadernador Artesanal","Tallista de Castañuelas","Otros servicios",
@@ -69,27 +66,16 @@ const PLAN_FEATURES:Record<Plan,string[]> = {
   elite:["Todo lo de Pro","⭐ Badge ÉLITE","Anuncios en portada","Top garantizado #1","Gestor reseñas avanzado","Facturación integrada","Soporte 24h","API de integración"],
 };
 
-
-// ─── PLAN FEATURE GATES ───
 const PLAN_GATES = {
-  // Stats visible
   statsLevel: {gratis:0, basico:1, pro:2, elite:3} as Record<Plan,number>,
-  // Contacts per month
   contacts: {gratis:5, basico:20, pro:999, elite:999} as Record<Plan,number>,
-  // Photos allowed
   photos: {gratis:0, basico:5, pro:20, elite:999} as Record<Plan,number>,
-  // Can see ranking
   ranking: {gratis:false, basico:false, pro:true, elite:true} as Record<Plan,boolean>,
-  // Priority in search
   priority: {gratis:0, basico:1, pro:2, elite:3} as Record<Plan,number>,
-  // Chat allowed
   chat: {gratis:false, basico:true, pro:true, elite:true} as Record<Plan,boolean>,
-  // Analytics depth
   analytics: {gratis:"none", basico:"basic", pro:"full", elite:"full"} as Record<Plan,string>,
 };
 
-
-// Upload image to Supabase Storage
 async function uploadImage(file:File, path:string):Promise<string|null>{
   const ext = file.name.split('.').pop();
   const fileName = path+"/"+Date.now()+"."+ext;
@@ -106,7 +92,6 @@ function timeAgo(iso:string){
   if(d<86400) return Math.floor(d/3600)+"h"; return Math.floor(d/86400)+"d";
 }
 
-// ─── UI ATOMS ───
 function Stars({n,size=13,interactive=false,onSet}:{n:number;size?:number;interactive?:boolean;onSet?:(n:number)=>void}){
   return <span style={{fontSize:size,letterSpacing:1,cursor:interactive?"pointer":"default"}}>
     {[1,2,3,4,5].map(i=><span key={i} onClick={()=>interactive&&onSet&&onSet(i)} style={{color:i<=Math.round(n)?C.accent:C.border}}>{i<=Math.round(n)?"★":"☆"}</span>)}
@@ -1261,10 +1246,6 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
 }
 
 // ─── ADMIN ───
-
-// ─── ADMIN DASHBOARD ───
-
-// ─── ADMIN CRM DASHBOARD ───
 function Admin({onLogout}:{onLogout:()=>void}){
   type AdminTab = "overview"|"funnel"|"usuarios"|"registros"|"trabajos"|"mensajes"|"trafico";
   const [tab,setTab]=useState<AdminTab>("overview");
@@ -1275,7 +1256,6 @@ function Admin({onLogout}:{onLogout:()=>void}){
   const [loading,setLoading]=useState(true);
   const [period,setPeriod]=useState<"7d"|"30d"|"90d"|"all">("30d");
 
-  // Filters
   const [filterType,setFilterType]=useState<"all"|"cliente"|"profesional">("all");
   const [filterPlan,setFilterPlan]=useState<"all"|Plan>("all");
   const [filterStatus,setFilterStatus]=useState<"all"|"paying"|"trial"|"expired">("all");
@@ -1285,12 +1265,10 @@ function Admin({onLogout}:{onLogout:()=>void}){
   const [dateFrom,setDateFrom]=useState("");
   const [dateTo,setDateTo]=useState("");
 
-  // Detail panel
   const [selectedUser,setSelectedUser]=useState<UserRow|null>(null);
   const [supportMsg,setSupportMsg]=useState("");
   const [sendingMsg,setSendingMsg]=useState(false);
 
-  // Expanded sections
   const [expandedKpi,setExpandedKpi]=useState<string|null>(null);
 
   useEffect(()=>{
@@ -1311,19 +1289,15 @@ function Admin({onLogout}:{onLogout:()=>void}){
   },[]);
 
   const now = new Date();
-
-  // Period filter
   const periodDays = period==="7d"?7:period==="30d"?30:period==="90d"?90:36500;
   const periodCutoff = new Date(Date.now()-periodDays*86400000);
   const inPeriod = (iso:string) => period==="all"||new Date(iso)>=periodCutoff;
 
-  // User status helpers
   const isPaying = (u:UserRow) => u.type==="profesional"&&u.plan!=="gratis";
   const isTrial = (u:UserRow) => u.type==="profesional"&&u.plan==="gratis"&&new Date(u.trial_end)>now;
   const isExpired = (u:UserRow) => u.type==="profesional"&&u.plan==="gratis"&&new Date(u.trial_end)<=now;
   const trialDays = (u:UserRow) => Math.max(0,Math.ceil((new Date(u.trial_end).getTime()-now.getTime())/86400000));
 
-  // Apply all filters
   const applyFilters = (list:UserRow[]) => list.filter(u=>{
     if(filterType!=="all"&&u.type!==filterType) return false;
     if(filterPlan!=="all"&&u.plan!==filterPlan) return false;
@@ -1345,7 +1319,6 @@ function Admin({onLogout}:{onLogout:()=>void}){
   const expiredUsers = pros.filter(isExpired);
   const mrr = payingUsers.reduce((s,u)=>s+PLAN_PRICES[u.plan as Plan],0);
 
-  // Chart data — registros por día
   const chartData = (()=>{
     const days = period==="all"?30:periodDays;
     const result:Record<string,{users:number;pros:number;clients:number}> = {};
@@ -1362,7 +1335,6 @@ function Admin({onLogout}:{onLogout:()=>void}){
   })();
   const maxBar = Math.max(...chartData.map(d=>d.users),1);
 
-  // Funnel data
   const funnelSteps = [
     {label:"Visitas totales",value:users.length*8+42,desc:"Usuarios que llegaron a la app"},
     {label:"Vieron un profesional",value:users.length*5+20,desc:"Abrieron al menos 1 perfil"},
@@ -1373,7 +1345,6 @@ function Admin({onLogout}:{onLogout:()=>void}){
   ];
   const funnelMax = funnelSteps[0].value||1;
 
-  // Send support message
   const sendSupport = async() => {
     if(!selectedUser||!supportMsg.trim()) return;
     setSendingMsg(true);
@@ -1389,7 +1360,6 @@ function Admin({onLogout}:{onLogout:()=>void}){
   const filteredUsers = applyFilters(users);
   const filteredInPeriod = filteredUsers.filter(u=>inPeriod(u.joined_at));
 
-  // KPI segments for drill-down
   const kpiGroups:Record<string,UserRow[]> = {
     "total":users,
     "pros":pros,
@@ -1446,7 +1416,6 @@ function Admin({onLogout}:{onLogout:()=>void}){
 
       {toastMsg&&<div style={{position:"fixed",bottom:88,left:"50%",transform:"translateX(-50%)",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",color:"#000",borderRadius:10,padding:"10px 20px",fontWeight:700,fontSize:13,zIndex:9999,whiteSpace:"nowrap"}}>{toastMsg}</div>}
 
-      {/* User detail side panel */}
       {selectedUser&&(
         <div style={{position:"fixed",top:52,right:0,width:300,bottom:72,background:"linear-gradient(170deg,#12121E,#0A0A14)",borderLeft:"1px solid "+C.accent+"33",zIndex:90,overflowY:"auto",padding:16,boxShadow:"-8px 0 30px rgba(0,0,0,0.4)"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
@@ -1479,7 +1448,6 @@ function Admin({onLogout}:{onLogout:()=>void}){
               </div>
             ))}
           </div>
-          {/* Ingreso mensual si paga */}
           {isPaying(selectedUser)&&(
             <div style={{padding:"10px",background:C.green+"12",borderRadius:8,border:"1px solid "+C.green+"22",marginBottom:12,textAlign:"center"}}>
               <p style={{fontSize:11,color:C.muted,marginBottom:2}}>Factura mensual</p>
@@ -1487,7 +1455,6 @@ function Admin({onLogout}:{onLogout:()=>void}){
               <p style={{fontSize:10,color:C.muted}}>{(PLAN_PRICES[selectedUser.plan as Plan]*12).toFixed(0)}€/año</p>
             </div>
           )}
-          {/* Send support message */}
           <div>
             <p style={{fontSize:11,color:C.muted,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:6}}>Enviar mensaje de soporte</p>
             <textarea value={supportMsg} onChange={e=>setSupportMsg(e.target.value)} placeholder="Escribe un mensaje al usuario..." style={{width:"100%",background:C.card,border:"1px solid "+C.border,borderRadius:8,color:C.text,fontFamily:"inherit",fontSize:12,padding:"8px 10px",resize:"vertical",minHeight:60,outline:"none",marginBottom:8}} />
@@ -1505,7 +1472,6 @@ function Admin({onLogout}:{onLogout:()=>void}){
               {PERIOD_BTNS}
             </div>
 
-            {/* KPI cards — clickable drill down */}
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(130px,1fr))",gap:8,marginBottom:16}}>
               {[
                 {key:"total",l:"Usuarios",v:users.length,c:C.blue,i:"👥",sub:"total registrados"},
@@ -1526,7 +1492,6 @@ function Admin({onLogout}:{onLogout:()=>void}){
               ))}
             </div>
 
-            {/* Expanded KPI drill-down */}
             {expandedKpi&&expandedKpi!=="mrr"&&expandedKpi!=="conv"&&(
               <GCard style={{marginBottom:14,border:"1px solid "+C.accent+"33"}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
@@ -1540,7 +1505,6 @@ function Admin({onLogout}:{onLogout:()=>void}){
               </GCard>
             )}
 
-            {/* Chart */}
             <GCard style={{marginBottom:14}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
                 <p style={{fontWeight:700,color:C.text,fontSize:13}}>Registros diarios</p>
@@ -1568,7 +1532,6 @@ function Admin({onLogout}:{onLogout:()=>void}){
               </div>
             </GCard>
 
-            {/* Conversion funnel preview */}
             <GCard style={{marginBottom:14}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
                 <p style={{fontWeight:700,color:C.text,fontSize:13}}>Estado profesionales</p>
@@ -1595,7 +1558,6 @@ function Admin({onLogout}:{onLogout:()=>void}){
               </div>
             </GCard>
 
-            {/* Leads fríos acción */}
             {expiredUsers.length>0&&(
               <GCard style={{border:"1px solid "+C.red+"33"}}>
                 <p style={{fontWeight:700,color:C.red,fontSize:13,marginBottom:10}}>⛔ {expiredUsers.length} leads fríos — llama ahora</p>
@@ -1660,7 +1622,6 @@ function Admin({onLogout}:{onLogout:()=>void}){
               {PERIOD_BTNS}
             </div>
 
-            {/* Filters */}
             <GCard style={{marginBottom:12,padding:14}}>
               <p style={{fontWeight:700,color:C.text,fontSize:12,marginBottom:10,textTransform:"uppercase" as const,letterSpacing:"0.06em"}}>Filtros</p>
               <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:10}}>
@@ -1915,8 +1876,6 @@ export default function App(){
   </>);
 }
 
-
-
 // ─── QUICK MATCH MODAL ───
 function QuickMatchModal({workers,onClose,onSelect}:{workers:UserRow[];onClose:()=>void;onSelect:(w:UserRow)=>void}){
   const [step,setStep]=useState(0);
@@ -1934,7 +1893,6 @@ function QuickMatchModal({workers,onClose,onSelect}:{workers:UserRow[];onClose:(
 
   return (
     <Sheet onClose={onClose} title="⚡ Encuentra tu profesional">
-      {/* Progress */}
       <div style={{display:"flex",gap:4,marginBottom:20}}>
         {[0,1,2,3].map(s=><div key={s} style={{flex:1,height:4,borderRadius:99,background:s<=step?C.accent:C.border,transition:"background 0.3s"}} />)}
       </div>
@@ -2020,7 +1978,6 @@ function QuickMatchModal({workers,onClose,onSelect}:{workers:UserRow[];onClose:(
 }
 
 // ─── SEVILLA MAP COMPONENT ───
-
 const PUEBLOS_CERCANOS = [
   {id:"Dos Hermanas",label:"Dos Hermanas",lat:37.296,lng:-5.922},
   {id:"Alcalá de Guadaíra",label:"Alcalá de Guadaíra",lat:37.339,lng:-5.840},
@@ -2039,7 +1996,6 @@ const PUEBLOS_CERCANOS = [
   {id:"Lebrija",label:"Lebrija",lat:36.921,lng:-6.081},
 ];
 
-// REAL GeoJSON coordinates for Sevilla barrios (from OpenStreetMap data)
 const BARRIOS_SEVILLA = [
   {id:"Centro",color:"#FFD700",latlngs:[[37.3961,-5.9953],[37.3958,-5.9916],[37.3944,-5.9873],[37.3921,-5.9836],[37.3896,-5.9823],[37.3872,-5.9829],[37.3854,-5.9851],[37.3851,-5.9883],[37.3862,-5.9921],[37.3886,-5.9952],[37.3916,-5.9967],[37.3944,-5.9965]]},
   {id:"Triana",color:"#FF6B6B",latlngs:[[37.3989,-6.0156],[37.3991,-6.0098],[37.3978,-6.0052],[37.3955,-6.0012],[37.3921,-5.9988],[37.3892,-5.9981],[37.3869,-5.9991],[37.3851,-6.0018],[37.3843,-6.0058],[37.3851,-6.0101],[37.3874,-6.0138],[37.3909,-6.0158],[37.3946,-6.0162],[37.3971,-6.0158]]},
@@ -2063,7 +2019,6 @@ function SevillaMap({selectedZone,onZoneSelect}:{selectedZone:string;onZoneSelec
   const markersRef = useRef<Record<string,L.Marker>>({});
   const [filter,setFilter] = useState<"sevilla"|"pueblos">("sevilla");
 
-  // Init map
   useEffect(()=>{
     if(!mapRef.current||leafletRef.current) return;
     const map = L.map(mapRef.current,{
@@ -2079,7 +2034,6 @@ function SevillaMap({selectedZone,onZoneSelect}:{selectedZone:string;onZoneSelec
       subdomains:"abcd",maxZoom:19,opacity:0.6,
     }).addTo(map);
 
-    // Draw barrios
     BARRIOS_SEVILLA.forEach(b=>{
       const coords = b.latlngs.map(c=>[c[0],c[1]] as L.LatLngTuple);
       const isActive = selectedZone===b.id;
@@ -2094,7 +2048,6 @@ function SevillaMap({selectedZone,onZoneSelect}:{selectedZone:string;onZoneSelec
       poly.on("click",()=>onZoneSelect(selectedZone===b.id?"":b.id));
       polysRef.current[b.id]=poly;
 
-      // Label
       const center = poly.getBounds().getCenter();
       const icon = L.divIcon({
         html:`<span style="color:${isActive?"#fff":b.color};font-size:${isActive?"11px":"9.5px"};font-weight:${isActive?"800":"600"};font-family:'DM Sans',sans-serif;text-shadow:0 1px 4px rgba(0,0,0,0.95);white-space:nowrap;pointer-events:none;${isActive?"background:"+b.color+"44;padding:2px 6px;border-radius:4px;":""}">${b.id}</span>`,
@@ -2103,7 +2056,6 @@ function SevillaMap({selectedZone,onZoneSelect}:{selectedZone:string;onZoneSelec
       markersRef.current[b.id]=L.marker(center,{icon,interactive:false,zIndexOffset:isActive?500:0}).addTo(map);
     });
 
-    // Draw pueblos as dots
     PUEBLOS_CERCANOS.forEach(p=>{
       const isActive = selectedZone===p.id;
       const icon = L.divIcon({
@@ -2116,7 +2068,6 @@ function SevillaMap({selectedZone,onZoneSelect}:{selectedZone:string;onZoneSelec
 
     leafletRef.current=map;
 
-    // Zoom handler — auto switch filter based on zoom
     map.on("zoomend",()=>{
       const z=map.getZoom();
       if(z>=13) setFilter("sevilla");
@@ -2126,7 +2077,6 @@ function SevillaMap({selectedZone,onZoneSelect}:{selectedZone:string;onZoneSelec
     return ()=>{map.remove();leafletRef.current=null;};
   },[]);
 
-  // Update poly styles when selection changes
   useEffect(()=>{
     BARRIOS_SEVILLA.forEach(b=>{
       const poly=polysRef.current[b.id];
@@ -2136,7 +2086,6 @@ function SevillaMap({selectedZone,onZoneSelect}:{selectedZone:string;onZoneSelec
     });
   },[selectedZone]);
 
-  // Pan map when filter changes
   useEffect(()=>{
     const map=leafletRef.current;
     if(!map) return;
@@ -2146,7 +2095,6 @@ function SevillaMap({selectedZone,onZoneSelect}:{selectedZone:string;onZoneSelec
 
   return (
     <div style={{marginBottom:16,borderRadius:16,overflow:"hidden",border:"1px solid "+(selectedZone?C.accent+"55":C.border),background:C.card,boxShadow:"0 8px 32px rgba(0,0,0,0.5)"}}>
-      {/* Header */}
       <div style={{padding:"12px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"linear-gradient(135deg,"+C.card+",#0F0F1A)",borderBottom:"1px solid "+C.border}}>
         <div>
           <p style={{fontSize:13,fontWeight:700,color:C.text}}>🗺️ Selecciona una zona</p>
@@ -2160,12 +2108,9 @@ function SevillaMap({selectedZone,onZoneSelect}:{selectedZone:string;onZoneSelec
         )}
       </div>
 
-      {/* Map */}
       <div ref={mapRef} style={{height:280,width:"100%"}} />
 
-      {/* Filter tabs + pills */}
       <div style={{background:"linear-gradient(180deg,"+C.card+",#0F0F1A)",borderTop:"1px solid "+C.border}}>
-        {/* Sevilla / Pueblos toggle */}
         <div style={{display:"flex",padding:"10px 12px 6px",gap:6}}>
           <button onClick={()=>setFilter("sevilla")} style={{flex:1,padding:"8px",borderRadius:10,border:"1px solid "+(filter==="sevilla"?C.accent:C.border),background:filter==="sevilla"?"linear-gradient(135deg,"+C.accent+"22,"+C.orange+"11)":"transparent",color:filter==="sevilla"?C.accent:C.muted,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12,fontWeight:filter==="sevilla"?700:500,transition:"all 0.2s"}}>
             🏙️ Sevilla capital
@@ -2175,7 +2120,6 @@ function SevillaMap({selectedZone,onZoneSelect}:{selectedZone:string;onZoneSelec
           </button>
         </div>
 
-        {/* Sevilla barrio pills */}
         {filter==="sevilla"&&(
           <div style={{padding:"4px 12px 10px",display:"flex",gap:5,flexWrap:"wrap",maxHeight:75,overflowY:"auto"}}>
             {BARRIOS_SEVILLA.map(b=>{
@@ -2188,7 +2132,6 @@ function SevillaMap({selectedZone,onZoneSelect}:{selectedZone:string;onZoneSelec
           </div>
         )}
 
-        {/* Pueblos pills */}
         {filter==="pueblos"&&(
           <div style={{padding:"4px 12px 10px",display:"flex",gap:5,flexWrap:"wrap",maxHeight:75,overflowY:"auto"}}>
             {PUEBLOS_CERCANOS.map(p=>{
@@ -2240,7 +2183,6 @@ function RankingSection({workers,onSelect}:{workers:UserRow[];onSelect:(w:UserRo
         <p style={{fontSize:13}}>El ranking muestra profesionales con plan Pro o Élite</p>
       </div>}
 
-      {/* Podium top 3 */}
       {eligible.length>=3&&(
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:16,alignItems:"flex-end"}}>
           {[eligible[1],eligible[0],eligible[2]].map((w,i)=>{
@@ -2263,7 +2205,6 @@ function RankingSection({workers,onSelect}:{workers:UserRow[];onSelect:(w:UserRo
         </div>
       )}
 
-      {/* Rest of ranking */}
       <div style={{display:"flex",flexDirection:"column",gap:8}}>
         {eligible.slice(eligible.length>=3?3:0).map((w,i)=>{
           const col=wColor(w.id);
