@@ -316,19 +316,30 @@ function VisitRequestModal({worker,currentUser,onClose,onSuccess}:{worker:UserRo
 
 // ─── AUTH ───
 function Auth({onLogin}:{onLogin:(u:UserRow)=>void}){
-  const [mode,setMode]=useState<"login"|"register">("login");
-  const [step,setStep]=useState(1);
+  const [mode,setMode]=useState<"login"|"pick"|"register_cliente"|"register_pro">("login");
+  const [proStep,setProStep]=useState(1); // 1=datos, 2=oficio+zona, 3=plan
   const [loading,setLoading]=useState(false);
   const [err,setErr]=useState("");
-  const [uType,setUType]=useState<"cliente"|"profesional">("cliente");
-  const [name,setName]=useState(""); const [email,setEmail]=useState(""); const [phone,setPhone]=useState("");
-  const [pass,setPass]=useState(""); const [trade,setTrade]=useState(OFICIOS[0]); const [zone,setZone]=useState(ZONAS[0]);
+  // shared fields
+  const [name,setName]=useState("");
+  const [email,setEmail]=useState("");
+  const [phone,setPhone]=useState("");
+  const [pass,setPass]=useState("");
+  // pro-only fields
+  const [trade,setTrade]=useState(OFICIOS[0]);
+  const [zone,setZone]=useState(ZONAS[0]);
   const [plan,setPlan]=useState<Plan>("gratis");
+  const [showPlanDetail,setShowPlanDetail]=useState<Plan|null>(null);
+
+  const resetForm=()=>{
+    setName("");setEmail("");setPhone("");setPass("");
+    setTrade(OFICIOS[0]);setZone(ZONAS[0]);setPlan("gratis");
+    setErr("");setProStep(1);
+  };
 
   const login=async()=>{
     if(!email||!pass){setErr("Introduce email y contraseña.");return;}
     setLoading(true);setErr("");
-    // Check admin
     if(email.toLowerCase()==="andresalgora9@gmail.com"&&pass==="Oficiooficio9"){
       const adminUser:UserRow={
         id:"admin-001",name:"Andrés Admin",email:"andresalgora9@gmail.com",
@@ -350,111 +361,298 @@ function Auth({onLogin}:{onLogin:(u:UserRow)=>void}){
     onLogin(data as UserRow);
   };
 
-  const register=async()=>{
-    if(!name||!email||!phone||!pass){setErr("Rellena todos los campos.");return;}
+  const registerCliente=async()=>{
+    if(!name||!email||!pass){setErr("Nombre, email y contraseña son obligatorios.");return;}
     if(pass.length<6){setErr("Mínimo 6 caracteres en la contraseña.");return;}
     setLoading(true);setErr("");
     const {data:ex}=await db.from("users").select("id").eq("email",email.toLowerCase()).maybeSingle();
     if(ex){setLoading(false);setErr("Ya existe una cuenta con ese email.");return;}
-    const trial_end=new Date(Date.now()+30*86400000).toISOString().split("T")[0];
-    const {data,error}=await db.from("users").insert({name,email:email.toLowerCase(),phone,password:pass,type:uType,plan,trade:uType==="profesional"?trade:null,zone:uType==="profesional"?zone:null,bio:"",price:30,available:true,verified:false,jobs:0,rating:0,reviews:0,trial_end,service_zones:[],schedule:"Lunes a Viernes",response_time:"24h",free_quote:true,experience_years:0,specialties:[],whatsapp:phone}).select().single();
+    const trial_end=new Date(Date.now()+365*86400000).toISOString().split("T")[0];
+    const {data,error}=await db.from("users").insert({
+      name,email:email.toLowerCase(),phone:phone||"",password:pass,
+      type:"cliente",plan:"gratis",trade:null,zone:null,bio:"",price:0,
+      available:true,verified:false,jobs:0,rating:0,reviews:0,trial_end,
+      service_zones:[],schedule:"",response_time:"",free_quote:false,
+      experience_years:0,specialties:[],whatsapp:phone||"",
+    }).select().single();
     setLoading(false);
     if(error||!data){setErr("Error creando cuenta. Inténtalo de nuevo.");return;}
     localStorage.setItem("oy_user",JSON.stringify(data));
     onLogin(data as UserRow);
   };
 
-  return (
-    <div style={{minHeight:"100dvh",background:C.bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px 20px",backgroundImage:"radial-gradient(ellipse at 20% 0%,#2a0a5a22,transparent 55%),radial-gradient(ellipse at 80% 100%,#0a2a4a22,transparent 55%)"}}>
-      <div style={{width:"100%",maxWidth:400}}>
-        <div style={{textAlign:"center",marginBottom:28}}>
-          <div style={{width:54,height:54,borderRadius:16,background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,margin:"0 auto 12px",boxShadow:"0 8px 28px "+C.accent+"44"}}>🔨</div>
-          <h1 style={{fontWeight:900,fontSize:28,letterSpacing:"-0.03em",marginBottom:4}}><span style={{color:C.text}}>Oficio</span><span style={{color:C.accent}}>Ya</span></h1>
-          <p style={{fontSize:13,color:C.muted}}>Profesionales verificados en tu zona · Sevilla</p>
+  const registerPro=async()=>{
+    if(!name||!email||!phone||!pass){setErr("Rellena todos los campos.");return;}
+    if(pass.length<6){setErr("Mínimo 6 caracteres en la contraseña.");return;}
+    setLoading(true);setErr("");
+    const {data:ex}=await db.from("users").select("id").eq("email",email.toLowerCase()).maybeSingle();
+    if(ex){setLoading(false);setErr("Ya existe una cuenta con ese email.");return;}
+    // Elite: 30 days free, others: 30 days trial
+    const trialDays = plan==="elite"?30:30;
+    const trial_end=new Date(Date.now()+trialDays*86400000).toISOString().split("T")[0];
+    const {data,error}=await db.from("users").insert({
+      name,email:email.toLowerCase(),phone,password:pass,
+      type:"profesional",plan,trade,zone,bio:"",price:30,
+      available:true,verified:false,jobs:0,rating:0,reviews:0,trial_end,
+      service_zones:[zone],schedule:"Lunes a Viernes",response_time:"24h",
+      free_quote:true,experience_years:0,specialties:[],whatsapp:phone,
+    }).select().single();
+    setLoading(false);
+    if(error||!data){setErr("Error creando cuenta. Inténtalo de nuevo.");return;}
+    localStorage.setItem("oy_user",JSON.stringify(data));
+    onLogin(data as UserRow);
+  };
+
+  // Plan detail modal
+  const PlanDetailModal=({pl,onClose}:{pl:Plan;onClose:()=>void})=>{
+    const col=PLAN_COLORS[pl];
+    return <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(4,4,12,0.9)",zIndex:600,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+      <div onClick={e=>e.stopPropagation()} style={{background:"linear-gradient(170deg,#14141F,#0A0A14)",borderRadius:16,width:"100%",maxWidth:360,border:"2px solid "+col+"44",padding:24,boxShadow:"0 0 40px "+col+"22"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+          <div>
+            <p style={{fontWeight:900,fontSize:22,color:col}}>{pl.toUpperCase()}</p>
+            <p style={{fontSize:18,fontWeight:800,color:C.text}}>{PLAN_PRICES[pl]===0?"GRATIS":PLAN_PRICES[pl]+"€/mes"}</p>
+          </div>
+          {pl==="elite"&&<div style={{background:"linear-gradient(135deg,"+C.orange+","+C.red+")",borderRadius:10,padding:"8px 12px",textAlign:"center"}}>
+            <p style={{fontSize:9,color:"#fff",fontWeight:700,textTransform:"uppercase" as const}}>1er mes</p>
+            <p style={{fontSize:18,fontWeight:900,color:"#fff"}}>GRATIS</p>
+          </div>}
+          {pl==="pro"&&<div style={{background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",borderRadius:10,padding:"8px 12px",textAlign:"center"}}>
+            <p style={{fontSize:9,color:"#000",fontWeight:700,textTransform:"uppercase" as const}}>Más popular</p>
+            <p style={{fontSize:12,fontWeight:900,color:"#000"}}>⭐ Recomendado</p>
+          </div>}
         </div>
-        <div style={{display:"flex",background:C.card,borderRadius:10,padding:4,border:"1px solid "+C.border,marginBottom:18}}>
-          {(["login","register"] as const).map(m=>(
-            <button key={m} onClick={()=>{setMode(m);setErr("");setStep(1);}} style={{flex:1,padding:"9px",borderRadius:8,border:"none",background:mode===m?"linear-gradient(135deg,"+C.accent+","+C.orange+")":"transparent",color:mode===m?"#000":C.muted,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,cursor:"pointer",transition:"all 0.2s"}}>
-              {m==="login"?"Iniciar sesión":"Crear cuenta"}
-            </button>
+        <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:18}}>
+          {PLAN_FEATURES[pl].map(f=>(
+            <div key={f} style={{display:"flex",gap:8,alignItems:"center"}}>
+              <span style={{color:col,fontSize:13,flexShrink:0}}>✓</span>
+              <span style={{fontSize:13,color:C.text}}>{f}</span>
+            </div>
           ))}
         </div>
-        <GCard>
-          {err&&<div style={{color:C.red,fontSize:13,marginBottom:12,padding:"10px 12px",background:C.red+"15",borderRadius:8,border:"1px solid "+C.red+"33"}}>{err}</div>}
-          {mode==="login"&&(<>
+        <Btn full onClick={()=>{setPlan(pl);onClose();}} color={col}>
+          Elegir {pl.toUpperCase()} {pl==="elite"?"— 1er mes gratis →":"→"}
+        </Btn>
+      </div>
+    </div>;
+  };
+
+  const Logo=()=>(
+    <div style={{textAlign:"center",marginBottom:24}}>
+      <div style={{width:52,height:52,borderRadius:16,background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,margin:"0 auto 10px",boxShadow:"0 8px 28px "+C.accent+"44"}}>🔨</div>
+      <h1 style={{fontWeight:900,fontSize:26,letterSpacing:"-0.03em",marginBottom:3}}><span style={{color:C.text}}>Oficio</span><span style={{color:C.accent}}>Ya</span></h1>
+      <p style={{fontSize:12,color:C.muted}}>Profesionales verificados en tu zona · Sevilla</p>
+    </div>
+  );
+
+  return (
+    <div style={{minHeight:"100dvh",background:C.bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px 20px",backgroundImage:"radial-gradient(ellipse at 20% 0%,#2a0a5a22,transparent 55%),radial-gradient(ellipse at 80% 100%,#0a2a4a22,transparent 55%)",overflowY:"auto"}}>
+      {showPlanDetail&&<PlanDetailModal pl={showPlanDetail} onClose={()=>setShowPlanDetail(null)} />}
+      <div style={{width:"100%",maxWidth:420}}>
+        <Logo />
+
+        {/* ─── LOGIN ─── */}
+        {mode==="login"&&(
+          <GCard>
+            <p style={{fontWeight:800,fontSize:17,color:C.text,marginBottom:16,textAlign:"center"}}>Bienvenido de nuevo</p>
+            {err&&<div style={{color:C.red,fontSize:13,marginBottom:12,padding:"10px 12px",background:C.red+"15",borderRadius:8,border:"1px solid "+C.red+"33"}}>{err}</div>}
             <Inp label="Email" value={email} onChange={setEmail} type="email" placeholder="tu@email.com" />
             <Inp label="Contraseña" value={pass} onChange={setPass} type="password" placeholder="••••••••" />
             <Btn full disabled={loading} onClick={login}>{loading?"Entrando...":"Entrar →"}</Btn>
-          </>)}
-          {mode==="register"&&(<>
-            <div style={{display:"flex",gap:4,marginBottom:16,justifyContent:"center"}}>
-              {[1,2,3].map(s=><div key={s} style={{width:s===step?24:7,height:7,borderRadius:99,background:s===step?C.accent:s<step?C.green:C.border,transition:"all 0.3s"}} />)}
+            <div style={{textAlign:"center",marginTop:16}}>
+              <p style={{fontSize:13,color:C.muted}}>¿No tienes cuenta? <button onClick={()=>{setMode("pick");resetForm();}} style={{background:"none",border:"none",color:C.accent,cursor:"pointer",fontSize:13,fontWeight:700}}>Regístrate gratis</button></p>
             </div>
-            {step===1&&(<>
-              <p style={{fontWeight:700,color:C.text,marginBottom:12,fontSize:14}}>¿Cómo vas a usar OfficioYa?</p>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16}}>
-                {(["cliente","profesional"] as const).map(t=>(
-                  <div key={t} onClick={()=>setUType(t)} style={{padding:"16px 10px",borderRadius:12,border:"2px solid "+(uType===t?C.accent:C.border),background:uType===t?C.accent+"15":C.surface,cursor:"pointer",textAlign:"center",transition:"all 0.15s"}}>
-                    <div style={{fontSize:24,marginBottom:6}}>{t==="cliente"?"🏠":"🔨"}</div>
-                    <div style={{fontWeight:700,fontSize:13,color:uType===t?C.accent:C.text}}>{t==="cliente"?"Soy cliente":"Soy profesional"}</div>
-                    <div style={{fontSize:11,color:C.muted,marginTop:3}}>{t==="cliente"?"Busco profesionales":"Ofrezco servicios"}</div>
+          </GCard>
+        )}
+
+        {/* ─── PICK TYPE ─── */}
+        {mode==="pick"&&(
+          <div>
+            <p style={{fontWeight:800,fontSize:18,color:C.text,marginBottom:6,textAlign:"center"}}>¿Cómo quieres usar OfficioYa?</p>
+            <p style={{fontSize:13,color:C.muted,marginBottom:20,textAlign:"center"}}>Es gratis registrarse. Elige cómo quieres continuar:</p>
+            <div style={{display:"flex",flexDirection:"column",gap:12,marginBottom:20}}>
+              {/* CLIENTE */}
+              <div onClick={()=>setMode("register_cliente")} style={{padding:"20px 18px",borderRadius:14,border:"2px solid "+C.blue+"44",background:"linear-gradient(135deg,"+C.blue+"12,"+C.surface+")",cursor:"pointer",transition:"all 0.15s",position:"relative",overflow:"hidden"}}>
+                <div style={{position:"absolute",top:-10,right:-10,width:60,height:60,borderRadius:"50%",background:C.blue+"12",pointerEvents:"none"}} />
+                <div style={{display:"flex",gap:14,alignItems:"center"}}>
+                  <div style={{width:48,height:48,borderRadius:12,background:C.blue+"22",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,flexShrink:0}}>🏠</div>
+                  <div>
+                    <p style={{fontWeight:800,fontSize:15,color:C.text,marginBottom:3}}>Soy cliente</p>
+                    <p style={{fontSize:12,color:C.muted}}>Busco profesionales para mis trabajos</p>
+                    <div style={{display:"flex",gap:6,marginTop:6,flexWrap:"wrap"}}>
+                      {["Gratis","Sin límites","Acceso inmediato"].map(b=><span key={b} style={{fontSize:10,color:C.green,background:C.green+"15",padding:"2px 7px",borderRadius:99,fontWeight:600}}>✓ {b}</span>)}
+                    </div>
                   </div>
+                  <span style={{marginLeft:"auto",fontSize:18,color:C.blue,flexShrink:0}}>→</span>
+                </div>
+              </div>
+              {/* PROFESIONAL */}
+              <div onClick={()=>setMode("register_pro")} style={{padding:"20px 18px",borderRadius:14,border:"2px solid "+C.accent+"44",background:"linear-gradient(135deg,"+C.accent+"12,"+C.surface+")",cursor:"pointer",transition:"all 0.15s",position:"relative",overflow:"hidden"}}>
+                <div style={{position:"absolute",top:-10,right:-10,width:60,height:60,borderRadius:"50%",background:C.accent+"12",pointerEvents:"none"}} />
+                <div style={{display:"flex",gap:14,alignItems:"center"}}>
+                  <div style={{width:48,height:48,borderRadius:12,background:C.accent+"22",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,flexShrink:0}}>🔨</div>
+                  <div>
+                    <p style={{fontWeight:800,fontSize:15,color:C.text,marginBottom:3}}>Soy profesional</p>
+                    <p style={{fontSize:12,color:C.muted}}>Ofrezco mis servicios y capto clientes</p>
+                    <div style={{display:"flex",gap:6,marginTop:6,flexWrap:"wrap"}}>
+                      {["30 días gratis","Perfil público","Panel de gestión"].map(b=><span key={b} style={{fontSize:10,color:C.accent,background:C.accent+"15",padding:"2px 7px",borderRadius:99,fontWeight:600}}>✓ {b}</span>)}
+                    </div>
+                  </div>
+                  <span style={{marginLeft:"auto",fontSize:18,color:C.accent,flexShrink:0}}>→</span>
+                </div>
+              </div>
+            </div>
+            <p style={{textAlign:"center",fontSize:13,color:C.muted}}>¿Ya tienes cuenta? <button onClick={()=>setMode("login")} style={{background:"none",border:"none",color:C.accent,cursor:"pointer",fontSize:13,fontWeight:700}}>Inicia sesión</button></p>
+          </div>
+        )}
+
+        {/* ─── REGISTER CLIENTE ─── */}
+        {mode==="register_cliente"&&(
+          <GCard>
+            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
+              <button onClick={()=>setMode("pick")} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:18,padding:0}}>←</button>
+              <p style={{fontWeight:800,fontSize:16,color:C.text}}>Crear cuenta de cliente</p>
+              <span style={{marginLeft:"auto",fontSize:10,color:C.green,background:C.green+"15",padding:"3px 8px",borderRadius:99,fontWeight:700}}>100% Gratis</span>
+            </div>
+            {err&&<div style={{color:C.red,fontSize:13,marginBottom:12,padding:"10px 12px",background:C.red+"15",borderRadius:8,border:"1px solid "+C.red+"33"}}>{err}</div>}
+            <Inp label="Nombre completo *" value={name} onChange={setName} placeholder="Tu nombre" required />
+            <Inp label="Email *" value={email} onChange={setEmail} type="email" placeholder="tu@email.com" required />
+            <Inp label="Teléfono (opcional)" value={phone} onChange={setPhone} placeholder="+34 600 000 000" />
+            <Inp label="Contraseña *" value={pass} onChange={setPass} type="password" placeholder="Mínimo 6 caracteres" required />
+            <div style={{background:C.green+"10",border:"1px solid "+C.green+"22",borderRadius:8,padding:"10px 12px",marginBottom:14}}>
+              <p style={{fontSize:12,color:C.green,fontWeight:600}}>✓ El registro es completamente gratuito · Sin tarjeta · Sin compromisos</p>
+            </div>
+            <Btn full disabled={loading} onClick={registerCliente}>{loading?"Creando tu cuenta...":"Crear cuenta gratis →"}</Btn>
+          </GCard>
+        )}
+
+        {/* ─── REGISTER PROFESIONAL ─── */}
+        {mode==="register_pro"&&(
+          <GCard style={{padding:20}}>
+            {/* Steps */}
+            <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:20}}>
+              <button onClick={()=>{if(proStep===1)setMode("pick");else setProStep(p=>p-1);}} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:18,padding:0,flexShrink:0}}>←</button>
+              <div style={{flex:1,display:"flex",gap:4}}>
+                {[1,2,3].map(s=>(
+                  <div key={s} style={{flex:1,height:4,borderRadius:99,background:s<=proStep?"linear-gradient(90deg,"+C.accent+","+C.orange+")":C.border,transition:"background 0.3s"}} />
                 ))}
               </div>
-              <Btn full onClick={()=>setStep(2)}>Siguiente →</Btn>
+              <span style={{fontSize:10,color:C.muted,flexShrink:0,fontWeight:600}}>Paso {proStep}/3</span>
+            </div>
+
+            {err&&<div style={{color:C.red,fontSize:13,marginBottom:12,padding:"10px 12px",background:C.red+"15",borderRadius:8,border:"1px solid "+C.red+"33"}}>{err}</div>}
+
+            {/* PASO 1 — Datos personales */}
+            {proStep===1&&(<>
+              <p style={{fontWeight:800,fontSize:16,color:C.text,marginBottom:4}}>Tus datos</p>
+              <p style={{fontSize:12,color:C.muted,marginBottom:16}}>Solo te llevará 1 minuto</p>
+              <Inp label="Nombre completo *" value={name} onChange={setName} placeholder="Ej: Juan García" required />
+              <Inp label="Email *" value={email} onChange={setEmail} type="email" placeholder="tu@email.com" required />
+              <Inp label="Teléfono / WhatsApp *" value={phone} onChange={setPhone} placeholder="+34 600 000 000" required />
+              <Inp label="Contraseña *" value={pass} onChange={setPass} type="password" placeholder="Mínimo 6 caracteres" required />
+              <Btn full onClick={()=>{
+                if(!name||!email||!phone||!pass){setErr("Rellena todos los campos.");return;}
+                if(pass.length<6){setErr("Mínimo 6 caracteres.");return;}
+                setErr("");setProStep(2);
+              }}>Continuar →</Btn>
             </>)}
-            {step===2&&(<>
-              <p style={{fontWeight:700,color:C.text,marginBottom:12,fontSize:14}}>Tus datos</p>
-              <Inp label="Nombre completo" value={name} onChange={setName} placeholder="Tu nombre" required />
-              <Inp label="Email" value={email} onChange={setEmail} type="email" placeholder="tu@email.com" required />
-              <Inp label="Teléfono / WhatsApp" value={phone} onChange={setPhone} placeholder="+34 600 000 000" required />
-              <Inp label="Contraseña" value={pass} onChange={setPass} type="password" placeholder="Mínimo 6 caracteres" required />
-              {uType==="profesional"&&<>
-                <div style={{marginBottom:14}}>
-                  <p style={{fontSize:11,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.08em",marginBottom:8,fontWeight:700}}>Tu oficio</p>
-                  <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
-                    {OFICIOS.map(o=><button key={o} onClick={()=>setTrade(o)} style={{padding:"6px 12px",borderRadius:99,border:"1px solid "+(trade===o?C.accent:C.border),background:trade===o?C.accent+"22":"transparent",color:trade===o?C.accent:C.muted,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:trade===o?700:400,transition:"all 0.15s"}}>{OFICIO_ICONS[o]} {o}</button>)}
-                  </div>
+
+            {/* PASO 2 — Oficio y zona */}
+            {proStep===2&&(<>
+              <p style={{fontWeight:800,fontSize:16,color:C.text,marginBottom:4}}>Tu oficio y zona</p>
+              <p style={{fontSize:12,color:C.muted,marginBottom:16}}>Así te encontrarán tus clientes</p>
+              <div style={{marginBottom:14}}>
+                <p style={{fontSize:11,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.08em",marginBottom:8,fontWeight:700}}>Tu oficio *</p>
+                <div style={{display:"flex",flexWrap:"wrap",gap:6,maxHeight:180,overflowY:"auto",paddingRight:4}}>
+                  {OFICIOS.map(o=>(
+                    <button key={o} onClick={()=>setTrade(o)} style={{padding:"6px 12px",borderRadius:99,border:"1px solid "+(trade===o?C.accent:C.border),background:trade===o?C.accent+"22":"transparent",color:trade===o?C.accent:C.muted,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:trade===o?700:400,transition:"all 0.15s",flexShrink:0}}>
+                      {OFICIO_ICONS[o]} {o}
+                    </button>
+                  ))}
                 </div>
-                <div style={{marginBottom:14}}>
-                  <p style={{fontSize:11,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.08em",marginBottom:8,fontWeight:700}}>Ciudad principal</p>
-                  <select value={zone} onChange={e=>setZone(e.target.value)} style={{width:"100%",background:C.card,border:"1px solid "+C.border,borderRadius:8,padding:"11px 14px",color:C.text,fontFamily:"'DM Sans',sans-serif",fontSize:14,outline:"none",cursor:"pointer"}}>
-                    {ZONAS.map(z=><option key={z} style={{background:C.card}}>{z}</option>)}
-                  </select>
-                </div>
-              </>}
-              <div style={{display:"flex",gap:8}}>
-                <Btn outline small onClick={()=>setStep(1)} color={C.muted}>← Atrás</Btn>
-                <div style={{flex:1}}><Btn full onClick={()=>{if(!name||!email||!phone||!pass){setErr("Rellena todos los campos.");return;}setErr("");setStep(3);}}>Siguiente →</Btn></div>
               </div>
+              <div style={{marginBottom:14}}>
+                <p style={{fontSize:11,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.08em",marginBottom:8,fontWeight:700}}>Ciudad principal *</p>
+                <select value={zone} onChange={e=>setZone(e.target.value)} style={{width:"100%",background:C.surface,border:"1px solid "+C.border,borderRadius:8,padding:"11px 14px",color:C.text,fontFamily:"'DM Sans',sans-serif",fontSize:14,outline:"none",cursor:"pointer"}}>
+                  {ZONAS.map(z=><option key={z} style={{background:C.card}}>{z}</option>)}
+                </select>
+              </div>
+              <Btn full onClick={()=>{setErr("");setProStep(3);}}>Elegir plan →</Btn>
             </>)}
-            {step===3&&(<>
-              <p style={{fontWeight:700,color:C.text,marginBottom:4,fontSize:14}}>Elige tu plan</p>
-              <p style={{fontSize:12,color:C.muted,marginBottom:14}}>30 días gratis · Sin tarjeta · Cancela cuando quieras</p>
-              <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:14}}>
-                {(uType==="profesional"?["gratis","basico","pro","elite"]:["gratis"] as Plan[]).map(p=>{
-                  const pl=p as Plan;const col=PLAN_COLORS[pl];
-                  return <div key={pl} onClick={()=>setPlan(pl)} style={{padding:"12px 14px",borderRadius:10,border:"2px solid "+(plan===pl?col:C.border),background:plan===pl?col+"12":C.surface,cursor:"pointer",transition:"all 0.15s",position:"relative"}}>
-                    {pl==="pro"&&<span style={{position:"absolute",top:-9,right:10,background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",color:"#000",borderRadius:99,padding:"1px 9px",fontSize:8,fontWeight:900}}>POPULAR</span>}
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
-                      <span style={{fontWeight:800,fontSize:14,color:col}}>{pl.toUpperCase()}</span>
-                      <span style={{fontWeight:700,fontSize:15,color:C.text}}>{PLAN_PRICES[pl]===0?"GRATIS":PLAN_PRICES[pl]+"€/mes"}</span>
+
+            {/* PASO 3 — Plan */}
+            {proStep===3&&(<>
+              <p style={{fontWeight:800,fontSize:16,color:C.text,marginBottom:2}}>Elige tu plan</p>
+              <p style={{fontSize:12,color:C.muted,marginBottom:16}}>Empieza gratis · Sin tarjeta · Cancela cuando quieras</p>
+
+              {/* Elite highlight banner */}
+              <div style={{background:"linear-gradient(135deg,"+C.orange+"22,"+C.red+"15)",borderRadius:12,border:"2px solid "+C.orange+"44",padding:"12px 14px",marginBottom:14,position:"relative",overflow:"hidden"}}>
+                <div style={{position:"absolute",top:-8,right:-8,width:40,height:40,borderRadius:"50%",background:C.orange+"22",pointerEvents:"none"}} />
+                <div style={{display:"flex",alignItems:"center",gap:10}}>
+                  <span style={{fontSize:22}}>⭐</span>
+                  <div style={{flex:1}}>
+                    <p style={{fontWeight:800,color:C.orange,fontSize:13}}>Plan ÉLITE — 1er mes GRATIS</p>
+                    <p style={{fontSize:11,color:C.mutedL}}>El más completo · Cancela antes del día 30 si no te convence</p>
+                  </div>
+                  <button onClick={()=>setShowPlanDetail("elite")} style={{background:"none",border:"1px solid "+C.orange+"44",borderRadius:6,color:C.orange,cursor:"pointer",fontSize:10,padding:"4px 8px",fontFamily:"'DM Sans',sans-serif",fontWeight:700,flexShrink:0}}>Ver →</button>
+                </div>
+              </div>
+
+              <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:16}}>
+                {(["gratis","basico","pro","elite"] as Plan[]).map(pl=>{
+                  const col=PLAN_COLORS[pl];
+                  const isSelected=plan===pl;
+                  return (
+                    <div key={pl} onClick={()=>setPlan(pl)} style={{padding:"12px 14px",borderRadius:12,border:"2px solid "+(isSelected?col:C.border),background:isSelected?col+"15":C.surface,cursor:"pointer",transition:"all 0.15s",position:"relative"}}>
+                      {pl==="elite"&&<span style={{position:"absolute",top:-9,left:12,background:"linear-gradient(135deg,"+C.orange+","+C.red+")",color:"#fff",borderRadius:99,padding:"1px 9px",fontSize:8,fontWeight:900}}>1 MES GRATIS</span>}
+                      {pl==="pro"&&<span style={{position:"absolute",top:-9,right:12,background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",color:"#000",borderRadius:99,padding:"1px 9px",fontSize:8,fontWeight:900}}>MÁS POPULAR</span>}
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}}>
+                        <div style={{display:"flex",gap:7,alignItems:"center"}}>
+                          {isSelected&&<span style={{width:8,height:8,borderRadius:"50%",background:col,display:"inline-block"}} />}
+                          <span style={{fontWeight:800,fontSize:14,color:col}}>{pl.toUpperCase()}</span>
+                        </div>
+                        <div style={{textAlign:"right"}}>
+                          {pl==="elite"&&<p style={{fontSize:9,color:C.mutedL,textDecoration:"line-through"}}>{PLAN_PRICES[pl]}€</p>}
+                          <span style={{fontWeight:800,fontSize:15,color:pl==="elite"?C.orange:C.text}}>
+                            {PLAN_PRICES[pl]===0?"GRATIS":pl==="elite"?"0€ 1er mes":PLAN_PRICES[pl]+"€/mes"}
+                          </span>
+                        </div>
+                      </div>
+                      <div style={{display:"flex",flexWrap:"wrap",gap:4,marginBottom:5}}>
+                        {PLAN_FEATURES[pl].slice(0,3).map(f=><span key={f} style={{fontSize:10,color:isSelected?col:C.mutedL}}>✓ {f}</span>)}
+                        {PLAN_FEATURES[pl].length>3&&<span style={{fontSize:10,color:col}}>+{PLAN_FEATURES[pl].length-3} más</span>}
+                      </div>
+                      <button onClick={e=>{e.stopPropagation();setShowPlanDetail(pl);}} style={{background:"none",border:"none",color:isSelected?col:C.muted,cursor:"pointer",fontSize:10,padding:0,fontFamily:"'DM Sans',sans-serif",fontWeight:600,textDecoration:"underline"}}>
+                        Ver todo lo incluido →
+                      </button>
                     </div>
-                    <div style={{display:"flex",flexWrap:"wrap",gap:3}}>
-                      {PLAN_FEATURES[pl].slice(0,3).map(f=><span key={f} style={{fontSize:10,color:C.mutedL}}>✓ {f}</span>)}
-                      {PLAN_FEATURES[pl].length>3&&<span style={{fontSize:10,color:col}}>+{PLAN_FEATURES[pl].length-3} más</span>}
-                    </div>
-                  </div>;
+                  );
                 })}
               </div>
-              <div style={{display:"flex",gap:8}}>
-                <Btn outline small onClick={()=>setStep(2)} color={C.muted}>← Atrás</Btn>
-                <div style={{flex:1}}><Btn full disabled={loading} onClick={register}>{loading?"Creando cuenta...":"Crear cuenta →"}</Btn></div>
-              </div>
+
+              {plan==="elite"&&(
+                <div style={{background:C.orange+"12",border:"1px solid "+C.orange+"33",borderRadius:8,padding:"10px 12px",marginBottom:14}}>
+                  <p style={{fontSize:12,color:C.orange,fontWeight:700}}>⭐ Has elegido ÉLITE — tu primer mes es completamente gratis</p>
+                  <p style={{fontSize:11,color:C.mutedL,marginTop:3}}>Cancela antes del día 30 y no se te cobrará nada</p>
+                </div>
+              )}
+              {plan==="pro"&&(
+                <div style={{background:C.accent+"12",border:"1px solid "+C.accent+"33",borderRadius:8,padding:"10px 12px",marginBottom:14}}>
+                  <p style={{fontSize:12,color:C.accent,fontWeight:700}}>✓ Has elegido PRO — contactos ilimitados y primero en búsquedas</p>
+                </div>
+              )}
+              {plan==="gratis"&&(
+                <div style={{background:C.surface,border:"1px solid "+C.border,borderRadius:8,padding:"10px 12px",marginBottom:14}}>
+                  <p style={{fontSize:12,color:C.muted}}>Plan gratis · 5 contactos/mes · Puedes mejorar en cualquier momento</p>
+                </div>
+              )}
+
+              <Btn full disabled={loading} onClick={registerPro}>{loading?"Creando tu perfil...":"Crear perfil profesional →"}</Btn>
             </>)}
-          </>)}
-        </GCard>
-        <p style={{textAlign:"center",fontSize:11,color:C.muted,marginTop:14}}>Al continuar aceptas los Términos de Uso y la Política de Privacidad</p>
+          </GCard>
+        )}
+
+        <p style={{textAlign:"center",fontSize:11,color:C.muted,marginTop:14}}>Al continuar aceptas los <span style={{color:C.accent,cursor:"pointer"}}>Términos de Uso</span> y la <span style={{color:C.accent,cursor:"pointer"}}>Política de Privacidad</span></p>
       </div>
     </div>
   );
