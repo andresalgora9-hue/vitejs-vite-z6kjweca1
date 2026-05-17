@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { db, STORAGE_URL } from "./supabase";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
 import type { UserRow, MessageRow, JobRow, CertRow, Plan, PhotoRow } from "./supabase";
 
 const C = {
@@ -23,28 +21,19 @@ const SEVILLA_ZONAS = [
 ];
 
 const OFICIOS = [
-  // ⚡ Urgencias técnicas
   "Electricista","Fontanero","Cerrajero","Desatascos y Camión Cuba","Técnico de Gas","Climatización",
-  // 🏗️ Obras y reformas
   "Albañil","Pintor","Carpintero","Reformas Integrales","Soldador","Instalador Solar",
   "Yesero","Techador","Montador de Pladur","Parquetista / Pulidor de Suelos","Cristalero",
-  // 🏠 Hogar y día a día
   "Manitas a Domicilio","Jardinero","Fumigador","Tapicero","Mecánico",
   "Mudanzas y Portes","Servicio Doméstico / Limpieza","Limpieza de Cristales y Fachadas",
-  // 💻 Tecnología
   "Informático / Reparación de PC","Configuración de Domótica y WiFi","Instalador de Antenas y Satélite",
-  // ❤️ Cuidados y bienestar
   "Cuidado de Mayores y Dependientes","Niñera / Babysitter",
   "Fisioterapeuta a Domicilio","Peluquería y Estética a Domicilio",
-  // 🐾 Mascotas
   "Peluquería Canina a Domicilio","Cuidador / Paseador de Perros","Adiestrador Canino","Veterinario a Domicilio",
-  // 🍳 Hostelería y servicios
   "Cocinero","Zapatero","Montador de Estructuras",
-  // 🏺 Artesanía local sevillana
   "Ceramista / Alfarero","Bordador de Oro y Seda","Orfebre","Guarnicionero",
   "Costurero/a Flamenca","Lutier","Imaginero / Escultor","Abaniquero",
-  "Encuadernador Artesanal","Tallista de Castañuelas",
-  "Otros servicios",
+  "Encuadernador Artesanal","Tallista de Castañuelas","Otros servicios",
 ];
 
 const OFICIOS_TOP = [
@@ -113,7 +102,7 @@ const PLAN_FEATURES:Record<Plan,string[]> = {
 
 const PLAN_GATES = {
   contacts: {gratis:5, basico:20, pro:9999, elite:9999} as Record<Plan,number>,
-  photos: {gratis:0, basico:5, pro:20, elite:999} as Record<Plan,number>,
+  photos: {gratis:0, basico:5, pro:20, elite:999} as Record<Plan,boolean|number>,
   ranking: {gratis:false, basico:false, pro:true, elite:true} as Record<Plan,boolean>,
   chat: {gratis:false, basico:true, pro:true, elite:true} as Record<Plan,boolean>,
 };
@@ -148,6 +137,18 @@ async function uploadImage(file:File, path:string):Promise<string|null>{
   return STORAGE_URL+fileName;
 }
 
+// ── NEW: send urgent lead notification to pro via a special system message ──
+async function notifyProOfNewLead(proId:string, clientName:string, oficio:string):Promise<void>{
+  const txt=`🔴 *NUEVO CLIENTE INTERESADO*\n\n👤 ${clientName} quiere contactarte para tu servicio de ${oficio}.\n\n⚡ Responde cuanto antes para no perder este lead.`;
+  await db.from("messages").insert({
+    from_id:"system-lead",
+    to_id:proId,
+    text:txt,
+    read:false,
+    is_lead_alert:true,
+  });
+}
+
 const wColor=(id:string)=>[C.purple,C.blue,C.pink,"#10B981",C.orange,C.cyan][id.charCodeAt(id.length-1)%6];
 function trialDaysLeft(t:string){return Math.max(0,Math.ceil((new Date(t).getTime()-Date.now())/86400000));}
 function timeAgo(iso:string){
@@ -170,7 +171,6 @@ function formatDateLabel(iso:string){
   if(isSameDay(iso,yesterday.toISOString()))return "Ayer";
   return d.toLocaleDateString("es-ES",{day:"numeric",month:"long"});
 }
-
 
 // ─── UI ATOMS ───
 function Stars({n,size=13,interactive=false,onSet}:{n:number;size?:number;interactive?:boolean;onSet?:(n:number)=>void}){
@@ -250,14 +250,51 @@ function MultiSelect({label,options,selected,onChange}:{label:string;options:str
   </div>;
 }
 
-// ─── IN-APP NOTIFICATION ───
-function InAppNotification({msg,from,onClose,onClick}:{msg:string;from:string;onClose:()=>void;onClick:()=>void}){
-  useEffect(()=>{const t=setTimeout(onClose,5000);return()=>clearTimeout(t);},[onClose]);
+// ─── URGENT LEAD BANNER (aparece encima de todo, rojo pulsante) ───
+function UrgentLeadBanner({msg,onClose,onClick}:{msg:string;onClose:()=>void;onClick:()=>void}){
+  useEffect(()=>{
+    // vibrate if available
+    if(navigator.vibrate) navigator.vibrate([200,100,200,100,400]);
+    const t=setTimeout(onClose,12000);
+    return()=>clearTimeout(t);
+  },[onClose]);
   return(
-    <div onClick={onClick} style={{position:"fixed",top:16,left:"50%",transform:"translateX(-50%)",zIndex:10000,background:"linear-gradient(135deg,#1A1A2E,#12121E)",border:"1px solid "+C.accent+"55",borderRadius:14,padding:"12px 16px",display:"flex",gap:12,alignItems:"center",boxShadow:"0 8px 32px rgba(0,0,0,0.6),0 0 0 1px "+C.accent+"22",cursor:"pointer",maxWidth:"calc(100vw - 32px)",width:360,animation:"slideDown 0.3s ease"}}>
-      <div style={{width:38,height:38,borderRadius:"50%",background:"linear-gradient(135deg,"+C.accent+"33,"+C.orange+"22)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>💬</div>
+    <div onClick={onClick} style={{
+      position:"fixed",top:0,left:0,right:0,zIndex:20000,
+      background:"linear-gradient(135deg,#FF1A1A,#FF4455,#FF8C00)",
+      padding:"12px 16px",cursor:"pointer",
+      boxShadow:"0 4px 30px rgba(255,68,85,0.7)",
+      animation:"urgentPulse 1.5s ease-in-out infinite",
+      display:"flex",alignItems:"center",gap:12,
+    }}>
+      <div style={{width:36,height:36,borderRadius:"50%",background:"rgba(0,0,0,0.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0,animation:"urgentBell 0.5s ease-in-out infinite"}}>🔔</div>
       <div style={{flex:1,minWidth:0}}>
-        <p style={{fontSize:12,fontWeight:700,color:C.accent,marginBottom:1}}>{from}</p>
+        <p style={{fontWeight:900,color:"#fff",fontSize:13,marginBottom:1}}>🔴 CLIENTE NUEVO — ¡RESPONDE AHORA!</p>
+        <p style={{fontSize:12,color:"rgba(255,255,255,0.9)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{msg}</p>
+      </div>
+      <button onClick={e=>{e.stopPropagation();onClose();}} style={{background:"rgba(0,0,0,0.25)",border:"none",borderRadius:"50%",width:28,height:28,color:"#fff",cursor:"pointer",fontSize:14,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>
+    </div>
+  );
+}
+
+// ─── IN-APP NOTIFICATION (normal, desde arriba) ───
+function InAppNotification({msg,from,onClose,onClick,isAdmin=false}:{msg:string;from:string;onClose:()=>void;onClick:()=>void;isAdmin?:boolean}){
+  useEffect(()=>{const t=setTimeout(onClose,6000);return()=>clearTimeout(t);},[onClose]);
+  const borderColor=isAdmin?C.orange:C.accent;
+  const icon=isAdmin?"👑":"💬";
+  return(
+    <div onClick={onClick} style={{
+      position:"fixed",top:16,left:"50%",transform:"translateX(-50%)",zIndex:10000,
+      background:"linear-gradient(135deg,#1A1A2E,#12121E)",
+      border:"1px solid "+borderColor+"66",
+      borderRadius:16,padding:"12px 16px",display:"flex",gap:12,alignItems:"center",
+      boxShadow:"0 8px 32px rgba(0,0,0,0.7),0 0 0 1px "+borderColor+"22",
+      cursor:"pointer",maxWidth:"calc(100vw - 32px)",width:360,
+      animation:"slideDownNotif 0.35s cubic-bezier(0.34,1.56,0.64,1)",
+    }}>
+      <div style={{width:40,height:40,borderRadius:"50%",background:"linear-gradient(135deg,"+borderColor+"33,"+borderColor+"18)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0,border:"1px solid "+borderColor+"33"}}>{icon}</div>
+      <div style={{flex:1,minWidth:0}}>
+        <p style={{fontSize:11,fontWeight:800,color:borderColor,marginBottom:2}}>{from}</p>
         <p style={{fontSize:13,color:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{msg}</p>
       </div>
       <button onClick={e=>{e.stopPropagation();onClose();}} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:16,padding:"0 4px",flexShrink:0}}>✕</button>
@@ -294,32 +331,55 @@ function LeadsCounter({user,onUpgrade}:{user:UserRow;onUpgrade:()=>void}){
   );
 }
 
+// ─── TYPING INDICATOR ───
+function TypingIndicator(){
+  return(
+    <div style={{display:"flex",alignItems:"center",gap:8,padding:"4px 0"}}>
+      <div style={{display:"flex",gap:4,padding:"10px 14px",background:C.card,borderRadius:"16px 16px 16px 2px",border:"1px solid "+C.border}}>
+        {[0,1,2].map(i=>(
+          <div key={i} style={{width:6,height:6,borderRadius:"50%",background:C.muted,animation:`typingDot 1.2s ease-in-out ${i*0.2}s infinite`}} />
+        ))}
+      </div>
+    </div>
+  );
+}
 
-// ─── CHAT FULL-SCREEN (Realtime, swipe para cerrar) ───
+// ─── CHAT FULL-SCREEN — iPhone style ───
 function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:UserRow;onClose:()=>void}){
   const [msgs,setMsgs]=useState<MessageRow[]>([]);
   const [input,setInput]=useState("");
   const [sending,setSending]=useState(false);
+  const [isTyping,setIsTyping]=useState(false);
   const [showVisitForm,setShowVisitForm]=useState(false);
   const [visitDate,setVisitDate]=useState("");
   const [visitSlot,setVisitSlot]=useState<"mañana"|"tarde">("mañana");
   const [visitDesc,setVisitDesc]=useState("");
   const [sendingVisit,setSendingVisit]=useState(false);
+  const [inputFocused,setInputFocused]=useState(false);
   const bottomRef=useRef<HTMLDivElement>(null);
   const inputRef=useRef<HTMLInputElement>(null);
   const col=wColor(toUser.id);
   const startX=useRef(0);
+  const typingTimer=useRef<any>(null);
+
+  const isSystem=toUser.id==="system-lead"||toUser.id==="admin-001";
+  const displayColor=isSystem?C.orange:col;
 
   const loadMsgs=useCallback(async()=>{
     const {data}=await db.from("messages").select("*")
       .or("and(from_id.eq."+currentUser.id+",to_id.eq."+toUser.id+"),and(from_id.eq."+toUser.id+",to_id.eq."+currentUser.id+")")
       .order("created_at",{ascending:true});
     if(data&&data.length>0){setMsgs(data as MessageRow[]);}
-    else setMsgs([{id:"w0",from_id:toUser.id,to_id:currentUser.id,text:"¡Hola! Soy "+toUser.name+". ¿En qué puedo ayudarte?",read:true,created_at:new Date().toISOString()} as MessageRow]);
-  },[currentUser.id,toUser.id,toUser.name]);
+    else if(!isSystem){
+      setMsgs([{id:"w0",from_id:toUser.id,to_id:currentUser.id,text:"¡Hola! Soy "+toUser.name+". ¿En qué puedo ayudarte?",read:true,created_at:new Date().toISOString()} as MessageRow]);
+    }
+  },[currentUser.id,toUser.id,toUser.name,isSystem]);
 
   useEffect(()=>{
     loadMsgs();
+    // Mark messages as read
+    db.from("messages").update({read:true}).eq("to_id",currentUser.id).eq("from_id",toUser.id).eq("read",false);
+
     const channel=db.channel("chat-"+[currentUser.id,toUser.id].sort().join("-"))
       .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},(payload:any)=>{
         const m=payload.new as MessageRow;
@@ -328,14 +388,22 @@ function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:User
             if(prev.find(x=>x.id===m.id))return prev;
             return [...prev,m];
           });
+          // Simulate typing indicator clearing
+          setIsTyping(false);
         }
       }).subscribe();
     return ()=>{db.removeChannel(channel);};
   },[loadMsgs,currentUser.id,toUser.id]);
 
   useEffect(()=>{
-    setTimeout(()=>bottomRef.current?.scrollIntoView({behavior:"smooth"}),50);
+    setTimeout(()=>bottomRef.current?.scrollIntoView({behavior:"smooth"}),80);
   },[msgs.length]);
+
+  const handleInput=(v:string)=>{
+    setInput(v);
+    // Simulate "typing" to other user (in a real app you'd broadcast this)
+    clearTimeout(typingTimer.current);
+  };
 
   const send=async()=>{
     if(!input.trim()||sending)return;
@@ -354,11 +422,9 @@ function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:User
     if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send();}
   };
 
-  // Swipe right to close
   const handleTouchStart=(e:React.TouchEvent)=>{startX.current=e.touches[0].clientX;};
   const handleTouchEnd=(e:React.TouchEvent)=>{if(e.changedTouches[0].clientX-startX.current>80)onClose();};
 
-  // Group messages by date
   const groupedMsgs=msgs.reduce((acc:(MessageRow|{type:"date";label:string})[],m,i)=>{
     if(i===0||!isSameDay(m.created_at,msgs[i-1].created_at)){
       acc.push({type:"date",label:formatDateLabel(m.created_at)});
@@ -367,27 +433,52 @@ function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:User
     return acc;
   },[]);
 
+  // Detect lead alert messages
+  const isLeadAlert=(text:string)=>text.includes("NUEVO CLIENTE INTERESADO")||text.includes("is_lead_alert");
+
   return(
     <div onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}
-      style={{position:"fixed",inset:0,background:C.bg,zIndex:600,display:"flex",flexDirection:"column"}}>
-      {/* Header */}
-      <div style={{padding:"0 16px",borderBottom:"1px solid "+C.border,background:"rgba(10,10,15,0.97)",backdropFilter:"blur(20px)",display:"flex",alignItems:"center",gap:12,height:56,flexShrink:0,boxShadow:"0 2px 20px rgba(0,0,0,0.4)"}}>
-        <button onClick={onClose} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:22,padding:"0 4px 0 0",display:"flex",alignItems:"center"}}>←</button>
-        <Ava s={toUser.name.substring(0,2).toUpperCase()} size={36} color={col} online={toUser.available} />
-        <div style={{flex:1,minWidth:0}}>
-          <p style={{fontWeight:700,fontSize:15,color:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{toUser.name}</p>
-          <p style={{fontSize:11,color:toUser.available?C.green:C.muted}}>
-            {OFICIO_ICONS[toUser.trade||""]||"🔧"} {toUser.trade} · {toUser.available?"Disponible":"Ocupado"}
+      style={{position:"fixed",inset:0,background:C.bg,zIndex:600,display:"flex",flexDirection:"column",animation:"slideInFromRight 0.3s cubic-bezier(0.34,1.56,0.64,1)"}}>
+
+      {/* ── iPhone-style header ── */}
+      <div style={{
+        padding:"10px 12px 10px",borderBottom:"1px solid "+C.border+"66",
+        background:"rgba(10,10,15,0.85)",backdropFilter:"blur(24px) saturate(180%)",
+        display:"flex",alignItems:"center",gap:10,flexShrink:0,
+        boxShadow:"0 1px 0 rgba(255,255,255,0.04)",
+        paddingTop:"max(10px, env(safe-area-inset-top))",
+      }}>
+        <button onClick={onClose} style={{background:"none",border:"none",color:C.blue,cursor:"pointer",fontSize:16,padding:"4px 6px 4px 0",display:"flex",alignItems:"center",gap:4,fontFamily:"'DM Sans',sans-serif",fontWeight:600}}>
+          <svg width="10" height="16" viewBox="0 0 10 16" fill="none"><path d="M8.5 1.5L1.5 8L8.5 14.5" stroke={C.blue} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          Atrás
+        </button>
+
+        <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",cursor:"pointer"}}>
+          <div style={{position:"relative",marginBottom:2}}>
+            <div style={{width:34,height:34,borderRadius:"50%",background:"linear-gradient(135deg,"+displayColor+"66,"+displayColor+"33)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:800,fontSize:13,border:"1.5px solid "+displayColor+"55"}}>
+              {isSystem?"🛡":toUser.name.substring(0,2).toUpperCase()}
+            </div>
+            {toUser.available&&!isSystem&&<div style={{position:"absolute",bottom:0,right:0,width:9,height:9,borderRadius:"50%",background:C.green,border:"2px solid "+C.bg}} />}
+          </div>
+          <p style={{fontWeight:700,fontSize:14,color:C.text,lineHeight:1}}>{isSystem?"OfficioYa Soporte":toUser.name}</p>
+          <p style={{fontSize:10,color:isTyping?C.green:toUser.available?C.green:C.muted,transition:"color 0.3s"}}>
+            {isTyping?"escribiendo...":(isSystem?"Soporte oficial":toUser.available?"En línea":"Última vez "+timeAgo(new Date().toISOString()))}
           </p>
         </div>
-        <button onClick={()=>setShowVisitForm(!showVisitForm)} style={{padding:"7px 12px",background:showVisitForm?C.accent+"22":"transparent",border:"1px solid "+(showVisitForm?C.accent+"55":C.border),borderRadius:10,color:showVisitForm?C.accent:C.muted,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:700,whiteSpace:"nowrap"}}>
-          📅 Cita
-        </button>
+
+        {!isSystem&&(
+          <button onClick={()=>setShowVisitForm(!showVisitForm)} style={{
+            padding:"7px 11px",background:showVisitForm?C.accent+"22":"transparent",
+            border:"1px solid "+(showVisitForm?C.accent+"66":C.border+"66"),
+            borderRadius:10,color:showVisitForm?C.accent:C.mutedL,
+            cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:700,
+          }}>📅 Cita</button>
+        )}
       </div>
 
-      {/* Visit form (expandible debajo del header) */}
+      {/* Visit form */}
       {showVisitForm&&(
-        <div style={{padding:"14px 16px",background:"linear-gradient(135deg,"+C.card+","+C.surface+")",borderBottom:"1px solid "+C.accent+"33",flexShrink:0}}>
+        <div style={{padding:"14px 16px",background:"linear-gradient(135deg,"+C.card+","+C.surface+")",borderBottom:"1px solid "+C.accent+"33",flexShrink:0,animation:"expandDown 0.25s ease"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
             <p style={{fontSize:13,fontWeight:800,color:C.accent}}>📅 Solicitar visita o cita</p>
             <button onClick={()=>setShowVisitForm(false)} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:16}}>✕</button>
@@ -411,60 +502,198 @@ function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:User
         </div>
       )}
 
-      {/* Info banner */}
-      {!showVisitForm&&(
-        <div style={{padding:"6px 16px",background:"rgba(255,215,0,0.05)",borderBottom:"1px solid "+C.accent+"15",flexShrink:0,display:"flex",alignItems:"center",gap:8}}>
-          <span style={{fontSize:11}}>🔒</span>
-          <p style={{fontSize:11,color:C.mutedL}}>Comunicación segura dentro de OfficioYa · Pulsa <span style={{color:C.accent}}>📅 Cita</span> para solicitar una visita</p>
-        </div>
-      )}
-
-      {/* Messages */}
-      <div style={{flex:1,overflowY:"auto",padding:"12px 16px",display:"flex",flexDirection:"column",gap:6}}>
+      {/* ── Messages area ── */}
+      <div style={{
+        flex:1,overflowY:"auto",padding:"16px 12px",
+        display:"flex",flexDirection:"column",gap:2,
+        background:"radial-gradient(ellipse at 50% 0%,#0D0D1A,#0A0A0F)",
+      }}>
         {groupedMsgs.map((item:any,i)=>{
           if(item.type==="date"){
-            return <div key={"date-"+i} style={{textAlign:"center",margin:"8px 0"}}>
-              <span style={{fontSize:11,color:C.muted,background:C.surface,padding:"3px 10px",borderRadius:99,border:"1px solid "+C.border}}>{item.label}</span>
-            </div>;
+            return(
+              <div key={"date-"+i} style={{display:"flex",alignItems:"center",gap:8,margin:"12px 0 8px"}}>
+                <div style={{flex:1,height:1,background:C.border+"66"}} />
+                <span style={{fontSize:11,color:C.muted,background:C.surface,padding:"3px 12px",borderRadius:99,border:"1px solid "+C.border+"66",fontWeight:500}}>{item.label}</span>
+                <div style={{flex:1,height:1,background:C.border+"66"}} />
+              </div>
+            );
           }
           const m=item as MessageRow;
           const isMe=m.from_id===currentUser.id;
-          return(
-            <div key={m.id} style={{display:"flex",justifyContent:isMe?"flex-end":"flex-start"}}>
-              {!isMe&&<div style={{width:28,height:28,borderRadius:"50%",background:col+"33",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:col,marginRight:6,flexShrink:0,alignSelf:"flex-end"}}>{toUser.name[0]}</div>}
-              <div style={{maxWidth:"74%"}}>
-                <div style={{background:isMe?"linear-gradient(135deg,"+col+"55,"+col+"33)":C.card,border:"1px solid "+(isMe?col+"66":C.border),borderRadius:isMe?"16px 16px 2px 16px":"16px 16px 16px 2px",padding:"9px 13px",boxShadow:isMe?"0 2px 12px "+col+"22":"none"}}>
-                  {m.text.includes("*Solicitud de visita*")?
-                    <div>
-                      <p style={{fontSize:11,color:C.accent,fontWeight:700,marginBottom:3}}>📅 Solicitud de visita</p>
-                      <p style={{fontSize:12,color:C.text,lineHeight:1.5,whiteSpace:"pre-wrap"}}>{m.text.replace("📅 *Solicitud de visita*\n","")}</p>
-                    </div>:
-                    <p style={{fontSize:13,color:isMe?C.text:C.text,lineHeight:1.5}}>{m.text}</p>
-                  }
+          const isAdmin=m.from_id==="admin-001"||m.from_id==="system-lead";
+          const isLead=isLeadAlert(m.text);
+
+          // Lead alert special rendering
+          if(isLead&&!isMe){
+            return(
+              <div key={m.id} style={{margin:"8px 0",animation:"popIn 0.3s ease"}}>
+                <div style={{background:"linear-gradient(135deg,#FF1A1A22,#FF443322)",border:"2px solid #FF4455AA",borderRadius:14,padding:"12px 14px",position:"relative",overflow:"hidden"}}>
+                  <div style={{position:"absolute",top:-10,right:-10,width:50,height:50,borderRadius:"50%",background:"#FF445522",pointerEvents:"none"}} />
+                  <p style={{fontWeight:900,color:C.red,fontSize:13,marginBottom:4}}>🔴 CLIENTE INTERESADO</p>
+                  <p style={{fontSize:12,color:C.text,lineHeight:1.6,whiteSpace:"pre-wrap"}}>{m.text.replace("🔴 *NUEVO CLIENTE INTERESADO*\n\n","")}</p>
+                  <p style={{fontSize:10,color:C.muted,marginTop:6}}>{formatTime(m.created_at)}</p>
                 </div>
-                <p style={{fontSize:9,color:C.muted,marginTop:2,textAlign:isMe?"right":"left",paddingRight:isMe?2:0,paddingLeft:isMe?0:2}}>
-                  {formatTime(m.created_at)}{isMe&&<span style={{marginLeft:4,color:C.green}}>✓</span>}
-                </p>
+              </div>
+            );
+          }
+
+          // Admin message special rendering
+          if(isAdmin&&!isMe){
+            return(
+              <div key={m.id} style={{margin:"4px 0",animation:"popIn 0.3s ease"}}>
+                <div style={{background:"linear-gradient(135deg,"+C.orange+"18,"+C.orange+"08)",border:"1px solid "+C.orange+"44",borderRadius:14,padding:"10px 14px",maxWidth:"85%"}}>
+                  <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:4}}>
+                    <span style={{fontSize:12}}>👑</span>
+                    <p style={{fontSize:10,fontWeight:800,color:C.orange}}>OfficioYa Soporte</p>
+                  </div>
+                  <p style={{fontSize:13,color:C.text,lineHeight:1.6}}>{m.text.replace("[Soporte OfficioYa] ","")}</p>
+                  <p style={{fontSize:9,color:C.muted,marginTop:4,textAlign:"right"}}>{formatTime(m.created_at)}</p>
+                </div>
+              </div>
+            );
+          }
+
+          const prevMsg=i>0?groupedMsgs[i-1]:null;
+          const nextMsg=i<groupedMsgs.length-1?groupedMsgs[i+1]:null;
+          const prevIsDate=(prevMsg as any)?.type==="date";
+          const prevSameSender=!prevIsDate&&prevMsg&&(prevMsg as MessageRow).from_id===m.from_id;
+          const nextSameSender=nextMsg&&(nextMsg as any).type!=="date"&&(nextMsg as MessageRow).from_id===m.from_id;
+
+          const bubbleBR={
+            topLeft: isMe?14:(prevSameSender?4:14),
+            topRight: isMe?(prevSameSender?4:14):14,
+            bottomLeft: isMe?14:(nextSameSender?4:14),
+            bottomRight: isMe?(nextSameSender?4:14):14,
+          };
+
+          return(
+            <div key={m.id} style={{
+              display:"flex",
+              justifyContent:isMe?"flex-end":"flex-start",
+              marginBottom:nextSameSender?1:6,
+              animation:"popIn 0.25s ease",
+            }}>
+              {/* Avatar for received messages (only on last in group) */}
+              {!isMe&&(
+                <div style={{width:28,alignSelf:"flex-end",marginRight:6,flexShrink:0}}>
+                  {!nextSameSender&&(
+                    <div style={{width:28,height:28,borderRadius:"50%",background:displayColor+"33",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:800,color:displayColor}}>
+                      {toUser.name[0]}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div style={{maxWidth:"72%"}}>
+                {/* Visit request special bubble */}
+                {m.text.includes("*Solicitud de visita*")?(
+                  <div style={{
+                    background:"linear-gradient(135deg,"+C.accent+"22,"+C.orange+"15)",
+                    border:"1px solid "+C.accent+"44",
+                    borderRadius:14,padding:"10px 14px",
+                  }}>
+                    <p style={{fontSize:10,color:C.accent,fontWeight:800,marginBottom:4}}>📅 Solicitud de visita</p>
+                    <p style={{fontSize:12,color:C.text,lineHeight:1.6,whiteSpace:"pre-wrap"}}>{m.text.replace("📅 *Solicitud de visita*\n","")}</p>
+                    <p style={{fontSize:9,color:C.muted,marginTop:4,textAlign:isMe?"right":"left"}}>{formatTime(m.created_at)}{isMe&&" ✓✓"}</p>
+                  </div>
+                ):(
+                  <div style={{
+                    background:isMe
+                      ?"linear-gradient(135deg,"+displayColor+"EE,"+displayColor+"CC)"
+                      :C.card,
+                    border:isMe?"none":"1px solid "+C.border+"88",
+                    borderRadius:`${bubbleBR.topLeft}px ${bubbleBR.topRight}px ${bubbleBR.bottomRight}px ${bubbleBR.bottomLeft}px`,
+                    padding:"9px 12px",
+                    boxShadow:isMe?"0 2px 8px "+displayColor+"33":"0 1px 4px rgba(0,0,0,0.3)",
+                    transition:"all 0.15s",
+                  }}>
+                    <p style={{fontSize:14,color:isMe?"#000":"#E8E8F0",lineHeight:1.55,wordBreak:"break-word"}}>{m.text}</p>
+                  </div>
+                )}
+                {/* Timestamp — only for last in group */}
+                {!nextSameSender&&(
+                  <p style={{fontSize:10,color:C.muted,marginTop:3,textAlign:isMe?"right":"left",paddingRight:isMe?2:0,paddingLeft:isMe?0:36}}>
+                    {formatTime(m.created_at)}
+                    {isMe&&<span style={{marginLeft:4,color:m.read?C.blue:C.muted}}>
+                      {m.id.startsWith("tmp-")?"·":"✓✓"}
+                    </span>}
+                  </p>
+                )}
               </div>
             </div>
           );
         })}
-        <div ref={bottomRef} />
+
+        {isTyping&&(
+          <div style={{display:"flex",alignItems:"flex-end",gap:6}}>
+            <div style={{width:28,height:28,borderRadius:"50%",background:displayColor+"33",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:800,color:displayColor,flexShrink:0}}>{toUser.name[0]}</div>
+            <TypingIndicator />
+          </div>
+        )}
+
+        <div ref={bottomRef} style={{height:8}} />
       </div>
 
-      {/* Input */}
-      <div style={{padding:"10px 16px 16px",borderTop:"1px solid "+C.border,background:"rgba(10,10,15,0.97)",backdropFilter:"blur(20px)",display:"flex",gap:8,alignItems:"flex-end",flexShrink:0}}>
-        <input ref={inputRef} value={input} onChange={e=>setInput(e.target.value)} onKeyDown={handleKeyDown} placeholder="Escribe un mensaje..." style={{flex:1,background:C.card,border:"1px solid "+C.border,borderRadius:12,padding:"11px 14px",color:C.text,fontFamily:"inherit",fontSize:14,outline:"none"}} autoFocus />
-        <button onClick={send} disabled={!input.trim()||sending} style={{width:44,height:44,background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:12,color:"#000",fontWeight:900,cursor:"pointer",fontSize:18,opacity:!input.trim()||sending?0.5:1,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",transition:"opacity 0.15s"}}>
-          →
+      {/* ── iPhone-style input bar ── */}
+      <div style={{
+        padding:"8px 12px",
+        paddingBottom:"max(12px, env(safe-area-inset-bottom))",
+        borderTop:"1px solid "+C.border+"44",
+        background:"rgba(10,10,15,0.92)",
+        backdropFilter:"blur(24px) saturate(180%)",
+        display:"flex",gap:8,alignItems:"flex-end",flexShrink:0,
+        transition:"padding 0.2s",
+      }}>
+        <div style={{
+          flex:1,display:"flex",alignItems:"center",
+          background:inputFocused?C.card+"EE":C.surface,
+          border:"1.5px solid "+(inputFocused?displayColor+"66":C.border+"88"),
+          borderRadius:22,padding:"0 14px",
+          transition:"all 0.2s",
+          boxShadow:inputFocused?"0 0 0 3px "+displayColor+"18":"none",
+        }}>
+          <input
+            ref={inputRef}
+            value={input}
+            onChange={e=>handleInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onFocus={()=>setInputFocused(true)}
+            onBlur={()=>setInputFocused(false)}
+            placeholder="Mensaje..."
+            style={{flex:1,padding:"11px 0",background:"transparent",border:"none",color:C.text,fontFamily:"inherit",fontSize:15,outline:"none"}}
+            autoComplete="off"
+          />
+          {input&&(
+            <button onClick={()=>setInput("")} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:14,padding:"0 0 0 6px",flexShrink:0}}>✕</button>
+          )}
+        </div>
+        <button
+          onClick={send}
+          disabled={!input.trim()||sending}
+          style={{
+            width:44,height:44,flexShrink:0,
+            background:input.trim()?"linear-gradient(135deg,"+displayColor+","+displayColor+"BB)":C.surface,
+            border:input.trim()?"none":"1px solid "+C.border,
+            borderRadius:"50%",
+            color:input.trim()?"#000":C.muted,
+            cursor:input.trim()?"pointer":"default",
+            display:"flex",alignItems:"center",justifyContent:"center",
+            transition:"all 0.2s cubic-bezier(0.34,1.56,0.64,1)",
+            transform:input.trim()?"scale(1)":"scale(0.9)",
+            boxShadow:input.trim()?"0 4px 14px "+displayColor+"44":"none",
+          }}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M22 2L11 13" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
         </button>
       </div>
     </div>
   );
 }
 
-
-// ─── BUSCADOR EXPRESS MODAL (3 pasos, salta en el centro de pantalla) ───
+// ─── BUSCADOR EXPRESS MODAL ───
 function BuscadorExpressModal({workers,onResult,onWorkerSelect,onClose}:{workers:UserRow[];onResult:(oficio:string,zona:string,urgency:string)=>void;onWorkerSelect:(w:UserRow)=>void;onClose:()=>void}){
   const [step,setStep]=useState(1);
   const [selOficio,setSelOficio]=useState("");
@@ -479,24 +708,13 @@ function BuscadorExpressModal({workers,onResult,onWorkerSelect,onClose}:{workers
   ];
 
   const filteredBySearch=OFICIOS.filter(o=>!textSearch||o.toLowerCase().includes(textSearch.toLowerCase()));
-  const topOficios=OFICIOS_TOP;
 
-  const handleSelectOficio=(o:string)=>{
-    setSelOficio(o);
-    setStep(2);
-  };
-
-  const handleSelectUrgency=(id:string)=>{
-    setSelUrgency(id);
-    setStep(3);
-    onResult(selOficio,selZona,id);
-    onClose();
-  };
+  const handleSelectOficio=(o:string)=>{setSelOficio(o);setStep(2);};
+  const handleSelectUrgency=(id:string)=>{setSelUrgency(id);onResult(selOficio,selZona,id);onClose();};
 
   return(
     <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(4,4,12,0.85)",backdropFilter:"blur(16px)",zIndex:800,display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
       <div onClick={e=>e.stopPropagation()} style={{background:"linear-gradient(170deg,#14141F,#0A0A14)",borderRadius:20,width:"100%",maxWidth:480,maxHeight:"85vh",overflowY:"auto",border:"1px solid "+C.accent+"33",boxShadow:"0 20px 60px rgba(0,0,0,0.8),0 0 0 1px "+C.accent+"11"}}>
-        {/* Step indicator */}
         <div style={{padding:"16px 20px 0",display:"flex",alignItems:"center",gap:8}}>
           {[1,2].map(s=>(
             <div key={s} style={{display:"flex",alignItems:"center",gap:6}}>
@@ -507,21 +725,17 @@ function BuscadorExpressModal({workers,onResult,onWorkerSelect,onClose}:{workers
           ))}
           <button onClick={onClose} style={{marginLeft:"auto",background:"none",border:"1px solid "+C.border,borderRadius:8,color:C.muted,cursor:"pointer",padding:"4px 10px",fontSize:12}}>✕</button>
         </div>
-
         <div style={{padding:"16px 20px 20px"}}>
-
-          {/* PASO 1: Oficio */}
           {step===1&&(<>
             <div style={{display:"flex",background:C.bg,borderRadius:10,border:"1px solid "+C.border,overflow:"hidden",marginBottom:14}}>
               <span style={{padding:"0 12px",display:"flex",alignItems:"center",color:C.muted}}>🔍</span>
               <input autoFocus value={textSearch} onChange={e=>setTextSearch(e.target.value)} placeholder="Busca fontanero, electricista..." style={{flex:1,padding:"12px 0",background:"transparent",border:"none",color:C.text,fontFamily:"inherit",fontSize:14,outline:"none"}} />
               {textSearch&&<button onClick={()=>setTextSearch("")} style={{padding:"0 12px",background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:14}}>✕</button>}
             </div>
-
             {!textSearch&&(<>
               <p style={{fontSize:10,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.08em",fontWeight:700,marginBottom:8}}>🔥 Más solicitados</p>
               <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:7,marginBottom:14}}>
-                {topOficios.map(o=>(
+                {OFICIOS_TOP.map(o=>(
                   <button key={o} onClick={()=>handleSelectOficio(o)} style={{padding:"10px 6px",borderRadius:12,border:"1px solid "+C.border,background:"linear-gradient(135deg,"+C.card+","+C.surface+")",color:C.text,cursor:"pointer",fontFamily:"inherit",textAlign:"center",transition:"all 0.15s",boxShadow:"0 2px 8px rgba(0,0,0,0.3)"}}>
                     <div style={{fontSize:22,marginBottom:4}}>{OFICIO_ICONS[o]||"🔧"}</div>
                     <p style={{fontSize:11,fontWeight:600,lineHeight:1.3,color:C.text}}>{o}</p>
@@ -529,7 +743,6 @@ function BuscadorExpressModal({workers,onResult,onWorkerSelect,onClose}:{workers
                 ))}
               </div>
             </>)}
-
             <p style={{fontSize:10,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.08em",fontWeight:700,marginBottom:8}}>{textSearch?"Resultados":"Todos los servicios"}</p>
             <div style={{maxHeight:220,overflowY:"auto",display:"flex",flexDirection:"column",gap:5}}>
               {filteredBySearch.map(o=>(
@@ -542,38 +755,29 @@ function BuscadorExpressModal({workers,onResult,onWorkerSelect,onClose}:{workers
               {filteredBySearch.length===0&&<p style={{textAlign:"center",color:C.muted,fontSize:13,padding:16}}>No encontrado · <button onClick={()=>handleSelectOficio("Otros servicios")} style={{background:"none",border:"none",color:C.accent,cursor:"pointer",fontWeight:700}}>Continuar con "Otros"</button></p>}
             </div>
           </>)}
-
-          {/* PASO 2: Urgencia */}
           {step===2&&(<>
             <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
               <button onClick={()=>setStep(1)} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:20}}>←</button>
-              <p style={{fontSize:13,color:C.muted}}>
-                <span style={{color:C.accent,fontWeight:700}}>{OFICIO_ICONS[selOficio]||"🔧"} {selOficio}</span> · Paso 2 de 2
-              </p>
+              <p style={{fontSize:13,color:C.muted}}><span style={{color:C.accent,fontWeight:700}}>{OFICIO_ICONS[selOficio]||"🔧"} {selOficio}</span> · Paso 2 de 2</p>
             </div>
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
               {URGENCY_OPTS.map(opt=>(
                 <button key={opt.id} onClick={()=>handleSelectUrgency(opt.id)} style={{display:"flex",gap:14,alignItems:"center",padding:"16px 18px",borderRadius:14,border:"2px solid "+opt.border+"55",background:opt.bg,cursor:"pointer",fontFamily:"inherit",textAlign:"left",transition:"all 0.15s",position:"relative",overflow:"hidden"}}>
                   <div style={{position:"absolute",top:-10,right:-10,width:50,height:50,borderRadius:"50%",background:opt.border+"15",pointerEvents:"none"}} />
                   <span style={{fontSize:28,flexShrink:0}}>{opt.icon}</span>
-                  <div>
-                    <p style={{fontWeight:800,fontSize:15,color:C.text,marginBottom:3}}>{opt.title}</p>
-                    <p style={{fontSize:12,color:C.mutedL}}>{opt.sub}</p>
-                  </div>
+                  <div><p style={{fontWeight:800,fontSize:15,color:C.text,marginBottom:3}}>{opt.title}</p><p style={{fontSize:12,color:C.mutedL}}>{opt.sub}</p></div>
                   <span style={{marginLeft:"auto",fontSize:16,color:opt.border,flexShrink:0}}>→</span>
                 </button>
               ))}
             </div>
           </>)}
-
         </div>
       </div>
     </div>
   );
 }
 
-
-// ─── WORKER CARD IDEALISTA STYLE ───
+// ─── WORKER CARD ───
 function WorkerCardIdealista({w,onSelect,onChat}:{w:UserRow;onSelect:()=>void;onChat:()=>void}){
   const col=wColor(w.id);
   return(
@@ -582,9 +786,7 @@ function WorkerCardIdealista({w,onSelect,onChat}:{w:UserRow;onSelect:()=>void;on
         <div style={{width:4,background:"linear-gradient(180deg,"+col+","+col+"44)",flexShrink:0}} />
         <div style={{flex:1,padding:"14px 14px 12px"}}>
           <div style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:10}}>
-            <div onClick={onSelect} style={{cursor:"pointer",flexShrink:0}}>
-              <Ava s={w.name.substring(0,2).toUpperCase()} size={52} color={col} online={w.available} />
-            </div>
+            <div onClick={onSelect} style={{cursor:"pointer",flexShrink:0}}><Ava s={w.name.substring(0,2).toUpperCase()} size={52} color={col} online={w.available} /></div>
             <div style={{flex:1,minWidth:0,cursor:"pointer"}} onClick={onSelect}>
               <div style={{display:"flex",gap:5,alignItems:"center",marginBottom:2,flexWrap:"wrap"}}>
                 <p style={{fontWeight:800,fontSize:16,color:C.text,lineHeight:1.2}}>{w.name}</p>
@@ -610,7 +812,6 @@ function WorkerCardIdealista({w,onSelect,onChat}:{w:UserRow;onSelect:()=>void;on
             <span style={{fontSize:10,color:C.muted,background:C.surface,padding:"3px 8px",borderRadius:99,border:"1px solid "+C.border}}>📍 {w.zone}</span>
             {w.schedule&&w.schedule.includes("24h")&&<span style={{fontSize:10,color:C.red,background:C.red+"15",padding:"3px 8px",borderRadius:99,border:"1px solid "+C.red+"33",fontWeight:600}}>🔴 24h</span>}
             {w.response_time&&<span style={{fontSize:10,color:C.cyan,background:C.cyan+"12",padding:"3px 8px",borderRadius:99,border:"1px solid "+C.cyan+"33"}}>⚡ {w.response_time}</span>}
-            {w.experience_years&&w.experience_years>0?<span style={{fontSize:10,color:C.mutedL,background:C.surface,padding:"3px 8px",borderRadius:99,border:"1px solid "+C.border}}>{w.experience_years} años exp.</span>:null}
           </div>
           <div style={{display:"flex",gap:8}}>
             <button onClick={onChat} style={{flex:1,padding:"11px",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:10,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:6,boxShadow:"0 4px 14px "+C.accent+"33"}}>
@@ -672,18 +873,12 @@ function WorkerSheet({worker,onClose,onChat,currentUser}:{worker:UserRow;onClose
         <button onClick={onClose} style={{background:"none",border:"1px solid "+C.border,borderRadius:8,color:C.muted,cursor:"pointer",padding:"5px 10px",fontSize:14,flexShrink:0}}>✕</button>
       </div>
 
-      <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:14}}>
-        {worker.free_quote&&<span style={{padding:"4px 10px",borderRadius:99,fontSize:11,fontWeight:700,color:C.green,background:C.green+"18",border:"1px solid "+C.green+"33"}}>✓ Presupuesto gratis</span>}
-        {worker.schedule&&<span style={{padding:"4px 10px",borderRadius:99,fontSize:11,fontWeight:600,color:C.mutedL,background:C.surface,border:"1px solid "+C.border}}>🕐 {worker.schedule}</span>}
-        {worker.response_time&&<span style={{padding:"4px 10px",borderRadius:99,fontSize:11,fontWeight:600,color:C.cyan,background:C.cyan+"15",border:"1px solid "+C.cyan+"33"}}>⚡ Responde en {worker.response_time}</span>}
-      </div>
-
       {currentUser&&currentUser.type==="cliente"&&(
         <div style={{marginBottom:14}}>
           <button onClick={()=>onChat(worker)} style={{width:"100%",padding:"13px",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:12,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:15,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,boxShadow:"0 4px 18px "+C.accent+"44"}}>
             💬 Escribir mensaje
           </button>
-          <p style={{fontSize:11,color:C.muted,textAlign:"center",marginTop:6}}>🔒 Todo el contacto se gestiona dentro de la app · Sin compartir datos externos</p>
+          <p style={{fontSize:11,color:C.muted,textAlign:"center",marginTop:6}}>🔒 Todo el contacto se gestiona dentro de la app</p>
         </div>
       )}
       {!currentUser&&<div style={{padding:"12px",background:C.surface,borderRadius:10,border:"1px solid "+C.border,textAlign:"center",marginBottom:14}}><p style={{fontSize:13,color:C.muted}}>Regístrate gratis para contactar con este profesional</p></div>}
@@ -697,15 +892,6 @@ function WorkerSheet({worker,onClose,onChat,currentUser}:{worker:UserRow;onClose
         ))}
       </div>
 
-      {worker.service_zones&&worker.service_zones.length>0&&(
-        <div style={{marginBottom:14,padding:"10px 12px",background:C.surface,borderRadius:8,border:"1px solid "+C.border}}>
-          <p style={{fontSize:11,color:C.muted,marginBottom:6,fontWeight:700,textTransform:"uppercase" as const,letterSpacing:"0.06em"}}>Zonas de servicio</p>
-          <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
-            {worker.service_zones.map(z=><span key={z} style={{fontSize:11,color:C.mutedL,background:C.card,padding:"3px 9px",borderRadius:99,border:"1px solid "+C.border}}>📍{z}</span>)}
-          </div>
-        </div>
-      )}
-
       <div style={{display:"flex",gap:6,marginBottom:14,overflowX:"auto"}}>
         {(["info","fotos","reviews","certs"] as const).map(t=>(
           <button key={t} onClick={()=>setTab(t)} style={{flexShrink:0,padding:"7px 12px",borderRadius:8,border:"1px solid "+(tab===t?col:C.border),background:tab===t?col+"20":"transparent",color:tab===t?col:C.muted,fontFamily:"inherit",fontSize:11,fontWeight:700,cursor:"pointer",textTransform:"uppercase" as const,letterSpacing:"0.06em",transition:"all 0.15s"}}>
@@ -717,24 +903,16 @@ function WorkerSheet({worker,onClose,onChat,currentUser}:{worker:UserRow;onClose
       {tab==="info"&&(<>
         <p style={{fontSize:13,color:C.mutedL,lineHeight:1.75,marginBottom:12}}>{worker.bio||"Profesional con experiencia contrastada. Presupuesto sin compromiso."}</p>
         {worker.specialties&&worker.specialties.length>0&&(
-          <div>
-            <p style={{fontSize:11,color:C.muted,marginBottom:6,fontWeight:700,textTransform:"uppercase" as const,letterSpacing:"0.06em"}}>Especialidades</p>
-            <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>{worker.specialties.map(s=><span key={s} style={{fontSize:11,color:col,background:col+"15",padding:"3px 9px",borderRadius:99,border:"1px solid "+col+"33"}}>{s}</span>)}</div>
-          </div>
+          <div><p style={{fontSize:11,color:C.muted,marginBottom:6,fontWeight:700,textTransform:"uppercase" as const,letterSpacing:"0.06em"}}>Especialidades</p>
+          <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>{worker.specialties.map(s=><span key={s} style={{fontSize:11,color:col,background:col+"15",padding:"3px 9px",borderRadius:99,border:"1px solid "+col+"33"}}>{s}</span>)}</div></div>
         )}
       </>)}
 
-      {tab==="fotos"&&(
-        photos.length===0?<div style={{textAlign:"center",padding:"32px 0",color:C.muted}}>
-          <p style={{fontSize:32,marginBottom:8}}>📸</p>
-          <p style={{fontSize:13}}>Este profesional no ha subido fotos aún</p>
-        </div>:
+      {tab==="fotos"&&(photos.length===0?<div style={{textAlign:"center",padding:"32px 0",color:C.muted}}><p style={{fontSize:32,marginBottom:8}}>📸</p><p style={{fontSize:13}}>Sin fotos aún</p></div>:
         <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8}}>
-          {photos.map(p=>(
-            <div key={p.id} style={{borderRadius:10,overflow:"hidden",border:"1px solid "+C.border,background:C.surface,aspectRatio:"4/3",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,color:C.muted,padding:8}}>
-              {p.url?<img src={p.url} alt={p.caption} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={(e:any)=>{e.target.style.display="none";}} />:<span style={{textAlign:"center"}}>{p.caption||"Foto de trabajo"}</span>}
-            </div>
-          ))}
+          {photos.map(p=><div key={p.id} style={{borderRadius:10,overflow:"hidden",border:"1px solid "+C.border,background:C.surface,aspectRatio:"4/3",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,color:C.muted,padding:8}}>
+            {p.url?<img src={p.url} alt={p.caption} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={(e:any)=>{e.target.style.display="none";}} />:<span style={{textAlign:"center"}}>{p.caption||"Foto de trabajo"}</span>}
+          </div>)}
         </div>
       )}
 
@@ -762,8 +940,7 @@ function WorkerSheet({worker,onClose,onChat,currentUser}:{worker:UserRow;onClose
         </div>
       </>)}
 
-      {tab==="certs"&&(
-        certs.length===0?<p style={{textAlign:"center",color:C.muted,fontSize:13,padding:16}}>No ha subido títulos todavía</p>:
+      {tab==="certs"&&(certs.length===0?<p style={{textAlign:"center",color:C.muted,fontSize:13,padding:16}}>No ha subido títulos todavía</p>:
         certs.map(c=>(
           <GCard key={c.id} style={{padding:12,marginBottom:8}}>
             <div style={{display:"flex",alignItems:"center",gap:10}}>
@@ -778,6 +955,40 @@ function WorkerSheet({worker,onClose,onChat,currentUser}:{worker:UserRow;onClose
   );
 }
 
+// ─── RANKING ───
+function RankingSection({workers,onSelect}:{workers:UserRow[];onSelect:(w:UserRow)=>void}){
+  const top=workers.filter(w=>w.plan==="pro"||w.plan==="elite").sort((a,b)=>b.rating-a.rating||b.reviews-a.reviews).slice(0,20);
+  return(
+    <div style={{padding:"22px 0 16px"}}>
+      <h2 style={{fontWeight:800,fontSize:22,color:C.text,marginBottom:4}}>🏆 Ranking Profesionales</h2>
+      <p style={{fontSize:12,color:C.muted,marginBottom:16}}>Los mejor valorados este mes</p>
+      {top.map((w,i)=>{
+        const col=wColor(w.id);
+        const medal=i===0?"🥇":i===1?"🥈":i===2?"🥉":"";
+        return(
+          <GCard key={w.id} onClick={()=>onSelect(w)} glow={col} style={{marginBottom:8,padding:"12px 14px"}}>
+            <div style={{display:"flex",gap:10,alignItems:"center"}}>
+              <div style={{width:28,textAlign:"center",fontWeight:900,color:i<3?C.accent:C.muted,fontSize:i<3?18:13,flexShrink:0}}>{medal||"#"+(i+1)}</div>
+              <Ava s={w.name.substring(0,2).toUpperCase()} size={40} color={col} online={w.available} />
+              <div style={{flex:1,minWidth:0}}>
+                <p style={{fontWeight:700,color:C.text,fontSize:14}}>{w.name}</p>
+                <p style={{fontSize:11,color:col}}>{OFICIO_ICONS[w.trade||""]||"🔧"} {w.trade}</p>
+              </div>
+              <div style={{textAlign:"right",flexShrink:0}}>
+                <div style={{display:"flex",gap:4,alignItems:"center",justifyContent:"flex-end",marginBottom:2}}>
+                  <Stars n={w.rating} size={10} />
+                  <span style={{fontSize:12,fontWeight:700,color:C.text}}>{w.rating>0?w.rating.toFixed(1):"—"}</span>
+                </div>
+                <p style={{fontSize:10,color:C.muted}}>{w.reviews} reseñas</p>
+              </div>
+            </div>
+          </GCard>
+        );
+      })}
+      {top.length===0&&<p style={{textAlign:"center",color:C.muted,fontSize:13,padding:32}}>Sin datos de ranking aún</p>}
+    </div>
+  );
+}
 
 // ─── CLIENT HOME ───
 function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
@@ -794,22 +1005,16 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
   const [chatWorker,setChatWorker]=useState<UserRow|null>(null);
   const [chatPartners,setChatPartners]=useState<UserRow[]>([]);
   const [toast,setToast]=useState<string|null>(null);
-  const [inAppNotif,setInAppNotif]=useState<{msg:string;from:string;fromId:string}|null>(null);
-  const [unreadChats,setUnreadChats]=useState(false);
+  const [inAppNotif,setInAppNotif]=useState<{msg:string;from:string;fromId:string;isAdmin:boolean}|null>(null);
+  const [unreadChats,setUnreadChats]=useState(0);
   const showToast=(m:string)=>{setToast(m);setTimeout(()=>setToast(null),3000);};
 
   const filteredWorkers=workers.filter(w=>{
     if(soloDisp&&!w.available)return false;
     if(zona!=="Todas"&&w.zone!==zona&&!(w.service_zones||[]).includes(zona))return false;
     if(oficio!=="Todos"&&w.trade!==oficio)return false;
-    if(catFilter!=="Todos"){
-      const cat=OFICIO_CATEGORIES[w.trade||""]||"";
-      if(!cat.includes(catFilter.split(" ").slice(1).join(" ")))return false;
-    }
-    if(search){
-      const s=search.toLowerCase();
-      if(!w.name.toLowerCase().includes(s)&&!(w.trade||"").toLowerCase().includes(s)&&!(w.bio||"").toLowerCase().includes(s))return false;
-    }
+    if(catFilter!=="Todos"){const cat=OFICIO_CATEGORIES[w.trade||""]||"";if(!cat.includes(catFilter.split(" ").slice(1).join(" ")))return false;}
+    if(search){const s=search.toLowerCase();if(!w.name.toLowerCase().includes(s)&&!(w.trade||"").toLowerCase().includes(s)&&!(w.bio||"").toLowerCase().includes(s))return false;}
     return true;
   });
 
@@ -825,16 +1030,24 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
 
   useEffect(()=>{loadWorkers();},[loadWorkers]);
 
+  // Count unread messages
+  const countUnread=useCallback(async()=>{
+    const {count}=await db.from("messages").select("id",{count:"exact"} as any).eq("to_id",user.id).eq("read",false);
+    setUnreadChats(count||0);
+  },[user.id]);
+
+  useEffect(()=>{countUnread();},[countUnread]);
+
   // Realtime notifications
   useEffect(()=>{
     const ch=db.channel("client-notif-"+user.id)
       .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"to_id=eq."+user.id},(p:any)=>{
         const m=p.new;
-        // Find sender name
+        const isAdmin=m.from_id==="admin-001"||m.from_id==="system-lead";
         db.from("users").select("name").eq("id",m.from_id).single().then(({data}:any)=>{
-          const senderName=data?.name||"Profesional";
-          setInAppNotif({msg:m.text.substring(0,60)+(m.text.length>60?"...":""),from:senderName,fromId:m.from_id});
-          setUnreadChats(true);
+          const senderName=isAdmin?"👑 OfficioYa Soporte":(data?.name||"Profesional");
+          setInAppNotif({msg:m.text.substring(0,60)+(m.text.length>60?"...":""),from:senderName,fromId:m.from_id,isAdmin});
+          setUnreadChats(c=>c+1);
         });
       }).subscribe();
     return ()=>{db.removeChannel(ch);};
@@ -848,17 +1061,20 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
     setChatPartners(ws||[]);
   },[user.id]);
 
-  useEffect(()=>{if(tab==="chats"){loadChats();setUnreadChats(false);}},[tab,loadChats]);
+  useEffect(()=>{
+    if(tab==="chats"){loadChats();setUnreadChats(0);}
+  },[tab,loadChats]);
 
   const handleChat=async(w:UserRow)=>{
     const ok=await logLead(w.id,user.id,"message");
     if(!ok){showToast("⛔ Este profesional ha alcanzado su límite de contactos este mes");return;}
+    // ── NEW: notify professional immediately with urgent lead alert ──
+    await notifyProOfNewLead(w.id, user.name, w.trade||"servicios");
     setSelectedWorker(null);setChatWorker(w);
   };
 
   const handleWizardResult=(oficio:string,_zona:string,_urgency:string)=>{
-    if(oficio)setOficio(oficio);
-    setShowWizard(false);
+    if(oficio)setOficio(oficio);setShowWizard(false);
   };
 
   const CATS=["Todos","⚡ Técnico","🏗️ Obras","🏠 Servicios","🐾 Mascotas","❤️ Cuidados","💻 Tecnología","🏺 Artesanía"];
@@ -866,10 +1082,9 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
   return(
     <div style={{minHeight:"100dvh",background:C.bg,backgroundImage:"radial-gradient(ellipse at 15% 0%,#1a0a3a22,transparent 50%),radial-gradient(ellipse at 85% 100%,#0a1a3a22,transparent 50%)",paddingBottom:72}}>
 
-      {/* In-app notification */}
       {inAppNotif&&<InAppNotification
-        msg={inAppNotif.msg}
-        from={"💬 "+inAppNotif.from}
+        msg={inAppNotif.msg} from={inAppNotif.from}
+        isAdmin={inAppNotif.isAdmin}
         onClose={()=>setInAppNotif(null)}
         onClick={()=>{
           setInAppNotif(null);
@@ -892,8 +1107,6 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
 
       <div style={{maxWidth:900,margin:"0 auto",padding:"0 16px"}}>
         {tab==="buscar"&&(<>
-
-          {/* ── BUSCADOR EXPRESS CTA (arriba del todo) ── */}
           <div style={{padding:"14px 0 0"}}>
             <div onClick={()=>setShowWizard(true)} style={{display:"flex",alignItems:"center",gap:12,background:"linear-gradient(135deg,"+C.card+","+C.surface+")",borderRadius:16,border:"1px solid "+C.accent+"55",padding:"14px 18px",cursor:"pointer",boxShadow:"0 4px 24px rgba(255,215,0,0.10)",transition:"all 0.2s",marginBottom:12,position:"relative",overflow:"hidden"}}>
               <div style={{position:"absolute",top:-15,right:-15,width:70,height:70,borderRadius:"50%",background:C.accent+"10",pointerEvents:"none"}} />
@@ -902,10 +1115,8 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
                 <p style={{fontWeight:800,color:C.text,fontSize:15,marginBottom:2}}>¿Qué profesional necesitas?</p>
                 <p style={{fontSize:12,color:C.muted}}>Te conectamos con el más adecuado en segundos</p>
               </div>
-              <div style={{background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",borderRadius:10,padding:"8px 14px",color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,flexShrink:0,boxShadow:"0 4px 14px "+C.accent+"33"}}>Buscar →</div>
+              <div style={{background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",borderRadius:10,padding:"8px 14px",color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,flexShrink:0}}>Buscar →</div>
             </div>
-
-            {/* Quick chips top oficios */}
             <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:4,marginBottom:14,scrollbarWidth:"none"}}>
               {OFICIOS_TOP.map(o=>(
                 <button key={o} onClick={()=>setOficio(oficio===o?"Todos":o)} style={{flexShrink:0,display:"flex",alignItems:"center",gap:5,padding:"6px 12px",borderRadius:99,border:"1px solid "+(oficio===o?C.accent:C.border),background:oficio===o?C.accent+"18":C.surface,color:oficio===o?C.accent:C.mutedL,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:oficio===o?700:500,whiteSpace:"nowrap",transition:"all 0.15s"}}>
@@ -915,7 +1126,6 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
             </div>
           </div>
 
-          {/* ── HERO STATS ── */}
           <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginBottom:14}}>
             {[{l:"Profesionales",v:workers.length+"+"},{l:"Trabajos",v:"1.8K"},{l:"Ciudades",v:"15"},{l:"Valoración",v:"4.8★"}].map(s=>(
               <div key={s.l} style={{background:C.surface,borderRadius:10,padding:"10px 8px",textAlign:"center",border:"1px solid "+C.border}}>
@@ -925,7 +1135,6 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
             ))}
           </div>
 
-          {/* ── FILTROS IDEALISTA-STYLE ── */}
           <div style={{background:C.card,borderRadius:14,border:"1px solid "+C.border,padding:"12px 14px",marginBottom:14}}>
             <div style={{display:"flex",background:C.bg,borderRadius:10,border:"1px solid "+C.border,overflow:"hidden",marginBottom:10}}>
               <span style={{padding:"0 12px",display:"flex",alignItems:"center",color:C.muted,fontSize:14}}>🔍</span>
@@ -946,31 +1155,21 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
             </div>
             <div style={{display:"flex",gap:8,alignItems:"center"}}>
               <button onClick={()=>setSoloDisp(!soloDisp)} style={{display:"flex",alignItems:"center",gap:6,padding:"5px 10px",borderRadius:99,border:"1px solid "+(soloDisp?C.green:C.border),background:soloDisp?C.green+"15":"transparent",color:soloDisp?C.green:C.muted,cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:soloDisp?700:400,transition:"all 0.15s"}}>
-                <span style={{width:6,height:6,borderRadius:"50%",background:soloDisp?C.green:C.muted,display:"inline-block"}} />
-                Solo disponibles
+                <span style={{width:6,height:6,borderRadius:"50%",background:soloDisp?C.green:C.muted,display:"inline-block"}} />Solo disponibles
               </button>
               <span style={{fontSize:12,color:C.muted,marginLeft:"auto"}}>{filteredWorkers.length} profesionales</span>
             </div>
           </div>
 
-          {/* Category filters */}
           <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:4,marginBottom:14,scrollbarWidth:"none"}}>
             {CATS.map(c=>(
-              <button key={c} onClick={()=>setCatFilter(c)} style={{flexShrink:0,padding:"7px 14px",borderRadius:99,border:"1px solid "+(catFilter===c?C.accent:C.border),background:catFilter===c?C.accent+"18":C.surface,color:catFilter===c?C.accent:C.muted,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:catFilter===c?700:500,whiteSpace:"nowrap",transition:"all 0.15s"}}>
-                {c}
-              </button>
+              <button key={c} onClick={()=>setCatFilter(c)} style={{flexShrink:0,padding:"7px 14px",borderRadius:99,border:"1px solid "+(catFilter===c?C.accent:C.border),background:catFilter===c?C.accent+"18":C.surface,color:catFilter===c?C.accent:C.muted,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:catFilter===c?700:500,whiteSpace:"nowrap",transition:"all 0.15s"}}>{c}</button>
             ))}
           </div>
 
           {loading?<Spin/>:(
             <>
-              {filteredWorkers.length===0&&(
-                <div style={{textAlign:"center",padding:"32px 20px",color:C.muted}}>
-                  <p style={{fontSize:32,marginBottom:8}}>🔍</p>
-                  <p style={{fontWeight:700,color:C.text,fontSize:16,marginBottom:6}}>Sin resultados</p>
-                  <p style={{fontSize:13}}>Prueba con otra búsqueda o zona</p>
-                </div>
-              )}
+              {filteredWorkers.length===0&&<div style={{textAlign:"center",padding:"32px 20px",color:C.muted}}><p style={{fontSize:32,marginBottom:8}}>🔍</p><p style={{fontWeight:700,color:C.text,fontSize:16,marginBottom:6}}>Sin resultados</p><p style={{fontSize:13}}>Prueba con otra búsqueda o zona</p></div>}
               <div style={{display:"flex",flexDirection:"column",gap:10}}>
                 {filteredWorkers.map(w=><WorkerCardIdealista key={w.id} w={w} onChat={()=>handleChat(w)} onSelect={()=>setSelectedWorker(w)} />)}
               </div>
@@ -1036,7 +1235,11 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
               {isActive&&<div style={{position:"absolute",top:0,left:"50%",transform:"translateX(-50%)",width:32,height:2,background:"linear-gradient(90deg,"+C.accent+","+C.orange+")",borderRadius:"0 0 2px 2px"}} />}
               <div style={{color:isActive?C.accent:C.muted+"88",position:"relative"}}>
                 {icons[id]}
-                {id==="chats"&&unreadChats&&!isActive&&<span style={{position:"absolute",top:-2,right:-2,width:8,height:8,borderRadius:"50%",background:C.red,border:"1px solid "+C.bg}} />}
+                {id==="chats"&&unreadChats>0&&!isActive&&(
+                  <span style={{position:"absolute",top:-4,right:-4,background:C.red,color:"#fff",borderRadius:99,minWidth:16,height:16,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:900,border:"1.5px solid "+C.bg,padding:"0 3px"}}>
+                    {unreadChats>9?"9+":unreadChats}
+                  </span>
+                )}
               </div>
               <span style={{fontSize:9,fontWeight:isActive?700:500,letterSpacing:"0.04em",textTransform:"uppercase"}}>{labels[id]}</span>
             </button>
@@ -1055,48 +1258,31 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
 // ─── AUTH ───
 function Auth({onLogin}:{onLogin:(u:UserRow)=>void}){
   const [mode,setMode]=useState<"login"|"pick"|"register_cliente"|"register_pro">("login");
-  const [proStep,setProStep]=useState(1); // 1=datos, 2=oficio+zona, 3=plan
+  const [proStep,setProStep]=useState(1);
   const [loading,setLoading]=useState(false);
   const [err,setErr]=useState("");
-  // shared fields
   const [name,setName]=useState("");
   const [email,setEmail]=useState("");
   const [phone,setPhone]=useState("");
   const [pass,setPass]=useState("");
-  // pro-only fields
   const [trade,setTrade]=useState(OFICIOS[0]);
   const [zone,setZone]=useState(ZONAS[0]);
   const [plan,setPlan]=useState<Plan>("gratis");
   const [showPlanDetail,setShowPlanDetail]=useState<Plan|null>(null);
 
-  const resetForm=()=>{
-    setName("");setEmail("");setPhone("");setPass("");
-    setTrade(OFICIOS[0]);setZone(ZONAS[0]);setPlan("gratis");
-    setErr("");setProStep(1);
-  };
+  const resetForm=()=>{setName("");setEmail("");setPhone("");setPass("");setTrade(OFICIOS[0]);setZone(ZONAS[0]);setPlan("gratis");setErr("");setProStep(1);};
 
   const login=async()=>{
     if(!email||!pass){setErr("Introduce email y contraseña.");return;}
     setLoading(true);setErr("");
     if(email.toLowerCase()==="andresalgora9@gmail.com"&&pass==="Oficiooficio9"){
-      const adminUser:UserRow={
-        id:"admin-001",name:"Andrés Admin",email:"andresalgora9@gmail.com",
-        password:"",phone:"",type:"admin",plan:"elite",bio:"",price:0,
-        trade:"",zone:"Sevilla",rating:0,reviews:0,jobs:0,verified:true,
-        available:true,whatsapp:"",service_zones:[],schedule:"",
-        response_time:"",free_quote:false,experience_years:0,specialties:[],
-        trial_end:"2099-12-31",joined_at:new Date().toISOString(),
-      };
-      setLoading(false);
-      localStorage.setItem("oy_user",JSON.stringify(adminUser));
-      onLogin(adminUser);
-      return;
+      const adminUser:UserRow={id:"admin-001",name:"Andrés Admin",email:"andresalgora9@gmail.com",password:"",phone:"",type:"admin",plan:"elite",bio:"",price:0,trade:"",zone:"Sevilla",rating:0,reviews:0,jobs:0,verified:true,available:true,whatsapp:"",service_zones:[],schedule:"",response_time:"",free_quote:false,experience_years:0,specialties:[],trial_end:"2099-12-31",joined_at:new Date().toISOString()};
+      setLoading(false);localStorage.setItem("oy_user",JSON.stringify(adminUser));onLogin(adminUser);return;
     }
     const {data,error}=await db.from("users").select("*").eq("email",email.toLowerCase()).eq("password",pass).single();
     setLoading(false);
     if(error||!data){setErr("Email o contraseña incorrectos.");return;}
-    localStorage.setItem("oy_user",JSON.stringify(data));
-    onLogin(data as UserRow);
+    localStorage.setItem("oy_user",JSON.stringify(data));onLogin(data as UserRow);
   };
 
   const registerCliente=async()=>{
@@ -1108,106 +1294,46 @@ function Auth({onLogin}:{onLogin:(u:UserRow)=>void}){
       const {data:ex}=await db.from("users").select("id").eq("email",email.toLowerCase()).maybeSingle();
       if(ex){setLoading(false);setErr("Ya existe una cuenta con ese email.");return;}
       const trial_end=new Date(Date.now()+365*86400000).toISOString().split("T")[0];
-      const insertData:any={
-        name:name.trim(),
-        email:email.toLowerCase().trim(),
-        password:pass,
-        type:"cliente",
-        plan:"gratis",
-        bio:"",
-        price:0,
-        available:true,
-        verified:false,
-        jobs:0,
-        rating:0,
-        reviews:0,
-        trial_end,
-      };
-      if(phone) insertData.phone=phone.trim();
-      if(phone) insertData.whatsapp=phone.trim();
+      const insertData:any={name:name.trim(),email:email.toLowerCase().trim(),password:pass,type:"cliente",plan:"gratis",bio:"",price:0,available:true,verified:false,jobs:0,rating:0,reviews:0,trial_end};
+      if(phone){insertData.phone=phone.trim();insertData.whatsapp=phone.trim();}
       const {data,error}=await db.from("users").insert(insertData).select().single();
       setLoading(false);
-      if(error){console.error("Register error:",error);setErr("Error: "+error.message);return;}
-      if(!data){setErr("Error creando cuenta. Inténtalo de nuevo.");return;}
-      localStorage.setItem("oy_user",JSON.stringify(data));
-      onLogin(data as UserRow);
-    }catch(e:any){setLoading(false);setErr("Error de conexión. Inténtalo de nuevo.");}
+      if(error){setErr("Error: "+error.message);return;}
+      if(!data){setErr("Error creando cuenta.");return;}
+      localStorage.setItem("oy_user",JSON.stringify(data));onLogin(data as UserRow);
+    }catch{setLoading(false);setErr("Error de conexión.");}
   };
 
   const registerPro=async()=>{
     if(!name||!email||!phone||!pass){setErr("Rellena todos los campos obligatorios.");return;}
-    if(pass.length<6){setErr("Mínimo 6 caracteres en la contraseña.");return;}
+    if(pass.length<6){setErr("Mínimo 6 caracteres.");return;}
     if(!/\S+@\S+\.\S+/.test(email)){setErr("Introduce un email válido.");return;}
     setLoading(true);setErr("");
     try{
       const {data:ex}=await db.from("users").select("id").eq("email",email.toLowerCase()).maybeSingle();
       if(ex){setLoading(false);setErr("Ya existe una cuenta con ese email.");return;}
       const trial_end=new Date(Date.now()+30*86400000).toISOString().split("T")[0];
-      const insertData:any={
-        name:name.trim(),
-        email:email.toLowerCase().trim(),
-        password:pass,
-        phone:phone.trim(),
-        type:"profesional",
-        plan,
-        trade,
-        zone,
-        bio:"",
-        price:30,
-        available:true,
-        verified:false,
-        jobs:0,
-        rating:0,
-        reviews:0,
-        trial_end,
-        whatsapp:phone.trim(),
-        free_quote:true,
-      };
-      // Only add optional fields if they exist in schema
-      try{insertData.service_zones=[zone];}catch{}
-      try{insertData.schedule="Lunes a Viernes";}catch{}
-      try{insertData.response_time="24h";}catch{}
-      try{insertData.experience_years=0;}catch{}
-      try{insertData.specialties=[];}catch{}
+      const insertData:any={name:name.trim(),email:email.toLowerCase().trim(),password:pass,phone:phone.trim(),type:"profesional",plan,trade,zone,bio:"",price:30,available:true,verified:false,jobs:0,rating:0,reviews:0,trial_end,whatsapp:phone.trim(),free_quote:true,service_zones:[zone],schedule:"Lunes a Viernes",response_time:"24h",experience_years:0,specialties:[]};
       const {data,error}=await db.from("users").insert(insertData).select().single();
       setLoading(false);
-      if(error){console.error("Register pro error:",error);setErr("Error: "+error.message);return;}
-      if(!data){setErr("Error creando cuenta. Inténtalo de nuevo.");return;}
-      localStorage.setItem("oy_user",JSON.stringify(data));
-      onLogin(data as UserRow);
-    }catch(e:any){setLoading(false);setErr("Error de conexión. Inténtalo de nuevo.");}
+      if(error){setErr("Error: "+error.message);return;}
+      if(!data){setErr("Error creando cuenta.");return;}
+      localStorage.setItem("oy_user",JSON.stringify(data));onLogin(data as UserRow);
+    }catch{setLoading(false);setErr("Error de conexión.");}
   };
 
-  // Plan detail modal
   const PlanDetailModal=({pl,onClose}:{pl:Plan;onClose:()=>void})=>{
     const col=PLAN_COLORS[pl];
     return <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(4,4,12,0.9)",zIndex:600,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
-      <div onClick={e=>e.stopPropagation()} style={{background:"linear-gradient(170deg,#14141F,#0A0A14)",borderRadius:16,width:"100%",maxWidth:360,border:"2px solid "+col+"44",padding:24,boxShadow:"0 0 40px "+col+"22"}}>
+      <div onClick={e=>e.stopPropagation()} style={{background:"linear-gradient(170deg,#14141F,#0A0A14)",borderRadius:16,width:"100%",maxWidth:360,border:"2px solid "+col+"44",padding:24}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-          <div>
-            <p style={{fontWeight:900,fontSize:22,color:col}}>{pl.toUpperCase()}</p>
-            <p style={{fontSize:18,fontWeight:800,color:C.text}}>{PLAN_PRICES[pl]===0?"GRATIS":PLAN_PRICES[pl]+"€/mes"}</p>
-          </div>
-          {pl==="elite"&&<div style={{background:"linear-gradient(135deg,"+C.orange+","+C.red+")",borderRadius:10,padding:"8px 12px",textAlign:"center"}}>
-            <p style={{fontSize:9,color:"#fff",fontWeight:700,textTransform:"uppercase" as const}}>1er mes</p>
-            <p style={{fontSize:18,fontWeight:900,color:"#fff"}}>GRATIS</p>
-          </div>}
-          {pl==="pro"&&<div style={{background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",borderRadius:10,padding:"8px 12px",textAlign:"center"}}>
-            <p style={{fontSize:9,color:"#000",fontWeight:700,textTransform:"uppercase" as const}}>Más popular</p>
-            <p style={{fontSize:12,fontWeight:900,color:"#000"}}>⭐ Recomendado</p>
-          </div>}
+          <div><p style={{fontWeight:900,fontSize:22,color:col}}>{pl.toUpperCase()}</p><p style={{fontSize:18,fontWeight:800,color:C.text}}>{PLAN_PRICES[pl]===0?"GRATIS":PLAN_PRICES[pl]+"€/mes"}</p></div>
+          <button onClick={onClose} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:20}}>✕</button>
         </div>
         <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:18}}>
-          {PLAN_FEATURES[pl].map(f=>(
-            <div key={f} style={{display:"flex",gap:8,alignItems:"center"}}>
-              <span style={{color:col,fontSize:13,flexShrink:0}}>✓</span>
-              <span style={{fontSize:13,color:C.text}}>{f}</span>
-            </div>
-          ))}
+          {PLAN_FEATURES[pl].map(f=><div key={f} style={{display:"flex",gap:8,alignItems:"center"}}><span style={{color:col,fontSize:13}}>✓</span><span style={{fontSize:13,color:C.text}}>{f}</span></div>)}
         </div>
-        <Btn full onClick={()=>{setPlan(pl);onClose();}} color={col}>
-          Elegir {pl.toUpperCase()} {pl==="elite"?"— 1er mes gratis →":"→"}
-        </Btn>
+        <Btn full onClick={()=>{setPlan(pl);onClose();}} color={col}>Elegir {pl.toUpperCase()} →</Btn>
       </div>
     </div>;
   };
@@ -1220,13 +1346,11 @@ function Auth({onLogin}:{onLogin:(u:UserRow)=>void}){
     </div>
   );
 
-  return (
+  return(
     <div style={{minHeight:"100dvh",background:C.bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px 20px",backgroundImage:"radial-gradient(ellipse at 20% 0%,#2a0a5a22,transparent 55%),radial-gradient(ellipse at 80% 100%,#0a2a4a22,transparent 55%)",overflowY:"auto"}}>
       {showPlanDetail&&<PlanDetailModal pl={showPlanDetail} onClose={()=>setShowPlanDetail(null)} />}
       <div style={{width:"100%",maxWidth:420}}>
         <Logo />
-
-        {/* ─── LOGIN ─── */}
         {mode==="login"&&(
           <GCard>
             <p style={{fontWeight:800,fontSize:17,color:C.text,marginBottom:16,textAlign:"center"}}>Bienvenido de nuevo</p>
@@ -1239,40 +1363,22 @@ function Auth({onLogin}:{onLogin:(u:UserRow)=>void}){
             </div>
           </GCard>
         )}
-
-        {/* ─── PICK TYPE ─── */}
         {mode==="pick"&&(
           <div>
             <p style={{fontWeight:800,fontSize:18,color:C.text,marginBottom:6,textAlign:"center"}}>¿Cómo quieres usar OfficioYa?</p>
-            <p style={{fontSize:13,color:C.muted,marginBottom:20,textAlign:"center"}}>Es gratis registrarse. Elige cómo quieres continuar:</p>
+            <p style={{fontSize:13,color:C.muted,marginBottom:20,textAlign:"center"}}>Es gratis registrarse.</p>
             <div style={{display:"flex",flexDirection:"column",gap:12,marginBottom:20}}>
-              {/* CLIENTE */}
-              <div onClick={()=>setMode("register_cliente")} style={{padding:"20px 18px",borderRadius:14,border:"2px solid "+C.blue+"44",background:"linear-gradient(135deg,"+C.blue+"12,"+C.surface+")",cursor:"pointer",transition:"all 0.15s",position:"relative",overflow:"hidden"}}>
-                <div style={{position:"absolute",top:-10,right:-10,width:60,height:60,borderRadius:"50%",background:C.blue+"12",pointerEvents:"none"}} />
+              <div onClick={()=>setMode("register_cliente")} style={{padding:"20px 18px",borderRadius:14,border:"2px solid "+C.blue+"44",background:"linear-gradient(135deg,"+C.blue+"12,"+C.surface+")",cursor:"pointer"}}>
                 <div style={{display:"flex",gap:14,alignItems:"center"}}>
                   <div style={{width:48,height:48,borderRadius:12,background:C.blue+"22",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,flexShrink:0}}>🏠</div>
-                  <div>
-                    <p style={{fontWeight:800,fontSize:15,color:C.text,marginBottom:3}}>Soy cliente</p>
-                    <p style={{fontSize:12,color:C.muted}}>Busco profesionales para mis trabajos</p>
-                    <div style={{display:"flex",gap:6,marginTop:6,flexWrap:"wrap"}}>
-                      {["Gratis","Sin límites","Acceso inmediato"].map(b=><span key={b} style={{fontSize:10,color:C.green,background:C.green+"15",padding:"2px 7px",borderRadius:99,fontWeight:600}}>✓ {b}</span>)}
-                    </div>
-                  </div>
+                  <div><p style={{fontWeight:800,fontSize:15,color:C.text,marginBottom:3}}>Soy cliente</p><p style={{fontSize:12,color:C.muted}}>Busco profesionales para mis trabajos</p></div>
                   <span style={{marginLeft:"auto",fontSize:18,color:C.blue,flexShrink:0}}>→</span>
                 </div>
               </div>
-              {/* PROFESIONAL */}
-              <div onClick={()=>setMode("register_pro")} style={{padding:"20px 18px",borderRadius:14,border:"2px solid "+C.accent+"44",background:"linear-gradient(135deg,"+C.accent+"12,"+C.surface+")",cursor:"pointer",transition:"all 0.15s",position:"relative",overflow:"hidden"}}>
-                <div style={{position:"absolute",top:-10,right:-10,width:60,height:60,borderRadius:"50%",background:C.accent+"12",pointerEvents:"none"}} />
+              <div onClick={()=>setMode("register_pro")} style={{padding:"20px 18px",borderRadius:14,border:"2px solid "+C.accent+"44",background:"linear-gradient(135deg,"+C.accent+"12,"+C.surface+")",cursor:"pointer"}}>
                 <div style={{display:"flex",gap:14,alignItems:"center"}}>
                   <div style={{width:48,height:48,borderRadius:12,background:C.accent+"22",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,flexShrink:0}}>🔨</div>
-                  <div>
-                    <p style={{fontWeight:800,fontSize:15,color:C.text,marginBottom:3}}>Soy profesional</p>
-                    <p style={{fontSize:12,color:C.muted}}>Ofrezco mis servicios y capto clientes</p>
-                    <div style={{display:"flex",gap:6,marginTop:6,flexWrap:"wrap"}}>
-                      {["30 días gratis","Perfil público","Panel de gestión"].map(b=><span key={b} style={{fontSize:10,color:C.accent,background:C.accent+"15",padding:"2px 7px",borderRadius:99,fontWeight:600}}>✓ {b}</span>)}
-                    </div>
-                  </div>
+                  <div><p style={{fontWeight:800,fontSize:15,color:C.text,marginBottom:3}}>Soy profesional</p><p style={{fontSize:12,color:C.muted}}>Ofrezco mis servicios y capto clientes</p></div>
                   <span style={{marginLeft:"auto",fontSize:18,color:C.accent,flexShrink:0}}>→</span>
                 </div>
               </div>
@@ -1280,8 +1386,6 @@ function Auth({onLogin}:{onLogin:(u:UserRow)=>void}){
             <p style={{textAlign:"center",fontSize:13,color:C.muted}}>¿Ya tienes cuenta? <button onClick={()=>setMode("login")} style={{background:"none",border:"none",color:C.accent,cursor:"pointer",fontSize:13,fontWeight:700}}>Inicia sesión</button></p>
           </div>
         )}
-
-        {/* ─── REGISTER CLIENTE ─── */}
         {mode==="register_cliente"&&(
           <GCard>
             <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
@@ -1294,30 +1398,19 @@ function Auth({onLogin}:{onLogin:(u:UserRow)=>void}){
             <Inp label="Email *" value={email} onChange={setEmail} type="email" placeholder="tu@email.com" required />
             <Inp label="Teléfono (opcional)" value={phone} onChange={setPhone} placeholder="+34 600 000 000" />
             <Inp label="Contraseña *" value={pass} onChange={setPass} type="password" placeholder="Mínimo 6 caracteres" required />
-            <div style={{background:C.green+"10",border:"1px solid "+C.green+"22",borderRadius:8,padding:"10px 12px",marginBottom:14}}>
-              <p style={{fontSize:12,color:C.green,fontWeight:600}}>✓ El registro es completamente gratuito · Sin tarjeta · Sin compromisos</p>
-            </div>
             <Btn full disabled={loading} onClick={registerCliente}>{loading?"Creando tu cuenta...":"Crear cuenta gratis →"}</Btn>
           </GCard>
         )}
-
-        {/* ─── REGISTER PROFESIONAL ─── */}
         {mode==="register_pro"&&(
           <GCard style={{padding:20}}>
-            {/* Steps */}
             <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:20}}>
               <button onClick={()=>{if(proStep===1)setMode("pick");else setProStep(p=>p-1);}} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:18,padding:0,flexShrink:0}}>←</button>
               <div style={{flex:1,display:"flex",gap:4}}>
-                {[1,2,3].map(s=>(
-                  <div key={s} style={{flex:1,height:4,borderRadius:99,background:s<=proStep?"linear-gradient(90deg,"+C.accent+","+C.orange+")":C.border,transition:"background 0.3s"}} />
-                ))}
+                {[1,2,3].map(s=><div key={s} style={{flex:1,height:4,borderRadius:99,background:s<=proStep?"linear-gradient(90deg,"+C.accent+","+C.orange+")":C.border,transition:"background 0.3s"}} />)}
               </div>
               <span style={{fontSize:10,color:C.muted,flexShrink:0,fontWeight:600}}>Paso {proStep}/3</span>
             </div>
-
             {err&&<div style={{color:C.red,fontSize:13,marginBottom:12,padding:"10px 12px",background:C.red+"15",borderRadius:8,border:"1px solid "+C.red+"33"}}>{err}</div>}
-
-            {/* PASO 1 — Datos personales */}
             {proStep===1&&(<>
               <p style={{fontWeight:800,fontSize:16,color:C.text,marginBottom:4}}>Tus datos</p>
               <p style={{fontSize:12,color:C.muted,marginBottom:16}}>Solo te llevará 1 minuto</p>
@@ -1325,25 +1418,15 @@ function Auth({onLogin}:{onLogin:(u:UserRow)=>void}){
               <Inp label="Email *" value={email} onChange={setEmail} type="email" placeholder="tu@email.com" required />
               <Inp label="Teléfono / WhatsApp *" value={phone} onChange={setPhone} placeholder="+34 600 000 000" required />
               <Inp label="Contraseña *" value={pass} onChange={setPass} type="password" placeholder="Mínimo 6 caracteres" required />
-              <Btn full onClick={()=>{
-                if(!name||!email||!phone||!pass){setErr("Rellena todos los campos.");return;}
-                if(pass.length<6){setErr("Mínimo 6 caracteres.");return;}
-                setErr("");setProStep(2);
-              }}>Continuar →</Btn>
+              <Btn full onClick={()=>{if(!name||!email||!phone||!pass){setErr("Rellena todos los campos.");return;}if(pass.length<6){setErr("Mínimo 6 caracteres.");return;}setErr("");setProStep(2);}}>Continuar →</Btn>
             </>)}
-
-            {/* PASO 2 — Oficio y zona */}
             {proStep===2&&(<>
               <p style={{fontWeight:800,fontSize:16,color:C.text,marginBottom:4}}>Tu oficio y zona</p>
               <p style={{fontSize:12,color:C.muted,marginBottom:16}}>Así te encontrarán tus clientes</p>
               <div style={{marginBottom:14}}>
                 <p style={{fontSize:11,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.08em",marginBottom:8,fontWeight:700}}>Tu oficio *</p>
                 <div style={{display:"flex",flexWrap:"wrap",gap:6,maxHeight:180,overflowY:"auto",paddingRight:4}}>
-                  {OFICIOS.map(o=>(
-                    <button key={o} onClick={()=>setTrade(o)} style={{padding:"6px 12px",borderRadius:99,border:"1px solid "+(trade===o?C.accent:C.border),background:trade===o?C.accent+"22":"transparent",color:trade===o?C.accent:C.muted,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:trade===o?700:400,transition:"all 0.15s",flexShrink:0}}>
-                      {OFICIO_ICONS[o]} {o}
-                    </button>
-                  ))}
+                  {OFICIOS.map(o=><button key={o} onClick={()=>setTrade(o)} style={{padding:"6px 12px",borderRadius:99,border:"1px solid "+(trade===o?C.accent:C.border),background:trade===o?C.accent+"22":"transparent",color:trade===o?C.accent:C.muted,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:trade===o?700:400,transition:"all 0.15s"}}>{OFICIO_ICONS[o]} {o}</button>)}
                 </div>
               </div>
               <div style={{marginBottom:14}}>
@@ -1354,84 +1437,37 @@ function Auth({onLogin}:{onLogin:(u:UserRow)=>void}){
               </div>
               <Btn full onClick={()=>{setErr("");setProStep(3);}}>Elegir plan →</Btn>
             </>)}
-
-            {/* PASO 3 — Plan */}
             {proStep===3&&(<>
               <p style={{fontWeight:800,fontSize:16,color:C.text,marginBottom:2}}>Elige tu plan</p>
-              <p style={{fontSize:12,color:C.muted,marginBottom:16}}>Empieza gratis · Sin tarjeta · Cancela cuando quieras</p>
-
-              {/* Elite highlight banner */}
-              <div style={{background:"linear-gradient(135deg,"+C.orange+"22,"+C.red+"15)",borderRadius:12,border:"2px solid "+C.orange+"44",padding:"12px 14px",marginBottom:14,position:"relative",overflow:"hidden"}}>
-                <div style={{position:"absolute",top:-8,right:-8,width:40,height:40,borderRadius:"50%",background:C.orange+"22",pointerEvents:"none"}} />
-                <div style={{display:"flex",alignItems:"center",gap:10}}>
-                  <span style={{fontSize:22}}>⭐</span>
-                  <div style={{flex:1}}>
-                    <p style={{fontWeight:800,color:C.orange,fontSize:13}}>Plan ÉLITE — 1er mes GRATIS</p>
-                    <p style={{fontSize:11,color:C.mutedL}}>El más completo · Cancela antes del día 30 si no te convence</p>
-                  </div>
-                  <button onClick={()=>setShowPlanDetail("elite")} style={{background:"none",border:"1px solid "+C.orange+"44",borderRadius:6,color:C.orange,cursor:"pointer",fontSize:10,padding:"4px 8px",fontFamily:"'DM Sans',sans-serif",fontWeight:700,flexShrink:0}}>Ver →</button>
-                </div>
-              </div>
-
+              <p style={{fontSize:12,color:C.muted,marginBottom:16}}>Empieza gratis · Sin tarjeta</p>
               <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:16}}>
                 {(["gratis","basico","pro","elite"] as Plan[]).map(pl=>{
-                  const col=PLAN_COLORS[pl];
-                  const isSelected=plan===pl;
-                  return (
+                  const col=PLAN_COLORS[pl]; const isSelected=plan===pl;
+                  return(
                     <div key={pl} onClick={()=>setPlan(pl)} style={{padding:"12px 14px",borderRadius:12,border:"2px solid "+(isSelected?col:C.border),background:isSelected?col+"15":C.surface,cursor:"pointer",transition:"all 0.15s",position:"relative"}}>
                       {pl==="elite"&&<span style={{position:"absolute",top:-9,left:12,background:"linear-gradient(135deg,"+C.orange+","+C.red+")",color:"#fff",borderRadius:99,padding:"1px 9px",fontSize:8,fontWeight:900}}>1 MES GRATIS</span>}
                       {pl==="pro"&&<span style={{position:"absolute",top:-9,right:12,background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",color:"#000",borderRadius:99,padding:"1px 9px",fontSize:8,fontWeight:900}}>MÁS POPULAR</span>}
                       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}}>
-                        <div style={{display:"flex",gap:7,alignItems:"center"}}>
-                          {isSelected&&<span style={{width:8,height:8,borderRadius:"50%",background:col,display:"inline-block"}} />}
-                          <span style={{fontWeight:800,fontSize:14,color:col}}>{pl.toUpperCase()}</span>
-                        </div>
-                        <div style={{textAlign:"right"}}>
-                          {pl==="elite"&&<p style={{fontSize:9,color:C.mutedL,textDecoration:"line-through"}}>{PLAN_PRICES[pl]}€</p>}
-                          <span style={{fontWeight:800,fontSize:15,color:pl==="elite"?C.orange:C.text}}>
-                            {PLAN_PRICES[pl]===0?"GRATIS":pl==="elite"?"0€ 1er mes":PLAN_PRICES[pl]+"€/mes"}
-                          </span>
-                        </div>
+                        <span style={{fontWeight:800,fontSize:14,color:col}}>{pl.toUpperCase()}</span>
+                        <span style={{fontWeight:800,fontSize:15,color:C.text}}>{PLAN_PRICES[pl]===0?"GRATIS":PLAN_PRICES[pl]+"€/mes"}</span>
                       </div>
-                      <div style={{display:"flex",flexWrap:"wrap",gap:4,marginBottom:5}}>
+                      <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
                         {PLAN_FEATURES[pl].slice(0,3).map(f=><span key={f} style={{fontSize:10,color:isSelected?col:C.mutedL}}>✓ {f}</span>)}
-                        {PLAN_FEATURES[pl].length>3&&<span style={{fontSize:10,color:col}}>+{PLAN_FEATURES[pl].length-3} más</span>}
                       </div>
-                      <button onClick={e=>{e.stopPropagation();setShowPlanDetail(pl);}} style={{background:"none",border:"none",color:isSelected?col:C.muted,cursor:"pointer",fontSize:10,padding:0,fontFamily:"'DM Sans',sans-serif",fontWeight:600,textDecoration:"underline"}}>
-                        Ver todo lo incluido →
-                      </button>
                     </div>
                   );
                 })}
               </div>
-
-              {plan==="elite"&&(
-                <div style={{background:C.orange+"12",border:"1px solid "+C.orange+"33",borderRadius:8,padding:"10px 12px",marginBottom:14}}>
-                  <p style={{fontSize:12,color:C.orange,fontWeight:700}}>⭐ Has elegido ÉLITE — tu primer mes es completamente gratis</p>
-                  <p style={{fontSize:11,color:C.mutedL,marginTop:3}}>Cancela antes del día 30 y no se te cobrará nada</p>
-                </div>
-              )}
-              {plan==="pro"&&(
-                <div style={{background:C.accent+"12",border:"1px solid "+C.accent+"33",borderRadius:8,padding:"10px 12px",marginBottom:14}}>
-                  <p style={{fontSize:12,color:C.accent,fontWeight:700}}>✓ Has elegido PRO — contactos ilimitados y primero en búsquedas</p>
-                </div>
-              )}
-              {plan==="gratis"&&(
-                <div style={{background:C.surface,border:"1px solid "+C.border,borderRadius:8,padding:"10px 12px",marginBottom:14}}>
-                  <p style={{fontSize:12,color:C.muted}}>Plan gratis · 5 contactos/mes · Puedes mejorar en cualquier momento</p>
-                </div>
-              )}
-
               <Btn full disabled={loading} onClick={registerPro}>{loading?"Creando tu perfil...":"Crear perfil profesional →"}</Btn>
             </>)}
           </GCard>
         )}
-
         <p style={{textAlign:"center",fontSize:11,color:C.muted,marginTop:14}}>Al continuar aceptas los <span style={{color:C.accent,cursor:"pointer"}}>Términos de Uso</span> y la <span style={{color:C.accent,cursor:"pointer"}}>Política de Privacidad</span></p>
       </div>
     </div>
   );
 }
+
 // ─── PRO DASHBOARD ───
 function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;onUpdate:(u:UserRow)=>void}){
   const [tab,setTab]=useState<"inicio"|"chats"|"trabajos"|"perfil"|"planes">("inicio");
@@ -1455,9 +1491,16 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
   const [chatPartners,setChatPartners]=useState<UserRow[]>([]);
   const [chatUser,setChatUser]=useState<UserRow|null>(null);
   const [stats,setStats]=useState({visits:0,contacts:0,reviews:0});
+  const [urgentLead,setUrgentLead]=useState<{msg:string;fromId:string}|null>(null);
+  const [inAppNotif,setInAppNotif]=useState<{msg:string;from:string;fromId:string;isAdmin:boolean}|null>(null);
+  const [unreadMsgs,setUnreadMsgs]=useState(0);
   const daysLeft=trialDaysLeft(user.trial_end);
   const showToast=(m:string)=>{setToast(m);setTimeout(()=>setToast(null),3000);};
-  const photoLimit=PLAN_GATES.photos[user.plan as Plan];
+  const photoInputRef=useRef<HTMLInputElement>(null);
+  const [photoFile,setPhotoFile]=useState<File|null>(null);
+  const [photoPreview,setPhotoPreview]=useState<string>("");
+  const [uploadingPhoto,setUploadingPhoto]=useState(false);
+  const photoLimit=PLAN_GATES.photos[user.plan as Plan] as number;
   const canAddPhoto=photoLimit===999||photos.length<photoLimit;
 
   useEffect(()=>{
@@ -1467,44 +1510,56 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
     db.from("visits").select("id",{count:"exact"} as any).eq("user_id",user.id).then(({count}:any)=>setStats(s=>({...s,visits:count||0})));
     db.from("messages").select("id",{count:"exact"} as any).eq("to_id",user.id).then(({count}:any)=>setStats(s=>({...s,contacts:count||0})));
     db.from("reviews").select("id",{count:"exact"} as any).eq("worker_id",user.id).then(({count}:any)=>setStats(s=>({...s,reviews:count||0})));
-    // Realtime para nuevos jobs/mensajes
-    const ch=db.channel("pro-"+user.id)
+    // Count unread
+    db.from("messages").select("id",{count:"exact"} as any).eq("to_id",user.id).eq("read",false).then(({count}:any)=>setUnreadMsgs(count||0));
+  },[user.id]);
+
+  // ── REALTIME: listen for new messages + lead alerts ──
+  useEffect(()=>{
+    const ch=db.channel("pro-realtime-"+user.id)
+      .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"to_id=eq."+user.id},(p:any)=>{
+        const m=p.new;
+        const isLeadAlert=m.from_id==="system-lead"||m.text?.includes("NUEVO CLIENTE INTERESADO");
+        const isAdmin=m.from_id==="admin-001";
+
+        if(isLeadAlert){
+          // ── URGENT RED BANNER for new lead ──
+          setUrgentLead({msg:m.text,fromId:m.from_id});
+          setUnreadMsgs(c=>c+1);
+        } else if(isAdmin){
+          // ── Admin notification ──
+          setInAppNotif({msg:m.text.replace("[Soporte OfficioYa] ",""),from:"👑 OfficioYa Soporte",fromId:m.from_id,isAdmin:true});
+          setUnreadMsgs(c=>c+1);
+          showToast("📩 Mensaje del soporte OfficioYa");
+        } else {
+          // Normal message
+          db.from("users").select("name").eq("id",m.from_id).single().then(({data}:any)=>{
+            const senderName=data?.name||"Cliente";
+            setInAppNotif({msg:m.text.substring(0,60)+(m.text.length>60?"...":""),from:senderName,fromId:m.from_id,isAdmin:false});
+            setUnreadMsgs(c=>c+1);
+          });
+        }
+      })
       .on("postgres_changes",{event:"INSERT",schema:"public",table:"jobs",filter:"worker_id=eq."+user.id},(p:any)=>{
         setJobs(prev=>[p.new,...prev]);
         showToast("🔔 Nueva solicitud de trabajo de "+p.new.client_name);
       })
-      .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"to_id=eq."+user.id},(p:any)=>{
-        showToast("💬 Nuevo mensaje de un cliente");
-      }).subscribe();
+      .subscribe();
     return ()=>{db.removeChannel(ch);};
-  },[user.id]);
-
-  const [inAppNotif,setInAppNotif]=useState<{msg:string;from:string;fromId:string}|null>(null);
-  const [unreadMsgs,setUnreadMsgs]=useState(false);
-
-  // Realtime notifications para pro
-  useEffect(()=>{
-    const chNotif=db.channel("pro-notif-"+user.id)
-      .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"to_id=eq."+user.id},(p:any)=>{
-        const m=p.new;
-        db.from("users").select("name").eq("id",m.from_id).single().then(({data}:any)=>{
-          const senderName=data?.name||"Cliente";
-          setInAppNotif({msg:m.text.substring(0,60)+(m.text.length>60?"...":""),from:senderName,fromId:m.from_id});
-          setUnreadMsgs(true);
-        });
-      }).subscribe();
-    return ()=>{db.removeChannel(chNotif);};
   },[user.id]);
 
   const loadChats=useCallback(async()=>{
     const {data}=await db.from("messages").select("from_id").eq("to_id",user.id);
     if(!data?.length){setChatPartners([]);return;}
-    const ids=[...new Set((data as any[]).map((m:any)=>m.from_id))];
+    const ids=[...new Set((data as any[]).map((m:any)=>m.from_id))].filter(id=>id!=="system-lead");
+    if(!ids.length){setChatPartners([]);return;}
     const {data:ws}=await db.from("users").select("*").in("id",ids);
     setChatPartners(ws||[]);
   },[user.id]);
 
-  useEffect(()=>{if(tab==="chats")loadChats();},[tab,loadChats]);
+  useEffect(()=>{
+    if(tab==="chats"){loadChats();setUnreadMsgs(0);}
+  },[tab,loadChats]);
 
   const saveProfile=async()=>{
     setSaving(true);
@@ -1527,19 +1582,13 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
     if(data){setCerts(p=>[...p,data]);setCertName("");showToast("✓ Título añadido");}
   };
 
-  const photoInputRef=useRef<HTMLInputElement>(null);
-  const [photoFile,setPhotoFile]=useState<File|null>(null);
-  const [photoPreview,setPhotoPreview]=useState<string>("");
-  const [uploadingPhoto,setUploadingPhoto]=useState(false);
-
   const addPhoto=async()=>{
-    if(!canAddPhoto){showToast("⛔ Límite de fotos alcanzado para tu plan. Mejora a Pro para más fotos.");return;}
+    if(!canAddPhoto){showToast("⛔ Límite de fotos alcanzado. Mejora a Pro.");return;}
     if(!photoCaption.trim()&&!photoFile)return;
     setUploadingPhoto(true);
     let url="";
     if(photoFile){
-      // Validate size (5MB max)
-      if(photoFile.size>5*1024*1024){showToast("⛔ La imagen es demasiado grande (máx. 5MB)");setUploadingPhoto(false);return;}
+      if(photoFile.size>5*1024*1024){showToast("⛔ Imagen demasiado grande (máx. 5MB)");setUploadingPhoto(false);return;}
       const uploaded=await uploadImage(photoFile,"workers/"+user.id);
       if(uploaded)url=uploaded;
     }
@@ -1571,8 +1620,37 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
   };
   const availableSpecialties=SPECIALTIES_BY_TRADE[user.trade||""]||["Especialidad 1","Especialidad 2","Especialidad 3"];
 
-  return (
+  // Build a fake "system" user object for lead alert chats
+  const systemUser:UserRow={id:"system-lead",name:"Clientes OfficioYa",email:"",password:"",phone:"",type:"cliente",plan:"gratis",bio:"",price:0,trade:"",zone:"",rating:0,reviews:0,jobs:0,verified:true,available:true,whatsapp:"",service_zones:[],schedule:"",response_time:"",free_quote:false,experience_years:0,specialties:[],trial_end:"",joined_at:""};
+
+  return(
     <div style={{minHeight:"100dvh",background:C.bg,backgroundImage:"radial-gradient(ellipse at 70% 0%,#2a0a3a18,transparent 50%)",paddingBottom:72}}>
+
+      {/* ── URGENT LEAD BANNER ── */}
+      {urgentLead&&(
+        <UrgentLeadBanner
+          msg={urgentLead.msg.replace("🔴 *NUEVO CLIENTE INTERESADO*\n\n","").substring(0,80)}
+          onClose={()=>setUrgentLead(null)}
+          onClick={()=>{setUrgentLead(null);setTab("chats");loadChats();}}
+        />
+      )}
+
+      {/* ── Admin / normal notification ── */}
+      {inAppNotif&&(
+        <InAppNotification
+          msg={inAppNotif.msg} from={inAppNotif.from}
+          isAdmin={inAppNotif.isAdmin}
+          onClose={()=>setInAppNotif(null)}
+          onClick={()=>{
+            setInAppNotif(null);
+            const c=chatPartners.find(x=>x.id===inAppNotif.fromId);
+            if(inAppNotif.isAdmin){setTab("chats");loadChats();}
+            else if(c)setChatUser(c);
+            else{setTab("chats");loadChats();}
+          }}
+        />
+      )}
+
       <header style={{background:"rgba(10,10,15,0.94)",backdropFilter:"blur(20px)",borderBottom:"1px solid "+C.border,position:"sticky",top:0,zIndex:100}}>
         <div style={{maxWidth:900,margin:"0 auto",padding:"0 16px",display:"flex",alignItems:"center",justifyContent:"space-between",height:52}}>
           <div style={{display:"flex",alignItems:"center",gap:8}}>
@@ -1607,7 +1685,6 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
             </div>
           </div>
 
-          {/* Leads counter */}
           <LeadsCounter user={user} onUpgrade={()=>setTab("planes")} />
 
           <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10,marginBottom:16}}>
@@ -1619,29 +1696,6 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
               </GCard>
             ))}
           </div>
-
-          {/* Profile completeness */}
-          {(()=>{
-            const checks=[!!user.bio,!!user.phone,(user.service_zones||[]).length>0,(user.specialties||[]).length>0,photos.length>0,certs.length>0];
-            const done=checks.filter(Boolean).length;
-            const pct=Math.round(done/checks.length*100);
-            return pct<100?<GCard style={{marginBottom:14,border:"1px solid "+C.accent+"33"}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-                <p style={{fontWeight:700,color:C.text,fontSize:13}}>Completa tu perfil para captar más clientes</p>
-                <span style={{fontWeight:800,fontSize:16,color:C.accent}}>{pct}%</span>
-              </div>
-              <div style={{height:6,background:C.border,borderRadius:99,marginBottom:10,overflow:"hidden"}}>
-                <div style={{width:pct+"%",height:"100%",background:"linear-gradient(90deg,"+C.accent+","+C.orange+")",borderRadius:99,transition:"width 0.5s"}} />
-              </div>
-              <div style={{display:"flex",flexDirection:"column",gap:6}}>
-                {[{label:"Descripción profesional",done:!!user.bio},{label:"Teléfono/WhatsApp",done:!!user.phone},{label:"Zonas de servicio",done:(user.service_zones||[]).length>0},{label:"Especialidades",done:(user.specialties||[]).length>0},{label:"Fotos de trabajos",done:photos.length>0},{label:"Títulos/certificados",done:certs.length>0}].map(c=><div key={c.label} style={{display:"flex",gap:8,alignItems:"center"}}>
-                  <span style={{fontSize:12,color:c.done?C.green:C.muted}}>{c.done?"✓":"○"}</span>
-                  <span style={{fontSize:12,color:c.done?C.mutedL:C.text}}>{c.label}</span>
-                  {!c.done&&<button onClick={()=>setTab("perfil")} style={{marginLeft:"auto",background:"none",border:"none",color:C.accent,cursor:"pointer",fontSize:11,fontWeight:700,padding:"2px 6px"}}>Añadir →</button>}
-                </div>)}
-              </div>
-            </GCard>:null;
-          })()}
 
           {jobs.filter(j=>j.status==="pending").length>0&&(
             <GCard style={{marginBottom:14,border:"1px solid "+C.orange+"44"}}>
@@ -1725,7 +1779,6 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
             <h2 style={{fontWeight:800,fontSize:22,color:C.text}}>Mi perfil público</h2>
             <Btn small onClick={saveProfile} disabled={saving}>{saving?"Guardando...":"Guardar"}</Btn>
           </div>
-
           <GCard style={{marginBottom:14}}>
             <p style={{fontWeight:700,color:C.text,fontSize:13,marginBottom:12}}>Información básica</p>
             <Inp label="Descripción profesional" value={bio} onChange={setBio} placeholder="Describe tu experiencia, especialidades y servicios..." multiline />
@@ -1737,7 +1790,6 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
             <Toggle value={freeQuote} onChange={setFreeQuote} label="Ofrezco presupuesto gratuito" />
             <Toggle value={available} onChange={v=>{setAvailable(v);db.from("users").update({available:v}).eq("id",user.id);onUpdate({...user,available:v});}} label="Disponible para nuevos trabajos" />
           </GCard>
-
           <GCard style={{marginBottom:14}}>
             <p style={{fontWeight:700,color:C.text,fontSize:13,marginBottom:12}}>Disponibilidad y respuesta</p>
             <div style={{marginBottom:14}}>
@@ -1753,15 +1805,8 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
               </div>
             </div>
           </GCard>
-
-          <GCard style={{marginBottom:14}}>
-            <MultiSelect label="Zonas donde prestas servicio" options={ZONAS} selected={serviceZones} onChange={setServiceZones} />
-          </GCard>
-
-          <GCard style={{marginBottom:14}}>
-            <MultiSelect label="Tus especialidades" options={availableSpecialties} selected={specialties} onChange={setSpecialties} />
-          </GCard>
-
+          <GCard style={{marginBottom:14}}><MultiSelect label="Zonas donde prestas servicio" options={ZONAS} selected={serviceZones} onChange={setServiceZones} /></GCard>
+          <GCard style={{marginBottom:14}}><MultiSelect label="Tus especialidades" options={availableSpecialties} selected={specialties} onChange={setSpecialties} /></GCard>
           <GCard style={{marginBottom:14}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
               <p style={{fontWeight:700,color:C.text,fontSize:13}}>📸 Fotos de trabajos realizados</p>
@@ -1770,7 +1815,7 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
               </span>
             </div>
             {!canAddPhoto&&<div style={{padding:"10px 12px",background:C.orange+"12",borderRadius:8,border:"1px solid "+C.orange+"22",marginBottom:10}}>
-              <p style={{fontSize:12,color:C.orange}}>⚠️ Límite de fotos alcanzado. <button onClick={()=>setTab("planes")} style={{background:"none",border:"none",color:C.accent,cursor:"pointer",fontSize:12,fontWeight:700,padding:0}}>Mejora tu plan →</button></p>
+              <p style={{fontSize:12,color:C.orange}}>⚠️ Límite alcanzado. <button onClick={()=>setTab("planes")} style={{background:"none",border:"none",color:C.accent,cursor:"pointer",fontSize:12,fontWeight:700,padding:0}}>Mejora tu plan →</button></p>
             </div>}
             <input ref={photoInputRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>{const f=e.target.files?.[0];if(f){setPhotoFile(f);setPhotoPreview(URL.createObjectURL(f));}}} />
             {photoPreview&&<div style={{position:"relative",marginBottom:10}}>
@@ -1793,7 +1838,6 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
               {photos.length===0&&<div style={{gridColumn:"1/-1",textAlign:"center",padding:20,color:C.muted,fontSize:12}}>Sin fotos aún · Añade fotos de tus mejores trabajos</div>}
             </div>
           </GCard>
-
           <GCard style={{marginBottom:14}}>
             <p style={{fontWeight:700,color:C.text,fontSize:13,marginBottom:12}}>📜 Títulos y certificados</p>
             <div style={{display:"flex",gap:8,marginBottom:12}}>
@@ -1808,7 +1852,6 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
               </div>
             ))}
           </GCard>
-
           <Btn full outline danger onClick={onLogout} color={C.red}>Cerrar sesión</Btn>
         </>)}
 
@@ -1842,22 +1885,34 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
       <nav style={{position:"fixed",bottom:0,left:0,right:0,background:"rgba(10,10,15,0.97)",backdropFilter:"blur(20px)",borderTop:"1px solid "+C.border,display:"flex",zIndex:200}}>
         {([["inicio","🏠","Inicio"],["chats","💬","Mensajes"],["trabajos","🔨","Trabajos"],["perfil","👤","Perfil"],["planes","💎","Planes"]] as const).map(([id,icon,label])=>(
           <button key={id} onClick={()=>setTab(id as any)} style={{flex:1,padding:"8px 2px 10px",background:"none",border:"none",color:tab===id?C.accent:C.muted,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:2,transition:"color 0.15s",position:"relative"}}>
-            <span style={{fontSize:18}}>{icon}</span>
+            <span style={{fontSize:18,position:"relative"}}>
+              {icon}
+              {id==="chats"&&unreadMsgs>0&&tab!=="chats"&&(
+                <span style={{position:"absolute",top:-4,right:-4,background:C.red,color:"#fff",borderRadius:99,minWidth:16,height:16,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:900,border:"1.5px solid "+C.bg,padding:"0 3px"}}>
+                  {unreadMsgs>9?"9+":unreadMsgs}
+                </span>
+              )}
+              {id==="trabajos"&&jobs.filter(j=>j.status==="pending").length>0&&tab!=="trabajos"&&(
+                <span style={{position:"absolute",top:-4,right:-4,background:C.orange,color:"#000",borderRadius:99,minWidth:16,height:16,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:900,border:"1.5px solid "+C.bg,padding:"0 3px"}}>
+                  {jobs.filter(j=>j.status==="pending").length}
+                </span>
+              )}
+            </span>
             <span style={{fontSize:9,fontWeight:600,letterSpacing:"0.02em"}}>{label}</span>
-            {id==="trabajos"&&jobs.filter(j=>j.status==="pending").length>0&&tab!=="trabajos"&&<span style={{position:"absolute",top:5,right:"calc(50% - 14px)",background:C.orange,color:"#000",borderRadius:99,padding:"0 4px",fontSize:8,fontWeight:900}}>{jobs.filter(j=>j.status==="pending").length}</span>}
+            {tab===id&&<div style={{position:"absolute",top:0,left:"50%",transform:"translateX(-50%)",width:24,height:2,background:"linear-gradient(90deg,"+C.accent+","+C.orange+")",borderRadius:"0 0 2px 2px"}} />}
           </button>
         ))}
       </nav>
 
-      {inAppNotif&&<InAppNotification msg={inAppNotif.msg} from={"💬 "+inAppNotif.from} onClose={()=>setInAppNotif(null)} onClick={()=>{setInAppNotif(null);const c=chatPartners.find(x=>x.id===inAppNotif.fromId);if(c)setChatUser(c);else{setTab("chats");loadChats();}}}/>}
-      {chatUser&&<ChatPanel toUser={chatUser} currentUser={user} onClose={()=>{setChatUser(null);setUnreadMsgs(false);}}/>}
+      {chatUser&&<ChatPanel toUser={chatUser} currentUser={user} onClose={()=>{setChatUser(null);setUnreadMsgs(0);}} />}
       <Ping msg={toast} />
     </div>
   );
 }
+
 // ─── ADMIN ───
 function Admin({onLogout}:{onLogout:()=>void}){
-  type AdminTab="overview"|"funnel"|"usuarios"|"registros"|"trabajos"|"mensajes"|"reseñas";
+  type AdminTab="overview"|"usuarios"|"registros"|"trabajos"|"mensajes"|"reseñas";
   const [tab,setTab]=useState<AdminTab>("overview");
   const [users,setUsers]=useState<UserRow[]>([]);
   const [jobs,setJobs]=useState<JobRow[]>([]);
@@ -1872,7 +1927,7 @@ function Admin({onLogout}:{onLogout:()=>void}){
   const [supportMsg,setSupportMsg]=useState("");
   const [sendingMsg,setSendingMsg]=useState(false);
   const [toastMsg,setToastMsg]=useState<string|null>(null);
-
+  const [unreadAdminMsgs,setUnreadAdminMsgs]=useState(0); // NEW: badge for admin
   const [refreshKey,setRefreshKey]=useState(0);
   const reload=()=>{setLoading(true);setRefreshKey(k=>k+1);};
 
@@ -1884,16 +1939,43 @@ function Admin({onLogout}:{onLogout:()=>void}){
         db.from("messages").select("*").order("created_at",{ascending:false}),
         db.from("reviews").select("*").order("created_at",{ascending:false}),
       ]);
-      // Filter out hardcoded admin
       const allUsers=(u.data||[]).filter((x:any)=>x.type!=="admin"&&x.id!=="admin-001");
       setUsers(allUsers as UserRow[]);
       setJobs((j.data||[]) as JobRow[]);
-      setMsgs((m.data||[]) as MessageRow[]);
+      const allMsgs=(m.data||[]) as MessageRow[];
+      setMsgs(allMsgs);
       setReviews((r.data||[]) as any[]);
+      // Count unread for admin (messages sent TO any user, admin can see all)
+      const unread=allMsgs.filter((msg:any)=>!msg.read&&msg.from_id!=="admin-001").length;
+      setUnreadAdminMsgs(unread);
       setLoading(false);
     };
     load();
   },[refreshKey]);
+
+  // Realtime: notify admin of new messages
+  useEffect(()=>{
+    const ch=db.channel("admin-realtime")
+      .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},(p:any)=>{
+        const m=p.new as MessageRow;
+        if(m.from_id!=="admin-001"&&m.from_id!=="system-lead"){
+          setMsgs(prev=>[m,...prev]);
+          setUnreadAdminMsgs(c=>c+1);
+          setToastMsg("💬 Nuevo mensaje en la plataforma");
+          setTimeout(()=>setToastMsg(null),4000);
+        }
+      })
+      .on("postgres_changes",{event:"INSERT",schema:"public",table:"users"},(p:any)=>{
+        const u=p.new as UserRow;
+        if(u.type!=="admin"){
+          setUsers(prev=>[u,...prev]);
+          setToastMsg("🆕 Nuevo registro: "+u.name+" ("+u.type+")");
+          setTimeout(()=>setToastMsg(null),5000);
+        }
+      })
+      .subscribe();
+    return ()=>{db.removeChannel(ch);};
+  },[]);
 
   const now=new Date();
   const periodDays=period==="7d"?7:period==="30d"?30:period==="90d"?90:36500;
@@ -1921,7 +2003,6 @@ function Admin({onLogout}:{onLogout:()=>void}){
     return true;
   });
 
-  // Chart
   const chartData=(()=>{
     const days=period==="all"?30:periodDays;
     const result:Record<string,{users:number;pros:number;clients:number}>={};
@@ -1947,25 +2028,9 @@ function Admin({onLogout}:{onLogout:()=>void}){
     setTimeout(()=>setToastMsg(null),3000);
   };
 
-  // Review moderation
-  const approveReview=async(id:string)=>{
-    await db.from("reviews").update({approved:true}).eq("id",id);
-    setReviews(p=>p.map(r=>r.id===id?{...r,approved:true}:r));
-    setToastMsg("✓ Reseña aprobada");
-    setTimeout(()=>setToastMsg(null),3000);
-  };
-  const rejectReview=async(id:string)=>{
-    await db.from("reviews").update({approved:false}).eq("id",id);
-    setReviews(p=>p.map(r=>r.id===id?{...r,approved:false}:r));
-    setToastMsg("Reseña rechazada");
-    setTimeout(()=>setToastMsg(null),3000);
-  };
-  const deleteReview=async(id:string)=>{
-    await db.from("reviews").delete().eq("id",id);
-    setReviews(p=>p.filter(r=>r.id!==id));
-    setToastMsg("Reseña eliminada");
-    setTimeout(()=>setToastMsg(null),3000);
-  };
+  const approveReview=async(id:string)=>{await db.from("reviews").update({approved:true}).eq("id",id);setReviews(p=>p.map(r=>r.id===id?{...r,approved:true}:r));setToastMsg("✓ Reseña aprobada");setTimeout(()=>setToastMsg(null),3000);};
+  const rejectReview=async(id:string)=>{await db.from("reviews").update({approved:false}).eq("id",id);setReviews(p=>p.map(r=>r.id===id?{...r,approved:false}:r));setToastMsg("Reseña rechazada");setTimeout(()=>setToastMsg(null),3000);};
+  const deleteReview=async(id:string)=>{await db.from("reviews").delete().eq("id",id);setReviews(p=>p.filter(r=>r.id!==id));setToastMsg("Reseña eliminada");setTimeout(()=>setToastMsg(null),3000);};
 
   const filteredUsers=applyFilters(users);
 
@@ -1981,37 +2046,35 @@ function Admin({onLogout}:{onLogout:()=>void}){
 
   const UserRowItem=({u}:{u:UserRow})=>{
     const registeredAt=u.joined_at?new Date(u.joined_at):null;
-    const isNew=registeredAt&&(Date.now()-registeredAt.getTime())<86400000*2; // last 2 days
+    const isNew=registeredAt&&(Date.now()-registeredAt.getTime())<86400000*2;
     return(
-    <GCard onClick={()=>setSelectedUser(u)} glow={selectedUser?.id===u.id?C.accent:isNew?C.green:""} style={{padding:"11px 14px",border:selectedUser?.id===u.id?"1px solid "+C.accent+"66":isNew?"1px solid "+C.green+"33":undefined}}>
-      <div style={{display:"flex",gap:10,alignItems:"center"}}>
-        <Ava s={u.name.substring(0,2).toUpperCase()} size={36} color={u.type==="profesional"?C.accent:C.blue} />
-        <div style={{flex:1,minWidth:0}}>
-          <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
-            <p style={{fontWeight:700,color:C.text,fontSize:13}}>{u.name}</p>
-            {isNew&&<span style={{fontSize:8,color:C.green,background:C.green+"18",padding:"1px 6px",borderRadius:3,fontWeight:700}}>NUEVO</span>}
+      <GCard onClick={()=>setSelectedUser(u)} glow={selectedUser?.id===u.id?C.accent:isNew?C.green:""} style={{padding:"11px 14px",border:selectedUser?.id===u.id?"1px solid "+C.accent+"66":isNew?"1px solid "+C.green+"33":undefined}}>
+        <div style={{display:"flex",gap:10,alignItems:"center"}}>
+          <Ava s={u.name.substring(0,2).toUpperCase()} size={36} color={u.type==="profesional"?C.accent:C.blue} />
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
+              <p style={{fontWeight:700,color:C.text,fontSize:13}}>{u.name}</p>
+              {isNew&&<span style={{fontSize:8,color:C.green,background:C.green+"18",padding:"1px 6px",borderRadius:3,fontWeight:700}}>NUEVO</span>}
+            </div>
+            <p style={{fontSize:10,color:C.muted,marginTop:1}}>{u.email}</p>
+            {u.phone&&<p style={{fontSize:10,color:C.mutedL}}>{u.phone}</p>}
           </div>
-          <p style={{fontSize:10,color:C.muted,marginTop:1}}>{u.email}</p>
-          {u.phone&&<p style={{fontSize:10,color:C.mutedL}}>{u.phone}</p>}
-          {(u.zone||u.trade)&&<p style={{fontSize:10,color:C.muted}}>📍{u.zone||""}{u.trade?" · "+u.trade:""}</p>}
-        </div>
-        <div style={{display:"flex",flexDirection:"column",gap:3,alignItems:"flex-end",flexShrink:0}}>
-          <div style={{display:"flex",gap:4,flexWrap:"wrap",justifyContent:"flex-end"}}>
-            <span style={{fontSize:9,color:u.type==="profesional"?C.accent:C.blue,background:(u.type==="profesional"?C.accent:C.blue)+"22",padding:"1px 6px",borderRadius:3,fontWeight:700}}>{u.type==="profesional"?"🔨 PRO":"👤 CLI"}</span>
-            {isPaying(u)&&<span style={{fontSize:9,color:C.green,background:C.green+"18",padding:"1px 6px",borderRadius:3,fontWeight:700}}>✅ {PLAN_PRICES[u.plan as Plan]}€/m</span>}
-            {isTrial(u)&&<span style={{fontSize:9,color:C.cyan,background:C.cyan+"18",padding:"1px 6px",borderRadius:3,fontWeight:700}}>⏱{trialDaysU(u)}d trial</span>}
-            {isExpired(u)&&<span style={{fontSize:9,color:C.red,background:C.red+"18",padding:"1px 6px",borderRadius:3,fontWeight:700}}>⛔ exp.</span>}
-            {u.type==="cliente"&&<span style={{fontSize:9,color:C.mutedL,background:C.surface,padding:"1px 6px",borderRadius:3,border:"1px solid "+C.border}}>gratis</span>}
+          <div style={{display:"flex",flexDirection:"column",gap:3,alignItems:"flex-end",flexShrink:0}}>
+            <div style={{display:"flex",gap:4,flexWrap:"wrap",justifyContent:"flex-end"}}>
+              <span style={{fontSize:9,color:u.type==="profesional"?C.accent:C.blue,background:(u.type==="profesional"?C.accent:C.blue)+"22",padding:"1px 6px",borderRadius:3,fontWeight:700}}>{u.type==="profesional"?"🔨 PRO":"👤 CLI"}</span>
+              {isPaying(u)&&<span style={{fontSize:9,color:C.green,background:C.green+"18",padding:"1px 6px",borderRadius:3,fontWeight:700}}>✅ {PLAN_PRICES[u.plan as Plan]}€/m</span>}
+              {isTrial(u)&&<span style={{fontSize:9,color:C.cyan,background:C.cyan+"18",padding:"1px 6px",borderRadius:3,fontWeight:700}}>⏱{trialDaysU(u)}d</span>}
+              {isExpired(u)&&<span style={{fontSize:9,color:C.red,background:C.red+"18",padding:"1px 6px",borderRadius:3,fontWeight:700}}>⛔ exp.</span>}
+            </div>
+            {registeredAt&&<span style={{fontSize:9,color:isNew?C.green:C.muted}}>{registeredAt.toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"})}</span>}
+            {u.phone&&<a href={"tel:"+u.phone} onClick={e=>e.stopPropagation()} style={{fontSize:9,color:C.green,textDecoration:"none",fontWeight:700}}>📞 llamar</a>}
           </div>
-          {registeredAt&&<span style={{fontSize:9,color:isNew?C.green:C.muted,fontWeight:isNew?700:400}}>{registeredAt.toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"})} {registeredAt.toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"})}</span>}
-          {u.phone&&<a href={"tel:"+u.phone} onClick={e=>e.stopPropagation()} style={{fontSize:9,color:C.green,textDecoration:"none",fontWeight:700}}>📞 llamar</a>}
         </div>
-      </div>
-    </GCard>
+      </GCard>
     );
   };
 
-  return (
+  return(
     <div style={{minHeight:"100dvh",background:C.bg,paddingBottom:72}}>
       <header style={{background:"rgba(10,10,15,0.95)",backdropFilter:"blur(20px)",borderBottom:"1px solid "+C.accent+"22",position:"sticky",top:0,zIndex:100}}>
         <div style={{maxWidth:1100,margin:"0 auto",padding:"0 16px",display:"flex",alignItems:"center",justifyContent:"space-between",height:52}}>
@@ -2030,7 +2093,7 @@ function Admin({onLogout}:{onLogout:()=>void}){
       {selectedUser&&(
         <div style={{position:"fixed",top:52,right:0,width:280,bottom:72,background:"linear-gradient(170deg,#12121E,#0A0A14)",borderLeft:"1px solid "+C.accent+"33",zIndex:90,overflowY:"auto",padding:16}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-            <p style={{fontWeight:800,color:C.text,fontSize:14}}>Detalle</p>
+            <p style={{fontWeight:800,color:C.text,fontSize:14}}>Detalle usuario</p>
             <button onClick={()=>setSelectedUser(null)} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:16}}>✕</button>
           </div>
           <div style={{textAlign:"center",marginBottom:14}}>
@@ -2061,9 +2124,10 @@ function Admin({onLogout}:{onLogout:()=>void}){
             </div>
           )}
           <div>
-            <p style={{fontSize:11,color:C.muted,fontWeight:700,textTransform:"uppercase" as const,letterSpacing:"0.06em",marginBottom:6}}>Enviar soporte</p>
+            <p style={{fontSize:11,color:C.muted,fontWeight:700,textTransform:"uppercase" as const,letterSpacing:"0.06em",marginBottom:6}}>💬 Enviar mensaje de soporte</p>
+            <p style={{fontSize:10,color:C.mutedL,marginBottom:8}}>Le llegará como notificación urgente inmediata</p>
             <textarea value={supportMsg} onChange={e=>setSupportMsg(e.target.value)} placeholder="Mensaje al usuario..." style={{width:"100%",background:C.card,border:"1px solid "+C.border,borderRadius:8,color:C.text,fontFamily:"inherit",fontSize:12,padding:"8px 10px",resize:"vertical",minHeight:60,outline:"none",marginBottom:8}} />
-            <Btn full small disabled={sendingMsg||!supportMsg.trim()} onClick={sendSupport} color={C.accent}>{sendingMsg?"Enviando...":"Enviar"}</Btn>
+            <Btn full small disabled={sendingMsg||!supportMsg.trim()} onClick={sendSupport} color={C.accent}>{sendingMsg?"Enviando...":"Enviar ahora →"}</Btn>
           </div>
         </div>
       )}
@@ -2094,7 +2158,6 @@ function Admin({onLogout}:{onLogout:()=>void}){
                 </GCard>
               ))}
             </div>
-
             <GCard style={{marginBottom:14}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
                 <p style={{fontWeight:700,color:C.text,fontSize:13}}>Registros diarios</p>
@@ -2118,23 +2181,6 @@ function Admin({onLogout}:{onLogout:()=>void}){
                 <span style={{fontSize:8,color:C.muted}}>{chartData[chartData.length-1]?.date}</span>
               </div>
             </GCard>
-
-            <GCard style={{marginBottom:14}}>
-              <p style={{fontWeight:700,color:C.text,fontSize:13,marginBottom:12}}>Estado profesionales</p>
-              {[{l:"✅ Pagando",v:payingUsers.length,t:pros.length,c:C.green},{l:"⏱ Trial",v:trialUsers.length,t:pros.length,c:C.cyan},{l:"⛔ Expirado",v:expiredUsers.length,t:pros.length,c:C.red}].map(s=>{
-                const pct=s.t>0?Math.round(s.v/s.t*100):0;
-                return <div key={s.l} style={{marginBottom:10}}>
-                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
-                    <span style={{fontSize:12,color:C.text}}>{s.l}</span>
-                    <span style={{fontSize:12,fontWeight:700,color:s.c}}>{s.v} ({pct}%)</span>
-                  </div>
-                  <div style={{height:6,background:C.border,borderRadius:99,overflow:"hidden"}}>
-                    <div style={{width:pct+"%",height:"100%",background:s.c,borderRadius:99}} />
-                  </div>
-                </div>;
-              })}
-            </GCard>
-
             {expiredUsers.length>0&&(
               <GCard style={{border:"1px solid "+C.red+"33"}}>
                 <p style={{fontWeight:700,color:C.red,fontSize:13,marginBottom:10}}>⛔ {expiredUsers.length} leads fríos</p>
@@ -2151,7 +2197,7 @@ function Admin({onLogout}:{onLogout:()=>void}){
             </div>
             <GCard style={{marginBottom:12,padding:14}}>
               <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:8}}>
-                <input value={filterSearch} onChange={e=>setFilterSearch(e.target.value)} placeholder="🔍 Buscar..." style={{flex:2,minWidth:150,background:C.card,border:"1px solid "+C.border,borderRadius:8,padding:"8px 12px",color:C.text,fontFamily:"inherit",fontSize:12,outline:"none"}} />
+                <input value={filterSearch} onChange={e=>setFilterSearch(e.target.value)} placeholder="🔍 Buscar nombre o email..." style={{flex:2,minWidth:150,background:C.card,border:"1px solid "+C.border,borderRadius:8,padding:"8px 12px",color:C.text,fontFamily:"inherit",fontSize:12,outline:"none"}} />
               </div>
               <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
                 {[{v:"all",l:"Todos"},{v:"cliente",l:"Clientes"},{v:"profesional",l:"Profesionales"}].map(o=>(
@@ -2203,23 +2249,30 @@ function Admin({onLogout}:{onLogout:()=>void}){
           </>)}
 
           {tab==="mensajes"&&(<>
-            <h2 style={{fontWeight:800,fontSize:20,color:C.text,marginBottom:14}}>Mensajes · {msgs.length}</h2>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14,flexWrap:"wrap",gap:8}}>
+              <h2 style={{fontWeight:800,fontSize:20,color:C.text}}>Mensajes · {msgs.length}</h2>
+              <span style={{fontSize:11,color:C.red,background:C.red+"18",padding:"4px 10px",borderRadius:99,fontWeight:700}}>{unreadAdminMsgs} no leídos</span>
+            </div>
             <div style={{display:"flex",flexDirection:"column",gap:7}}>
-              {msgs.slice(0,50).map(m=>{
+              {msgs.filter(m=>m.from_id!=="system-lead").slice(0,50).map(m=>{
                 const fromUser=users.find(u=>u.id===m.from_id);
                 const toUser=users.find(u=>u.id===m.to_id);
-                return <GCard key={m.id} style={{padding:"10px 12px"}}>
+                const isAdminMsg=m.from_id==="admin-001";
+                return <GCard key={m.id} style={{padding:"10px 12px",border:!m.read&&!isAdminMsg?"1px solid "+C.orange+"44":undefined}}>
                   <div style={{display:"flex",gap:8,alignItems:"flex-start"}}>
                     <div style={{flex:1}}>
                       <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:3,flexWrap:"wrap"}}>
-                        <span style={{fontSize:11,color:C.accent,fontWeight:700}}>{fromUser?.name||"Soporte"}</span>
+                        <span style={{fontSize:11,color:isAdminMsg?C.orange:C.accent,fontWeight:700}}>{isAdminMsg?"👑 Soporte":(fromUser?.name||"Sistema")}</span>
                         <span style={{fontSize:10,color:C.muted}}>→</span>
                         <span style={{fontSize:11,color:C.blue,fontWeight:700}}>{toUser?.name||"Usuario"}</span>
-                        {!m.read&&<span style={{fontSize:8,color:C.orange,background:C.orange+"22",padding:"1px 5px",borderRadius:3,fontWeight:700}}>NO LEÍDO</span>}
+                        {!m.read&&!isAdminMsg&&<span style={{fontSize:8,color:C.orange,background:C.orange+"22",padding:"1px 5px",borderRadius:3,fontWeight:700}}>NO LEÍDO</span>}
                       </div>
                       <p style={{fontSize:12,color:C.mutedL,lineHeight:1.5}}>{m.text}</p>
                     </div>
-                    <span style={{fontSize:9,color:C.muted,flexShrink:0}}>{timeAgo(m.created_at)}</span>
+                    <div style={{flexShrink:0,textAlign:"right"}}>
+                      <span style={{fontSize:9,color:C.muted}}>{timeAgo(m.created_at)}</span>
+                      {!isAdminMsg&&<button onClick={()=>setSelectedUser(toUser||fromUser||null)} style={{display:"block",marginTop:4,fontSize:9,color:C.accent,background:"none",border:"none",cursor:"pointer",fontWeight:700,padding:0}}>Responder →</button>}
+                    </div>
                   </div>
                 </GCard>;
               })}
@@ -2228,19 +2281,6 @@ function Admin({onLogout}:{onLogout:()=>void}){
 
           {tab==="reseñas"&&(<>
             <h2 style={{fontWeight:800,fontSize:20,color:C.text,marginBottom:14}}>Moderación de reseñas · {reviews.length}</h2>
-            <div style={{display:"flex",gap:6,marginBottom:14,flexWrap:"wrap"}}>
-              {[
-                {l:"Todas",v:reviews.length,c:C.blue},
-                {l:"✓ Aprobadas",v:reviews.filter(r=>r.approved===true).length,c:C.green},
-                {l:"Pendientes",v:reviews.filter(r=>r.approved===null||r.approved===undefined).length,c:C.orange},
-                {l:"✗ Rechazadas",v:reviews.filter(r=>r.approved===false).length,c:C.red},
-              ].map(s=>(
-                <div key={s.l} style={{background:s.c+"12",border:"1px solid "+s.c+"22",borderRadius:8,padding:"8px 12px",textAlign:"center",minWidth:80}}>
-                  <p style={{fontWeight:800,fontSize:18,color:s.c}}>{s.v}</p>
-                  <p style={{fontSize:10,color:C.muted}}>{s.l}</p>
-                </div>
-              ))}
-            </div>
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
               {reviews.map(r=>{
                 const worker=users.find(u=>u.id===r.worker_id);
@@ -2269,14 +2309,20 @@ function Admin({onLogout}:{onLogout:()=>void}){
               {reviews.length===0&&<p style={{textAlign:"center",color:C.muted,fontSize:13,padding:32}}>No hay reseñas</p>}
             </div>
           </>)}
-
         </>)}
       </div>
 
       <nav style={{position:"fixed",bottom:0,left:0,right:0,background:"rgba(10,10,15,0.97)",backdropFilter:"blur(20px)",borderTop:"1px solid "+C.accent+"22",display:"flex",zIndex:200,overflowX:"auto"}}>
         {([["overview","📊","Overview"],["usuarios","👥","Usuarios"],["registros","📅","Registros"],["trabajos","🔨","Trabajos"],["mensajes","💬","Mensajes"],["reseñas","⭐","Reseñas"]] as const).map(([id,icon,label])=>(
-          <button key={id} onClick={()=>setTab(id as AdminTab)} style={{flex:"0 0 auto",minWidth:60,padding:"8px 4px 10px",background:"none",border:"none",color:tab===id?C.accent:C.muted,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:2,borderBottom:tab===id?"2px solid "+C.accent:"2px solid transparent"}}>
-            <span style={{fontSize:16}}>{icon}</span>
+          <button key={id} onClick={()=>{setTab(id as AdminTab);if(id==="mensajes")setUnreadAdminMsgs(0);}} style={{flex:"0 0 auto",minWidth:60,padding:"8px 4px 10px",background:"none",border:"none",color:tab===id?C.accent:C.muted,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:2,borderBottom:tab===id?"2px solid "+C.accent:"2px solid transparent",position:"relative"}}>
+            <span style={{fontSize:16,position:"relative"}}>
+              {icon}
+              {id==="mensajes"&&unreadAdminMsgs>0&&tab!=="mensajes"&&(
+                <span style={{position:"absolute",top:-4,right:-4,background:C.red,color:"#fff",borderRadius:99,minWidth:14,height:14,display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,fontWeight:900,border:"1px solid "+C.bg,padding:"0 2px"}}>
+                  {unreadAdminMsgs>9?"9+":unreadAdminMsgs}
+                </span>
+              )}
+            </span>
             <span style={{fontSize:8,fontWeight:600,whiteSpace:"nowrap"}}>{label}</span>
           </button>
         ))}
@@ -2316,7 +2362,13 @@ export default function App(){
       ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:#1E1E30;border-radius:99px;}
       @keyframes spin{to{transform:rotate(360deg);}}
       @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
-      @keyframes slideDown{from{transform:translateX(-50%) translateY(-100%);opacity:0;}to{transform:translateX(-50%) translateY(0);opacity:1;}}
+      @keyframes slideDownNotif{from{transform:translateX(-50%) translateY(-110%);opacity:0;}to{transform:translateX(-50%) translateY(0);opacity:1;}}
+      @keyframes slideInFromRight{from{transform:translateX(100%);opacity:0;}to{transform:translateX(0);opacity:1;}}
+      @keyframes urgentPulse{0%,100%{box-shadow:0 4px 30px rgba(255,68,85,0.5);}50%{box-shadow:0 4px 50px rgba(255,68,85,0.9);}}
+      @keyframes urgentBell{0%,100%{transform:rotate(0deg);}25%{transform:rotate(-15deg);}75%{transform:rotate(15deg);}}
+      @keyframes popIn{from{transform:scale(0.85);opacity:0;}to{transform:scale(1);opacity:1;}}
+      @keyframes expandDown{from{max-height:0;opacity:0;}to{max-height:300px;opacity:1;}}
+      @keyframes typingDot{0%,80%,100%{transform:translateY(0);opacity:0.3;}40%{transform:translateY(-6px);opacity:1;}}
     `}</style>
     {!user&&<Auth onLogin={login} />}
     {user&&user.type==="admin"&&<Admin onLogout={logout} />}
