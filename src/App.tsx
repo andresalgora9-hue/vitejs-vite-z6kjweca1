@@ -1003,6 +1003,227 @@ function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:User
   );
 }
 
+
+// ─── BUSCADOR EXPRESS 3 PASOS ───
+function BuscadorExpress({workers, onResult, onWorkerSelect}:{workers:UserRow[];onResult:(oficio:string,zona:string,urgency:string)=>void;onWorkerSelect:(w:UserRow)=>void}){
+  const [step,setStep]=useState(0); // 0=home, 1=oficio, 2=urgencia, 3=zona/resultados
+  const [selOficio,setSelOficio]=useState("");
+  const [selUrgency,setSelUrgency]=useState("");
+  const [selZona,setSelZona]=useState("Todas");
+  const [textSearch,setTextSearch]=useState("");
+  const [expanded,setExpanded]=useState(false);
+
+  const filtered=workers.filter(w=>
+    (!selOficio||w.trade===selOficio)&&
+    (selZona==="Todas"||w.zone===selZona||(w.service_zones||[]).includes(selZona))
+  ).sort((a,b)=>{
+    const order:Record<Plan,number>={elite:3,pro:2,basico:1,gratis:0};
+    if(selUrgency==="urgente"&&a.schedule?.includes("24h")!==b.schedule?.includes("24h"))
+      return b.schedule?.includes("24h")?1:-1;
+    return order[b.plan as Plan]-order[a.plan as Plan]||b.rating-a.rating;
+  });
+
+  const URGENCY_OPTS=[
+    {id:"urgente",icon:"🔴",title:"¡Urgencia ahora!",sub:"Avería crítica · Lo necesito hoy",border:C.red,bg:C.red+"15"},
+    {id:"semana",icon:"🟡",title:"Esta semana",sub:"Tengo unos días de margen",border:C.orange,bg:C.orange+"12"},
+    {id:"presupuesto",icon:"🟢",title:"Solo presupuesto",sub:"Proyecto o consulta sin prisa",border:C.green,bg:C.green+"10"},
+  ];
+
+  const topOficios=OFICIOS_TOP;
+  const filteredBySearch=OFICIOS.filter(o=>!textSearch||o.toLowerCase().includes(textSearch.toLowerCase()));
+
+  const reset=()=>{setStep(0);setSelOficio("");setSelUrgency("");setSelZona("Todas");setTextSearch("");setExpanded(false);};
+
+  // STEP 0 — home card (collapsed)
+  if(step===0) return(
+    <div style={{marginBottom:16}}>
+      {/* Buscador compacto clickable */}
+      <div onClick={()=>setStep(1)} style={{display:"flex",alignItems:"center",gap:12,background:"linear-gradient(135deg,"+C.card+","+C.surface+")",borderRadius:16,border:"1px solid "+C.accent+"44",padding:"14px 18px",cursor:"pointer",boxShadow:"0 4px 24px rgba(255,215,0,0.08)",transition:"all 0.2s"}}>
+        <div style={{width:40,height:40,borderRadius:12,background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0,boxShadow:"0 4px 14px "+C.accent+"44"}}>🔍</div>
+        <div style={{flex:1}}>
+          <p style={{fontWeight:700,color:C.text,fontSize:15,marginBottom:2}}>¿Qué profesional necesitas?</p>
+          <p style={{fontSize:12,color:C.muted}}>Fontanero, electricista, limpieza…</p>
+        </div>
+        <div style={{background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",borderRadius:10,padding:"8px 14px",color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,flexShrink:0}}>Buscar →</div>
+      </div>
+
+      {/* Top oficios como chips rápidos */}
+      <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:4,marginTop:10}}>
+        {topOficios.map(o=>(
+          <button key={o} onClick={()=>{setSelOficio(o);setStep(2);}} style={{flexShrink:0,display:"flex",alignItems:"center",gap:5,padding:"6px 12px",borderRadius:99,border:"1px solid "+C.border,background:C.surface,color:C.mutedL,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:500,whiteSpace:"nowrap",transition:"all 0.15s"}}>
+            <span>{OFICIO_ICONS[o]||"🔧"}</span>{o}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
+  // STEP 1 — Elige oficio
+  if(step===1) return(
+    <div style={{background:"linear-gradient(170deg,"+C.card+","+C.surface+")",borderRadius:20,border:"1px solid "+C.accent+"33",padding:20,marginBottom:16,boxShadow:"0 8px 32px rgba(0,0,0,0.4)"}}>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
+        <div>
+          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:3}}>
+            <span style={{width:22,height:22,borderRadius:99,background:C.accent,color:"#000",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:900}}>1</span>
+            <p style={{fontWeight:800,fontSize:16,color:C.text}}>¿Qué necesitas?</p>
+          </div>
+          <p style={{fontSize:12,color:C.muted,marginLeft:30}}>Paso 1 de 3 · Elige el servicio</p>
+        </div>
+        <button onClick={reset} style={{background:"none",border:"1px solid "+C.border,borderRadius:8,color:C.muted,cursor:"pointer",padding:"4px 10px",fontSize:12}}>✕</button>
+      </div>
+
+      {/* Search predictive */}
+      <div style={{display:"flex",background:C.bg,borderRadius:10,border:"1px solid "+C.border,overflow:"hidden",marginBottom:14}}>
+        <span style={{padding:"0 12px",display:"flex",alignItems:"center",color:C.muted}}>🔍</span>
+        <input autoFocus value={textSearch} onChange={e=>setTextSearch(e.target.value)} placeholder="Busca un oficio..." style={{flex:1,padding:"11px 0",background:"transparent",border:"none",color:C.text,fontFamily:"inherit",fontSize:14,outline:"none"}} />
+        {textSearch&&<button onClick={()=>setTextSearch("")} style={{padding:"0 12px",background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:14}}>✕</button>}
+      </div>
+
+      {/* Top picks - most demanded */}
+      {!textSearch&&(<>
+        <p style={{fontSize:10,color:C.muted,textTransform:"uppercase",letterSpacing:"0.08em",fontWeight:700,marginBottom:8}}>🔥 Más solicitados</p>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:7,marginBottom:12}}>
+          {topOficios.map(o=>(
+            <button key={o} onClick={()=>{setSelOficio(o);setStep(2);}} style={{padding:"10px 6px",borderRadius:12,border:"1px solid "+C.border,background:C.bg,color:C.text,cursor:"pointer",fontFamily:"inherit",textAlign:"center",transition:"all 0.15s"}}>
+              <div style={{fontSize:20,marginBottom:4}}>{OFICIO_ICONS[o]||"🔧"}</div>
+              <p style={{fontSize:11,fontWeight:600,lineHeight:1.3}}>{o}</p>
+            </button>
+          ))}
+        </div>
+      </>)}
+
+      {/* All / filtered list */}
+      <p style={{fontSize:10,color:C.muted,textTransform:"uppercase",letterSpacing:"0.08em",fontWeight:700,marginBottom:8}}>{textSearch?"Resultados":"Todos los servicios"}</p>
+      <div style={{maxHeight:200,overflowY:"auto",display:"flex",flexDirection:"column",gap:5}}>
+        {filteredBySearch.map(o=>(
+          <button key={o} onClick={()=>{setSelOficio(o);setStep(2);}} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",borderRadius:10,border:"1px solid "+C.border,background:C.bg,color:C.text,cursor:"pointer",fontFamily:"inherit",textAlign:"left",transition:"all 0.15s"}}>
+            <span style={{fontSize:18,flexShrink:0}}>{OFICIO_ICONS[o]||"🔧"}</span>
+            <span style={{fontSize:13,fontWeight:600}}>{o}</span>
+            <span style={{marginLeft:"auto",fontSize:10,color:C.muted}}>{OFICIO_CATEGORIES[o]?.split(" ")[0]||""}</span>
+          </button>
+        ))}
+        {filteredBySearch.length===0&&<p style={{textAlign:"center",color:C.muted,fontSize:13,padding:16}}>No encontrado · <button onClick={()=>{setSelOficio("Otros servicios");setStep(2);}} style={{background:"none",border:"none",color:C.accent,cursor:"pointer",fontWeight:700}}>Continuar con "Otros"</button></p>}
+      </div>
+    </div>
+  );
+
+  // STEP 2 — Urgencia
+  if(step===2) return(
+    <div style={{background:"linear-gradient(170deg,"+C.card+","+C.surface+")",borderRadius:20,border:"1px solid "+C.accent+"33",padding:20,marginBottom:16,boxShadow:"0 8px 32px rgba(0,0,0,0.4)"}}>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:4}}>
+        <button onClick={()=>setStep(1)} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:18,padding:"0 6px 0 0"}}>←</button>
+        <div style={{flex:1}}>
+          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:3}}>
+            <span style={{width:22,height:22,borderRadius:99,background:C.accent,color:"#000",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:900}}>2</span>
+            <p style={{fontWeight:800,fontSize:16,color:C.text}}>¿Con qué urgencia?</p>
+          </div>
+          <p style={{fontSize:12,color:C.muted,marginLeft:30}}>
+            <span style={{color:C.accent,fontWeight:600}}>{OFICIO_ICONS[selOficio]||"🔧"} {selOficio}</span> · Paso 2 de 3
+          </p>
+        </div>
+        <button onClick={reset} style={{background:"none",border:"1px solid "+C.border,borderRadius:8,color:C.muted,cursor:"pointer",padding:"4px 10px",fontSize:12}}>✕</button>
+      </div>
+
+      <div style={{display:"flex",flexDirection:"column",gap:10,marginTop:16}}>
+        {URGENCY_OPTS.map(opt=>(
+          <button key={opt.id} onClick={()=>{setSelUrgency(opt.id);setStep(3);}} style={{display:"flex",gap:14,alignItems:"center",padding:"16px 18px",borderRadius:14,border:"2px solid "+opt.border+"55",background:opt.bg,cursor:"pointer",fontFamily:"inherit",textAlign:"left",transition:"all 0.15s",position:"relative",overflow:"hidden"}}>
+            <div style={{position:"absolute",top:-10,right:-10,width:50,height:50,borderRadius:"50%",background:opt.border+"15",pointerEvents:"none"}} />
+            <span style={{fontSize:28,flexShrink:0}}>{opt.icon}</span>
+            <div>
+              <p style={{fontWeight:800,fontSize:15,color:C.text,marginBottom:3}}>{opt.title}</p>
+              <p style={{fontSize:12,color:C.mutedL}}>{opt.sub}</p>
+            </div>
+            <span style={{marginLeft:"auto",fontSize:16,color:opt.border,flexShrink:0}}>→</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
+  // STEP 3 — Zona + Resultados
+  return(
+    <div style={{marginBottom:16}}>
+      {/* Header del wizard */}
+      <div style={{background:"linear-gradient(170deg,"+C.card+","+C.surface+")",borderRadius:20,border:"1px solid "+C.accent+"33",padding:"16px 18px",marginBottom:14,boxShadow:"0 4px 20px rgba(0,0,0,0.3)"}}>
+        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}>
+          <button onClick={()=>setStep(2)} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:18,padding:"0 4px 0 0"}}>←</button>
+          <div style={{flex:1,display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
+            <span style={{display:"flex",alignItems:"center",gap:5,background:C.accent+"18",border:"1px solid "+C.accent+"33",borderRadius:99,padding:"4px 10px",fontSize:12,color:C.accent,fontWeight:700}}>
+              {OFICIO_ICONS[selOficio]||"🔧"} {selOficio}
+            </span>
+            <span style={{display:"flex",alignItems:"center",gap:5,background:C.surface,border:"1px solid "+C.border,borderRadius:99,padding:"4px 10px",fontSize:12,color:C.mutedL}}>
+              {selUrgency==="urgente"?"🔴 Urgente":selUrgency==="semana"?"🟡 Esta semana":"🟢 Presupuesto"}
+            </span>
+          </div>
+          <button onClick={reset} style={{background:"none",border:"none",color:C.accent,cursor:"pointer",fontSize:11,fontWeight:700,flexShrink:0}}>Nueva búsqueda</button>
+        </div>
+
+        {/* Zona selector */}
+        <div style={{display:"flex",gap:8,alignItems:"center"}}>
+          <span style={{fontSize:12,color:C.muted,flexShrink:0}}>📍 Zona:</span>
+          <select value={selZona} onChange={e=>setSelZona(e.target.value)} style={{flex:1,padding:"8px 10px",background:C.bg,border:"1px solid "+C.border,borderRadius:8,color:selZona==="Todas"?C.muted:C.text,fontFamily:"inherit",fontSize:13,cursor:"pointer",outline:"none"}}>
+            <option style={{background:C.card}}>Todas</option>
+            {[...ZONAS,...SEVILLA_ZONAS].filter((v,i,a)=>a.indexOf(v)===i).map(z=><option key={z} style={{background:C.card}}>{z}</option>)}
+          </select>
+        </div>
+      </div>
+
+      {/* Resultados */}
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+        <p style={{fontSize:12,color:C.muted}}>
+          <span style={{color:C.text,fontWeight:700}}>{filtered.length}</span> profesionales encontrados
+          {selUrgency==="urgente"&&<span style={{color:C.red,fontWeight:600,marginLeft:6}}>· Filtrando urgencias 24h primero</span>}
+        </p>
+      </div>
+
+      {filtered.length===0&&(
+        <div style={{textAlign:"center",padding:"32px 20px",color:C.muted,background:C.card,borderRadius:14,border:"1px solid "+C.border}}>
+          <p style={{fontSize:28,marginBottom:8}}>😕</p>
+          <p style={{fontWeight:700,color:C.text,fontSize:16,marginBottom:6}}>Sin profesionales disponibles</p>
+          <p style={{fontSize:13,marginBottom:16}}>Prueba con otra zona o cambia el oficio</p>
+          <button onClick={()=>setSelZona("Todas")} style={{background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:10,color:"#000",cursor:"pointer",padding:"10px 20px",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13}}>Ver en todas las zonas</button>
+        </div>
+      )}
+
+      <div style={{display:"flex",flexDirection:"column",gap:10}}>
+        {filtered.map(w=>{
+          const col=wColor(w.id);
+          const isUrgent=w.schedule?.includes("24h");
+          return(
+            <div key={w.id} onClick={()=>onWorkerSelect(w)} style={{background:C.card,borderRadius:14,border:"1px solid "+(selUrgency==="urgente"&&isUrgent?C.red+"44":col+"25"),padding:16,cursor:"pointer",transition:"all 0.2s",position:"relative",overflow:"hidden"}}>
+              {selUrgency==="urgente"&&isUrgent&&(
+                <div style={{position:"absolute",top:10,right:10,background:C.red,borderRadius:6,padding:"2px 8px",fontSize:9,color:"#fff",fontWeight:800}}>24H</div>
+              )}
+              <div style={{display:"flex",gap:12,alignItems:"center"}}>
+                <Ava s={w.name.substring(0,2).toUpperCase()} size={48} color={col} online={w.available} />
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:2,flexWrap:"wrap"}}>
+                    <p style={{fontWeight:700,color:C.text,fontSize:15}}>{w.name}</p>
+                    {w.verified&&<span style={{fontSize:10,color:C.green}}>✓</span>}
+                    {(w.plan==="pro"||w.plan==="elite")&&<Badge plan={w.plan} />}
+                  </div>
+                  <p style={{fontSize:12,color:col,fontWeight:600,marginBottom:2}}>{OFICIO_ICONS[w.trade||""]||"🔧"} {w.trade}</p>
+                  <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
+                    <Stars n={w.rating} size={10} />
+                    <span style={{fontSize:11,color:C.text,fontWeight:700}}>{w.rating>0?w.rating.toFixed(1):"Nuevo"}</span>
+                    {w.reviews>0&&<span style={{fontSize:10,color:C.muted}}>({w.reviews})</span>}
+                    <span style={{fontSize:10,color:C.muted}}>📍{w.zone}</span>
+                  </div>
+                </div>
+                <div style={{textAlign:"right",flexShrink:0}}>
+                  <p style={{fontWeight:800,fontSize:18,color:C.accent}}>{w.price}€<span style={{fontSize:10,color:C.muted,fontWeight:400}}>/h</span></p>
+                  {w.free_quote&&<p style={{fontSize:10,color:C.green,marginTop:2}}>Ppto. gratis</p>}
+                  <p style={{fontSize:10,color:w.available?C.green:C.muted,marginTop:2}}>●{w.available?" Disponible":" Ocupado"}</p>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ─── CLIENT HOME ───
 function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
   const [tab,setTab]=useState<"buscar"|"ranking"|"chats"|"perfil">("buscar");
@@ -1025,28 +1246,14 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
 
   const loadWorkers=useCallback(async()=>{
     setLoading(true);
-    let q=db.from("users").select("*").eq("type","profesional");
-    if(zona!=="Todas")q=q.or("zone.eq."+zona+",service_zones.cs.{"+zona+"}");
-    if(oficio!=="Todos"){
-      q=q.eq("trade",oficio);
-    } else if(catFilter!=="Todos"){
-      // Filter by category
-      const catOficiosKey=catFilter.split(" ").slice(1).join(" ");
-      const catTrades=OFICIOS.filter(o=>{
-        const cat=OFICIO_CATEGORIES[o]||"";
-        return cat.includes(catOficiosKey)||cat===catFilter;
-      });
-      if(catTrades.length>0) q=q.in("trade",catTrades);
-    }
-    if(soloDisp)q=q.eq("available",true);
-    if(search)q=q.ilike("name","%"+search+"%");
-    const {data}=await q;
+    // Load all profesionales — BuscadorExpress handles filtering client-side
+    const {data}=await db.from("users").select("*").eq("type","profesional");
     const sorted=(data||[]).sort((a:UserRow,b:UserRow)=>{
       const order:Record<Plan,number>={elite:3,pro:2,basico:1,gratis:0};
       return order[b.plan as Plan]-order[a.plan as Plan]||b.rating-a.rating;
     });
     setWorkers(sorted); setLoading(false);
-  },[zona,oficio,search,soloDisp]);
+  },[]);
 
   useEffect(()=>{loadWorkers();},[loadWorkers]);
 
@@ -1088,88 +1295,29 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
 
       <div style={{maxWidth:900,margin:"0 auto",padding:"0 16px"}}>
         {tab==="buscar"&&(<>
-          <div style={{padding:"16px 0 12px"}}>
-            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+          {/* Hero compacto */}
+          <div style={{padding:"14px 0 10px"}}>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
               <div style={{display:"inline-flex",gap:5,background:C.green+"15",border:"1px solid "+C.green+"30",borderRadius:99,padding:"4px 10px"}}>
                 <span style={{fontSize:8,color:C.green,animation:"pulse 2s infinite"}}>●</span>
-                <span style={{fontSize:11,color:C.green,fontWeight:700,letterSpacing:"0.04em"}}>{workers.filter(w=>w.available).length} disponibles ahora</span>
+                <span style={{fontSize:11,color:C.green,fontWeight:700}}>{workers.filter(w=>w.available).length} disponibles ahora</span>
               </div>
             </div>
-            <h1 style={{fontWeight:900,fontSize:"clamp(22px,5vw,42px)",lineHeight:1.1,letterSpacing:"-0.02em",marginBottom:6}}>
+            <h1 style={{fontWeight:900,fontSize:"clamp(20px,5vw,38px)",lineHeight:1.1,letterSpacing:"-0.02em",marginBottom:4}}>
               <span style={{color:C.text}}>El profesional que necesitas,</span><br/>
               <span style={{background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>en tu ciudad.</span>
             </h1>
-            <p style={{fontSize:13,color:C.mutedL,marginBottom:0}}>Presupuesto gratis · Sin compromiso · Pago directo</p>
+            <p style={{fontSize:12,color:C.mutedL}}>Presupuesto gratis · Sin compromiso · Pago directo</p>
           </div>
 
-          {/* BUSCADOR PRINCIPAL */}
-          <div style={{marginBottom:14}}>
-            {/* Barra de búsqueda grande */}
-            <div style={{display:"flex",background:C.card,borderRadius:14,border:"1px solid "+C.border,overflow:"hidden",marginBottom:8,boxShadow:"0 4px 20px rgba(0,0,0,0.3)"}}>
-              <span style={{padding:"0 14px",display:"flex",alignItems:"center",color:C.muted,fontSize:18}}>🔍</span>
-              <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="¿Qué profesional necesitas?" style={{flex:1,padding:"15px 0",background:"transparent",border:"none",color:C.text,fontFamily:"inherit",fontSize:15,outline:"none"}} />
-              {search&&<button onClick={()=>setSearch("")} style={{padding:"0 14px",background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:16}}>✕</button>}
-            </div>
-            {/* Filtros secundarios en una línea */}
-            <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
-              <select value={zona} onChange={e=>setZona(e.target.value)} style={{flex:1,minWidth:100,padding:"8px 10px",background:C.surface,border:"1px solid "+C.border,borderRadius:8,color:zona==="Todas"?C.muted:C.text,fontFamily:"inherit",fontSize:12,cursor:"pointer",outline:"none"}}>
-                <option style={{background:C.card}}>Todas</option>
-                {ZONAS.map(z=><option key={z} style={{background:C.card}}>{z}</option>)}
-              </select>
-              <select value={oficio} onChange={e=>setOficio(e.target.value)} style={{flex:1,minWidth:100,padding:"8px 10px",background:C.surface,border:"1px solid "+C.border,borderRadius:8,color:oficio==="Todos"?C.muted:C.text,fontFamily:"inherit",fontSize:12,cursor:"pointer",outline:"none"}}>
-                <option style={{background:C.card}}>Todos</option>
-                {OFICIOS.map(o=><option key={o} style={{background:C.card}}>{o}</option>)}
-              </select>
-              <label style={{display:"flex",alignItems:"center",gap:5,cursor:"pointer",fontSize:12,color:C.mutedL,flexShrink:0}}>
-                <input type="checkbox" checked={soloDisp} onChange={e=>setSoloDisp(e.target.checked)} style={{accentColor:C.accent,width:14,height:14}} />
-                Disponibles
-              </label>
-              <button onClick={()=>setShowMap(!showMap)} style={{flexShrink:0,padding:"7px 10px",borderRadius:8,border:"1px solid "+(showMap?C.accent:C.border),background:showMap?C.accent+"15":"transparent",color:showMap?C.accent:C.muted,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",transition:"all 0.15s"}}>
-                🗺️
-              </button>
-            </div>
-            {showMap&&<div style={{marginTop:8}}><SevillaMap selectedZone={mapZone} onZoneSelect={z=>{setMapZone(z===mapZone?"":z);}} /></div>}
-          </div>
+          {/* BUSCADOR EXPRESS 3 PASOS */}
+          <BuscadorExpress
+            workers={workers}
+            onResult={(o,z,u)=>{setOficio(o);setZona(z);}}
+            onWorkerSelect={w=>setSelectedWorker(w)}
+          />
 
-
-          <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:4,marginBottom:14,WebkitOverflowScrolling:"touch" as any}}>
-            {[
-              {cat:"Todos",icon:"✦"},
-              {cat:"⚡ Técnico",icon:""},
-              {cat:"🌿 Servicios",icon:""},
-              {cat:"🐾 Mascotas",icon:""},
-              {cat:"💆 Cuidados",icon:""},
-              {cat:"🏺 Artesanía",icon:""},
-              {cat:"👨‍🍳 Hostelería",icon:""},
-            ].map(({cat})=>(
-              <button key={cat} onClick={()=>{setCatFilter(cat);setOficio("Todos");}} style={{flexShrink:0,padding:"7px 16px",borderRadius:99,border:"1px solid "+(catFilter===cat?C.accent:C.border),background:catFilter===cat?"linear-gradient(135deg,"+C.accent+"33,"+C.orange+"22)":"transparent",color:catFilter===cat?C.accent:C.muted,cursor:"pointer",fontSize:13,fontFamily:"'DM Sans',sans-serif",fontWeight:catFilter===cat?700:400,whiteSpace:"nowrap",transition:"all 0.15s",boxShadow:catFilter===cat?"0 2px 10px "+C.accent+"22":"none"}}>
-                {cat}
-              </button>
-            ))}
-          </div>
-
-          <div style={{background:"linear-gradient(135deg,"+C.accent+"18,"+C.orange+"10)",borderRadius:14,border:"1px solid "+C.accent+"33",padding:"14px 16px",marginBottom:16,display:"flex",alignItems:"center",gap:12}}>
-            <div style={{fontSize:28}}>⚡</div>
-            <div style={{flex:1}}>
-              <p style={{fontWeight:700,color:C.text,fontSize:14,marginBottom:2}}>¿Necesitas un profesional ahora?</p>
-              <p style={{fontSize:12,color:C.muted}}>Te conectamos con el disponible más cercano en segundos</p>
-            </div>
-            <button onClick={()=>setShowQuickMatch(true)} style={{padding:"10px 16px",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:10,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,cursor:"pointer",whiteSpace:"nowrap",boxShadow:"0 4px 14px "+C.accent+"44"}}>
-              Buscar →
-            </button>
-          </div>
-
-          {loading?<Spin />:(<>
-            <p style={{fontSize:12,color:C.muted,marginBottom:12}}><span style={{color:C.text,fontWeight:700}}>{workers.length}</span> profesionales{zona!=="Todas"?" en "+zona:""}{mapZone?" · "+mapZone:""} {mapZone&&<button onClick={()=>setMapZone("")} style={{background:"none",border:"none",color:C.accent,cursor:"pointer",fontSize:11,fontWeight:700}}>✕</button>}</p>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(265px,1fr))",gap:12}}>
-              {workers.map(w=><WorkerCard key={w.id} w={w} onClick={()=>setSelectedWorker(w)} />)}
-              {workers.length===0&&<div style={{gridColumn:"1/-1",textAlign:"center",padding:48,color:C.muted}}>
-                <p style={{fontSize:36,marginBottom:8}}>🔍</p>
-                <p style={{fontWeight:700,fontSize:18,marginBottom:6}}>Sin resultados</p>
-                <p style={{fontSize:13}}>Prueba con otra zona u oficio</p>
-              </div>}
-            </div>
-          </>)}
+          {loading&&<Spin />}
         </>)}
 
         {tab==="ranking"&&<RankingSection workers={workers} onSelect={setSelectedWorker} />}
