@@ -728,6 +728,70 @@ function Auth({onLogin}:{onLogin:(u:UserRow)=>void}){
   );
 }
 
+// ─── WORKER CARD IDEALISTA STYLE ───
+function WorkerCardIdealista({w,onSelect,onChat}:{w:UserRow;onSelect:()=>void;onChat:()=>void}){
+  const col=wColor(w.id);
+  return(
+    <div style={{background:C.card,borderRadius:16,border:"1px solid "+C.border,overflow:"hidden",transition:"all 0.2s",boxShadow:"0 2px 12px rgba(0,0,0,0.2)"}}>
+      {/* Left strip color */}
+      <div style={{display:"flex"}}>
+        <div style={{width:4,background:"linear-gradient(180deg,"+col+","+col+"44)",flexShrink:0}} />
+        <div style={{flex:1,padding:"14px 14px 12px"}}>
+          {/* Top row */}
+          <div style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:10}}>
+            <div onClick={onSelect} style={{cursor:"pointer",flexShrink:0}}>
+              <Ava s={w.name.substring(0,2).toUpperCase()} size={52} color={col} online={w.available} />
+            </div>
+            <div style={{flex:1,minWidth:0,cursor:"pointer"}} onClick={onSelect}>
+              <div style={{display:"flex",gap:5,alignItems:"center",marginBottom:2,flexWrap:"wrap"}}>
+                <p style={{fontWeight:800,fontSize:16,color:C.text,lineHeight:1.2}}>{w.name}</p>
+                {w.verified&&<span style={{fontSize:10,color:C.green,fontWeight:700}}>✓</span>}
+                {(w.plan==="elite"||w.plan==="pro")&&<Badge plan={w.plan} />}
+              </div>
+              <p style={{fontSize:12,color:col,fontWeight:600,marginBottom:3}}>{OFICIO_ICONS[w.trade||""]||"🔧"} {w.trade}</p>
+              <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
+                <Stars n={w.rating} size={11} />
+                <span style={{fontSize:11,color:C.text,fontWeight:700}}>{w.rating>0?w.rating.toFixed(1):"Nuevo"}</span>
+                {w.reviews>0&&<span style={{fontSize:10,color:C.muted}}>({w.reviews} reseñas)</span>}
+                {w.jobs>0&&<span style={{fontSize:10,color:C.muted}}>· {w.jobs} trabajos</span>}
+              </div>
+            </div>
+            {/* Price */}
+            <div style={{textAlign:"right",flexShrink:0,cursor:"pointer"}} onClick={onSelect}>
+              <p style={{fontWeight:900,fontSize:20,color:C.accent,lineHeight:1}}>{w.price}€</p>
+              <p style={{fontSize:10,color:C.muted}}>/hora</p>
+              {w.free_quote&&<p style={{fontSize:9,color:C.green,fontWeight:600,marginTop:2}}>Ppto. gratis</p>}
+            </div>
+          </div>
+
+          {/* Bio preview */}
+          {w.bio&&(
+            <p style={{fontSize:12,color:C.mutedL,lineHeight:1.55,marginBottom:10,display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{w.bio}</p>
+          )}
+
+          {/* Badges row */}
+          <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:10}}>
+            <span style={{fontSize:10,color:C.muted,background:C.surface,padding:"3px 8px",borderRadius:99,border:"1px solid "+C.border}}>📍 {w.zone}</span>
+            {w.schedule&&w.schedule.includes("24h")&&<span style={{fontSize:10,color:C.red,background:C.red+"15",padding:"3px 8px",borderRadius:99,border:"1px solid "+C.red+"33",fontWeight:600}}>🔴 Urgencias 24h</span>}
+            {w.response_time&&<span style={{fontSize:10,color:C.cyan,background:C.cyan+"12",padding:"3px 8px",borderRadius:99,border:"1px solid "+C.cyan+"33"}}>⚡ {w.response_time}</span>}
+            {w.experience_years&&w.experience_years>0?<span style={{fontSize:10,color:C.mutedL,background:C.surface,padding:"3px 8px",borderRadius:99,border:"1px solid "+C.border}}>{w.experience_years} años exp.</span>:null}
+          </div>
+
+          {/* CTA — solo chat, sin teléfono */}
+          <div style={{display:"flex",gap:8}}>
+            <button onClick={onChat} style={{flex:1,padding:"11px",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:10,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:6,boxShadow:"0 4px 14px "+C.accent+"33"}}>
+              💬 Escribir mensaje
+            </button>
+            <button onClick={onSelect} style={{padding:"11px 14px",background:"transparent",border:"1px solid "+C.border,borderRadius:10,color:C.mutedL,fontFamily:"'DM Sans',sans-serif",fontWeight:600,fontSize:12,cursor:"pointer"}}>
+              Ver perfil
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── WORKER CARD ───
 function WorkerCard({w,onClick}:{w:UserRow;onClick:()=>void}){
   const col=wColor(w.id);
@@ -783,7 +847,7 @@ function WorkerCard({w,onClick}:{w:UserRow;onClick:()=>void}){
 }
 
 // ─── WORKER DETAIL SHEET ───
-function WorkerSheet({worker,onClose,onChat,onWhatsApp,onVisitRequest,currentUser}:{worker:UserRow;onClose:()=>void;onChat:(w:UserRow)=>void;onWhatsApp:(w:UserRow)=>void;onVisitRequest:(w:UserRow)=>void;currentUser:UserRow|null}){
+function WorkerSheet({worker,onClose,onChat,currentUser}:{worker:UserRow;onClose:()=>void;onChat:(w:UserRow)=>void;currentUser:UserRow|null}){
   const [tab,setTab]=useState<"info"|"fotos"|"reviews"|"certs">("info");
   const [reviews,setReviews]=useState<any[]>([]);
   const [certs,setCerts]=useState<CertRow[]>([]);
@@ -835,16 +899,14 @@ function WorkerSheet({worker,onClose,onChat,onWhatsApp,onVisitRequest,currentUse
       </div>
 
       {currentUser&&currentUser.type==="cliente"&&(
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:14}}>
-          <Btn full onClick={()=>onChat(worker)} color={C.accent} small>💬 Mensaje</Btn>
-          <button onClick={()=>onVisitRequest(worker)} style={{padding:"10px 8px",background:"linear-gradient(135deg,"+C.blue+"22,"+C.purple+"15)",border:"1px solid "+C.blue+"44",borderRadius:10,color:C.blue,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:12,cursor:"pointer",transition:"all 0.15s"}}>📅 Visita</button>
-          {worker.whatsapp?
-            <button onClick={()=>onWhatsApp(worker)} style={{padding:"10px 8px",background:"#25D366"+"22",border:"1px solid #25D366"+"55",borderRadius:10,color:"#25D366",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:12,cursor:"pointer"}}>📱 WhatsApp</button>:
-            <button style={{padding:"10px 8px",background:C.green+"15",border:"1px solid "+C.green+"44",borderRadius:10,color:C.green,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:12,cursor:"pointer"}}>📞 Llamar</button>
-          }
+        <div style={{marginBottom:14}}>
+          <button onClick={()=>onChat(worker)} style={{width:"100%",padding:"13px",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:12,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:15,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,boxShadow:"0 4px 18px "+C.accent+"44"}}>
+            💬 Escribir mensaje
+          </button>
+          <p style={{fontSize:11,color:C.muted,textAlign:"center",marginTop:6}}>Todo el contacto se gestiona de forma segura dentro de la app</p>
         </div>
       )}
-      {!currentUser&&<div style={{padding:"12px",background:C.surface,borderRadius:10,border:"1px solid "+C.border,textAlign:"center",marginBottom:14}}><p style={{fontSize:13,color:C.muted}}>Regístrate gratis para contactar</p></div>}
+      {!currentUser&&<div style={{padding:"12px",background:C.surface,borderRadius:10,border:"1px solid "+C.border,textAlign:"center",marginBottom:14}}><p style={{fontSize:13,color:C.muted}}>Regístrate gratis para contactar con este profesional</p></div>}
 
       <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:14}}>
         {[{l:"Trabajos",v:String(worker.jobs)},{l:"Precio/h",v:(worker.price||30)+"€"},{l:"Valoración",v:avgRating>0?avgRating.toFixed(1)+"★":"Nuevo"}].map(s=>(
@@ -937,9 +999,12 @@ function WorkerSheet({worker,onClose,onChat,onWhatsApp,onVisitRequest,currentUse
 }
 
 // ─── CHAT (con Realtime) ───
-function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:UserRow;onClose:()=>void}){
+function ChatPanel({toUser,currentUser,onClose,currentUserFull}:{toUser:UserRow;currentUser:UserRow;onClose:()=>void;currentUserFull?:UserRow}){
   const [msgs,setMsgs]=useState<MessageRow[]>([]);
   const [input,setInput]=useState(""); const [sending,setSending]=useState(false);
+  const [showVisitForm,setShowVisitForm]=useState(false);
+  const [visitDate,setVisitDate]=useState(""); const [visitSlot,setVisitSlot]=useState<"mañana"|"tarde">("mañana");
+  const [visitDesc,setVisitDesc]=useState(""); const [sendingVisit,setSendingVisit]=useState(false);
   const bottomRef=useRef<HTMLDivElement>(null);
   const col=wColor(toUser.id);
 
@@ -995,9 +1060,33 @@ function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:User
         })}
         <div ref={bottomRef} />
       </div>
-      <div style={{padding:"8px 12px",borderTop:"1px solid "+C.border,display:"flex",gap:8}}>
+      {/* Visit request form inline */}
+      {showVisitForm&&(
+        <div style={{padding:"10px 12px",borderTop:"1px solid "+C.border,background:C.surface}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+            <p style={{fontSize:12,fontWeight:700,color:C.accent}}>📅 Solicitar visita</p>
+            <button onClick={()=>setShowVisitForm(false)} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:14}}>✕</button>
+          </div>
+          <input type="date" value={visitDate} onChange={e=>setVisitDate(e.target.value)} min={new Date().toISOString().split("T")[0]} style={{width:"100%",background:C.card,border:"1px solid "+C.border,borderRadius:8,padding:"8px 10px",color:C.text,fontFamily:"inherit",fontSize:13,outline:"none",marginBottom:7}} />
+          <div style={{display:"flex",gap:6,marginBottom:7}}>
+            {(["mañana","tarde"] as const).map(s=><button key={s} onClick={()=>setVisitSlot(s)} style={{flex:1,padding:"7px",borderRadius:8,border:"1px solid "+(visitSlot===s?C.accent:C.border),background:visitSlot===s?C.accent+"18":"transparent",color:visitSlot===s?C.accent:C.muted,cursor:"pointer",fontFamily:"inherit",fontSize:12,fontWeight:visitSlot===s?700:400}}>{s==="mañana"?"🌅 Mañana":"🌆 Tarde"}</button>)}
+          </div>
+          <textarea value={visitDesc} onChange={e=>setVisitDesc(e.target.value)} placeholder="Describe brevemente el trabajo..." style={{width:"100%",background:C.card,border:"1px solid "+C.border,borderRadius:8,padding:"8px 10px",color:C.text,fontFamily:"inherit",fontSize:12,outline:"none",resize:"none",minHeight:52,marginBottom:7}} />
+          <button disabled={sendingVisit||!visitDate||!visitDesc.trim()} onClick={async()=>{
+            setSendingVisit(true);
+            const txt="📅 Solicitud de visita para el "+visitDate+" por la "+visitSlot+".\n\n"+visitDesc;
+            await db.from("messages").insert({from_id:currentUser.id,to_id:toUser.id,text:txt,read:false});
+            await db.from("jobs").insert({worker_id:toUser.id,client_id:currentUser.id,client_name:currentUser.name,title:"Solicitud de visita · "+visitDate,description:visitDesc,status:"pending"});
+            setShowVisitForm(false);setVisitDate("");setVisitDesc("");setSendingVisit(false);
+          }} style={{width:"100%",padding:"9px",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:8,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,cursor:"pointer",opacity:sendingVisit||!visitDate||!visitDesc.trim()?0.5:1}}>
+            {sendingVisit?"Enviando...":"Enviar solicitud →"}
+          </button>
+        </div>
+      )}
+      <div style={{padding:"8px 10px",borderTop:"1px solid "+C.border,display:"flex",gap:6,alignItems:"center"}}>
+        <button onClick={()=>setShowVisitForm(!showVisitForm)} title="Solicitar visita" style={{padding:"8px 10px",background:showVisitForm?C.accent+"22":"transparent",border:"1px solid "+(showVisitForm?C.accent+"44":C.border),borderRadius:8,color:showVisitForm?C.accent:C.muted,cursor:"pointer",fontSize:15,flexShrink:0}}>📅</button>
         <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&send()} placeholder="Escribe un mensaje..." style={{flex:1,background:C.card,border:"1px solid "+C.border,borderRadius:8,padding:"9px 12px",color:C.text,fontFamily:"inherit",fontSize:13,outline:"none"}} />
-        <button onClick={send} disabled={sending} style={{padding:"8px 14px",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:8,color:"#000",fontWeight:900,cursor:"pointer",fontSize:14,opacity:sending?0.5:1}}>→</button>
+        <button onClick={send} disabled={sending} style={{padding:"8px 14px",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:8,color:"#000",fontWeight:900,cursor:"pointer",fontSize:14,opacity:sending?0.5:1,flexShrink:0}}>→</button>
       </div>
     </div>
   );
@@ -1005,7 +1094,7 @@ function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:User
 
 
 // ─── BUSCADOR EXPRESS 3 PASOS ───
-function BuscadorExpress({workers, onResult, onWorkerSelect}:{workers:UserRow[];onResult:(oficio:string,zona:string,urgency:string)=>void;onWorkerSelect:(w:UserRow)=>void}){
+function BuscadorExpress({workers, onResult, onWorkerSelect, onClose}:{workers:UserRow[];onResult:(oficio:string,zona:string,urgency:string)=>void;onWorkerSelect:(w:UserRow)=>void;onClose?:()=>void}){
   const [step,setStep]=useState(0); // 0=home, 1=oficio, 2=urgencia, 3=zona/resultados
   const [selOficio,setSelOficio]=useState("");
   const [selUrgency,setSelUrgency]=useState("");
@@ -1032,7 +1121,7 @@ function BuscadorExpress({workers, onResult, onWorkerSelect}:{workers:UserRow[];
   const topOficios=OFICIOS_TOP;
   const filteredBySearch=OFICIOS.filter(o=>!textSearch||o.toLowerCase().includes(textSearch.toLowerCase()));
 
-  const reset=()=>{setStep(0);setSelOficio("");setSelUrgency("");setSelZona("Todas");setTextSearch("");setExpanded(false);};
+  const reset=()=>{setStep(0);setSelOficio("");setSelUrgency("");setSelZona("Todas");setTextSearch("");setExpanded(false);onClose&&onClose();};
 
   // STEP 0 — home card (collapsed)
   if(step===0) return(
@@ -1232,17 +1321,30 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
   const [search,setSearch]=useState("");
   const [soloDisp,setSoloDisp]=useState(false);
   const [catFilter,setCatFilter]=useState("Todos");
-  const [showMap,setShowMap]=useState(false);
-  const [mapZone,setMapZone]=useState("");
-  const [showQuickMatch,setShowQuickMatch]=useState(false);
+  const [showWizard,setShowWizard]=useState(false);
   const [workers,setWorkers]=useState<UserRow[]>([]);
   const [loading,setLoading]=useState(true);
   const [selectedWorker,setSelectedWorker]=useState<UserRow|null>(null);
   const [chatWorker,setChatWorker]=useState<UserRow|null>(null);
-  const [visitWorker,setVisitWorker]=useState<UserRow|null>(null);
   const [chatPartners,setChatPartners]=useState<UserRow[]>([]);
   const [toast,setToast]=useState<string|null>(null);
   const showToast=(m:string)=>{setToast(m);setTimeout(()=>setToast(null),3000);};
+
+  // Filtered workers for Idealista-style list
+  const filteredWorkers=workers.filter(w=>{
+    if(soloDisp&&!w.available)return false;
+    if(zona!=="Todas"&&w.zone!==zona&&!(w.service_zones||[]).includes(zona))return false;
+    if(oficio!=="Todos"&&w.trade!==oficio)return false;
+    if(catFilter!=="Todos"){
+      const cat=OFICIO_CATEGORIES[w.trade||""]||"";
+      if(!cat.includes(catFilter.split(" ").slice(1).join(" ")))return false;
+    }
+    if(search){
+      const s=search.toLowerCase();
+      if(!w.name.toLowerCase().includes(s)&&!(w.trade||"").toLowerCase().includes(s)&&!(w.bio||"").toLowerCase().includes(s))return false;
+    }
+    return true;
+  });
 
   const loadWorkers=useCallback(async()=>{
     setLoading(true);
@@ -1267,13 +1369,6 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
 
   useEffect(()=>{if(tab==="chats")loadChats();},[tab,loadChats]);
 
-  const handleWhatsApp=async(w:UserRow)=>{
-    await logLead(w.id,user.id,"whatsapp");
-    const num=(w.whatsapp||w.phone).replace(/\D/g,"");
-    const msg=encodeURIComponent("Hola "+w.name+", te contacto desde OfficioYa. Me gustaría solicitar un presupuesto.");
-    window.open("https://wa.me/"+num+"?text="+msg,"_blank");
-  };
-
   const handleChat=async(w:UserRow)=>{
     const ok=await logLead(w.id,user.id,"message");
     if(!ok){showToast("⛔ Este profesional ha alcanzado su límite de contactos este mes");return;}
@@ -1295,7 +1390,7 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
 
       <div style={{maxWidth:900,margin:"0 auto",padding:"0 16px"}}>
         {tab==="buscar"&&(<>
-          {/* Hero compacto */}
+          {/* ── HERO ── */}
           <div style={{padding:"14px 0 10px"}}>
             <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
               <div style={{display:"inline-flex",gap:5,background:C.green+"15",border:"1px solid "+C.green+"30",borderRadius:99,padding:"4px 10px"}}>
@@ -1303,21 +1398,110 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
                 <span style={{fontSize:11,color:C.green,fontWeight:700}}>{workers.filter(w=>w.available).length} disponibles ahora</span>
               </div>
             </div>
-            <h1 style={{fontWeight:900,fontSize:"clamp(20px,5vw,38px)",lineHeight:1.1,letterSpacing:"-0.02em",marginBottom:4}}>
+            <h1 style={{fontWeight:900,fontSize:"clamp(20px,5vw,36px)",lineHeight:1.1,letterSpacing:"-0.02em",marginBottom:4}}>
               <span style={{color:C.text}}>El profesional que necesitas,</span><br/>
               <span style={{background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>en tu ciudad.</span>
             </h1>
-            <p style={{fontSize:12,color:C.mutedL}}>Presupuesto gratis · Sin compromiso · Pago directo</p>
           </div>
 
-          {/* BUSCADOR EXPRESS 3 PASOS */}
-          <BuscadorExpress
-            workers={workers}
-            onResult={(o,z,u)=>{setOficio(o);setZona(z);}}
-            onWorkerSelect={w=>setSelectedWorker(w)}
-          />
+          {/* ── BUSCADOR DIRECTO (como Idealista) ── */}
+          <div style={{marginBottom:12}}>
+            {/* Barra de búsqueda */}
+            <div style={{display:"flex",background:C.card,borderRadius:14,border:"1px solid "+C.border,overflow:"hidden",marginBottom:8,boxShadow:"0 2px 16px rgba(0,0,0,0.25)"}}>
+              <span style={{padding:"0 14px",display:"flex",alignItems:"center",color:C.muted,fontSize:17}}>🔍</span>
+              <input
+                value={search}
+                onChange={e=>setSearch(e.target.value)}
+                placeholder="Electricista, fontanero, pintor..."
+                style={{flex:1,padding:"14px 0",background:"transparent",border:"none",color:C.text,fontFamily:"inherit",fontSize:15,outline:"none"}}
+              />
+              {search&&<button onClick={()=>setSearch("")} style={{padding:"0 14px",background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:15}}>✕</button>}
+            </div>
 
-          {loading&&<Spin />}
+            {/* Filtros rápidos en una línea */}
+            <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
+              <select value={zona} onChange={e=>setZona(e.target.value)} style={{flex:1,minWidth:100,padding:"7px 10px",background:C.surface,border:"1px solid "+C.border,borderRadius:8,color:zona==="Todas"?C.muted:C.accent,fontFamily:"inherit",fontSize:12,cursor:"pointer",outline:"none",fontWeight:zona==="Todas"?400:600}}>
+                <option style={{background:C.card}}>Todas</option>
+                {ZONAS.map(z=><option key={z} style={{background:C.card}}>{z}</option>)}
+              </select>
+              <label style={{display:"flex",alignItems:"center",gap:5,cursor:"pointer",fontSize:12,color:soloDisp?C.green:C.mutedL,flexShrink:0,padding:"7px 10px",background:soloDisp?C.green+"12":C.surface,borderRadius:8,border:"1px solid "+(soloDisp?C.green+"44":C.border),transition:"all 0.15s"}}>
+                <input type="checkbox" checked={soloDisp} onChange={e=>setSoloDisp(e.target.checked)} style={{accentColor:C.green,width:13,height:13}} />
+                Disponibles
+              </label>
+            </div>
+          </div>
+
+          {/* ── BOTÓN WIZARD "¿QUÉ NECESITAS?" ── */}
+          {!showWizard&&(
+            <button onClick={()=>setShowWizard(true)} style={{width:"100%",display:"flex",alignItems:"center",gap:12,background:"linear-gradient(135deg,"+C.accent+"18,"+C.orange+"10)",borderRadius:14,border:"1px solid "+C.accent+"44",padding:"13px 18px",cursor:"pointer",marginBottom:14,boxShadow:"0 3px 16px rgba(255,215,0,0.1)",transition:"all 0.2s",fontFamily:"'DM Sans',sans-serif"}}>
+              <div style={{width:36,height:36,borderRadius:10,background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>⚡</div>
+              <div style={{textAlign:"left",flex:1}}>
+                <p style={{fontWeight:700,color:C.text,fontSize:14,marginBottom:1}}>¿Qué profesional necesitas?</p>
+                <p style={{fontSize:11,color:C.muted}}>Te guiamos en 3 pasos al mejor disponible</p>
+              </div>
+              <span style={{background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",borderRadius:8,padding:"6px 12px",color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:12,flexShrink:0}}>Iniciar →</span>
+            </button>
+          )}
+
+          {/* Wizard inline */}
+          {showWizard&&(
+            <div style={{marginBottom:14}}>
+              <BuscadorExpress
+                workers={workers}
+                onResult={(o,z,u)=>{setOficio(o);setZona(z);setShowWizard(false);}}
+                onWorkerSelect={w=>{setSelectedWorker(w);setShowWizard(false);}}
+                onClose={()=>setShowWizard(false)}
+              />
+            </div>
+          )}
+
+          {/* ── CATEGORÍAS ── */}
+          {!showWizard&&(
+            <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:4,marginBottom:14}}>
+              {[
+                {cat:"Todos",icon:"✦"},
+                {cat:"⚡ Técnico",icon:""},
+                {cat:"🌿 Servicios",icon:""},
+                {cat:"🐾 Mascotas",icon:""},
+                {cat:"💆 Cuidados",icon:""},
+                {cat:"🏺 Artesanía",icon:""},
+                {cat:"🎪 Eventos",icon:""},
+              ].map(({cat})=>(
+                <button key={cat} onClick={()=>{setCatFilter(cat);setOficio("Todos");}} style={{flexShrink:0,padding:"7px 14px",borderRadius:99,border:"1px solid "+(catFilter===cat?C.accent:C.border),background:catFilter===cat?"linear-gradient(135deg,"+C.accent+"28,"+C.orange+"18)":"transparent",color:catFilter===cat?C.accent:C.muted,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:catFilter===cat?700:400,whiteSpace:"nowrap",transition:"all 0.15s"}}>
+                  {cat}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* ── LISTA DE PROFESIONALES (estilo Idealista) ── */}
+          {!showWizard&&(<>
+            {loading?<Spin />:(<>
+              {/* Contador + info */}
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                <p style={{fontSize:12,color:C.muted}}>
+                  <span style={{color:C.text,fontWeight:700}}>{filteredWorkers.length}</span> profesionales
+                  {oficio!=="Todos"&&<span> de <span style={{color:C.accent,fontWeight:600}}>{oficio}</span></span>}
+                  {zona!=="Todas"&&<span style={{color:C.muted}}> en {zona}</span>}
+                </p>
+                {(oficio!=="Todos"||zona!=="Todas"||search||soloDisp)&&(
+                  <button onClick={()=>{setOficio("Todos");setZona("Todas");setSearch("");setSoloDisp(false);setCatFilter("Todos");}} style={{background:"none",border:"none",color:C.accent,cursor:"pointer",fontSize:11,fontWeight:700}}>✕ Quitar filtros</button>
+                )}
+              </div>
+
+              {filteredWorkers.length===0&&(
+                <div style={{textAlign:"center",padding:"32px 20px",color:C.muted}}>
+                  <p style={{fontSize:32,marginBottom:8}}>🔍</p>
+                  <p style={{fontWeight:700,color:C.text,fontSize:16,marginBottom:6}}>Sin resultados</p>
+                  <p style={{fontSize:13}}>Prueba con otra búsqueda o zona</p>
+                </div>
+              )}
+
+              <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                {filteredWorkers.map(w=><WorkerCardIdealista key={w.id} w={w} onChat={()=>handleChat(w)} onSelect={()=>setSelectedWorker(w)} />)}
+              </div>
+            </>)}
+          </>)}
         </>)}
 
         {tab==="ranking"&&<RankingSection workers={workers} onSelect={setSelectedWorker} />}
@@ -1383,10 +1567,8 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
         })}
       </nav>
 
-      {showQuickMatch&&<QuickMatchModal workers={workers} currentUser={user} onClose={()=>setShowQuickMatch(false)} onSelect={w=>{setShowQuickMatch(false);setSelectedWorker(w);}} />}
-      {selectedWorker&&<WorkerSheet worker={selectedWorker} onClose={()=>setSelectedWorker(null)} onChat={handleChat} onWhatsApp={handleWhatsApp} onVisitRequest={w=>{setSelectedWorker(null);setVisitWorker(w);}} currentUser={user} />}
-      {chatWorker&&<ChatPanel toUser={chatWorker} currentUser={user} onClose={()=>setChatWorker(null)} />}
-      {visitWorker&&<VisitRequestModal worker={visitWorker} currentUser={user} onClose={()=>setVisitWorker(null)} onSuccess={()=>{setVisitWorker(null);showToast("✓ Solicitud enviada a "+visitWorker.name);}} />}
+      {selectedWorker&&<WorkerSheet worker={selectedWorker} onClose={()=>setSelectedWorker(null)} onChat={w=>{setSelectedWorker(null);handleChat(w);}} currentUser={user} />}
+      {chatWorker&&<ChatPanel toUser={chatWorker} currentUser={user} onClose={()=>setChatWorker(null)} currentUserFull={user} />}
       <Ping msg={toast} />
     </div>
   );
