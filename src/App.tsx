@@ -364,43 +364,80 @@ function Auth({onLogin}:{onLogin:(u:UserRow)=>void}){
   const registerCliente=async()=>{
     if(!name||!email||!pass){setErr("Nombre, email y contraseña son obligatorios.");return;}
     if(pass.length<6){setErr("Mínimo 6 caracteres en la contraseña.");return;}
+    if(!/\S+@\S+\.\S+/.test(email)){setErr("Introduce un email válido.");return;}
     setLoading(true);setErr("");
-    const {data:ex}=await db.from("users").select("id").eq("email",email.toLowerCase()).maybeSingle();
-    if(ex){setLoading(false);setErr("Ya existe una cuenta con ese email.");return;}
-    const trial_end=new Date(Date.now()+365*86400000).toISOString().split("T")[0];
-    const {data,error}=await db.from("users").insert({
-      name,email:email.toLowerCase(),phone:phone||"",password:pass,
-      type:"cliente",plan:"gratis",trade:null,zone:null,bio:"",price:0,
-      available:true,verified:false,jobs:0,rating:0,reviews:0,trial_end,
-      service_zones:[],schedule:"",response_time:"",free_quote:false,
-      experience_years:0,specialties:[],whatsapp:phone||"",
-    }).select().single();
-    setLoading(false);
-    if(error||!data){setErr("Error creando cuenta. Inténtalo de nuevo.");return;}
-    localStorage.setItem("oy_user",JSON.stringify(data));
-    onLogin(data as UserRow);
+    try{
+      const {data:ex}=await db.from("users").select("id").eq("email",email.toLowerCase()).maybeSingle();
+      if(ex){setLoading(false);setErr("Ya existe una cuenta con ese email.");return;}
+      const trial_end=new Date(Date.now()+365*86400000).toISOString().split("T")[0];
+      const insertData:any={
+        name:name.trim(),
+        email:email.toLowerCase().trim(),
+        password:pass,
+        type:"cliente",
+        plan:"gratis",
+        bio:"",
+        price:0,
+        available:true,
+        verified:false,
+        jobs:0,
+        rating:0,
+        reviews:0,
+        trial_end,
+      };
+      if(phone) insertData.phone=phone.trim();
+      if(phone) insertData.whatsapp=phone.trim();
+      const {data,error}=await db.from("users").insert(insertData).select().single();
+      setLoading(false);
+      if(error){console.error("Register error:",error);setErr("Error: "+error.message);return;}
+      if(!data){setErr("Error creando cuenta. Inténtalo de nuevo.");return;}
+      localStorage.setItem("oy_user",JSON.stringify(data));
+      onLogin(data as UserRow);
+    }catch(e:any){setLoading(false);setErr("Error de conexión. Inténtalo de nuevo.");}
   };
 
   const registerPro=async()=>{
-    if(!name||!email||!phone||!pass){setErr("Rellena todos los campos.");return;}
+    if(!name||!email||!phone||!pass){setErr("Rellena todos los campos obligatorios.");return;}
     if(pass.length<6){setErr("Mínimo 6 caracteres en la contraseña.");return;}
+    if(!/\S+@\S+\.\S+/.test(email)){setErr("Introduce un email válido.");return;}
     setLoading(true);setErr("");
-    const {data:ex}=await db.from("users").select("id").eq("email",email.toLowerCase()).maybeSingle();
-    if(ex){setLoading(false);setErr("Ya existe una cuenta con ese email.");return;}
-    // Elite: 30 days free, others: 30 days trial
-    const trialDays = plan==="elite"?30:30;
-    const trial_end=new Date(Date.now()+trialDays*86400000).toISOString().split("T")[0];
-    const {data,error}=await db.from("users").insert({
-      name,email:email.toLowerCase(),phone,password:pass,
-      type:"profesional",plan,trade,zone,bio:"",price:30,
-      available:true,verified:false,jobs:0,rating:0,reviews:0,trial_end,
-      service_zones:[zone],schedule:"Lunes a Viernes",response_time:"24h",
-      free_quote:true,experience_years:0,specialties:[],whatsapp:phone,
-    }).select().single();
-    setLoading(false);
-    if(error||!data){setErr("Error creando cuenta. Inténtalo de nuevo.");return;}
-    localStorage.setItem("oy_user",JSON.stringify(data));
-    onLogin(data as UserRow);
+    try{
+      const {data:ex}=await db.from("users").select("id").eq("email",email.toLowerCase()).maybeSingle();
+      if(ex){setLoading(false);setErr("Ya existe una cuenta con ese email.");return;}
+      const trial_end=new Date(Date.now()+30*86400000).toISOString().split("T")[0];
+      const insertData:any={
+        name:name.trim(),
+        email:email.toLowerCase().trim(),
+        password:pass,
+        phone:phone.trim(),
+        type:"profesional",
+        plan,
+        trade,
+        zone,
+        bio:"",
+        price:30,
+        available:true,
+        verified:false,
+        jobs:0,
+        rating:0,
+        reviews:0,
+        trial_end,
+        whatsapp:phone.trim(),
+        free_quote:true,
+      };
+      // Only add optional fields if they exist in schema
+      try{insertData.service_zones=[zone];}catch{}
+      try{insertData.schedule="Lunes a Viernes";}catch{}
+      try{insertData.response_time="24h";}catch{}
+      try{insertData.experience_years=0;}catch{}
+      try{insertData.specialties=[];}catch{}
+      const {data,error}=await db.from("users").insert(insertData).select().single();
+      setLoading(false);
+      if(error){console.error("Register pro error:",error);setErr("Error: "+error.message);return;}
+      if(!data){setErr("Error creando cuenta. Inténtalo de nuevo.");return;}
+      localStorage.setItem("oy_user",JSON.stringify(data));
+      onLogin(data as UserRow);
+    }catch(e:any){setLoading(false);setErr("Error de conexión. Inténtalo de nuevo.");}
   };
 
   // Plan detail modal
@@ -1008,56 +1045,54 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
 
       <div style={{maxWidth:900,margin:"0 auto",padding:"0 16px"}}>
         {tab==="buscar"&&(<>
-          <div style={{padding:"22px 0 16px"}}>
-            <div style={{display:"inline-flex",gap:6,background:C.green+"15",border:"1px solid "+C.green+"30",borderRadius:6,padding:"4px 12px",marginBottom:12}}>
-              <span style={{fontSize:8,color:C.green,animation:"pulse 2s infinite"}}>●</span>
-              <span style={{fontSize:11,color:C.green,fontWeight:700,letterSpacing:"0.06em",textTransform:"uppercase" as const}}>{workers.filter(w=>w.available).length} disponibles ahora</span>
+          <div style={{padding:"16px 0 12px"}}>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+              <div style={{display:"inline-flex",gap:5,background:C.green+"15",border:"1px solid "+C.green+"30",borderRadius:99,padding:"4px 10px"}}>
+                <span style={{fontSize:8,color:C.green,animation:"pulse 2s infinite"}}>●</span>
+                <span style={{fontSize:11,color:C.green,fontWeight:700,letterSpacing:"0.04em"}}>{workers.filter(w=>w.available).length} disponibles ahora</span>
+              </div>
             </div>
-            <h1 style={{fontWeight:900,fontSize:"clamp(26px,5vw,48px)",lineHeight:1.05,letterSpacing:"-0.02em",marginBottom:8}}>
+            <h1 style={{fontWeight:900,fontSize:"clamp(22px,5vw,42px)",lineHeight:1.1,letterSpacing:"-0.02em",marginBottom:6}}>
               <span style={{color:C.text}}>El profesional que necesitas,</span><br/>
               <span style={{background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>en tu ciudad.</span>
             </h1>
-            <p style={{fontSize:14,color:C.mutedL}}>Presupuesto gratis · Sin compromiso · Pago directo al profesional</p>
+            <p style={{fontSize:13,color:C.mutedL,marginBottom:0}}>Presupuesto gratis · Sin compromiso · Pago directo</p>
           </div>
 
-          <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:14}}>
-            <div style={{display:"flex",background:C.card,borderRadius:10,border:"1px solid "+C.border,overflow:"hidden"}}>
-              <span style={{padding:"0 12px",display:"flex",alignItems:"center",color:C.muted}}>🔍</span>
-              <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Electricista, fontanero, pintor..." style={{flex:1,padding:"12px 0",background:"transparent",border:"none",color:C.text,fontFamily:"inherit",fontSize:14,outline:"none"}} />
+          {/* BUSCADOR PRINCIPAL */}
+          <div style={{marginBottom:14}}>
+            {/* Barra de búsqueda grande */}
+            <div style={{display:"flex",background:C.card,borderRadius:14,border:"1px solid "+C.border,overflow:"hidden",marginBottom:8,boxShadow:"0 4px 20px rgba(0,0,0,0.3)"}}>
+              <span style={{padding:"0 14px",display:"flex",alignItems:"center",color:C.muted,fontSize:18}}>🔍</span>
+              <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="¿Qué profesional necesitas?" style={{flex:1,padding:"15px 0",background:"transparent",border:"none",color:C.text,fontFamily:"inherit",fontSize:15,outline:"none"}} />
+              {search&&<button onClick={()=>setSearch("")} style={{padding:"0 14px",background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:16}}>✕</button>}
             </div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-              <select value={zona} onChange={e=>setZona(e.target.value)} style={{padding:"10px 12px",background:C.card,border:"1px solid "+C.border,borderRadius:8,color:C.text,fontFamily:"inherit",fontSize:13,cursor:"pointer",outline:"none"}}>
+            {/* Filtros secundarios en una línea */}
+            <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
+              <select value={zona} onChange={e=>setZona(e.target.value)} style={{flex:1,minWidth:100,padding:"8px 10px",background:C.surface,border:"1px solid "+C.border,borderRadius:8,color:zona==="Todas"?C.muted:C.text,fontFamily:"inherit",fontSize:12,cursor:"pointer",outline:"none"}}>
                 <option style={{background:C.card}}>Todas</option>
                 {ZONAS.map(z=><option key={z} style={{background:C.card}}>{z}</option>)}
               </select>
-              <select value={oficio} onChange={e=>setOficio(e.target.value)} style={{padding:"10px 12px",background:C.card,border:"1px solid "+C.border,borderRadius:8,color:C.text,fontFamily:"inherit",fontSize:13,cursor:"pointer",outline:"none"}}>
+              <select value={oficio} onChange={e=>setOficio(e.target.value)} style={{flex:1,minWidth:100,padding:"8px 10px",background:C.surface,border:"1px solid "+C.border,borderRadius:8,color:oficio==="Todos"?C.muted:C.text,fontFamily:"inherit",fontSize:12,cursor:"pointer",outline:"none"}}>
                 <option style={{background:C.card}}>Todos</option>
                 {OFICIOS.map(o=><option key={o} style={{background:C.card}}>{o}</option>)}
               </select>
-            </div>
-            <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
-              <label style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer",fontSize:13,color:C.mutedL}}>
-                <input type="checkbox" checked={soloDisp} onChange={e=>setSoloDisp(e.target.checked)} style={{accentColor:C.accent,width:15,height:15}} />
-                Solo disponibles ahora
+              <label style={{display:"flex",alignItems:"center",gap:5,cursor:"pointer",fontSize:12,color:C.mutedL,flexShrink:0}}>
+                <input type="checkbox" checked={soloDisp} onChange={e=>setSoloDisp(e.target.checked)} style={{accentColor:C.accent,width:14,height:14}} />
+                Disponibles
               </label>
-              <button onClick={()=>setShowMap(!showMap)} style={{display:"flex",alignItems:"center",gap:6,padding:"6px 12px",borderRadius:99,border:"1px solid "+(showMap?C.accent:C.border),background:showMap?C.accent+"18":"transparent",color:showMap?C.accent:C.muted,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:showMap?700:400,transition:"all 0.15s"}}>
-                🗺️ {showMap?"Ocultar mapa":"Ver en mapa"}
+              <button onClick={()=>setShowMap(!showMap)} style={{flexShrink:0,padding:"7px 10px",borderRadius:8,border:"1px solid "+(showMap?C.accent:C.border),background:showMap?C.accent+"15":"transparent",color:showMap?C.accent:C.muted,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",transition:"all 0.15s"}}>
+                🗺️
               </button>
             </div>
-            {showMap&&<SevillaMap selectedZone={mapZone} onZoneSelect={z=>{setMapZone(z===mapZone?"":z);}} />}
+            {showMap&&<div style={{marginTop:8}}><SevillaMap selectedZone={mapZone} onZoneSelect={z=>{setMapZone(z===mapZone?"":z);}} /></div>}
           </div>
 
-          <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:4,marginBottom:8}}>
-            {["Todos","⚡ Técnico","🌿 Servicios","🏺 Artesanía","👨‍🍳 Hostelería","🎪 Eventos"].map(cat=>(
-              <button key={cat} onClick={()=>{setCatFilter(cat);setOficio("Todos");}} style={{flexShrink:0,padding:"6px 14px",borderRadius:99,border:"1px solid "+(catFilter===cat?C.accent:C.border),background:catFilter===cat?C.accent+"22":"transparent",color:catFilter===cat?C.accent:C.muted,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:catFilter===cat?700:400,whiteSpace:"nowrap",transition:"all 0.15s"}}>
-                {cat}
-              </button>
-            ))}
-          </div>
+
           <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:4,marginBottom:14}}>
-            {["Todos",...OFICIOS.filter(o=>catFilter==="Todos"||OFICIO_CATEGORIES[o]===catFilter)].map(o=>(
-              <button key={o} onClick={()=>setOficio(o)} style={{flexShrink:0,padding:"5px 11px",borderRadius:99,border:"1px solid "+(oficio===o?C.blue:C.border),background:oficio===o?C.blue+"22":"transparent",color:oficio===o?C.blue:C.muted,cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:oficio===o?700:400,whiteSpace:"nowrap",transition:"all 0.15s"}}>
-                {o!=="Todos"&&(OFICIO_ICONS[o]||"🔧")+" "}{o}
+            {["Todos","⚡ Técnico","🌿 Servicios","🏺 Artesanía","👨‍🍳 Hostelería","🎪 Eventos"].map(cat=>(
+              <button key={cat} onClick={()=>{setCatFilter(cat);setOficio("Todos");}} style={{flexShrink:0,padding:"7px 16px",borderRadius:99,border:"1px solid "+(catFilter===cat?C.accent:C.border),background:catFilter===cat?"linear-gradient(135deg,"+C.accent+"33,"+C.orange+"22)":"transparent",color:catFilter===cat?C.accent:C.muted,cursor:"pointer",fontSize:13,fontFamily:"'DM Sans',sans-serif",fontWeight:catFilter===cat?700:400,whiteSpace:"nowrap",transition:"all 0.15s",boxShadow:catFilter===cat?"0 2px 10px "+C.accent+"22":"none"}}>
+                {cat}
               </button>
             ))}
           </div>
