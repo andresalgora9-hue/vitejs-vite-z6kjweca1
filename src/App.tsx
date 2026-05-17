@@ -22,34 +22,67 @@ const SEVILLA_ZONAS = [
   "San Juan de Aznalfarache","Bormujos","Tomares","Gelves","La Rinconada"
 ];
 const OFICIOS = [
-  "Electricista","Fontanero","Pintor","Albañil","Carpintero","Cerrajero","Jardinero",
-  "Soldador","Climatización","Reformas Integrales","Instalador Solar","Yesero",
-  "Técnico de Gas","Fumigador","Techador","Tapicero","Mecánico","Cocinero","Zapatero",
-  "Montador de Estructuras",
+  // 🔴 Urgencias técnicas
+  "Electricista","Fontanero","Cerrajero","Desatascos","Técnico de Gas","Climatización",
+  // 🏗️ Obras y reformas
+  "Albañil","Pintor","Carpintero","Reformas Integrales","Soldador","Instalador Solar",
+  "Yesero","Techador","Montador de Pladur","Parquetista","Cristalero",
+  // 🏠 Hogar y día a día
+  "Manitas a Domicilio","Jardinero","Fumigador","Tapicero","Mecánico","Mudanzas y Portes",
+  "Limpieza del Hogar","Limpieza de Cristales",
+  // 💆 Asistencia y cuidados
+  "Cuidado de Mayores","Niñera / Babysitter","Fisioterapeuta a Domicilio",
+  // 🐾 Mascotas
+  "Peluquería Canina","Paseador de Perros","Adiestrador Canino","Veterinario a Domicilio",
+  // 🍳 Otros servicios
+  "Cocinero","Zapatero","Montador de Estructuras",
+  // 🏺 Artesanía local sevillana
   "Ceramista / Alfarero","Bordador de Oro y Seda","Orfebre","Guarnicionero",
   "Costurero/a Flamenca","Lutier","Imaginero / Escultor","Abaniquero",
-  "Encuadernador Artesanal","Tallista de Castañuelas","Otros servicios",
+  "Encuadernador Artesanal","Tallista de Castañuelas",
+  "Otros servicios",
 ];
+
+// Oficios destacados para el buscador rápido (los más buscados)
+const OFICIOS_TOP = [
+  "Fontanero","Electricista","Cerrajero","Manitas a Domicilio",
+  "Pintor","Albañil","Reformas Integrales","Climatización",
+  "Limpieza del Hogar","Jardinero","Peluquería Canina","Desatascos",
+];
+
 const OFICIO_CATEGORIES: Record<string,string> = {
-  "Electricista":"⚡ Técnico","Fontanero":"🔧 Técnico","Pintor":"🖌️ Técnico",
-  "Albañil":"🧱 Técnico","Carpintero":"🪵 Técnico","Cerrajero":"🔑 Técnico",
-  "Jardinero":"🌿 Servicios","Soldador":"🔥 Técnico","Climatización":"❄️ Técnico",
-  "Reformas Integrales":"🏗️ Técnico","Instalador Solar":"☀️ Técnico","Yesero":"🏛️ Técnico",
-  "Técnico de Gas":"🔩 Técnico","Fumigador":"🪲 Servicios","Techador":"🏠 Técnico",
-  "Tapicero":"🪑 Técnico","Mecánico":"🚗 Técnico","Cocinero":"👨‍🍳 Hostelería",
-  "Zapatero":"👟 Servicios","Montador de Estructuras":"🎪 Eventos",
+  "Electricista":"⚡ Técnico","Fontanero":"🔧 Técnico","Cerrajero":"🔑 Técnico",
+  "Desatascos":"🌊 Técnico","Técnico de Gas":"🔩 Técnico","Climatización":"❄️ Técnico",
+  "Albañil":"🧱 Técnico","Pintor":"🖌️ Técnico","Carpintero":"🪵 Técnico",
+  "Reformas Integrales":"🏗️ Técnico","Soldador":"🔥 Técnico","Instalador Solar":"☀️ Técnico",
+  "Yesero":"🏛️ Técnico","Techador":"🏠 Técnico","Montador de Pladur":"🧱 Técnico",
+  "Parquetista":"🪵 Técnico","Cristalero":"💎 Técnico",
+  "Manitas a Domicilio":"🔨 Servicios","Jardinero":"🌿 Servicios","Fumigador":"🪲 Servicios",
+  "Tapicero":"🪑 Servicios","Mecánico":"🚗 Servicios","Mudanzas y Portes":"📦 Servicios",
+  "Limpieza del Hogar":"🧹 Servicios","Limpieza de Cristales":"🪟 Servicios",
+  "Cuidado de Mayores":"👵 Cuidados","Niñera / Babysitter":"👶 Cuidados",
+  "Fisioterapeuta a Domicilio":"💆 Cuidados",
+  "Peluquería Canina":"✂️ Mascotas","Paseador de Perros":"🐕 Mascotas",
+  "Adiestrador Canino":"🦮 Mascotas","Veterinario a Domicilio":"🩺 Mascotas",
+  "Cocinero":"👨‍🍳 Hostelería","Zapatero":"👟 Servicios","Montador de Estructuras":"🎪 Eventos",
   "Ceramista / Alfarero":"🏺 Artesanía","Bordador de Oro y Seda":"🧵 Artesanía",
   "Orfebre":"💍 Artesanía","Guarnicionero":"🐴 Artesanía",
   "Costurero/a Flamenca":"💃 Artesanía","Lutier":"🎸 Artesanía",
   "Imaginero / Escultor":"⛪ Artesanía","Abaniquero":"🪭 Artesanía",
-  "Encuadernador Artesanal":"📚 Artesanía","Tallista de Castañuelas":"🎵 Artesanía","Otros servicios":"🛠️ Servicios",
+  "Encuadernador Artesanal":"📚 Artesanía","Tallista de Castañuelas":"🎵 Artesanía",
+  "Otros servicios":"🛠️ Servicios",
 };
 const OFICIO_ICONS:Record<string,string> = {
-  "Electricista":"⚡","Fontanero":"🔧","Pintor":"🖌️","Albañil":"🧱","Carpintero":"🪵",
-  "Cerrajero":"🔑","Jardinero":"🌿","Soldador":"🔥","Climatización":"❄️",
-  "Reformas Integrales":"🏗️","Instalador Solar":"☀️","Yesero":"🏛️",
-  "Técnico de Gas":"🔩","Fumigador":"🪲","Techador":"🏠","Tapicero":"🪑",
-  "Mecánico":"🚗","Cocinero":"👨‍🍳","Zapatero":"👟","Montador de Estructuras":"🎪",
+  "Electricista":"⚡","Fontanero":"🔧","Cerrajero":"🔑","Desatascos":"🌊",
+  "Técnico de Gas":"🔩","Climatización":"❄️","Albañil":"🧱","Pintor":"🖌️",
+  "Carpintero":"🪵","Reformas Integrales":"🏗️","Soldador":"🔥","Instalador Solar":"☀️",
+  "Yesero":"🏛️","Techador":"🏠","Montador de Pladur":"📐","Parquetista":"🪵",
+  "Cristalero":"💎","Manitas a Domicilio":"🔨","Jardinero":"🌿","Fumigador":"🪲",
+  "Tapicero":"🪑","Mecánico":"🚗","Mudanzas y Portes":"📦","Limpieza del Hogar":"🧹",
+  "Limpieza de Cristales":"🪟","Cuidado de Mayores":"👵","Niñera / Babysitter":"👶",
+  "Fisioterapeuta a Domicilio":"💆","Peluquería Canina":"✂️","Paseador de Perros":"🐕",
+  "Adiestrador Canino":"🦮","Veterinario a Domicilio":"🩺","Cocinero":"👨‍🍳",
+  "Zapatero":"👟","Montador de Estructuras":"🎪",
   "Ceramista / Alfarero":"🏺","Bordador de Oro y Seda":"🧵","Orfebre":"💍",
   "Guarnicionero":"🐴","Costurero/a Flamenca":"💃","Lutier":"🎸",
   "Imaginero / Escultor":"⛪","Abaniquero":"🪭",
@@ -994,7 +1027,17 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
     setLoading(true);
     let q=db.from("users").select("*").eq("type","profesional");
     if(zona!=="Todas")q=q.or("zone.eq."+zona+",service_zones.cs.{"+zona+"}");
-    if(oficio!=="Todos")q=q.eq("trade",oficio);
+    if(oficio!=="Todos"){
+      q=q.eq("trade",oficio);
+    } else if(catFilter!=="Todos"){
+      // Filter by category
+      const catOficiosKey=catFilter.split(" ").slice(1).join(" ");
+      const catTrades=OFICIOS.filter(o=>{
+        const cat=OFICIO_CATEGORIES[o]||"";
+        return cat.includes(catOficiosKey)||cat===catFilter;
+      });
+      if(catTrades.length>0) q=q.in("trade",catTrades);
+    }
     if(soloDisp)q=q.eq("available",true);
     if(search)q=q.ilike("name","%"+search+"%");
     const {data}=await q;
@@ -1089,8 +1132,16 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
           </div>
 
 
-          <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:4,marginBottom:14}}>
-            {["Todos","⚡ Técnico","🌿 Servicios","🏺 Artesanía","👨‍🍳 Hostelería","🎪 Eventos"].map(cat=>(
+          <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:4,marginBottom:14,WebkitOverflowScrolling:"touch" as any}}>
+            {[
+              {cat:"Todos",icon:"✦"},
+              {cat:"⚡ Técnico",icon:""},
+              {cat:"🌿 Servicios",icon:""},
+              {cat:"🐾 Mascotas",icon:""},
+              {cat:"💆 Cuidados",icon:""},
+              {cat:"🏺 Artesanía",icon:""},
+              {cat:"👨‍🍳 Hostelería",icon:""},
+            ].map(({cat})=>(
               <button key={cat} onClick={()=>{setCatFilter(cat);setOficio("Todos");}} style={{flexShrink:0,padding:"7px 16px",borderRadius:99,border:"1px solid "+(catFilter===cat?C.accent:C.border),background:catFilter===cat?"linear-gradient(135deg,"+C.accent+"33,"+C.orange+"22)":"transparent",color:catFilter===cat?C.accent:C.muted,cursor:"pointer",fontSize:13,fontFamily:"'DM Sans',sans-serif",fontWeight:catFilter===cat?700:400,whiteSpace:"nowrap",transition:"all 0.15s",boxShadow:catFilter===cat?"0 2px 10px "+C.accent+"22":"none"}}>
                 {cat}
               </button>
@@ -1184,7 +1235,7 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
         })}
       </nav>
 
-      {showQuickMatch&&<QuickMatchModal workers={workers} onClose={()=>setShowQuickMatch(false)} onSelect={w=>{setShowQuickMatch(false);setSelectedWorker(w);}} />}
+      {showQuickMatch&&<QuickMatchModal workers={workers} currentUser={user} onClose={()=>setShowQuickMatch(false)} onSelect={w=>{setShowQuickMatch(false);setSelectedWorker(w);}} />}
       {selectedWorker&&<WorkerSheet worker={selectedWorker} onClose={()=>setSelectedWorker(null)} onChat={handleChat} onWhatsApp={handleWhatsApp} onVisitRequest={w=>{setSelectedWorker(null);setVisitWorker(w);}} currentUser={user} />}
       {chatWorker&&<ChatPanel toUser={chatWorker} currentUser={user} onClose={()=>setChatWorker(null)} />}
       {visitWorker&&<VisitRequestModal worker={visitWorker} currentUser={user} onClose={()=>setVisitWorker(null)} onSuccess={()=>{setVisitWorker(null);showToast("✓ Solicitud enviada a "+visitWorker.name);}} />}
@@ -2068,96 +2119,237 @@ export default function App(){
   </>);
 }
 
-// ─── QUICK MATCH MODAL ───
-function QuickMatchModal({workers,onClose,onSelect}:{workers:UserRow[];onClose:()=>void;onSelect:(w:UserRow)=>void}){
+// ─── QUICK MATCH MODAL — Buscador Express 3 pasos ───
+function QuickMatchModal({workers,onClose,onSelect,currentUser}:{workers:UserRow[];onClose:()=>void;onSelect:(w:UserRow)=>void;currentUser:UserRow|null}){
   const [step,setStep]=useState(0);
   const [trade,setTrade]=useState("");
+  const [tradeSearch,setTradeSearch]=useState("");
   const [zone,setZone]=useState("");
-  const [urgency,setUrgency]=useState<string>("");void urgency;
+  const [urgency,setUrgency]=useState<"now"|"week"|"quote">("now");
+  const [desc,setDesc]=useState("");
+  const [saving,setSaving]=useState(false);
+  const [sent,setSent]=useState(false);
+
+  // Filtered trades by search
+  const filteredTrades=tradeSearch
+    ?OFICIOS.filter(o=>o.toLowerCase().includes(tradeSearch.toLowerCase()))
+    :OFICIOS;
 
   const matches=workers.filter(w=>
     (!trade||w.trade===trade)&&
     (!zone||w.zone===zone||(w.service_zones||[]).includes(zone))&&
     w.available
-  ).sort((a,b)=>b.rating-a.rating).slice(0,3);
+  ).sort((a,b)=>{
+    const order:Record<Plan,number>={elite:3,pro:2,basico:1,gratis:0};
+    return order[b.plan as Plan]-order[a.plan as Plan]||b.rating-a.rating;
+  }).slice(0,5);
+
+  const urgencyConfig={
+    now:{icon:"🚨",label:"Urgente — necesito ayuda hoy",color:C.red,desc:"Los profesionales disponibles ahora mismo te verán primero"},
+    week:{icon:"📅",label:"Esta semana — tengo tiempo",color:C.blue,desc:"Sin prisas, buscamos el mejor para ti"},
+    quote:{icon:"💬",label:"Solo quiero presupuesto",color:C.green,desc:"Te enviamos varias ofertas para comparar"},
+  };
+
+  const publishRequest=async()=>{
+    if(!trade){return;}
+    setSaving(true);
+    // Save as job request so pros see it
+    if(currentUser){
+      await db.from("jobs").insert({
+        worker_id: matches[0]?.id||"pending",
+        client_id: currentUser.id,
+        client_name: currentUser.name,
+        title: urgencyConfig[urgency].icon+" ["+urgency.toUpperCase()+"] "+trade+(zone?" en "+zone:""),
+        description: desc||(urgency==="now"?"Urgente":"Sin descripción"),
+        status:"pending",
+      });
+    }
+    setSaving(false);
+    setSent(true);
+  };
+
+  const STEP_LABELS=["Servicio","Zona","Urgencia","Resultado"];
+  const STEP_ICONS=["🔍","📍","⚡","✅"];
 
   return (
-    <Sheet onClose={onClose} title="⚡ Encuentra tu profesional">
-      <div style={{display:"flex",gap:4,marginBottom:20}}>
-        {[0,1,2,3].map(s=><div key={s} style={{flex:1,height:4,borderRadius:99,background:s<=step?C.accent:C.border,transition:"background 0.3s"}} />)}
+    <Sheet onClose={onClose}>
+      {/* Header */}
+      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:18}}>
+        <div style={{width:36,height:36,borderRadius:10,background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>⚡</div>
+        <div style={{flex:1}}>
+          <p style={{fontWeight:900,fontSize:16,color:C.text}}>Buscador Express</p>
+          <p style={{fontSize:11,color:C.muted}}>Paso {step+1} de 4 · {STEP_LABELS[step]}</p>
+        </div>
+        <button onClick={onClose} style={{background:"none",border:"1px solid "+C.border,borderRadius:8,color:C.muted,cursor:"pointer",padding:"5px 10px",fontSize:14}}>✕</button>
+      </div>
+      {/* Progress */}
+      <div style={{display:"flex",gap:3,marginBottom:20}}>
+        {STEP_LABELS.map((_,i)=>(
+          <div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
+            <div style={{width:"100%",height:4,borderRadius:99,background:i<=step?"linear-gradient(90deg,"+C.accent+","+C.orange+")":C.border,transition:"background 0.35s"}} />
+            <span style={{fontSize:9,color:i<=step?C.accent:C.muted,fontWeight:i===step?700:400}}>{STEP_ICONS[i]}</span>
+          </div>
+        ))}
       </div>
 
-      {step===0&&(<>
-        <p style={{fontWeight:700,color:C.text,fontSize:15,marginBottom:14}}>¿Qué profesional necesitas?</p>
-        <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:20}}>
-          {OFICIOS.map(t=>(
-            <button key={t} onClick={()=>{setTrade(t);setStep(1);}} style={{padding:"10px 14px",borderRadius:10,border:"1px solid "+(trade===t?C.accent:C.border),background:trade===t?C.accent+"18":C.surface,color:trade===t?C.accent:C.text,cursor:"pointer",fontSize:13,fontFamily:"'DM Sans',sans-serif",fontWeight:600,display:"flex",alignItems:"center",gap:6,transition:"all 0.15s"}}>
+      {/* ─── PASO 0: QUÉ NECESITAS ─── */}
+      {step===0&&!sent&&(<>
+        <p style={{fontWeight:800,fontSize:16,color:C.text,marginBottom:4}}>¿Qué profesional necesitas?</p>
+        <p style={{fontSize:12,color:C.muted,marginBottom:14}}>Toca el servicio o escribe para buscar</p>
+        {/* Search inside modal */}
+        <div style={{display:"flex",background:C.surface,borderRadius:10,border:"1px solid "+C.border,overflow:"hidden",marginBottom:12}}>
+          <span style={{padding:"0 10px",display:"flex",alignItems:"center",color:C.muted}}>🔍</span>
+          <input value={tradeSearch} onChange={e=>setTradeSearch(e.target.value)} placeholder="Ej: fontanero, limpieza..." style={{flex:1,padding:"11px 0",background:"transparent",border:"none",color:C.text,fontFamily:"inherit",fontSize:14,outline:"none"}} autoFocus />
+          {tradeSearch&&<button onClick={()=>setTradeSearch("")} style={{padding:"0 10px",background:"none",border:"none",color:C.muted,cursor:"pointer"}}>✕</button>}
+        </div>
+        {/* Top picks when not searching */}
+        {!tradeSearch&&(
+          <div style={{marginBottom:10}}>
+            <p style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:8}}>Los más buscados</p>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:7,marginBottom:12}}>
+              {OFICIOS_TOP.map(t=>(
+                <button key={t} onClick={()=>{setTrade(t);setTradeSearch("");setStep(1);}} style={{padding:"10px 4px",borderRadius:10,border:"1px solid "+(trade===t?C.accent:C.border),background:trade===t?"linear-gradient(135deg,"+C.accent+"22,"+C.orange+"12)":C.surface,color:trade===t?C.accent:C.text,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontWeight:trade===t?700:500,fontSize:11,display:"flex",flexDirection:"column",alignItems:"center",gap:4,transition:"all 0.15s"}}>
+                  <span style={{fontSize:20}}>{OFICIO_ICONS[t]||"🔧"}</span>
+                  <span style={{lineHeight:1.2,textAlign:"center"}}>{t}</span>
+                </button>
+              ))}
+            </div>
+            <p style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:8}}>Todos los servicios</p>
+          </div>
+        )}
+        {/* All or filtered trades */}
+        <div style={{display:"flex",flexWrap:"wrap",gap:6,maxHeight:200,overflowY:"auto",paddingRight:4}}>
+          {filteredTrades.filter(t=>!OFICIOS_TOP.includes(t)||tradeSearch).map(t=>(
+            <button key={t} onClick={()=>{setTrade(t);setTradeSearch("");setStep(1);}} style={{padding:"7px 12px",borderRadius:99,border:"1px solid "+(trade===t?C.accent:C.border),background:trade===t?C.accent+"20":C.surface,color:trade===t?C.accent:C.text,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:trade===t?700:400,display:"inline-flex",alignItems:"center",gap:5,transition:"all 0.15s",whiteSpace:"nowrap"}}>
               <span>{OFICIO_ICONS[t]||"🔧"}</span>{t}
             </button>
           ))}
+          {filteredTrades.length===0&&<p style={{fontSize:13,color:C.muted,padding:"16px 0"}}>Sin resultados para "{tradeSearch}"</p>}
         </div>
-        <Btn outline full onClick={()=>setStep(1)} color={C.muted} small>Ver todos →</Btn>
-      </>)}
-
-      {step===1&&(<>
-        <p style={{fontWeight:700,color:C.text,fontSize:15,marginBottom:14}}>¿En qué zona de Sevilla?</p>
-        <div style={{display:"flex",flexWrap:"wrap",gap:7,marginBottom:20}}>
-          {SEVILLA_ZONAS.map(z=>(
-            <button key={z} onClick={()=>{setZone(z);setStep(2);}} style={{padding:"8px 12px",borderRadius:10,border:"1px solid "+(zone===z?C.blue:C.border),background:zone===z?C.blue+"18":C.surface,color:zone===z?C.blue:C.text,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:zone===z?700:400,transition:"all 0.15s"}}>
-              📍 {z}
-            </button>
-          ))}
-        </div>
-        <Btn outline full onClick={()=>setStep(2)} color={C.muted} small>Cualquier zona →</Btn>
-      </>)}
-
-      {step===2&&(<>
-        <p style={{fontWeight:700,color:C.text,fontSize:15,marginBottom:14}}>¿Con qué urgencia?</p>
-        <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:20}}>
-          {[{v:"now",l:"🚨 Urgente — necesito ayuda hoy",c:C.red},{v:"week",l:"📅 Esta semana",c:C.blue},{v:"quote",l:"💬 Solo quiero presupuesto",c:C.green}].map(o=>(
-            <button key={o.v} onClick={()=>{setUrgency(o.v);setStep(3);}} style={{padding:"14px 16px",borderRadius:10,border:"1px solid "+o.c+"44",background:o.c+"12",color:C.text,cursor:"pointer",fontSize:13,fontFamily:"'DM Sans',sans-serif",fontWeight:600,textAlign:"left"}}>
-              {o.l}
-            </button>
-          ))}
-        </div>
-      </>)}
-
-      {step===3&&(<>
-        <p style={{fontWeight:700,color:C.text,fontSize:15,marginBottom:4}}>
-          {matches.length>0?`✅ ${matches.length} profesional${matches.length>1?"es":""} disponible${matches.length>1?"s":""}`:"😕 Sin resultados exactos"}
-        </p>
-        <p style={{fontSize:12,color:C.muted,marginBottom:14}}>
-          {trade&&<span style={{color:C.accent,fontWeight:600}}>{OFICIO_ICONS[trade]} {trade}</span>}{zone&&<span style={{color:C.blue}}> · 📍{zone}</span>}
-        </p>
-        {matches.length===0&&<div style={{textAlign:"center",padding:20,color:C.muted,marginBottom:14}}>
-          <p style={{fontSize:13}}>No hay profesionales disponibles con esos filtros</p>
-          <button onClick={()=>{setTrade("");setZone("");setStep(3);}} style={{marginTop:10,background:"none",border:"none",color:C.accent,cursor:"pointer",fontSize:12,fontWeight:700}}>Ver todos los disponibles →</button>
+        {trade&&<div style={{marginTop:12,padding:"8px 12px",background:C.accent+"15",borderRadius:8,border:"1px solid "+C.accent+"33",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <span style={{fontSize:13,color:C.accent,fontWeight:700}}>{OFICIO_ICONS[trade]} {trade} seleccionado</span>
+          <button onClick={()=>setStep(1)} style={{padding:"5px 14px",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:8,color:"#000",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:12}}>Siguiente →</button>
         </div>}
+      </>)}
+
+      {/* ─── PASO 1: ZONA ─── */}
+      {step===1&&!sent&&(<>
+        <p style={{fontWeight:800,fontSize:16,color:C.text,marginBottom:4}}>¿En qué zona de Sevilla?</p>
+        <p style={{fontSize:12,color:C.muted,marginBottom:14}}>Encontramos al profesional más cercano a ti</p>
+        <div style={{display:"flex",flexWrap:"wrap",gap:7,maxHeight:260,overflowY:"auto",paddingRight:4}}>
+          {SEVILLA_ZONAS.map(z=>(
+            <button key={z} onClick={()=>{setZone(z);setStep(2);}} style={{padding:"9px 13px",borderRadius:10,border:"1px solid "+(zone===z?C.blue:C.border),background:zone===z?"linear-gradient(135deg,"+C.blue+"25,"+C.purple+"12)":C.surface,color:zone===z?C.blue:C.text,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:zone===z?700:400,transition:"all 0.15s",display:"inline-flex",alignItems:"center",gap:5}}>
+              <span style={{fontSize:10}}>📍</span>{z}
+            </button>
+          ))}
+        </div>
+        <div style={{marginTop:12,display:"flex",gap:8}}>
+          <button onClick={()=>setStep(0)} style={{padding:"9px 14px",background:"none",border:"1px solid "+C.border,borderRadius:8,color:C.muted,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12}}>← Atrás</button>
+          <button onClick={()=>setStep(2)} style={{flex:1,padding:"9px",background:C.surface,border:"1px solid "+C.border,borderRadius:8,color:C.mutedL,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12}}>Toda Sevilla — no importa la zona →</button>
+        </div>
+      </>)}
+
+      {/* ─── PASO 2: URGENCIA ─── */}
+      {step===2&&!sent&&(<>
+        <p style={{fontWeight:800,fontSize:16,color:C.text,marginBottom:4}}>¿Con qué urgencia?</p>
+        <p style={{fontSize:12,color:C.muted,marginBottom:14}}>El profesional sabrá exactamente cómo prepararse</p>
+        <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:16}}>
+          {(["now","week","quote"] as const).map(u=>{
+            const cfg=urgencyConfig[u];
+            const isSelected=urgency===u;
+            return(
+              <div key={u} onClick={()=>setUrgency(u)} style={{padding:"14px 16px",borderRadius:12,border:"2px solid "+(isSelected?cfg.color:C.border),background:isSelected?cfg.color+"15":C.surface,cursor:"pointer",transition:"all 0.15s",position:"relative"}}>
+                <div style={{display:"flex",alignItems:"center",gap:12}}>
+                  <span style={{fontSize:24,flexShrink:0}}>{cfg.icon}</span>
+                  <div style={{flex:1}}>
+                    <p style={{fontWeight:700,fontSize:13,color:isSelected?cfg.color:C.text}}>{cfg.label}</p>
+                    <p style={{fontSize:11,color:C.muted,marginTop:2}}>{cfg.desc}</p>
+                  </div>
+                  <div style={{width:18,height:18,borderRadius:"50%",border:"2px solid "+(isSelected?cfg.color:C.border),background:isSelected?cfg.color:"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                    {isSelected&&<div style={{width:8,height:8,borderRadius:"50%",background:"#000"}} />}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        {/* Optional description */}
+        <div style={{marginBottom:14}}>
+          <p style={{fontSize:11,color:C.muted,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:6,fontWeight:700}}>Describe el trabajo (opcional)</p>
+          <textarea value={desc} onChange={e=>setDesc(e.target.value)} placeholder={"Ej: Tengo una fuga en el baño, lleva 2 días... / Quiero pintar el salón de 20m²..."} style={{width:"100%",background:C.surface,border:"1px solid "+C.border,borderRadius:8,padding:"10px 12px",color:C.text,fontFamily:"inherit",fontSize:13,outline:"none",resize:"none",minHeight:68}} />
+        </div>
+        <div style={{display:"flex",gap:8}}>
+          <button onClick={()=>setStep(1)} style={{padding:"11px 14px",background:"none",border:"1px solid "+C.border,borderRadius:8,color:C.muted,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12}}>← Atrás</button>
+          <button onClick={()=>{publishRequest();setStep(3);}} style={{flex:1,padding:"12px",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:10,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:800,fontSize:14,cursor:"pointer",boxShadow:"0 4px 16px "+C.accent+"44"}}>
+            {urgency==="now"?"🚨 Buscar urgente →":urgency==="week"?"📅 Buscar esta semana →":"💬 Pedir presupuestos →"}
+          </button>
+        </div>
+      </>)}
+
+      {/* ─── PASO 3: RESULTADOS ─── */}
+      {step===3&&(<>
+        {sent&&urgency==="now"&&(
+          <div style={{background:"linear-gradient(135deg,"+C.red+"18,"+C.orange+"12)",borderRadius:12,border:"1px solid "+C.red+"33",padding:"14px",marginBottom:14,textAlign:"center"}}>
+            <p style={{fontSize:22,marginBottom:4}}>🚨</p>
+            <p style={{fontWeight:800,color:C.red,fontSize:14,marginBottom:3}}>¡Solicitud urgente enviada!</p>
+            <p style={{fontSize:12,color:C.muted}}>Los profesionales disponibles en {zone||"Sevilla"} ya pueden ver tu solicitud</p>
+          </div>
+        )}
+        {sent&&urgency==="quote"&&(
+          <div style={{background:C.green+"12",borderRadius:12,border:"1px solid "+C.green+"33",padding:"14px",marginBottom:14,textAlign:"center"}}>
+            <p style={{fontSize:22,marginBottom:4}}>💬</p>
+            <p style={{fontWeight:800,color:C.green,fontSize:14,marginBottom:3}}>Solicitud de presupuesto enviada</p>
+            <p style={{fontSize:12,color:C.muted}}>Los profesionales te contactarán con sus ofertas</p>
+          </div>
+        )}
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+          <p style={{fontWeight:800,fontSize:15,color:C.text}}>
+            {matches.length>0?`${matches.length} profesional${matches.length>1?"es":""} disponible${matches.length>1?"s":""}`:"Sin resultados exactos"}
+            {trade&&<span style={{color:C.accent}}> · {OFICIO_ICONS[trade]} {trade}</span>}
+          </p>
+          {zone&&<span style={{fontSize:11,color:C.blue}}>📍 {zone}</span>}
+        </div>
+        {matches.length===0&&(
+          <div style={{textAlign:"center",padding:"24px 0",color:C.muted,marginBottom:14}}>
+            <p style={{fontSize:32,marginBottom:8}}>🔍</p>
+            <p style={{fontSize:13,marginBottom:12}}>No hay profesionales disponibles ahora con ese filtro</p>
+            <button onClick={()=>{setZone("");setStep(3);}} style={{background:"none",border:"1px solid "+C.accent+"44",borderRadius:8,color:C.accent,cursor:"pointer",fontSize:12,padding:"7px 14px",fontFamily:"'DM Sans',sans-serif",fontWeight:700}}>Ampliar a toda Sevilla</button>
+          </div>
+        )}
         <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:14}}>
           {matches.map(w=>{
             const col=wColor(w.id);
-            return <GCard key={w.id} onClick={()=>onSelect(w)} glow={col} style={{padding:14}}>
-              <div style={{display:"flex",gap:12,alignItems:"center"}}>
-                <Ava s={w.name.substring(0,2).toUpperCase()} size={44} color={col} online />
-                <div style={{flex:1}}>
-                  <p style={{fontWeight:700,color:C.text,fontSize:14}}>{w.name}</p>
-                  <p style={{fontSize:12,color:col}}>{OFICIO_ICONS[w.trade||""]||"🔧"} {w.trade}</p>
-                  <div style={{display:"flex",gap:5,alignItems:"center",marginTop:2}}>
-                    <Stars n={w.rating} size={10} />
-                    <span style={{fontSize:11,color:C.text,fontWeight:700}}>{w.rating>0?w.rating.toFixed(1):"Nuevo"}</span>
-                    {w.free_quote&&<span style={{fontSize:10,color:C.green}}>· Presupuesto gratis</span>}
+            return(
+              <GCard key={w.id} onClick={()=>onSelect(w)} glow={col} style={{padding:14,position:"relative",overflow:"hidden"}}>
+                {(w.plan==="elite"||w.plan==="pro")&&<div style={{position:"absolute",top:0,right:0,background:"linear-gradient(135deg,"+PLAN_COLORS[w.plan]+","+PLAN_COLORS[w.plan]+"88)",padding:"3px 10px",fontSize:8,fontWeight:900,color:w.plan==="pro"?"#000":"#000",borderRadius:"0 14px 0 8px"}}>{w.plan.toUpperCase()}</div>}
+                <div style={{display:"flex",gap:12,alignItems:"center"}}>
+                  <Ava s={w.name.substring(0,2).toUpperCase()} size={46} color={col} online={w.available} />
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{display:"flex",gap:5,alignItems:"center",marginBottom:2}}>
+                      <p style={{fontWeight:700,color:C.text,fontSize:14}}>{w.name}</p>
+                      {w.verified&&<span style={{fontSize:10,color:C.green}}>✓</span>}
+                    </div>
+                    <p style={{fontSize:12,color:col,marginBottom:3}}>{OFICIO_ICONS[w.trade||""]||"🔧"} {w.trade} · {w.zone}</p>
+                    <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
+                      <Stars n={w.rating} size={10} />
+                      <span style={{fontSize:11,color:C.text,fontWeight:700}}>{w.rating>0?w.rating.toFixed(1):"Nuevo"}</span>
+                      {w.free_quote&&<span style={{fontSize:10,color:C.green}}>· Presupuesto gratis</span>}
+                      {w.response_time&&<span style={{fontSize:10,color:C.cyan}}>· Resp. en {w.response_time}</span>}
+                    </div>
+                  </div>
+                  <div style={{textAlign:"right",flexShrink:0}}>
+                    <p style={{fontWeight:800,fontSize:18,color:C.accent}}>{w.price}€<span style={{fontSize:10,color:C.muted,fontWeight:400}}>/h</span></p>
+                    <p style={{fontSize:10,color:C.green,fontWeight:600}}>● Disponible</p>
                   </div>
                 </div>
-                <div style={{textAlign:"right"}}>
-                  <p style={{fontWeight:800,fontSize:18,color:C.accent}}>{w.price}€<span style={{fontSize:10,color:C.muted}}>/h</span></p>
-                  <p style={{fontSize:10,color:C.green}}>● Disponible</p>
-                </div>
-              </div>
-            </GCard>;
+              </GCard>
+            );
           })}
         </div>
         <Btn full onClick={onClose} color={C.accent}>Ver todos los profesionales →</Btn>
       </>)}
+
+      {saving&&<div style={{position:"absolute",inset:0,background:"rgba(10,10,15,0.7)",display:"flex",alignItems:"center",justifyContent:"center",borderRadius:20}}><Spin /></div>}
     </Sheet>
   );
 }
