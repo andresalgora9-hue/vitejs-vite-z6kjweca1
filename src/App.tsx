@@ -1617,22 +1617,27 @@ function Admin({onLogout}:{onLogout:()=>void}){
   const [sendingMsg,setSendingMsg]=useState(false);
   const [toastMsg,setToastMsg]=useState<string|null>(null);
 
+  const [refreshKey,setRefreshKey]=useState(0);
+  const reload=()=>{setLoading(true);setRefreshKey(k=>k+1);};
+
   useEffect(()=>{
     const load=async()=>{
       const [u,j,m,r]=await Promise.all([
-        db.from("users").select("*").neq("type","admin").order("joined_at",{ascending:false}),
+        db.from("users").select("*").order("joined_at",{ascending:false}),
         db.from("jobs").select("*").order("created_at",{ascending:false}),
         db.from("messages").select("*").order("created_at",{ascending:false}),
         db.from("reviews").select("*").order("created_at",{ascending:false}),
       ]);
-      setUsers((u.data||[]) as UserRow[]);
+      // Filter out hardcoded admin
+      const allUsers=(u.data||[]).filter((x:any)=>x.type!=="admin"&&x.id!=="admin-001");
+      setUsers(allUsers as UserRow[]);
       setJobs((j.data||[]) as JobRow[]);
       setMsgs((m.data||[]) as MessageRow[]);
       setReviews((r.data||[]) as any[]);
       setLoading(false);
     };
     load();
-  },[]);
+  },[refreshKey]);
 
   const now=new Date();
   const periodDays=period==="7d"?7:period==="30d"?30:period==="90d"?90:36500;
@@ -1718,26 +1723,37 @@ function Admin({onLogout}:{onLogout:()=>void}){
     </div>
   );
 
-  const UserRowItem=({u}:{u:UserRow})=>(
-    <GCard onClick={()=>setSelectedUser(u)} glow={selectedUser?.id===u.id?C.accent:""} style={{padding:"11px 14px",border:selectedUser?.id===u.id?"1px solid "+C.accent+"66":undefined}}>
-      <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
-        <Ava s={u.name.substring(0,2).toUpperCase()} size={34} color={u.type==="profesional"?C.accent:C.blue} />
-        <div style={{flex:1}}>
-          <p style={{fontWeight:700,color:C.text,fontSize:13}}>{u.name}</p>
-          <p style={{fontSize:10,color:C.muted}}>{u.email}{u.zone?" · "+u.zone:""}{u.trade?" · "+u.trade:""}</p>
-        </div>
-        <div style={{display:"flex",flexDirection:"column",gap:3,alignItems:"flex-end"}}>
-          <div style={{display:"flex",gap:4,flexWrap:"wrap",justifyContent:"flex-end"}}>
-            <span style={{fontSize:9,color:u.type==="profesional"?C.accent:C.blue,background:(u.type==="profesional"?C.accent:C.blue)+"22",padding:"1px 6px",borderRadius:3,fontWeight:700}}>{u.type==="profesional"?"PRO":"CLI"}</span>
-            {isPaying(u)&&<span style={{fontSize:9,color:C.green,background:C.green+"18",padding:"1px 6px",borderRadius:3,fontWeight:700}}>✅ {PLAN_PRICES[u.plan as Plan]}€/m</span>}
-            {isTrial(u)&&<span style={{fontSize:9,color:C.cyan,background:C.cyan+"18",padding:"1px 6px",borderRadius:3,fontWeight:700}}>⏱{trialDaysU(u)}d</span>}
-            {isExpired(u)&&<span style={{fontSize:9,color:C.red,background:C.red+"18",padding:"1px 6px",borderRadius:3,fontWeight:700}}>⛔</span>}
+  const UserRowItem=({u}:{u:UserRow})=>{
+    const registeredAt=u.joined_at?new Date(u.joined_at):null;
+    const isNew=registeredAt&&(Date.now()-registeredAt.getTime())<86400000*2; // last 2 days
+    return(
+    <GCard onClick={()=>setSelectedUser(u)} glow={selectedUser?.id===u.id?C.accent:isNew?C.green:""} style={{padding:"11px 14px",border:selectedUser?.id===u.id?"1px solid "+C.accent+"66":isNew?"1px solid "+C.green+"33":undefined}}>
+      <div style={{display:"flex",gap:10,alignItems:"center"}}>
+        <Ava s={u.name.substring(0,2).toUpperCase()} size={36} color={u.type==="profesional"?C.accent:C.blue} />
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
+            <p style={{fontWeight:700,color:C.text,fontSize:13}}>{u.name}</p>
+            {isNew&&<span style={{fontSize:8,color:C.green,background:C.green+"18",padding:"1px 6px",borderRadius:3,fontWeight:700}}>NUEVO</span>}
           </div>
-          <span style={{fontSize:9,color:C.muted}}>{new Date(u.joined_at).toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"})}</span>
+          <p style={{fontSize:10,color:C.muted,marginTop:1}}>{u.email}</p>
+          {u.phone&&<p style={{fontSize:10,color:C.mutedL}}>{u.phone}</p>}
+          {(u.zone||u.trade)&&<p style={{fontSize:10,color:C.muted}}>📍{u.zone||""}{u.trade?" · "+u.trade:""}</p>}
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:3,alignItems:"flex-end",flexShrink:0}}>
+          <div style={{display:"flex",gap:4,flexWrap:"wrap",justifyContent:"flex-end"}}>
+            <span style={{fontSize:9,color:u.type==="profesional"?C.accent:C.blue,background:(u.type==="profesional"?C.accent:C.blue)+"22",padding:"1px 6px",borderRadius:3,fontWeight:700}}>{u.type==="profesional"?"🔨 PRO":"👤 CLI"}</span>
+            {isPaying(u)&&<span style={{fontSize:9,color:C.green,background:C.green+"18",padding:"1px 6px",borderRadius:3,fontWeight:700}}>✅ {PLAN_PRICES[u.plan as Plan]}€/m</span>}
+            {isTrial(u)&&<span style={{fontSize:9,color:C.cyan,background:C.cyan+"18",padding:"1px 6px",borderRadius:3,fontWeight:700}}>⏱{trialDaysU(u)}d trial</span>}
+            {isExpired(u)&&<span style={{fontSize:9,color:C.red,background:C.red+"18",padding:"1px 6px",borderRadius:3,fontWeight:700}}>⛔ exp.</span>}
+            {u.type==="cliente"&&<span style={{fontSize:9,color:C.mutedL,background:C.surface,padding:"1px 6px",borderRadius:3,border:"1px solid "+C.border}}>gratis</span>}
+          </div>
+          {registeredAt&&<span style={{fontSize:9,color:isNew?C.green:C.muted,fontWeight:isNew?700:400}}>{registeredAt.toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"})} {registeredAt.toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"})}</span>}
+          {u.phone&&<a href={"tel:"+u.phone} onClick={e=>e.stopPropagation()} style={{fontSize:9,color:C.green,textDecoration:"none",fontWeight:700}}>📞 llamar</a>}
         </div>
       </div>
     </GCard>
-  );
+    );
+  };
 
   return (
     <div style={{minHeight:"100dvh",background:C.bg,paddingBottom:72}}>
@@ -1746,6 +1762,7 @@ function Admin({onLogout}:{onLogout:()=>void}){
           <span style={{fontWeight:800,fontSize:16}}><span style={{color:C.accent}}>⚙ Admin CRM</span><span style={{color:C.muted}}> · OfficioYa</span></span>
           <div style={{display:"flex",gap:6,alignItems:"center"}}>
             <span style={{fontSize:11,color:C.green,background:C.green+"15",padding:"3px 8px",borderRadius:4,fontWeight:700}}>MRR: {mrr.toFixed(0)}€</span>
+            <button onClick={reload} style={{background:"none",border:"1px solid "+C.accent+"44",borderRadius:6,color:C.accent,cursor:"pointer",padding:"4px 10px",fontSize:11,fontWeight:700}}>↻ Actualizar</button>
             <button onClick={onLogout} style={{background:"none",border:"1px solid "+C.border,borderRadius:6,color:C.muted,cursor:"pointer",padding:"4px 10px",fontSize:11}}>Salir</button>
           </div>
         </div>
