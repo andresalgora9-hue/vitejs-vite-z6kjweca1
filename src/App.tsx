@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { db, STORAGE_URL } from "./supabase";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -21,20 +21,24 @@ const SEVILLA_ZONAS = [
   "Norte","Camas","Dos Hermanas","Alcalá de Guadaíra","Mairena del Aljarafe",
   "San Juan de Aznalfarache","Bormujos","Tomares","Gelves","La Rinconada"
 ];
+
 const OFICIOS = [
-  // 🔴 Urgencias técnicas
-  "Electricista","Fontanero","Cerrajero","Desatascos","Técnico de Gas","Climatización",
+  // ⚡ Urgencias técnicas
+  "Electricista","Fontanero","Cerrajero","Desatascos y Camión Cuba","Técnico de Gas","Climatización",
   // 🏗️ Obras y reformas
   "Albañil","Pintor","Carpintero","Reformas Integrales","Soldador","Instalador Solar",
-  "Yesero","Techador","Montador de Pladur","Parquetista","Cristalero",
+  "Yesero","Techador","Montador de Pladur","Parquetista / Pulidor de Suelos","Cristalero",
   // 🏠 Hogar y día a día
-  "Manitas a Domicilio","Jardinero","Fumigador","Tapicero","Mecánico","Mudanzas y Portes",
-  "Limpieza del Hogar","Limpieza de Cristales",
-  // 💆 Asistencia y cuidados
-  "Cuidado de Mayores","Niñera / Babysitter","Fisioterapeuta a Domicilio",
+  "Manitas a Domicilio","Jardinero","Fumigador","Tapicero","Mecánico",
+  "Mudanzas y Portes","Servicio Doméstico / Limpieza","Limpieza de Cristales y Fachadas",
+  // 💻 Tecnología
+  "Informático / Reparación de PC","Configuración de Domótica y WiFi","Instalador de Antenas y Satélite",
+  // ❤️ Cuidados y bienestar
+  "Cuidado de Mayores y Dependientes","Niñera / Babysitter",
+  "Fisioterapeuta a Domicilio","Peluquería y Estética a Domicilio",
   // 🐾 Mascotas
-  "Peluquería Canina","Paseador de Perros","Adiestrador Canino","Veterinario a Domicilio",
-  // 🍳 Otros servicios
+  "Peluquería Canina a Domicilio","Cuidador / Paseador de Perros","Adiestrador Canino","Veterinario a Domicilio",
+  // 🍳 Hostelería y servicios
   "Cocinero","Zapatero","Montador de Estructuras",
   // 🏺 Artesanía local sevillana
   "Ceramista / Alfarero","Bordador de Oro y Seda","Orfebre","Guarnicionero",
@@ -43,26 +47,27 @@ const OFICIOS = [
   "Otros servicios",
 ];
 
-// Oficios destacados para el buscador rápido (los más buscados)
 const OFICIOS_TOP = [
   "Fontanero","Electricista","Cerrajero","Manitas a Domicilio",
   "Pintor","Albañil","Reformas Integrales","Climatización",
-  "Limpieza del Hogar","Jardinero","Peluquería Canina","Desatascos",
+  "Servicio Doméstico / Limpieza","Jardinero","Peluquería Canina a Domicilio","Desatascos y Camión Cuba",
 ];
 
 const OFICIO_CATEGORIES: Record<string,string> = {
   "Electricista":"⚡ Técnico","Fontanero":"🔧 Técnico","Cerrajero":"🔑 Técnico",
-  "Desatascos":"🌊 Técnico","Técnico de Gas":"🔩 Técnico","Climatización":"❄️ Técnico",
-  "Albañil":"🧱 Técnico","Pintor":"🖌️ Técnico","Carpintero":"🪵 Técnico",
-  "Reformas Integrales":"🏗️ Técnico","Soldador":"🔥 Técnico","Instalador Solar":"☀️ Técnico",
-  "Yesero":"🏛️ Técnico","Techador":"🏠 Técnico","Montador de Pladur":"🧱 Técnico",
-  "Parquetista":"🪵 Técnico","Cristalero":"💎 Técnico",
+  "Desatascos y Camión Cuba":"🌊 Técnico","Técnico de Gas":"🔩 Técnico","Climatización":"❄️ Técnico",
+  "Albañil":"🧱 Obras","Pintor":"🖌️ Obras","Carpintero":"🪵 Obras",
+  "Reformas Integrales":"🏗️ Obras","Soldador":"🔥 Obras","Instalador Solar":"☀️ Obras",
+  "Yesero":"🏛️ Obras","Techador":"🏠 Obras","Montador de Pladur":"📐 Obras",
+  "Parquetista / Pulidor de Suelos":"✨ Obras","Cristalero":"💎 Obras",
   "Manitas a Domicilio":"🔨 Servicios","Jardinero":"🌿 Servicios","Fumigador":"🪲 Servicios",
   "Tapicero":"🪑 Servicios","Mecánico":"🚗 Servicios","Mudanzas y Portes":"📦 Servicios",
-  "Limpieza del Hogar":"🧹 Servicios","Limpieza de Cristales":"🪟 Servicios",
-  "Cuidado de Mayores":"👵 Cuidados","Niñera / Babysitter":"👶 Cuidados",
-  "Fisioterapeuta a Domicilio":"💆 Cuidados",
-  "Peluquería Canina":"✂️ Mascotas","Paseador de Perros":"🐕 Mascotas",
+  "Servicio Doméstico / Limpieza":"🧹 Servicios","Limpieza de Cristales y Fachadas":"🪟 Servicios",
+  "Informático / Reparación de PC":"💻 Tecnología","Configuración de Domótica y WiFi":"🌐 Tecnología",
+  "Instalador de Antenas y Satélite":"📡 Tecnología",
+  "Cuidado de Mayores y Dependientes":"👵 Cuidados","Niñera / Babysitter":"👶 Cuidados",
+  "Fisioterapeuta a Domicilio":"💆‍♂️ Cuidados","Peluquería y Estética a Domicilio":"💇‍♀️ Cuidados",
+  "Peluquería Canina a Domicilio":"✂️ Mascotas","Cuidador / Paseador de Perros":"🐕 Mascotas",
   "Adiestrador Canino":"🦮 Mascotas","Veterinario a Domicilio":"🩺 Mascotas",
   "Cocinero":"👨‍🍳 Hostelería","Zapatero":"👟 Servicios","Montador de Estructuras":"🎪 Eventos",
   "Ceramista / Alfarero":"🏺 Artesanía","Bordador de Oro y Seda":"🧵 Artesanía",
@@ -72,15 +77,21 @@ const OFICIO_CATEGORIES: Record<string,string> = {
   "Encuadernador Artesanal":"📚 Artesanía","Tallista de Castañuelas":"🎵 Artesanía",
   "Otros servicios":"🛠️ Servicios",
 };
-const OFICIO_ICONS:Record<string,string> = {
-  "Electricista":"⚡","Fontanero":"🔧","Cerrajero":"🔑","Desatascos":"🌊",
+
+const OFICIO_ICONS: Record<string,string> = {
+  "Electricista":"⚡","Fontanero":"🔧","Cerrajero":"🔑","Desatascos y Camión Cuba":"🌊",
   "Técnico de Gas":"🔩","Climatización":"❄️","Albañil":"🧱","Pintor":"🖌️",
   "Carpintero":"🪵","Reformas Integrales":"🏗️","Soldador":"🔥","Instalador Solar":"☀️",
-  "Yesero":"🏛️","Techador":"🏠","Montador de Pladur":"📐","Parquetista":"🪵",
-  "Cristalero":"💎","Manitas a Domicilio":"🔨","Jardinero":"🌿","Fumigador":"🪲",
-  "Tapicero":"🪑","Mecánico":"🚗","Mudanzas y Portes":"📦","Limpieza del Hogar":"🧹",
-  "Limpieza de Cristales":"🪟","Cuidado de Mayores":"👵","Niñera / Babysitter":"👶",
-  "Fisioterapeuta a Domicilio":"💆","Peluquería Canina":"✂️","Paseador de Perros":"🐕",
+  "Yesero":"🏛️","Techador":"🏠","Montador de Pladur":"📐",
+  "Parquetista / Pulidor de Suelos":"✨","Cristalero":"💎",
+  "Manitas a Domicilio":"🔨","Jardinero":"🌿","Fumigador":"🪲",
+  "Tapicero":"🪑","Mecánico":"🚗","Mudanzas y Portes":"📦",
+  "Servicio Doméstico / Limpieza":"🧹","Limpieza de Cristales y Fachadas":"🪟",
+  "Informático / Reparación de PC":"💻","Configuración de Domótica y WiFi":"🌐",
+  "Instalador de Antenas y Satélite":"📡",
+  "Cuidado de Mayores y Dependientes":"👵","Niñera / Babysitter":"👶",
+  "Fisioterapeuta a Domicilio":"💆‍♂️","Peluquería y Estética a Domicilio":"💇‍♀️",
+  "Peluquería Canina a Domicilio":"✂️","Cuidador / Paseador de Perros":"🐕",
   "Adiestrador Canino":"🦮","Veterinario a Domicilio":"🩺","Cocinero":"👨‍🍳",
   "Zapatero":"👟","Montador de Estructuras":"🎪",
   "Ceramista / Alfarero":"🏺","Bordador de Oro y Seda":"🧵","Orfebre":"💍",
@@ -88,6 +99,7 @@ const OFICIO_ICONS:Record<string,string> = {
   "Imaginero / Escultor":"⛪","Abaniquero":"🪭",
   "Encuadernador Artesanal":"📚","Tallista de Castañuelas":"🎵","Otros servicios":"🛠️",
 };
+
 const SCHEDULES = ["Lunes a Viernes","Lunes a Sábado","Todos los días","Fines de semana","Urgencias 24h"];
 const RESPONSE_TIMES = ["Menos de 1h","Menos de 2h","Menos de 4h","Mismo día","24 horas"];
 const PLAN_COLORS:Record<Plan,string> = {gratis:"#7777AA",basico:"#3B82F6",pro:"#FFD700",elite:"#FF8C00"};
@@ -99,7 +111,6 @@ const PLAN_FEATURES:Record<Plan,string[]> = {
   elite:["Todo lo de Pro","⭐ Badge ÉLITE","Anuncios en portada","Top garantizado #1","Gestor reseñas avanzado","Facturación integrada","Soporte 24h","API de integración"],
 };
 
-// ─── PLAN FEATURE GATES ───
 const PLAN_GATES = {
   contacts: {gratis:5, basico:20, pro:9999, elite:9999} as Record<Plan,number>,
   photos: {gratis:0, basico:5, pro:20, elite:999} as Record<Plan,number>,
@@ -107,7 +118,6 @@ const PLAN_GATES = {
   chat: {gratis:false, basico:true, pro:true, elite:true} as Record<Plan,boolean>,
 };
 
-// ─── LEAD SYSTEM ───
 async function getLeadsThisMonth(proId:string):Promise<number>{
   const now=new Date();
   const monthStart=new Date(now.getFullYear(),now.getMonth(),1).toISOString();
@@ -145,6 +155,22 @@ function timeAgo(iso:string){
   if(d<60)return"ahora";if(d<3600)return Math.floor(d/60)+"m";
   if(d<86400)return Math.floor(d/3600)+"h";return Math.floor(d/86400)+"d";
 }
+function formatTime(iso:string){
+  return new Date(iso).toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"});
+}
+function isSameDay(a:string,b:string){
+  const da=new Date(a), db2=new Date(b);
+  return da.getFullYear()===db2.getFullYear()&&da.getMonth()===db2.getMonth()&&da.getDate()===db2.getDate();
+}
+function formatDateLabel(iso:string){
+  const d=new Date(iso);
+  const today=new Date();
+  if(isSameDay(iso,today.toISOString()))return "Hoy";
+  const yesterday=new Date(today); yesterday.setDate(today.getDate()-1);
+  if(isSameDay(iso,yesterday.toISOString()))return "Ayer";
+  return d.toLocaleDateString("es-ES",{day:"numeric",month:"long"});
+}
+
 
 // ─── UI ATOMS ───
 function Stars({n,size=13,interactive=false,onSet}:{n:number;size?:number;interactive?:boolean;onSet?:(n:number)=>void}){
@@ -176,9 +202,13 @@ function Ping({msg}:{msg:string|null}){
   return <div style={{position:"fixed",bottom:88,left:"50%",transform:"translateX(-50%)",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",color:"#000",borderRadius:10,padding:"10px 20px",fontWeight:700,fontSize:13,zIndex:9999,whiteSpace:"nowrap",boxShadow:"0 4px 20px "+C.accent+"55",pointerEvents:"none"}}>{msg}</div>;
 }
 function Sheet({children,onClose,title}:{children:React.ReactNode;onClose:()=>void;title?:string}){
+  const startY=useRef(0);
+  const handleTouchStart=(e:any)=>{startY.current=e.touches[0].clientY;};
+  const handleTouchEnd=(e:any)=>{if(e.changedTouches[0].clientY-startY.current>80)onClose();};
   return <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(4,4,12,0.88)",backdropFilter:"blur(16px)",zIndex:500,display:"flex",alignItems:"flex-end",justifyContent:"center"}}>
-    <div onClick={e=>e.stopPropagation()} style={{background:"linear-gradient(170deg,#14141F,#0A0A14)",borderRadius:"20px 20px 0 0",width:"100%",maxWidth:560,maxHeight:"90vh",overflowY:"auto",border:"1px solid "+C.accent+"22",borderBottom:"none",boxShadow:"0 -8px 40px rgba(0,0,0,0.6)"}}>
-      {title&&<div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"18px 20px 0"}}>
+    <div onClick={e=>e.stopPropagation()} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd} style={{background:"linear-gradient(170deg,#14141F,#0A0A14)",borderRadius:"20px 20px 0 0",width:"100%",maxWidth:560,maxHeight:"90vh",overflowY:"auto",border:"1px solid "+C.accent+"22",borderBottom:"none",boxShadow:"0 -8px 40px rgba(0,0,0,0.6)"}}>
+      <div style={{width:36,height:4,borderRadius:2,background:C.border,margin:"10px auto 0"}} />
+      {title&&<div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px 20px 0"}}>
         <p style={{fontWeight:800,fontSize:17,color:C.text}}>{title}</p>
         <button onClick={onClose} style={{background:"none",border:"1px solid "+C.border,borderRadius:8,color:C.muted,cursor:"pointer",padding:"5px 10px",fontSize:14}}>✕</button>
       </div>}
@@ -191,7 +221,7 @@ function Btn({children,onClick,color=C.accent,outline=false,full=false,small=fal
   return <button onClick={onClick} disabled={disabled} style={{width:full?"100%":"auto",padding:small?"8px 14px":"12px 22px",background:outline?"transparent":"linear-gradient(135deg,"+bg+","+bg+"BB)",border:"1px solid "+bg+(outline?"66":"22"),borderRadius:10,color:outline?bg:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:small?13:14,cursor:disabled?"not-allowed":"pointer",opacity:disabled?0.5:1,transition:"all 0.15s",boxShadow:outline?"none":"0 4px 14px "+bg+"33",whiteSpace:"nowrap"}}>{children}</button>;
 }
 function Inp({label,value,onChange,type="text",placeholder="",required=false,multiline=false}:any){
-  const s:any={width:"100%",background:C.card,border:"1px solid "+C.border,borderRadius:8,padding:"11px 14px",color:C.text,fontFamily:"'DM Sans',sans-serif",fontSize:14,outline:"none"};
+  const s:any={width:"100%",background:C.card,border:"1px solid "+C.border,borderRadius:8,padding:"11px 14px",color:C.text,fontFamily:"'DM Sans',sans-serif",fontSize:14,outline:"none",boxSizing:"border-box"};
   return <div style={{marginBottom:14}}>
     {label&&<p style={{fontSize:11,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.08em",marginBottom:5,fontWeight:700}}>{label}{required&&<span style={{color:C.red}}> *</span>}</p>}
     {multiline?<textarea value={value} onChange={(e:any)=>onChange(e.target.value)} placeholder={placeholder} style={{...s,resize:"vertical",minHeight:80}} />:<input type={type} value={value} onChange={(e:any)=>onChange(e.target.value)} placeholder={placeholder} style={s} />}
@@ -220,130 +250,805 @@ function MultiSelect({label,options,selected,onChange}:{label:string;options:str
   </div>;
 }
 
-// ─── LEADS COUNTER COMPONENT ───
-function LeadsCounter({user,onUpgrade}:{user:UserRow;onUpgrade:()=>void}){
-  const [used,setUsed]=useState(0);
-  const [loading,setLoading]=useState(true);
-  const limit=PLAN_GATES.contacts[user.plan as Plan];
-  const isUnlimited=limit>=9999;
-
-  useEffect(()=>{
-    getLeadsThisMonth(user.id).then(n=>{setUsed(n);setLoading(false);});
-  },[user.id]);
-
-  if(loading)return null;
-  if(isUnlimited)return(
-    <div style={{padding:"8px 12px",background:C.green+"12",borderRadius:8,border:"1px solid "+C.green+"22",display:"flex",alignItems:"center",gap:8,marginBottom:12}}>
-      <span style={{fontSize:12}}>♾️</span>
-      <span style={{fontSize:12,color:C.green,fontWeight:700}}>Contactos ilimitados este mes</span>
-    </div>
-  );
-  const pct=Math.min(100,Math.round(used/limit*100));
-  const col=pct>=100?C.red:pct>=80?C.orange:C.green;
+// ─── IN-APP NOTIFICATION ───
+function InAppNotification({msg,from,onClose,onClick}:{msg:string;from:string;onClose:()=>void;onClick:()=>void}){
+  useEffect(()=>{const t=setTimeout(onClose,5000);return()=>clearTimeout(t);},[onClose]);
   return(
-    <div style={{padding:"10px 14px",background:col+"10",borderRadius:10,border:"1px solid "+col+"25",marginBottom:12}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-        <span style={{fontSize:12,color:C.text,fontWeight:700}}>📊 Contactos este mes</span>
-        <span style={{fontSize:13,fontWeight:800,color:col}}>{used}/{limit}</span>
+    <div onClick={onClick} style={{position:"fixed",top:16,left:"50%",transform:"translateX(-50%)",zIndex:10000,background:"linear-gradient(135deg,#1A1A2E,#12121E)",border:"1px solid "+C.accent+"55",borderRadius:14,padding:"12px 16px",display:"flex",gap:12,alignItems:"center",boxShadow:"0 8px 32px rgba(0,0,0,0.6),0 0 0 1px "+C.accent+"22",cursor:"pointer",maxWidth:"calc(100vw - 32px)",width:360,animation:"slideDown 0.3s ease"}}>
+      <div style={{width:38,height:38,borderRadius:"50%",background:"linear-gradient(135deg,"+C.accent+"33,"+C.orange+"22)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>💬</div>
+      <div style={{flex:1,minWidth:0}}>
+        <p style={{fontSize:12,fontWeight:700,color:C.accent,marginBottom:1}}>{from}</p>
+        <p style={{fontSize:13,color:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{msg}</p>
       </div>
-      <div style={{height:6,background:C.border,borderRadius:99,overflow:"hidden",marginBottom:6}}>
-        <div style={{width:pct+"%",height:"100%",background:col,borderRadius:99,transition:"width 0.5s"}} />
-      </div>
-      {pct>=80&&<div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-        <span style={{fontSize:11,color:col}}>{pct>=100?"⛔ Límite alcanzado":"⚠️ Casi agotado"}</span>
-        <button onClick={onUpgrade} style={{background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:6,color:"#000",cursor:"pointer",padding:"4px 10px",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:700}}>Mejorar plan →</button>
-      </div>}
+      <button onClick={e=>{e.stopPropagation();onClose();}} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:16,padding:"0 4px",flexShrink:0}}>✕</button>
     </div>
   );
 }
 
-// ─── VISIT REQUEST MODAL ───
-function VisitRequestModal({worker,currentUser,onClose,onSuccess}:{worker:UserRow;currentUser:UserRow;onClose:()=>void;onSuccess:()=>void}){
-  const [desc,setDesc]=useState("");
-  const [date,setDate]=useState("");
-  const [slot,setSlot]=useState<"mañana"|"tarde">("mañana");
-  const [photo,setPhoto]=useState<File|null>(null);
-  const [photoPreview,setPhotoPreview]=useState("");
-  const [saving,setSaving]=useState(false);
-  const [leadBlocked,setLeadBlocked]=useState(false);
-  const fileRef=useRef<HTMLInputElement>(null);
+// ─── LEADS COUNTER ───
+function LeadsCounter({user,onUpgrade}:{user:UserRow;onUpgrade:()=>void}){
+  const [used,setUsed]=useState(0);
+  const limit=PLAN_GATES.contacts[user.plan as Plan];
+  useEffect(()=>{getLeadsThisMonth(user.id).then(setUsed);},[user.id]);
+  const pct=limit>=9999?0:Math.min(100,Math.round((used/limit)*100));
+  const isUnlimited=limit>=9999;
+  const isWarning=!isUnlimited&&pct>=80;
+  return(
+    <GCard style={{marginBottom:14}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+        <p style={{fontWeight:700,color:C.text,fontSize:13}}>📊 Contactos este mes</p>
+        <span style={{fontSize:12,fontWeight:700,color:isUnlimited?C.green:isWarning?C.orange:C.muted}}>{isUnlimited?"Ilimitados":used+"/"+limit}</span>
+      </div>
+      {!isUnlimited&&(
+        <div style={{height:6,background:C.border,borderRadius:99,overflow:"hidden",marginBottom:8}}>
+          <div style={{height:"100%",width:pct+"%",background:isWarning?"linear-gradient(90deg,"+C.orange+","+C.red+")":"linear-gradient(90deg,"+C.accent+","+C.green+")",borderRadius:99,transition:"width 0.5s"}} />
+        </div>
+      )}
+      {isWarning&&(
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <p style={{fontSize:11,color:C.orange}}>⚠️ Casi sin contactos disponibles</p>
+          <button onClick={onUpgrade} style={{fontSize:11,color:C.accent,background:"none",border:"none",cursor:"pointer",fontWeight:700,padding:0}}>Mejorar plan →</button>
+        </div>
+      )}
+    </GCard>
+  );
+}
 
-  const handleSubmit=async()=>{
-    if(!desc.trim()||!date){return;}
-    setSaving(true);
-    // Check lead limit
-    const ok=await logLead(worker.id,currentUser.id,"message");
-    if(!ok){setLeadBlocked(true);setSaving(false);return;}
-    let photoUrl="";
-    if(photo){
-      const url=await uploadImage(photo,"visits");
-      if(url)photoUrl=url;
-    }
-    // Create job request
-    await db.from("jobs").insert({
-      worker_id:worker.id,
-      client_id:currentUser.id,
-      client_name:currentUser.name,
-      title:"Solicitud de visita · "+date+" ("+slot+")",
-      description:desc+(photoUrl?"\nFoto adjunta: "+photoUrl:""),
-      status:"pending",
-    });
-    // Send message
-    await db.from("messages").insert({
-      from_id:currentUser.id,
-      to_id:worker.id,
-      text:"📅 Solicitud de visita para el "+date+" por la "+slot+".\n\n"+desc+(photoUrl?"\n📸 Foto adjunta.":""),
-      read:false,
-    });
-    setSaving(false);
-    onSuccess();
+
+// ─── CHAT FULL-SCREEN (Realtime, swipe para cerrar) ───
+function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:UserRow;onClose:()=>void}){
+  const [msgs,setMsgs]=useState<MessageRow[]>([]);
+  const [input,setInput]=useState("");
+  const [sending,setSending]=useState(false);
+  const [showVisitForm,setShowVisitForm]=useState(false);
+  const [visitDate,setVisitDate]=useState("");
+  const [visitSlot,setVisitSlot]=useState<"mañana"|"tarde">("mañana");
+  const [visitDesc,setVisitDesc]=useState("");
+  const [sendingVisit,setSendingVisit]=useState(false);
+  const bottomRef=useRef<HTMLDivElement>(null);
+  const inputRef=useRef<HTMLInputElement>(null);
+  const col=wColor(toUser.id);
+  const startX=useRef(0);
+
+  const loadMsgs=useCallback(async()=>{
+    const {data}=await db.from("messages").select("*")
+      .or("and(from_id.eq."+currentUser.id+",to_id.eq."+toUser.id+"),and(from_id.eq."+toUser.id+",to_id.eq."+currentUser.id+")")
+      .order("created_at",{ascending:true});
+    if(data&&data.length>0){setMsgs(data as MessageRow[]);}
+    else setMsgs([{id:"w0",from_id:toUser.id,to_id:currentUser.id,text:"¡Hola! Soy "+toUser.name+". ¿En qué puedo ayudarte?",read:true,created_at:new Date().toISOString()} as MessageRow]);
+  },[currentUser.id,toUser.id,toUser.name]);
+
+  useEffect(()=>{
+    loadMsgs();
+    const channel=db.channel("chat-"+[currentUser.id,toUser.id].sort().join("-"))
+      .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},(payload:any)=>{
+        const m=payload.new as MessageRow;
+        if((m.from_id===currentUser.id&&m.to_id===toUser.id)||(m.from_id===toUser.id&&m.to_id===currentUser.id)){
+          setMsgs(prev=>{
+            if(prev.find(x=>x.id===m.id))return prev;
+            return [...prev,m];
+          });
+        }
+      }).subscribe();
+    return ()=>{db.removeChannel(channel);};
+  },[loadMsgs,currentUser.id,toUser.id]);
+
+  useEffect(()=>{
+    setTimeout(()=>bottomRef.current?.scrollIntoView({behavior:"smooth"}),50);
+  },[msgs.length]);
+
+  const send=async()=>{
+    if(!input.trim()||sending)return;
+    const txt=input.trim();
+    setInput("");
+    setSending(true);
+    const tempId="tmp-"+Date.now();
+    const tempMsg:MessageRow={id:tempId,from_id:currentUser.id,to_id:toUser.id,text:txt,read:false,created_at:new Date().toISOString()} as any;
+    setMsgs(prev=>[...prev,tempMsg]);
+    await db.from("messages").insert({from_id:currentUser.id,to_id:toUser.id,text:txt,read:false});
+    setSending(false);
+    inputRef.current?.focus();
   };
 
-  if(leadBlocked)return(
-    <Sheet onClose={onClose} title="⛔ Límite alcanzado">
-      <div style={{textAlign:"center",padding:"20px 0"}}>
-        <p style={{fontSize:36,marginBottom:12}}>🔒</p>
-        <p style={{fontWeight:700,color:C.text,fontSize:16,marginBottom:8}}>Este profesional ha alcanzado su límite de contactos este mes</p>
-        <p style={{fontSize:13,color:C.muted,marginBottom:20}}>Inténtalo el próximo mes o contacta con otro profesional</p>
-        <Btn full onClick={onClose}>Entendido</Btn>
-      </div>
-    </Sheet>
-  );
+  const handleKeyDown=(e:React.KeyboardEvent)=>{
+    if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send();}
+  };
+
+  // Swipe right to close
+  const handleTouchStart=(e:React.TouchEvent)=>{startX.current=e.touches[0].clientX;};
+  const handleTouchEnd=(e:React.TouchEvent)=>{if(e.changedTouches[0].clientX-startX.current>80)onClose();};
+
+  // Group messages by date
+  const groupedMsgs=msgs.reduce((acc:(MessageRow|{type:"date";label:string})[],m,i)=>{
+    if(i===0||!isSameDay(m.created_at,msgs[i-1].created_at)){
+      acc.push({type:"date",label:formatDateLabel(m.created_at)});
+    }
+    acc.push(m);
+    return acc;
+  },[]);
 
   return(
-    <Sheet onClose={onClose} title={"📅 Solicitar visita a "+worker.name}>
-      <p style={{fontSize:12,color:C.muted,marginBottom:16}}>El profesional recibirá tu solicitud y confirmará la fecha</p>
-      <Inp label="¿Qué trabajo necesitas? *" value={desc} onChange={setDesc} placeholder="Ej: Tengo una fuga en la cocina, necesito revisar las tuberías debajo del fregadero..." multiline required />
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}}>
-        <div>
-          <p style={{fontSize:11,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.08em",marginBottom:8,fontWeight:700}}>Fecha *</p>
-          <input type="date" value={date} onChange={e=>setDate(e.target.value)} min={new Date().toISOString().split("T")[0]} style={{width:"100%",background:C.card,border:"1px solid "+C.border,borderRadius:8,padding:"11px 14px",color:C.text,fontFamily:"'DM Sans',sans-serif",fontSize:14,outline:"none"}} />
+    <div onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}
+      style={{position:"fixed",inset:0,background:C.bg,zIndex:600,display:"flex",flexDirection:"column"}}>
+      {/* Header */}
+      <div style={{padding:"0 16px",borderBottom:"1px solid "+C.border,background:"rgba(10,10,15,0.97)",backdropFilter:"blur(20px)",display:"flex",alignItems:"center",gap:12,height:56,flexShrink:0,boxShadow:"0 2px 20px rgba(0,0,0,0.4)"}}>
+        <button onClick={onClose} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:22,padding:"0 4px 0 0",display:"flex",alignItems:"center"}}>←</button>
+        <Ava s={toUser.name.substring(0,2).toUpperCase()} size={36} color={col} online={toUser.available} />
+        <div style={{flex:1,minWidth:0}}>
+          <p style={{fontWeight:700,fontSize:15,color:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{toUser.name}</p>
+          <p style={{fontSize:11,color:toUser.available?C.green:C.muted}}>
+            {OFICIO_ICONS[toUser.trade||""]||"🔧"} {toUser.trade} · {toUser.available?"Disponible":"Ocupado"}
+          </p>
         </div>
-        <div>
-          <p style={{fontSize:11,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.08em",marginBottom:8,fontWeight:700}}>Franja horaria</p>
-          <div style={{display:"flex",gap:6}}>
-            {(["mañana","tarde"] as const).map(s=>(
-              <button key={s} onClick={()=>setSlot(s)} style={{flex:1,padding:"11px 8px",borderRadius:8,border:"1px solid "+(slot===s?C.accent:C.border),background:slot===s?C.accent+"18":"transparent",color:slot===s?C.accent:C.muted,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:13,fontWeight:slot===s?700:400}}>
-                {s==="mañana"?"🌅 Mañana":"🌆 Tarde"}
-              </button>
-            ))}
+        <button onClick={()=>setShowVisitForm(!showVisitForm)} style={{padding:"7px 12px",background:showVisitForm?C.accent+"22":"transparent",border:"1px solid "+(showVisitForm?C.accent+"55":C.border),borderRadius:10,color:showVisitForm?C.accent:C.muted,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:700,whiteSpace:"nowrap"}}>
+          📅 Cita
+        </button>
+      </div>
+
+      {/* Visit form (expandible debajo del header) */}
+      {showVisitForm&&(
+        <div style={{padding:"14px 16px",background:"linear-gradient(135deg,"+C.card+","+C.surface+")",borderBottom:"1px solid "+C.accent+"33",flexShrink:0}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+            <p style={{fontSize:13,fontWeight:800,color:C.accent}}>📅 Solicitar visita o cita</p>
+            <button onClick={()=>setShowVisitForm(false)} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:16}}>✕</button>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
+            <input type="date" value={visitDate} onChange={e=>setVisitDate(e.target.value)} min={new Date().toISOString().split("T")[0]} style={{background:C.card,border:"1px solid "+C.border,borderRadius:8,padding:"8px 10px",color:C.text,fontFamily:"inherit",fontSize:13,outline:"none"}} />
+            <div style={{display:"flex",gap:5}}>
+              {(["mañana","tarde"] as const).map(s=><button key={s} onClick={()=>setVisitSlot(s)} style={{flex:1,padding:"8px 4px",borderRadius:8,border:"1px solid "+(visitSlot===s?C.accent:C.border),background:visitSlot===s?C.accent+"18":"transparent",color:visitSlot===s?C.accent:C.muted,cursor:"pointer",fontFamily:"inherit",fontSize:12,fontWeight:visitSlot===s?700:400}}>{s==="mañana"?"🌅 Mañana":"🌆 Tarde"}</button>)}
+            </div>
+          </div>
+          <textarea value={visitDesc} onChange={e=>setVisitDesc(e.target.value)} placeholder="Describe el trabajo que necesitas..." rows={2} style={{width:"100%",background:C.card,border:"1px solid "+C.border,borderRadius:8,padding:"8px 10px",color:C.text,fontFamily:"inherit",fontSize:13,outline:"none",resize:"none",marginBottom:8,boxSizing:"border-box"}} />
+          <button disabled={sendingVisit||!visitDate||!visitDesc.trim()} onClick={async()=>{
+            setSendingVisit(true);
+            const txt="📅 *Solicitud de visita*\nFecha: "+visitDate+" por la "+visitSlot+"\n\n"+visitDesc;
+            await db.from("messages").insert({from_id:currentUser.id,to_id:toUser.id,text:txt,read:false});
+            await db.from("jobs").insert({worker_id:toUser.id,client_id:currentUser.id,client_name:currentUser.name,title:"Solicitud de visita · "+visitDate,description:visitDesc,status:"pending"});
+            setShowVisitForm(false);setVisitDate("");setVisitDesc("");setSendingVisit(false);
+          }} style={{width:"100%",padding:"10px",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:8,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,cursor:sendingVisit||!visitDate||!visitDesc.trim()?"not-allowed":"pointer",opacity:sendingVisit||!visitDate||!visitDesc.trim()?0.5:1}}>
+            {sendingVisit?"Enviando...":"Enviar solicitud →"}
+          </button>
+        </div>
+      )}
+
+      {/* Info banner */}
+      {!showVisitForm&&(
+        <div style={{padding:"6px 16px",background:"rgba(255,215,0,0.05)",borderBottom:"1px solid "+C.accent+"15",flexShrink:0,display:"flex",alignItems:"center",gap:8}}>
+          <span style={{fontSize:11}}>🔒</span>
+          <p style={{fontSize:11,color:C.mutedL}}>Comunicación segura dentro de OfficioYa · Pulsa <span style={{color:C.accent}}>📅 Cita</span> para solicitar una visita</p>
+        </div>
+      )}
+
+      {/* Messages */}
+      <div style={{flex:1,overflowY:"auto",padding:"12px 16px",display:"flex",flexDirection:"column",gap:6}}>
+        {groupedMsgs.map((item:any,i)=>{
+          if(item.type==="date"){
+            return <div key={"date-"+i} style={{textAlign:"center",margin:"8px 0"}}>
+              <span style={{fontSize:11,color:C.muted,background:C.surface,padding:"3px 10px",borderRadius:99,border:"1px solid "+C.border}}>{item.label}</span>
+            </div>;
+          }
+          const m=item as MessageRow;
+          const isMe=m.from_id===currentUser.id;
+          return(
+            <div key={m.id} style={{display:"flex",justifyContent:isMe?"flex-end":"flex-start"}}>
+              {!isMe&&<div style={{width:28,height:28,borderRadius:"50%",background:col+"33",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:col,marginRight:6,flexShrink:0,alignSelf:"flex-end"}}>{toUser.name[0]}</div>}
+              <div style={{maxWidth:"74%"}}>
+                <div style={{background:isMe?"linear-gradient(135deg,"+col+"55,"+col+"33)":C.card,border:"1px solid "+(isMe?col+"66":C.border),borderRadius:isMe?"16px 16px 2px 16px":"16px 16px 16px 2px",padding:"9px 13px",boxShadow:isMe?"0 2px 12px "+col+"22":"none"}}>
+                  {m.text.includes("*Solicitud de visita*")?
+                    <div>
+                      <p style={{fontSize:11,color:C.accent,fontWeight:700,marginBottom:3}}>📅 Solicitud de visita</p>
+                      <p style={{fontSize:12,color:C.text,lineHeight:1.5,whiteSpace:"pre-wrap"}}>{m.text.replace("📅 *Solicitud de visita*\n","")}</p>
+                    </div>:
+                    <p style={{fontSize:13,color:isMe?C.text:C.text,lineHeight:1.5}}>{m.text}</p>
+                  }
+                </div>
+                <p style={{fontSize:9,color:C.muted,marginTop:2,textAlign:isMe?"right":"left",paddingRight:isMe?2:0,paddingLeft:isMe?0:2}}>
+                  {formatTime(m.created_at)}{isMe&&<span style={{marginLeft:4,color:C.green}}>✓</span>}
+                </p>
+              </div>
+            </div>
+          );
+        })}
+        <div ref={bottomRef} />
+      </div>
+
+      {/* Input */}
+      <div style={{padding:"10px 16px 16px",borderTop:"1px solid "+C.border,background:"rgba(10,10,15,0.97)",backdropFilter:"blur(20px)",display:"flex",gap:8,alignItems:"flex-end",flexShrink:0}}>
+        <input ref={inputRef} value={input} onChange={e=>setInput(e.target.value)} onKeyDown={handleKeyDown} placeholder="Escribe un mensaje..." style={{flex:1,background:C.card,border:"1px solid "+C.border,borderRadius:12,padding:"11px 14px",color:C.text,fontFamily:"inherit",fontSize:14,outline:"none"}} autoFocus />
+        <button onClick={send} disabled={!input.trim()||sending} style={{width:44,height:44,background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:12,color:"#000",fontWeight:900,cursor:"pointer",fontSize:18,opacity:!input.trim()||sending?0.5:1,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",transition:"opacity 0.15s"}}>
+          →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+
+// ─── BUSCADOR EXPRESS MODAL (3 pasos, salta en el centro de pantalla) ───
+function BuscadorExpressModal({workers,onResult,onWorkerSelect,onClose}:{workers:UserRow[];onResult:(oficio:string,zona:string,urgency:string)=>void;onWorkerSelect:(w:UserRow)=>void;onClose:()=>void}){
+  const [step,setStep]=useState(1);
+  const [selOficio,setSelOficio]=useState("");
+  const [selUrgency,setSelUrgency]=useState("");
+  const [selZona,setSelZona]=useState("Todas");
+  const [textSearch,setTextSearch]=useState("");
+
+  const URGENCY_OPTS=[
+    {id:"urgente",icon:"🔴",title:"¡Urgencia ahora!",sub:"Avería crítica · Lo necesito hoy",border:C.red,bg:C.red+"15"},
+    {id:"semana",icon:"🟡",title:"Esta semana",sub:"Tengo unos días de margen",border:C.orange,bg:C.orange+"12"},
+    {id:"presupuesto",icon:"🟢",title:"Solo presupuesto",sub:"Proyecto o consulta sin prisa",border:C.green,bg:C.green+"10"},
+  ];
+
+  const filteredBySearch=OFICIOS.filter(o=>!textSearch||o.toLowerCase().includes(textSearch.toLowerCase()));
+  const topOficios=OFICIOS_TOP;
+
+  const handleSelectOficio=(o:string)=>{
+    setSelOficio(o);
+    setStep(2);
+  };
+
+  const handleSelectUrgency=(id:string)=>{
+    setSelUrgency(id);
+    setStep(3);
+    onResult(selOficio,selZona,id);
+    onClose();
+  };
+
+  return(
+    <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(4,4,12,0.85)",backdropFilter:"blur(16px)",zIndex:800,display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
+      <div onClick={e=>e.stopPropagation()} style={{background:"linear-gradient(170deg,#14141F,#0A0A14)",borderRadius:20,width:"100%",maxWidth:480,maxHeight:"85vh",overflowY:"auto",border:"1px solid "+C.accent+"33",boxShadow:"0 20px 60px rgba(0,0,0,0.8),0 0 0 1px "+C.accent+"11"}}>
+        {/* Step indicator */}
+        <div style={{padding:"16px 20px 0",display:"flex",alignItems:"center",gap:8}}>
+          {[1,2].map(s=>(
+            <div key={s} style={{display:"flex",alignItems:"center",gap:6}}>
+              <div style={{width:22,height:22,borderRadius:"50%",background:step>=s?C.accent:C.border,color:step>=s?"#000":C.muted,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:900}}>{s}</div>
+              <span style={{fontSize:11,color:step>=s?C.accent:C.muted,fontWeight:step===s?700:400}}>{s===1?"¿Qué necesitas?":"¿Con qué urgencia?"}</span>
+              {s<2&&<div style={{width:20,height:1,background:step>s?C.accent:C.border,margin:"0 2px"}} />}
+            </div>
+          ))}
+          <button onClick={onClose} style={{marginLeft:"auto",background:"none",border:"1px solid "+C.border,borderRadius:8,color:C.muted,cursor:"pointer",padding:"4px 10px",fontSize:12}}>✕</button>
+        </div>
+
+        <div style={{padding:"16px 20px 20px"}}>
+
+          {/* PASO 1: Oficio */}
+          {step===1&&(<>
+            <div style={{display:"flex",background:C.bg,borderRadius:10,border:"1px solid "+C.border,overflow:"hidden",marginBottom:14}}>
+              <span style={{padding:"0 12px",display:"flex",alignItems:"center",color:C.muted}}>🔍</span>
+              <input autoFocus value={textSearch} onChange={e=>setTextSearch(e.target.value)} placeholder="Busca fontanero, electricista..." style={{flex:1,padding:"12px 0",background:"transparent",border:"none",color:C.text,fontFamily:"inherit",fontSize:14,outline:"none"}} />
+              {textSearch&&<button onClick={()=>setTextSearch("")} style={{padding:"0 12px",background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:14}}>✕</button>}
+            </div>
+
+            {!textSearch&&(<>
+              <p style={{fontSize:10,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.08em",fontWeight:700,marginBottom:8}}>🔥 Más solicitados</p>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:7,marginBottom:14}}>
+                {topOficios.map(o=>(
+                  <button key={o} onClick={()=>handleSelectOficio(o)} style={{padding:"10px 6px",borderRadius:12,border:"1px solid "+C.border,background:"linear-gradient(135deg,"+C.card+","+C.surface+")",color:C.text,cursor:"pointer",fontFamily:"inherit",textAlign:"center",transition:"all 0.15s",boxShadow:"0 2px 8px rgba(0,0,0,0.3)"}}>
+                    <div style={{fontSize:22,marginBottom:4}}>{OFICIO_ICONS[o]||"🔧"}</div>
+                    <p style={{fontSize:11,fontWeight:600,lineHeight:1.3,color:C.text}}>{o}</p>
+                  </button>
+                ))}
+              </div>
+            </>)}
+
+            <p style={{fontSize:10,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.08em",fontWeight:700,marginBottom:8}}>{textSearch?"Resultados":"Todos los servicios"}</p>
+            <div style={{maxHeight:220,overflowY:"auto",display:"flex",flexDirection:"column",gap:5}}>
+              {filteredBySearch.map(o=>(
+                <button key={o} onClick={()=>handleSelectOficio(o)} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",borderRadius:10,border:"1px solid "+C.border,background:C.bg,color:C.text,cursor:"pointer",fontFamily:"inherit",textAlign:"left",transition:"all 0.15s"}}>
+                  <span style={{fontSize:18,flexShrink:0}}>{OFICIO_ICONS[o]||"🔧"}</span>
+                  <span style={{fontSize:13,fontWeight:600,flex:1}}>{o}</span>
+                  <span style={{fontSize:10,color:C.muted}}>{OFICIO_CATEGORIES[o]?.split(" ")[0]||""}</span>
+                </button>
+              ))}
+              {filteredBySearch.length===0&&<p style={{textAlign:"center",color:C.muted,fontSize:13,padding:16}}>No encontrado · <button onClick={()=>handleSelectOficio("Otros servicios")} style={{background:"none",border:"none",color:C.accent,cursor:"pointer",fontWeight:700}}>Continuar con "Otros"</button></p>}
+            </div>
+          </>)}
+
+          {/* PASO 2: Urgencia */}
+          {step===2&&(<>
+            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+              <button onClick={()=>setStep(1)} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:20}}>←</button>
+              <p style={{fontSize:13,color:C.muted}}>
+                <span style={{color:C.accent,fontWeight:700}}>{OFICIO_ICONS[selOficio]||"🔧"} {selOficio}</span> · Paso 2 de 2
+              </p>
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:10}}>
+              {URGENCY_OPTS.map(opt=>(
+                <button key={opt.id} onClick={()=>handleSelectUrgency(opt.id)} style={{display:"flex",gap:14,alignItems:"center",padding:"16px 18px",borderRadius:14,border:"2px solid "+opt.border+"55",background:opt.bg,cursor:"pointer",fontFamily:"inherit",textAlign:"left",transition:"all 0.15s",position:"relative",overflow:"hidden"}}>
+                  <div style={{position:"absolute",top:-10,right:-10,width:50,height:50,borderRadius:"50%",background:opt.border+"15",pointerEvents:"none"}} />
+                  <span style={{fontSize:28,flexShrink:0}}>{opt.icon}</span>
+                  <div>
+                    <p style={{fontWeight:800,fontSize:15,color:C.text,marginBottom:3}}>{opt.title}</p>
+                    <p style={{fontSize:12,color:C.mutedL}}>{opt.sub}</p>
+                  </div>
+                  <span style={{marginLeft:"auto",fontSize:16,color:opt.border,flexShrink:0}}>→</span>
+                </button>
+              ))}
+            </div>
+          </>)}
+
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+// ─── WORKER CARD IDEALISTA STYLE ───
+function WorkerCardIdealista({w,onSelect,onChat}:{w:UserRow;onSelect:()=>void;onChat:()=>void}){
+  const col=wColor(w.id);
+  return(
+    <div style={{background:C.card,borderRadius:16,border:"1px solid "+C.border,overflow:"hidden",transition:"all 0.2s",boxShadow:"0 2px 12px rgba(0,0,0,0.2)"}}>
+      <div style={{display:"flex"}}>
+        <div style={{width:4,background:"linear-gradient(180deg,"+col+","+col+"44)",flexShrink:0}} />
+        <div style={{flex:1,padding:"14px 14px 12px"}}>
+          <div style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:10}}>
+            <div onClick={onSelect} style={{cursor:"pointer",flexShrink:0}}>
+              <Ava s={w.name.substring(0,2).toUpperCase()} size={52} color={col} online={w.available} />
+            </div>
+            <div style={{flex:1,minWidth:0,cursor:"pointer"}} onClick={onSelect}>
+              <div style={{display:"flex",gap:5,alignItems:"center",marginBottom:2,flexWrap:"wrap"}}>
+                <p style={{fontWeight:800,fontSize:16,color:C.text,lineHeight:1.2}}>{w.name}</p>
+                {w.verified&&<span style={{fontSize:10,color:C.green,fontWeight:700}}>✓</span>}
+                {(w.plan==="elite"||w.plan==="pro")&&<Badge plan={w.plan} />}
+              </div>
+              <p style={{fontSize:12,color:col,fontWeight:600,marginBottom:3}}>{OFICIO_ICONS[w.trade||""]||"🔧"} {w.trade}</p>
+              <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
+                <Stars n={w.rating} size={11} />
+                <span style={{fontSize:11,color:C.text,fontWeight:700}}>{w.rating>0?w.rating.toFixed(1):"Nuevo"}</span>
+                {w.reviews>0&&<span style={{fontSize:10,color:C.muted}}>({w.reviews} reseñas)</span>}
+                {w.jobs>0&&<span style={{fontSize:10,color:C.muted}}>· {w.jobs} trabajos</span>}
+              </div>
+            </div>
+            <div style={{textAlign:"right",flexShrink:0,cursor:"pointer"}} onClick={onSelect}>
+              <p style={{fontWeight:900,fontSize:20,color:C.accent,lineHeight:1}}>{w.price}€</p>
+              <p style={{fontSize:10,color:C.muted}}>/hora</p>
+              {w.free_quote&&<p style={{fontSize:9,color:C.green,fontWeight:600,marginTop:2}}>Ppto. gratis</p>}
+            </div>
+          </div>
+          {w.bio&&<p style={{fontSize:12,color:C.mutedL,lineHeight:1.55,marginBottom:10,display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{w.bio}</p>}
+          <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:10}}>
+            <span style={{fontSize:10,color:C.muted,background:C.surface,padding:"3px 8px",borderRadius:99,border:"1px solid "+C.border}}>📍 {w.zone}</span>
+            {w.schedule&&w.schedule.includes("24h")&&<span style={{fontSize:10,color:C.red,background:C.red+"15",padding:"3px 8px",borderRadius:99,border:"1px solid "+C.red+"33",fontWeight:600}}>🔴 24h</span>}
+            {w.response_time&&<span style={{fontSize:10,color:C.cyan,background:C.cyan+"12",padding:"3px 8px",borderRadius:99,border:"1px solid "+C.cyan+"33"}}>⚡ {w.response_time}</span>}
+            {w.experience_years&&w.experience_years>0?<span style={{fontSize:10,color:C.mutedL,background:C.surface,padding:"3px 8px",borderRadius:99,border:"1px solid "+C.border}}>{w.experience_years} años exp.</span>:null}
+          </div>
+          <div style={{display:"flex",gap:8}}>
+            <button onClick={onChat} style={{flex:1,padding:"11px",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:10,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:6,boxShadow:"0 4px 14px "+C.accent+"33"}}>
+              💬 Escribir mensaje
+            </button>
+            <button onClick={onSelect} style={{padding:"11px 14px",background:"transparent",border:"1px solid "+C.border,borderRadius:10,color:C.mutedL,fontFamily:"'DM Sans',sans-serif",fontWeight:600,fontSize:12,cursor:"pointer"}}>
+              Ver perfil
+            </button>
           </div>
         </div>
       </div>
-      <div style={{marginBottom:14}}>
-        <p style={{fontSize:11,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.08em",marginBottom:8,fontWeight:700}}>Foto del problema (opcional)</p>
-        <input ref={fileRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>{const f=e.target.files?.[0];if(f){setPhoto(f);setPhotoPreview(URL.createObjectURL(f));}}} />
-        {photoPreview?<div style={{position:"relative",marginBottom:8}}>
-          <img src={photoPreview} alt="preview" style={{width:"100%",maxHeight:140,objectFit:"cover",borderRadius:10,border:"1px solid "+C.border}} />
-          <button onClick={()=>{setPhoto(null);setPhotoPreview("");}} style={{position:"absolute",top:6,right:6,background:C.red,border:"none",borderRadius:"50%",width:24,height:24,color:"#fff",cursor:"pointer",fontSize:12,fontWeight:700}}>✕</button>
+    </div>
+  );
+}
+
+// ─── WORKER DETAIL SHEET ───
+function WorkerSheet({worker,onClose,onChat,currentUser}:{worker:UserRow;onClose:()=>void;onChat:(w:UserRow)=>void;currentUser:UserRow|null}){
+  const [tab,setTab]=useState<"info"|"fotos"|"reviews"|"certs">("info");
+  const [reviews,setReviews]=useState<any[]>([]);
+  const [certs,setCerts]=useState<CertRow[]>([]);
+  const [photos,setPhotos]=useState<PhotoRow[]>([]);
+  const [newRev,setNewRev]=useState(""); const [selStars,setSelStars]=useState(5); const [saving,setSaving]=useState(false);
+  const col=wColor(worker.id);
+
+  useEffect(()=>{
+    db.from("reviews").select("*").eq("worker_id",worker.id).eq("approved",true).order("created_at",{ascending:false}).then(({data}:any)=>setReviews(data||[]));
+    db.from("certificates").select("*").eq("worker_id",worker.id).then(({data}:any)=>setCerts(data||[]));
+    db.from("photos").select("*").eq("worker_id",worker.id).order("created_at",{ascending:false}).then(({data}:any)=>setPhotos(data||[]));
+    db.from("visits").insert({page:"worker_"+worker.id,user_id:currentUser?.id||null}).then(()=>{});
+  },[worker.id,currentUser?.id]);
+
+  const submitReview=async()=>{
+    if(!newRev.trim())return;
+    setSaving(true);
+    const {data}=await db.from("reviews").insert({worker_id:worker.id,client_name:currentUser?.name||"Anónimo",client_id:currentUser?.id||null,stars:selStars,text:newRev,photo:"",photo_url:"",approved:true}).select().single();
+    if(data)setReviews(p=>[data,...p]);
+    setNewRev(""); setSaving(false);
+  };
+
+  const avgRating=reviews.length>0?reviews.reduce((s:number,r:any)=>s+r.stars,0)/reviews.length:worker.rating;
+
+  return(
+    <Sheet onClose={onClose}>
+      <div style={{display:"flex",gap:14,alignItems:"center",marginBottom:14}}>
+        <Ava s={worker.name.substring(0,2).toUpperCase()} size={58} color={col} online={worker.available} />
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{display:"flex",gap:7,alignItems:"center",flexWrap:"wrap",marginBottom:3}}>
+            <p style={{fontWeight:800,fontSize:19,color:C.text}}>{worker.name}</p>
+            {worker.verified&&<span style={{fontSize:10,color:C.green,border:"1px solid "+C.green+"44",padding:"1px 6px",borderRadius:99}}>✓ Verificado</span>}
+            <Badge plan={worker.plan} />
+          </div>
+          <p style={{color:col,fontWeight:600,fontSize:13,marginBottom:3}}>{OFICIO_ICONS[worker.trade||""]||"🔧"} {worker.trade} · {worker.zone}</p>
+          <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
+            <Stars n={avgRating} size={12} />
+            <span style={{fontSize:12,color:C.text,fontWeight:700}}>{avgRating>0?avgRating.toFixed(1):"Nuevo"}</span>
+            {reviews.length>0&&<span style={{fontSize:11,color:C.muted}}>({reviews.length} reseñas)</span>}
+          </div>
+        </div>
+        <button onClick={onClose} style={{background:"none",border:"1px solid "+C.border,borderRadius:8,color:C.muted,cursor:"pointer",padding:"5px 10px",fontSize:14,flexShrink:0}}>✕</button>
+      </div>
+
+      <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:14}}>
+        {worker.free_quote&&<span style={{padding:"4px 10px",borderRadius:99,fontSize:11,fontWeight:700,color:C.green,background:C.green+"18",border:"1px solid "+C.green+"33"}}>✓ Presupuesto gratis</span>}
+        {worker.schedule&&<span style={{padding:"4px 10px",borderRadius:99,fontSize:11,fontWeight:600,color:C.mutedL,background:C.surface,border:"1px solid "+C.border}}>🕐 {worker.schedule}</span>}
+        {worker.response_time&&<span style={{padding:"4px 10px",borderRadius:99,fontSize:11,fontWeight:600,color:C.cyan,background:C.cyan+"15",border:"1px solid "+C.cyan+"33"}}>⚡ Responde en {worker.response_time}</span>}
+      </div>
+
+      {currentUser&&currentUser.type==="cliente"&&(
+        <div style={{marginBottom:14}}>
+          <button onClick={()=>onChat(worker)} style={{width:"100%",padding:"13px",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:12,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:15,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,boxShadow:"0 4px 18px "+C.accent+"44"}}>
+            💬 Escribir mensaje
+          </button>
+          <p style={{fontSize:11,color:C.muted,textAlign:"center",marginTop:6}}>🔒 Todo el contacto se gestiona dentro de la app · Sin compartir datos externos</p>
+        </div>
+      )}
+      {!currentUser&&<div style={{padding:"12px",background:C.surface,borderRadius:10,border:"1px solid "+C.border,textAlign:"center",marginBottom:14}}><p style={{fontSize:13,color:C.muted}}>Regístrate gratis para contactar con este profesional</p></div>}
+
+      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:14}}>
+        {[{l:"Trabajos",v:String(worker.jobs)},{l:"Precio/h",v:(worker.price||30)+"€"},{l:"Valoración",v:avgRating>0?avgRating.toFixed(1)+"★":"Nuevo"}].map(s=>(
+          <div key={s.l} style={{background:"linear-gradient(135deg,"+col+"15,transparent)",borderRadius:10,padding:"10px 6px",textAlign:"center",border:"1px solid "+col+"25"}}>
+            <p style={{fontWeight:800,fontSize:18,color:col}}>{s.v}</p>
+            <p style={{fontSize:10,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.06em"}}>{s.l}</p>
+          </div>
+        ))}
+      </div>
+
+      {worker.service_zones&&worker.service_zones.length>0&&(
+        <div style={{marginBottom:14,padding:"10px 12px",background:C.surface,borderRadius:8,border:"1px solid "+C.border}}>
+          <p style={{fontSize:11,color:C.muted,marginBottom:6,fontWeight:700,textTransform:"uppercase" as const,letterSpacing:"0.06em"}}>Zonas de servicio</p>
+          <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+            {worker.service_zones.map(z=><span key={z} style={{fontSize:11,color:C.mutedL,background:C.card,padding:"3px 9px",borderRadius:99,border:"1px solid "+C.border}}>📍{z}</span>)}
+          </div>
+        </div>
+      )}
+
+      <div style={{display:"flex",gap:6,marginBottom:14,overflowX:"auto"}}>
+        {(["info","fotos","reviews","certs"] as const).map(t=>(
+          <button key={t} onClick={()=>setTab(t)} style={{flexShrink:0,padding:"7px 12px",borderRadius:8,border:"1px solid "+(tab===t?col:C.border),background:tab===t?col+"20":"transparent",color:tab===t?col:C.muted,fontFamily:"inherit",fontSize:11,fontWeight:700,cursor:"pointer",textTransform:"uppercase" as const,letterSpacing:"0.06em",transition:"all 0.15s"}}>
+            {t==="info"?"Sobre mí":t==="fotos"?("Fotos ("+photos.length+")"):t==="reviews"?("Reseñas ("+reviews.length+")"):"Títulos"}
+          </button>
+        ))}
+      </div>
+
+      {tab==="info"&&(<>
+        <p style={{fontSize:13,color:C.mutedL,lineHeight:1.75,marginBottom:12}}>{worker.bio||"Profesional con experiencia contrastada. Presupuesto sin compromiso."}</p>
+        {worker.specialties&&worker.specialties.length>0&&(
+          <div>
+            <p style={{fontSize:11,color:C.muted,marginBottom:6,fontWeight:700,textTransform:"uppercase" as const,letterSpacing:"0.06em"}}>Especialidades</p>
+            <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>{worker.specialties.map(s=><span key={s} style={{fontSize:11,color:col,background:col+"15",padding:"3px 9px",borderRadius:99,border:"1px solid "+col+"33"}}>{s}</span>)}</div>
+          </div>
+        )}
+      </>)}
+
+      {tab==="fotos"&&(
+        photos.length===0?<div style={{textAlign:"center",padding:"32px 0",color:C.muted}}>
+          <p style={{fontSize:32,marginBottom:8}}>📸</p>
+          <p style={{fontSize:13}}>Este profesional no ha subido fotos aún</p>
         </div>:
-        <button onClick={()=>fileRef.current?.click()} style={{width:"100%",padding:"12px",background:C.surface,border:"1px dashed "+C.border,borderRadius:8,color:C.muted,cursor:"pointer",fontSize:13,fontFamily:"'DM Sans',sans-serif"}}>📸 Adjuntar foto del trabajo</button>}
-      </div>
-      <div style={{background:C.surface,borderRadius:8,padding:"10px 12px",marginBottom:14,border:"1px solid "+C.border}}>
-        <p style={{fontSize:11,color:C.muted}}>📋 Tu solicitud se enviará a <strong style={{color:C.text}}>{worker.name}</strong> y quedará registrada en su panel de trabajos</p>
-      </div>
-      <Btn full disabled={saving||!desc.trim()||!date} onClick={handleSubmit}>{saving?"Enviando solicitud...":"Enviar solicitud de visita 📅"}</Btn>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8}}>
+          {photos.map(p=>(
+            <div key={p.id} style={{borderRadius:10,overflow:"hidden",border:"1px solid "+C.border,background:C.surface,aspectRatio:"4/3",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,color:C.muted,padding:8}}>
+              {p.url?<img src={p.url} alt={p.caption} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={(e:any)=>{e.target.style.display="none";}} />:<span style={{textAlign:"center"}}>{p.caption||"Foto de trabajo"}</span>}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {tab==="reviews"&&(<>
+        {currentUser&&currentUser.type==="cliente"&&(
+          <GCard style={{marginBottom:12,padding:14}}>
+            <p style={{fontSize:11,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.08em",marginBottom:8,fontWeight:700}}>Tu reseña</p>
+            <Stars n={selStars} size={22} interactive onSet={setSelStars} />
+            <div style={{marginTop:8}}><Inp label="" value={newRev} onChange={setNewRev} placeholder="Cuéntanos tu experiencia..." multiline /></div>
+            <Btn full small disabled={saving} onClick={submitReview}>{saving?"Publicando...":"Publicar reseña"}</Btn>
+          </GCard>
+        )}
+        <div style={{display:"flex",flexDirection:"column",gap:10}}>
+          {reviews.map((r:any)=>(
+            <GCard key={r.id} style={{padding:12}}>
+              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
+                <div style={{width:28,height:28,borderRadius:"50%",background:col+"33",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:col}}>{r.client_name[0]}</div>
+                <div style={{flex:1}}><p style={{fontSize:13,fontWeight:700,color:C.text}}>{r.client_name}</p><p style={{fontSize:10,color:C.muted}}>{timeAgo(r.created_at)}</p></div>
+                <Stars n={r.stars} size={11} />
+              </div>
+              <p style={{fontSize:13,color:C.mutedL,lineHeight:1.6}}>{r.text}</p>
+            </GCard>
+          ))}
+          {reviews.length===0&&<p style={{textAlign:"center",color:C.muted,fontSize:13,padding:16}}>Sin reseñas aún · Sé el primero</p>}
+        </div>
+      </>)}
+
+      {tab==="certs"&&(
+        certs.length===0?<p style={{textAlign:"center",color:C.muted,fontSize:13,padding:16}}>No ha subido títulos todavía</p>:
+        certs.map(c=>(
+          <GCard key={c.id} style={{padding:12,marginBottom:8}}>
+            <div style={{display:"flex",alignItems:"center",gap:10}}>
+              <span style={{fontSize:22}}>📜</span>
+              <div style={{flex:1}}><p style={{fontWeight:700,color:C.text,fontSize:13}}>{c.name}</p><p style={{fontSize:10,color:C.muted}}>{new Date(c.created_at).toLocaleDateString("es-ES")}</p></div>
+              {c.verified&&<span style={{fontSize:10,color:C.green,fontWeight:700}}>✓ Verificado</span>}
+            </div>
+          </GCard>
+        ))
+      )}
     </Sheet>
+  );
+}
+
+
+// ─── CLIENT HOME ───
+function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
+  const [tab,setTab]=useState<"buscar"|"ranking"|"chats"|"perfil">("buscar");
+  const [zona,setZona]=useState("Todas");
+  const [oficio,setOficio]=useState("Todos");
+  const [search,setSearch]=useState("");
+  const [soloDisp,setSoloDisp]=useState(false);
+  const [catFilter,setCatFilter]=useState("Todos");
+  const [showWizard,setShowWizard]=useState(false);
+  const [workers,setWorkers]=useState<UserRow[]>([]);
+  const [loading,setLoading]=useState(true);
+  const [selectedWorker,setSelectedWorker]=useState<UserRow|null>(null);
+  const [chatWorker,setChatWorker]=useState<UserRow|null>(null);
+  const [chatPartners,setChatPartners]=useState<UserRow[]>([]);
+  const [toast,setToast]=useState<string|null>(null);
+  const [inAppNotif,setInAppNotif]=useState<{msg:string;from:string;fromId:string}|null>(null);
+  const [unreadChats,setUnreadChats]=useState(false);
+  const showToast=(m:string)=>{setToast(m);setTimeout(()=>setToast(null),3000);};
+
+  const filteredWorkers=workers.filter(w=>{
+    if(soloDisp&&!w.available)return false;
+    if(zona!=="Todas"&&w.zone!==zona&&!(w.service_zones||[]).includes(zona))return false;
+    if(oficio!=="Todos"&&w.trade!==oficio)return false;
+    if(catFilter!=="Todos"){
+      const cat=OFICIO_CATEGORIES[w.trade||""]||"";
+      if(!cat.includes(catFilter.split(" ").slice(1).join(" ")))return false;
+    }
+    if(search){
+      const s=search.toLowerCase();
+      if(!w.name.toLowerCase().includes(s)&&!(w.trade||"").toLowerCase().includes(s)&&!(w.bio||"").toLowerCase().includes(s))return false;
+    }
+    return true;
+  });
+
+  const loadWorkers=useCallback(async()=>{
+    setLoading(true);
+    const {data}=await db.from("users").select("*").eq("type","profesional");
+    const sorted=(data||[]).sort((a:UserRow,b:UserRow)=>{
+      const order:Record<Plan,number>={elite:3,pro:2,basico:1,gratis:0};
+      return order[b.plan as Plan]-order[a.plan as Plan]||b.rating-a.rating;
+    });
+    setWorkers(sorted); setLoading(false);
+  },[]);
+
+  useEffect(()=>{loadWorkers();},[loadWorkers]);
+
+  // Realtime notifications
+  useEffect(()=>{
+    const ch=db.channel("client-notif-"+user.id)
+      .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"to_id=eq."+user.id},(p:any)=>{
+        const m=p.new;
+        // Find sender name
+        db.from("users").select("name").eq("id",m.from_id).single().then(({data}:any)=>{
+          const senderName=data?.name||"Profesional";
+          setInAppNotif({msg:m.text.substring(0,60)+(m.text.length>60?"...":""),from:senderName,fromId:m.from_id});
+          setUnreadChats(true);
+        });
+      }).subscribe();
+    return ()=>{db.removeChannel(ch);};
+  },[user.id]);
+
+  const loadChats=useCallback(async()=>{
+    const {data}=await db.from("messages").select("from_id,to_id").or("from_id.eq."+user.id+",to_id.eq."+user.id);
+    if(!data?.length){setChatPartners([]);return;}
+    const ids=[...new Set((data as any[]).map((m:any)=>m.from_id===user.id?m.to_id:m.from_id))];
+    const {data:ws}=await db.from("users").select("*").in("id",ids);
+    setChatPartners(ws||[]);
+  },[user.id]);
+
+  useEffect(()=>{if(tab==="chats"){loadChats();setUnreadChats(false);}},[tab,loadChats]);
+
+  const handleChat=async(w:UserRow)=>{
+    const ok=await logLead(w.id,user.id,"message");
+    if(!ok){showToast("⛔ Este profesional ha alcanzado su límite de contactos este mes");return;}
+    setSelectedWorker(null);setChatWorker(w);
+  };
+
+  const handleWizardResult=(oficio:string,_zona:string,_urgency:string)=>{
+    if(oficio)setOficio(oficio);
+    setShowWizard(false);
+  };
+
+  const CATS=["Todos","⚡ Técnico","🏗️ Obras","🏠 Servicios","🐾 Mascotas","❤️ Cuidados","💻 Tecnología","🏺 Artesanía"];
+
+  return(
+    <div style={{minHeight:"100dvh",background:C.bg,backgroundImage:"radial-gradient(ellipse at 15% 0%,#1a0a3a22,transparent 50%),radial-gradient(ellipse at 85% 100%,#0a1a3a22,transparent 50%)",paddingBottom:72}}>
+
+      {/* In-app notification */}
+      {inAppNotif&&<InAppNotification
+        msg={inAppNotif.msg}
+        from={"💬 "+inAppNotif.from}
+        onClose={()=>setInAppNotif(null)}
+        onClick={()=>{
+          setInAppNotif(null);
+          const worker=workers.find(w=>w.id===inAppNotif.fromId)||chatPartners.find(w=>w.id===inAppNotif.fromId);
+          if(worker)setChatWorker(worker);
+          else{setTab("chats");loadChats();}
+        }}
+      />}
+
+      <header style={{background:"rgba(10,10,15,0.94)",backdropFilter:"blur(20px)",borderBottom:"1px solid "+C.border,position:"sticky",top:0,zIndex:100,boxShadow:"0 2px 20px rgba(0,0,0,0.4)"}}>
+        <div style={{maxWidth:900,margin:"0 auto",padding:"0 16px",display:"flex",alignItems:"center",justifyContent:"space-between",height:52}}>
+          <button onClick={()=>setTab("buscar")} style={{display:"flex",alignItems:"center",gap:8,background:"none",border:"none",cursor:"pointer",padding:0}}>
+            <div style={{width:28,height:28,borderRadius:8,background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14}}>🔨</div>
+            <span style={{fontWeight:900,fontSize:19,letterSpacing:"-0.03em"}}><span style={{color:C.text}}>Oficio</span><span style={{color:C.accent}}>Ya</span></span>
+            <span style={{fontSize:9,color:C.accent,background:C.accent+"15",padding:"2px 7px",borderRadius:3,fontWeight:700}}>SEVILLA</span>
+          </button>
+          <button onClick={onLogout} style={{background:"none",border:"1px solid "+C.border,borderRadius:6,color:C.muted,cursor:"pointer",padding:"4px 10px",fontSize:11}}>Salir</button>
+        </div>
+      </header>
+
+      <div style={{maxWidth:900,margin:"0 auto",padding:"0 16px"}}>
+        {tab==="buscar"&&(<>
+
+          {/* ── BUSCADOR EXPRESS CTA (arriba del todo) ── */}
+          <div style={{padding:"14px 0 0"}}>
+            <div onClick={()=>setShowWizard(true)} style={{display:"flex",alignItems:"center",gap:12,background:"linear-gradient(135deg,"+C.card+","+C.surface+")",borderRadius:16,border:"1px solid "+C.accent+"55",padding:"14px 18px",cursor:"pointer",boxShadow:"0 4px 24px rgba(255,215,0,0.10)",transition:"all 0.2s",marginBottom:12,position:"relative",overflow:"hidden"}}>
+              <div style={{position:"absolute",top:-15,right:-15,width:70,height:70,borderRadius:"50%",background:C.accent+"10",pointerEvents:"none"}} />
+              <div style={{width:42,height:42,borderRadius:12,background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0,boxShadow:"0 4px 14px "+C.accent+"44"}}>⚡</div>
+              <div style={{flex:1}}>
+                <p style={{fontWeight:800,color:C.text,fontSize:15,marginBottom:2}}>¿Qué profesional necesitas?</p>
+                <p style={{fontSize:12,color:C.muted}}>Te conectamos con el más adecuado en segundos</p>
+              </div>
+              <div style={{background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",borderRadius:10,padding:"8px 14px",color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,flexShrink:0,boxShadow:"0 4px 14px "+C.accent+"33"}}>Buscar →</div>
+            </div>
+
+            {/* Quick chips top oficios */}
+            <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:4,marginBottom:14,scrollbarWidth:"none"}}>
+              {OFICIOS_TOP.map(o=>(
+                <button key={o} onClick={()=>setOficio(oficio===o?"Todos":o)} style={{flexShrink:0,display:"flex",alignItems:"center",gap:5,padding:"6px 12px",borderRadius:99,border:"1px solid "+(oficio===o?C.accent:C.border),background:oficio===o?C.accent+"18":C.surface,color:oficio===o?C.accent:C.mutedL,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:oficio===o?700:500,whiteSpace:"nowrap",transition:"all 0.15s"}}>
+                  <span>{OFICIO_ICONS[o]||"🔧"}</span>{o}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* ── HERO STATS ── */}
+          <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginBottom:14}}>
+            {[{l:"Profesionales",v:workers.length+"+"},{l:"Trabajos",v:"1.8K"},{l:"Ciudades",v:"15"},{l:"Valoración",v:"4.8★"}].map(s=>(
+              <div key={s.l} style={{background:C.surface,borderRadius:10,padding:"10px 8px",textAlign:"center",border:"1px solid "+C.border}}>
+                <p style={{fontWeight:800,fontSize:16,color:C.accent}}>{s.v}</p>
+                <p style={{fontSize:9,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.05em"}}>{s.l}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* ── FILTROS IDEALISTA-STYLE ── */}
+          <div style={{background:C.card,borderRadius:14,border:"1px solid "+C.border,padding:"12px 14px",marginBottom:14}}>
+            <div style={{display:"flex",background:C.bg,borderRadius:10,border:"1px solid "+C.border,overflow:"hidden",marginBottom:10}}>
+              <span style={{padding:"0 12px",display:"flex",alignItems:"center",color:C.muted,fontSize:14}}>🔍</span>
+              <input value={search} onChange={e=>{setSearch(e.target.value);if(e.target.value)setOficio("Todos");}} placeholder="Busca por nombre, oficio o descripción..." style={{flex:1,padding:"11px 0",background:"transparent",border:"none",color:C.text,fontFamily:"inherit",fontSize:14,outline:"none"}} />
+              {search&&<button onClick={()=>setSearch("")} style={{padding:"0 12px",background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:14}}>✕</button>}
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:10}}>
+              <select value={zona} onChange={e=>setZona(e.target.value)} style={{padding:"9px 12px",background:C.surface,border:"1px solid "+C.border,borderRadius:8,color:C.text,fontFamily:"inherit",fontSize:13,cursor:"pointer",outline:"none"}}>
+                <option style={{background:C.surface}}>Todas</option>
+                {ZONAS.map(z=><option key={z} style={{background:C.surface}}>{z}</option>)}
+                <option disabled style={{background:C.surface}}>── Barrios Sevilla ──</option>
+                {SEVILLA_ZONAS.map(z=><option key={z} style={{background:C.surface}}>{z}</option>)}
+              </select>
+              <select value={oficio} onChange={e=>setOficio(e.target.value)} style={{padding:"9px 12px",background:C.surface,border:"1px solid "+C.border,borderRadius:8,color:C.text,fontFamily:"inherit",fontSize:13,cursor:"pointer",outline:"none"}}>
+                <option style={{background:C.surface}}>Todos</option>
+                {OFICIOS.map(o=><option key={o} style={{background:C.surface}}>{o}</option>)}
+              </select>
+            </div>
+            <div style={{display:"flex",gap:8,alignItems:"center"}}>
+              <button onClick={()=>setSoloDisp(!soloDisp)} style={{display:"flex",alignItems:"center",gap:6,padding:"5px 10px",borderRadius:99,border:"1px solid "+(soloDisp?C.green:C.border),background:soloDisp?C.green+"15":"transparent",color:soloDisp?C.green:C.muted,cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:soloDisp?700:400,transition:"all 0.15s"}}>
+                <span style={{width:6,height:6,borderRadius:"50%",background:soloDisp?C.green:C.muted,display:"inline-block"}} />
+                Solo disponibles
+              </button>
+              <span style={{fontSize:12,color:C.muted,marginLeft:"auto"}}>{filteredWorkers.length} profesionales</span>
+            </div>
+          </div>
+
+          {/* Category filters */}
+          <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:4,marginBottom:14,scrollbarWidth:"none"}}>
+            {CATS.map(c=>(
+              <button key={c} onClick={()=>setCatFilter(c)} style={{flexShrink:0,padding:"7px 14px",borderRadius:99,border:"1px solid "+(catFilter===c?C.accent:C.border),background:catFilter===c?C.accent+"18":C.surface,color:catFilter===c?C.accent:C.muted,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:catFilter===c?700:500,whiteSpace:"nowrap",transition:"all 0.15s"}}>
+                {c}
+              </button>
+            ))}
+          </div>
+
+          {loading?<Spin/>:(
+            <>
+              {filteredWorkers.length===0&&(
+                <div style={{textAlign:"center",padding:"32px 20px",color:C.muted}}>
+                  <p style={{fontSize:32,marginBottom:8}}>🔍</p>
+                  <p style={{fontWeight:700,color:C.text,fontSize:16,marginBottom:6}}>Sin resultados</p>
+                  <p style={{fontSize:13}}>Prueba con otra búsqueda o zona</p>
+                </div>
+              )}
+              <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                {filteredWorkers.map(w=><WorkerCardIdealista key={w.id} w={w} onChat={()=>handleChat(w)} onSelect={()=>setSelectedWorker(w)} />)}
+              </div>
+            </>
+          )}
+        </>)}
+
+        {tab==="ranking"&&<RankingSection workers={workers} onSelect={setSelectedWorker} />}
+
+        {tab==="chats"&&(<>
+          <div style={{padding:"22px 0 16px"}}><h2 style={{fontWeight:800,fontSize:22,color:C.text}}>Mis conversaciones</h2></div>
+          {chatPartners.length===0?<div style={{textAlign:"center",padding:48,color:C.muted}}>
+            <p style={{fontSize:36,marginBottom:8}}>💬</p>
+            <p style={{fontWeight:700,fontSize:16,marginBottom:6}}>Sin conversaciones</p>
+            <Btn onClick={()=>setTab("buscar")} small>Buscar profesionales →</Btn>
+          </div>:
+          <div style={{display:"flex",flexDirection:"column",gap:10}}>
+            {chatPartners.map(w=>{
+              const col=wColor(w.id);
+              return <GCard key={w.id} onClick={()=>setChatWorker(w)} glow={col}>
+                <div style={{display:"flex",gap:12,alignItems:"center"}}>
+                  <Ava s={w.name.substring(0,2).toUpperCase()} size={46} color={col} online={w.available} />
+                  <div style={{flex:1,minWidth:0}}>
+                    <p style={{fontWeight:700,color:C.text,fontSize:14}}>{w.name}</p>
+                    <p style={{fontSize:12,color:col}}>{OFICIO_ICONS[w.trade||""]||"🔧"} {w.trade} · {w.zone}</p>
+                  </div>
+                  <Btn small onClick={(e:any)=>{e.stopPropagation();setChatWorker(w);}}>Abrir →</Btn>
+                </div>
+              </GCard>;
+            })}
+          </div>}
+        </>)}
+
+        {tab==="perfil"&&(<>
+          <div style={{padding:"22px 0 16px"}}><h2 style={{fontWeight:800,fontSize:22,color:C.text}}>Mi perfil</h2></div>
+          <GCard style={{marginBottom:14}}>
+            <div style={{display:"flex",gap:14,alignItems:"center",marginBottom:14}}>
+              <Ava s={user.name.substring(0,2).toUpperCase()} size={52} color={C.blue} />
+              <div>
+                <p style={{fontWeight:800,fontSize:18,color:C.text}}>{user.name}</p>
+                <p style={{fontSize:13,color:C.muted}}>{user.email}</p>
+                {user.phone&&<p style={{fontSize:12,color:C.muted}}>{user.phone}</p>}
+                <div style={{marginTop:5}}><Badge plan={user.plan} /></div>
+              </div>
+            </div>
+          </GCard>
+          <Btn full outline danger onClick={onLogout} color={C.red}>Cerrar sesión</Btn>
+        </>)}
+      </div>
+
+      <nav style={{position:"fixed",bottom:0,left:0,right:0,background:"rgba(10,10,15,0.97)",backdropFilter:"blur(20px)",borderTop:"1px solid "+C.border,display:"flex",zIndex:200}}>
+        {([["buscar","buscar"],["ranking","ranking"],["chats","chats"],["perfil","perfil"]] as const).map(([id])=>{
+          const icons:Record<string,React.ReactNode>={
+            buscar:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>,
+            ranking:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>,
+            chats:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
+            perfil:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+          };
+          const labels:Record<string,string>={buscar:"Buscar",ranking:"Ranking",chats:"Mensajes",perfil:"Perfil"};
+          const isActive=tab===id;
+          return(
+            <button key={id} onClick={()=>setTab(id as any)} style={{flex:1,padding:"8px 4px 10px",background:"none",border:"none",color:isActive?C.accent:C.muted+"88",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:3,transition:"all 0.2s",position:"relative"}}>
+              {isActive&&<div style={{position:"absolute",top:0,left:"50%",transform:"translateX(-50%)",width:32,height:2,background:"linear-gradient(90deg,"+C.accent+","+C.orange+")",borderRadius:"0 0 2px 2px"}} />}
+              <div style={{color:isActive?C.accent:C.muted+"88",position:"relative"}}>
+                {icons[id]}
+                {id==="chats"&&unreadChats&&!isActive&&<span style={{position:"absolute",top:-2,right:-2,width:8,height:8,borderRadius:"50%",background:C.red,border:"1px solid "+C.bg}} />}
+              </div>
+              <span style={{fontSize:9,fontWeight:isActive?700:500,letterSpacing:"0.04em",textTransform:"uppercase"}}>{labels[id]}</span>
+            </button>
+          );
+        })}
+      </nav>
+
+      {showWizard&&<BuscadorExpressModal workers={workers} onResult={handleWizardResult} onWorkerSelect={w=>{setShowWizard(false);setSelectedWorker(w);}} onClose={()=>setShowWizard(false)} />}
+      {selectedWorker&&<WorkerSheet worker={selectedWorker} onClose={()=>setSelectedWorker(null)} onChat={w=>{setSelectedWorker(null);handleChat(w);}} currentUser={user} />}
+      {chatWorker&&<ChatPanel toUser={chatWorker} currentUser={user} onClose={()=>setChatWorker(null)} />}
+      <Ping msg={toast} />
+    </div>
   );
 }
 
@@ -727,853 +1432,6 @@ function Auth({onLogin}:{onLogin:(u:UserRow)=>void}){
     </div>
   );
 }
-
-// ─── WORKER CARD IDEALISTA STYLE ───
-function WorkerCardIdealista({w,onSelect,onChat}:{w:UserRow;onSelect:()=>void;onChat:()=>void}){
-  const col=wColor(w.id);
-  return(
-    <div style={{background:C.card,borderRadius:16,border:"1px solid "+C.border,overflow:"hidden",transition:"all 0.2s",boxShadow:"0 2px 12px rgba(0,0,0,0.2)"}}>
-      {/* Left strip color */}
-      <div style={{display:"flex"}}>
-        <div style={{width:4,background:"linear-gradient(180deg,"+col+","+col+"44)",flexShrink:0}} />
-        <div style={{flex:1,padding:"14px 14px 12px"}}>
-          {/* Top row */}
-          <div style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:10}}>
-            <div onClick={onSelect} style={{cursor:"pointer",flexShrink:0}}>
-              <Ava s={w.name.substring(0,2).toUpperCase()} size={52} color={col} online={w.available} />
-            </div>
-            <div style={{flex:1,minWidth:0,cursor:"pointer"}} onClick={onSelect}>
-              <div style={{display:"flex",gap:5,alignItems:"center",marginBottom:2,flexWrap:"wrap"}}>
-                <p style={{fontWeight:800,fontSize:16,color:C.text,lineHeight:1.2}}>{w.name}</p>
-                {w.verified&&<span style={{fontSize:10,color:C.green,fontWeight:700}}>✓</span>}
-                {(w.plan==="elite"||w.plan==="pro")&&<Badge plan={w.plan} />}
-              </div>
-              <p style={{fontSize:12,color:col,fontWeight:600,marginBottom:3}}>{OFICIO_ICONS[w.trade||""]||"🔧"} {w.trade}</p>
-              <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
-                <Stars n={w.rating} size={11} />
-                <span style={{fontSize:11,color:C.text,fontWeight:700}}>{w.rating>0?w.rating.toFixed(1):"Nuevo"}</span>
-                {w.reviews>0&&<span style={{fontSize:10,color:C.muted}}>({w.reviews} reseñas)</span>}
-                {w.jobs>0&&<span style={{fontSize:10,color:C.muted}}>· {w.jobs} trabajos</span>}
-              </div>
-            </div>
-            {/* Price */}
-            <div style={{textAlign:"right",flexShrink:0,cursor:"pointer"}} onClick={onSelect}>
-              <p style={{fontWeight:900,fontSize:20,color:C.accent,lineHeight:1}}>{w.price}€</p>
-              <p style={{fontSize:10,color:C.muted}}>/hora</p>
-              {w.free_quote&&<p style={{fontSize:9,color:C.green,fontWeight:600,marginTop:2}}>Ppto. gratis</p>}
-            </div>
-          </div>
-
-          {/* Bio preview */}
-          {w.bio&&(
-            <p style={{fontSize:12,color:C.mutedL,lineHeight:1.55,marginBottom:10,display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{w.bio}</p>
-          )}
-
-          {/* Badges row */}
-          <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:10}}>
-            <span style={{fontSize:10,color:C.muted,background:C.surface,padding:"3px 8px",borderRadius:99,border:"1px solid "+C.border}}>📍 {w.zone}</span>
-            {w.schedule&&w.schedule.includes("24h")&&<span style={{fontSize:10,color:C.red,background:C.red+"15",padding:"3px 8px",borderRadius:99,border:"1px solid "+C.red+"33",fontWeight:600}}>🔴 Urgencias 24h</span>}
-            {w.response_time&&<span style={{fontSize:10,color:C.cyan,background:C.cyan+"12",padding:"3px 8px",borderRadius:99,border:"1px solid "+C.cyan+"33"}}>⚡ {w.response_time}</span>}
-            {w.experience_years&&w.experience_years>0?<span style={{fontSize:10,color:C.mutedL,background:C.surface,padding:"3px 8px",borderRadius:99,border:"1px solid "+C.border}}>{w.experience_years} años exp.</span>:null}
-          </div>
-
-          {/* CTA — solo chat, sin teléfono */}
-          <div style={{display:"flex",gap:8}}>
-            <button onClick={onChat} style={{flex:1,padding:"11px",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:10,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:6,boxShadow:"0 4px 14px "+C.accent+"33"}}>
-              💬 Escribir mensaje
-            </button>
-            <button onClick={onSelect} style={{padding:"11px 14px",background:"transparent",border:"1px solid "+C.border,borderRadius:10,color:C.mutedL,fontFamily:"'DM Sans',sans-serif",fontWeight:600,fontSize:12,cursor:"pointer"}}>
-              Ver perfil
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── WORKER CARD ───
-function WorkerCard({w,onClick}:{w:UserRow;onClick:()=>void}){
-  const col=wColor(w.id);
-  const badges=[];
-  if(w.free_quote)badges.push({t:"Presupuesto gratis",c:C.green});
-  if(w.response_time&&w.response_time.includes("1h"))badges.push({t:"Responde en 1h",c:C.cyan});
-  if(w.schedule&&w.schedule.includes("24h"))badges.push({t:"Urgencias 24h",c:C.red});
-  return (
-    <GCard onClick={onClick} glow={col} style={{position:"relative",overflow:"hidden",padding:16}}>
-      <div style={{position:"absolute",top:-20,right:-20,width:70,height:70,borderRadius:"50%",background:"radial-gradient(circle,"+col+"15,transparent 70%)",pointerEvents:"none"}} />
-      <div style={{display:"flex",gap:6,marginBottom:8,flexWrap:"wrap"}}>
-        {w.plan==="elite"&&<Badge plan="elite" />}
-        {w.plan==="pro"&&<Badge plan="pro" />}
-        {badges.slice(0,2).map(b=><span key={b.t} style={{padding:"2px 7px",borderRadius:4,fontSize:9,fontWeight:700,color:b.c,background:b.c+"18",border:"1px solid "+b.c+"33"}}>{b.t}</span>)}
-      </div>
-      <div style={{display:"flex",gap:12,alignItems:"flex-start",marginBottom:10}}>
-        <Ava s={w.name.substring(0,2).toUpperCase()} size={46} color={col} online={w.available} />
-        <div style={{flex:1,minWidth:0}}>
-          <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:2}}>
-            <p style={{fontWeight:700,fontSize:15,color:C.text,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{w.name}</p>
-            {w.verified&&<span style={{fontSize:10,color:C.green,flexShrink:0}}>✓</span>}
-          </div>
-          <p style={{fontSize:12,color:col,fontWeight:600,marginBottom:2}}>{OFICIO_ICONS[w.trade||""]||"🔧"} {w.trade}</p>
-          <p style={{fontSize:11,color:C.muted}}>📍 {w.zone}{w.experience_years&&w.experience_years>0?" · "+w.experience_years+" años exp.":""}</p>
-        </div>
-      </div>
-      <p style={{fontSize:12,color:C.mutedL,marginBottom:10,lineHeight:1.55,display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{w.bio||"Profesional verificado con experiencia."}</p>
-      {w.service_zones&&w.service_zones.length>0&&(
-        <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:8}}>
-          {w.service_zones.slice(0,3).map(z=><span key={z} style={{fontSize:10,color:C.mutedL,background:C.surface,padding:"2px 7px",borderRadius:99,border:"1px solid "+C.border}}>📍{z}</span>)}
-          {w.service_zones.length>3&&<span style={{fontSize:10,color:C.muted}}>+{w.service_zones.length-3}</span>}
-        </div>
-      )}
-      <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:8}}>
-        <Stars n={w.rating} size={11} />
-        <span style={{fontSize:11,color:C.text,fontWeight:700}}>{w.rating>0?w.rating.toFixed(1):"Nuevo"}</span>
-        {w.reviews>0&&<span style={{fontSize:10,color:C.muted}}>({w.reviews} reseñas)</span>}
-        {w.jobs>0&&<span style={{fontSize:10,color:C.muted}}>· {w.jobs} trabajos</span>}
-      </div>
-      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",paddingTop:8,borderTop:"1px solid "+C.border}}>
-        <div>
-          <span style={{fontWeight:800,fontSize:20,color:C.accent}}>{w.price}€</span>
-          <span style={{fontSize:11,color:C.muted}}>/h</span>
-          {w.free_quote&&<span style={{fontSize:10,color:C.green,marginLeft:6}}>· Presupuesto gratis</span>}
-        </div>
-        <div style={{display:"flex",gap:5,alignItems:"center"}}>
-          <span style={{width:6,height:6,borderRadius:"50%",background:w.available?C.green:C.red,display:"inline-block"}} />
-          <span style={{fontSize:11,color:w.available?C.green:C.red,fontWeight:600}}>{w.available?"Disponible":"Ocupado"}</span>
-        </div>
-      </div>
-    </GCard>
-  );
-}
-
-// ─── WORKER DETAIL SHEET ───
-function WorkerSheet({worker,onClose,onChat,currentUser}:{worker:UserRow;onClose:()=>void;onChat:(w:UserRow)=>void;currentUser:UserRow|null}){
-  const [tab,setTab]=useState<"info"|"fotos"|"reviews"|"certs">("info");
-  const [reviews,setReviews]=useState<any[]>([]);
-  const [certs,setCerts]=useState<CertRow[]>([]);
-  const [photos,setPhotos]=useState<PhotoRow[]>([]);
-  const [newRev,setNewRev]=useState(""); const [selStars,setSelStars]=useState(5); const [saving,setSaving]=useState(false);
-  const col=wColor(worker.id);
-
-  useEffect(()=>{
-    db.from("reviews").select("*").eq("worker_id",worker.id).eq("approved",true).order("created_at",{ascending:false}).then(({data}:any)=>setReviews(data||[]));
-    db.from("certificates").select("*").eq("worker_id",worker.id).then(({data}:any)=>setCerts(data||[]));
-    db.from("photos").select("*").eq("worker_id",worker.id).order("created_at",{ascending:false}).then(({data}:any)=>setPhotos(data||[]));
-    db.from("visits").insert({page:"worker_"+worker.id,user_id:currentUser?.id||null}).then(()=>{});
-  },[worker.id,currentUser?.id]);
-
-  const submitReview=async()=>{
-    if(!newRev.trim())return;
-    setSaving(true);
-    const {data}=await db.from("reviews").insert({worker_id:worker.id,client_name:currentUser?.name||"Anónimo",client_id:currentUser?.id||null,stars:selStars,text:newRev,photo:"",photo_url:"",approved:true}).select().single();
-    if(data)setReviews(p=>[data,...p]);
-    setNewRev(""); setSaving(false);
-  };
-
-  const avgRating=reviews.length>0?reviews.reduce((s:number,r:any)=>s+r.stars,0)/reviews.length:worker.rating;
-
-  return (
-    <Sheet onClose={onClose}>
-      <div style={{display:"flex",gap:14,alignItems:"center",marginBottom:14}}>
-        <Ava s={worker.name.substring(0,2).toUpperCase()} size={58} color={col} online={worker.available} />
-        <div style={{flex:1,minWidth:0}}>
-          <div style={{display:"flex",gap:7,alignItems:"center",flexWrap:"wrap",marginBottom:3}}>
-            <p style={{fontWeight:800,fontSize:19,color:C.text}}>{worker.name}</p>
-            {worker.verified&&<span style={{fontSize:10,color:C.green,border:"1px solid "+C.green+"44",padding:"1px 6px",borderRadius:99}}>✓ Verificado</span>}
-            <Badge plan={worker.plan} />
-          </div>
-          <p style={{color:col,fontWeight:600,fontSize:13,marginBottom:3}}>{OFICIO_ICONS[worker.trade||""]||"🔧"} {worker.trade} · {worker.zone}</p>
-          <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
-            <Stars n={avgRating} size={12} />
-            <span style={{fontSize:12,color:C.text,fontWeight:700}}>{avgRating>0?avgRating.toFixed(1):"Nuevo"}</span>
-            {reviews.length>0&&<span style={{fontSize:11,color:C.muted}}>({reviews.length} reseñas)</span>}
-          </div>
-        </div>
-        <button onClick={onClose} style={{background:"none",border:"1px solid "+C.border,borderRadius:8,color:C.muted,cursor:"pointer",padding:"5px 10px",fontSize:14,flexShrink:0}}>✕</button>
-      </div>
-
-      <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:14}}>
-        {worker.free_quote&&<span style={{padding:"4px 10px",borderRadius:99,fontSize:11,fontWeight:700,color:C.green,background:C.green+"18",border:"1px solid "+C.green+"33"}}>✓ Presupuesto gratis</span>}
-        {worker.schedule&&<span style={{padding:"4px 10px",borderRadius:99,fontSize:11,fontWeight:600,color:C.mutedL,background:C.surface,border:"1px solid "+C.border}}>🕐 {worker.schedule}</span>}
-        {worker.response_time&&<span style={{padding:"4px 10px",borderRadius:99,fontSize:11,fontWeight:600,color:C.cyan,background:C.cyan+"15",border:"1px solid "+C.cyan+"33"}}>⚡ Responde en {worker.response_time}</span>}
-      </div>
-
-      {currentUser&&currentUser.type==="cliente"&&(
-        <div style={{marginBottom:14}}>
-          <button onClick={()=>onChat(worker)} style={{width:"100%",padding:"13px",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:12,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:15,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,boxShadow:"0 4px 18px "+C.accent+"44"}}>
-            💬 Escribir mensaje
-          </button>
-          <p style={{fontSize:11,color:C.muted,textAlign:"center",marginTop:6}}>Todo el contacto se gestiona de forma segura dentro de la app</p>
-        </div>
-      )}
-      {!currentUser&&<div style={{padding:"12px",background:C.surface,borderRadius:10,border:"1px solid "+C.border,textAlign:"center",marginBottom:14}}><p style={{fontSize:13,color:C.muted}}>Regístrate gratis para contactar con este profesional</p></div>}
-
-      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:14}}>
-        {[{l:"Trabajos",v:String(worker.jobs)},{l:"Precio/h",v:(worker.price||30)+"€"},{l:"Valoración",v:avgRating>0?avgRating.toFixed(1)+"★":"Nuevo"}].map(s=>(
-          <div key={s.l} style={{background:"linear-gradient(135deg,"+col+"15,transparent)",borderRadius:10,padding:"10px 6px",textAlign:"center",border:"1px solid "+col+"25"}}>
-            <p style={{fontWeight:800,fontSize:18,color:col}}>{s.v}</p>
-            <p style={{fontSize:10,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.06em"}}>{s.l}</p>
-          </div>
-        ))}
-      </div>
-
-      {worker.service_zones&&worker.service_zones.length>0&&(
-        <div style={{marginBottom:14,padding:"10px 12px",background:C.surface,borderRadius:8,border:"1px solid "+C.border}}>
-          <p style={{fontSize:11,color:C.muted,marginBottom:6,fontWeight:700,textTransform:"uppercase" as const,letterSpacing:"0.06em"}}>Zonas de servicio</p>
-          <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
-            {worker.service_zones.map(z=><span key={z} style={{fontSize:11,color:C.mutedL,background:C.card,padding:"3px 9px",borderRadius:99,border:"1px solid "+C.border}}>📍{z}</span>)}
-          </div>
-        </div>
-      )}
-
-      <div style={{display:"flex",gap:6,marginBottom:14,overflowX:"auto"}}>
-        {(["info","fotos","reviews","certs"] as const).map(t=>(
-          <button key={t} onClick={()=>setTab(t)} style={{flexShrink:0,padding:"7px 12px",borderRadius:8,border:"1px solid "+(tab===t?col:C.border),background:tab===t?col+"20":"transparent",color:tab===t?col:C.muted,fontFamily:"inherit",fontSize:11,fontWeight:700,cursor:"pointer",textTransform:"uppercase" as const,letterSpacing:"0.06em",transition:"all 0.15s"}}>
-            {t==="info"?"Sobre mí":t==="fotos"?("Fotos ("+photos.length+")"):t==="reviews"?("Reseñas ("+reviews.length+")"):"Títulos"}
-          </button>
-        ))}
-      </div>
-
-      {tab==="info"&&(<>
-        <p style={{fontSize:13,color:C.mutedL,lineHeight:1.75,marginBottom:12}}>{worker.bio||"Profesional con experiencia contrastada. Presupuesto sin compromiso."}</p>
-        {worker.specialties&&worker.specialties.length>0&&(
-          <div>
-            <p style={{fontSize:11,color:C.muted,marginBottom:6,fontWeight:700,textTransform:"uppercase" as const,letterSpacing:"0.06em"}}>Especialidades</p>
-            <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>{worker.specialties.map(s=><span key={s} style={{fontSize:11,color:col,background:col+"15",padding:"3px 9px",borderRadius:99,border:"1px solid "+col+"33"}}>{s}</span>)}</div>
-          </div>
-        )}
-      </>)}
-
-      {tab==="fotos"&&(
-        photos.length===0?<div style={{textAlign:"center",padding:"32px 0",color:C.muted}}>
-          <p style={{fontSize:32,marginBottom:8}}>📸</p>
-          <p style={{fontSize:13}}>Este profesional no ha subido fotos aún</p>
-        </div>:
-        <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8}}>
-          {photos.map(p=>(
-            <div key={p.id} style={{borderRadius:10,overflow:"hidden",border:"1px solid "+C.border,background:C.surface,aspectRatio:"4/3",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,color:C.muted,padding:8}}>
-              {p.url?<img src={p.url} alt={p.caption} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={(e:any)=>{e.target.style.display="none";}} />:<span style={{textAlign:"center"}}>{p.caption||"Foto de trabajo"}</span>}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {tab==="reviews"&&(<>
-        {currentUser&&currentUser.type==="cliente"&&(
-          <GCard style={{marginBottom:12,padding:14}}>
-            <p style={{fontSize:11,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.08em",marginBottom:8,fontWeight:700}}>Tu reseña</p>
-            <Stars n={selStars} size={22} interactive onSet={setSelStars} />
-            <div style={{marginTop:8}}><Inp label="" value={newRev} onChange={setNewRev} placeholder="Cuéntanos tu experiencia..." multiline /></div>
-            <Btn full small disabled={saving} onClick={submitReview}>{saving?"Publicando...":"Publicar reseña"}</Btn>
-          </GCard>
-        )}
-        <div style={{display:"flex",flexDirection:"column",gap:10}}>
-          {reviews.map((r:any)=>(
-            <GCard key={r.id} style={{padding:12}}>
-              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
-                <div style={{width:28,height:28,borderRadius:"50%",background:col+"33",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:col}}>{r.client_name[0]}</div>
-                <div style={{flex:1}}><p style={{fontSize:13,fontWeight:700,color:C.text}}>{r.client_name}</p><p style={{fontSize:10,color:C.muted}}>{timeAgo(r.created_at)}</p></div>
-                <Stars n={r.stars} size={11} />
-              </div>
-              <p style={{fontSize:13,color:C.mutedL,lineHeight:1.6}}>{r.text}</p>
-            </GCard>
-          ))}
-          {reviews.length===0&&<p style={{textAlign:"center",color:C.muted,fontSize:13,padding:16}}>Sin reseñas aún · Sé el primero</p>}
-        </div>
-      </>)}
-
-      {tab==="certs"&&(
-        certs.length===0?<p style={{textAlign:"center",color:C.muted,fontSize:13,padding:16}}>No ha subido títulos todavía</p>:
-        certs.map(c=>(
-          <GCard key={c.id} style={{padding:12,marginBottom:8}}>
-            <div style={{display:"flex",alignItems:"center",gap:10}}>
-              <span style={{fontSize:22}}>📜</span>
-              <div style={{flex:1}}><p style={{fontWeight:700,color:C.text,fontSize:13}}>{c.name}</p><p style={{fontSize:10,color:C.muted}}>{new Date(c.created_at).toLocaleDateString("es-ES")}</p></div>
-              {c.verified&&<span style={{fontSize:10,color:C.green,fontWeight:700}}>✓ Verificado</span>}
-            </div>
-          </GCard>
-        ))
-      )}
-    </Sheet>
-  );
-}
-
-// ─── CHAT (con Realtime) ───
-function ChatPanel({toUser,currentUser,onClose,currentUserFull}:{toUser:UserRow;currentUser:UserRow;onClose:()=>void;currentUserFull?:UserRow}){
-  const [msgs,setMsgs]=useState<MessageRow[]>([]);
-  const [input,setInput]=useState(""); const [sending,setSending]=useState(false);
-  const [showVisitForm,setShowVisitForm]=useState(false);
-  const [visitDate,setVisitDate]=useState(""); const [visitSlot,setVisitSlot]=useState<"mañana"|"tarde">("mañana");
-  const [visitDesc,setVisitDesc]=useState(""); const [sendingVisit,setSendingVisit]=useState(false);
-  const bottomRef=useRef<HTMLDivElement>(null);
-  const col=wColor(toUser.id);
-
-  const loadMsgs=useCallback(async()=>{
-    const {data}=await db.from("messages").select("*")
-      .or("and(from_id.eq."+currentUser.id+",to_id.eq."+toUser.id+"),and(from_id.eq."+toUser.id+",to_id.eq."+currentUser.id+")")
-      .order("created_at",{ascending:true});
-    if(data&&data.length>0){setMsgs(data);}
-    else setMsgs([{id:"w0",from_id:toUser.id,to_id:currentUser.id,text:"¡Hola! Soy "+toUser.name+". ¿En qué puedo ayudarte?",read:true,created_at:new Date().toISOString()}]);
-  },[currentUser.id,toUser.id,toUser.name]);
-
-  useEffect(()=>{
-    loadMsgs();
-    // Supabase Realtime
-    const channel=db.channel("chat-"+[currentUser.id,toUser.id].sort().join("-"))
-      .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},(payload:any)=>{
-        const m=payload.new as MessageRow;
-        if((m.from_id===currentUser.id&&m.to_id===toUser.id)||(m.from_id===toUser.id&&m.to_id===currentUser.id)){
-          setMsgs(prev=>{
-            if(prev.find(x=>x.id===m.id))return prev;
-            return [...prev,m];
-          });
-        }
-      }).subscribe();
-    return ()=>{db.removeChannel(channel);};
-  },[loadMsgs,currentUser.id,toUser.id]);
-
-  useEffect(()=>{bottomRef.current?.scrollIntoView({behavior:"smooth"});},[msgs.length]);
-
-  const send=async()=>{
-    if(!input.trim()||sending)return;
-    const txt=input; setInput(""); setSending(true);
-    await db.from("messages").insert({from_id:currentUser.id,to_id:toUser.id,text:txt,read:false});
-    setSending(false);
-  };
-
-  return (
-    <div style={{position:"fixed",bottom:0,right:0,width:"100%",maxWidth:360,height:420,background:"linear-gradient(170deg,#12121E,#080810)",borderRadius:"18px 18px 0 0",border:"1px solid "+col+"44",borderBottom:"none",boxShadow:"0 -6px 30px "+col+"15",zIndex:400,display:"flex",flexDirection:"column"}}>
-      <div style={{padding:"10px 14px",borderBottom:"1px solid "+C.border,display:"flex",alignItems:"center",gap:10,background:col+"10",borderRadius:"18px 18px 0 0"}}>
-        <Ava s={toUser.name.substring(0,2).toUpperCase()} size={32} color={col} online />
-        <div style={{flex:1}}><p style={{fontWeight:700,fontSize:14,color:C.text}}>{toUser.name}</p><p style={{fontSize:10,color:C.green}}>● En línea</p></div>
-        <button onClick={onClose} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:18}}>✕</button>
-      </div>
-      <div style={{flex:1,overflowY:"auto",padding:"10px 12px",display:"flex",flexDirection:"column",gap:7}}>
-        {msgs.map((m,i)=>{
-          const isMe=m.from_id===currentUser.id;
-          return <div key={i} style={{display:"flex",justifyContent:isMe?"flex-end":"flex-start"}}>
-            <div style={{maxWidth:"78%",background:isMe?col+"44":C.card,border:"1px solid "+(isMe?col+"55":C.border),borderRadius:isMe?"12px 12px 2px 12px":"12px 12px 12px 2px",padding:"8px 11px"}}>
-              <p style={{fontSize:12,color:isMe?C.accent:C.text,lineHeight:1.5}}>{m.text}</p>
-              <p style={{fontSize:9,color:C.muted,marginTop:2,textAlign:"right"}}>{timeAgo(m.created_at)}</p>
-            </div>
-          </div>;
-        })}
-        <div ref={bottomRef} />
-      </div>
-      {/* Visit request form inline */}
-      {showVisitForm&&(
-        <div style={{padding:"10px 12px",borderTop:"1px solid "+C.border,background:C.surface}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-            <p style={{fontSize:12,fontWeight:700,color:C.accent}}>📅 Solicitar visita</p>
-            <button onClick={()=>setShowVisitForm(false)} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:14}}>✕</button>
-          </div>
-          <input type="date" value={visitDate} onChange={e=>setVisitDate(e.target.value)} min={new Date().toISOString().split("T")[0]} style={{width:"100%",background:C.card,border:"1px solid "+C.border,borderRadius:8,padding:"8px 10px",color:C.text,fontFamily:"inherit",fontSize:13,outline:"none",marginBottom:7}} />
-          <div style={{display:"flex",gap:6,marginBottom:7}}>
-            {(["mañana","tarde"] as const).map(s=><button key={s} onClick={()=>setVisitSlot(s)} style={{flex:1,padding:"7px",borderRadius:8,border:"1px solid "+(visitSlot===s?C.accent:C.border),background:visitSlot===s?C.accent+"18":"transparent",color:visitSlot===s?C.accent:C.muted,cursor:"pointer",fontFamily:"inherit",fontSize:12,fontWeight:visitSlot===s?700:400}}>{s==="mañana"?"🌅 Mañana":"🌆 Tarde"}</button>)}
-          </div>
-          <textarea value={visitDesc} onChange={e=>setVisitDesc(e.target.value)} placeholder="Describe brevemente el trabajo..." style={{width:"100%",background:C.card,border:"1px solid "+C.border,borderRadius:8,padding:"8px 10px",color:C.text,fontFamily:"inherit",fontSize:12,outline:"none",resize:"none",minHeight:52,marginBottom:7}} />
-          <button disabled={sendingVisit||!visitDate||!visitDesc.trim()} onClick={async()=>{
-            setSendingVisit(true);
-            const txt="📅 Solicitud de visita para el "+visitDate+" por la "+visitSlot+".\n\n"+visitDesc;
-            await db.from("messages").insert({from_id:currentUser.id,to_id:toUser.id,text:txt,read:false});
-            await db.from("jobs").insert({worker_id:toUser.id,client_id:currentUser.id,client_name:currentUser.name,title:"Solicitud de visita · "+visitDate,description:visitDesc,status:"pending"});
-            setShowVisitForm(false);setVisitDate("");setVisitDesc("");setSendingVisit(false);
-          }} style={{width:"100%",padding:"9px",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:8,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,cursor:"pointer",opacity:sendingVisit||!visitDate||!visitDesc.trim()?0.5:1}}>
-            {sendingVisit?"Enviando...":"Enviar solicitud →"}
-          </button>
-        </div>
-      )}
-      <div style={{padding:"8px 10px",borderTop:"1px solid "+C.border,display:"flex",gap:6,alignItems:"center"}}>
-        <button onClick={()=>setShowVisitForm(!showVisitForm)} title="Solicitar visita" style={{padding:"8px 10px",background:showVisitForm?C.accent+"22":"transparent",border:"1px solid "+(showVisitForm?C.accent+"44":C.border),borderRadius:8,color:showVisitForm?C.accent:C.muted,cursor:"pointer",fontSize:15,flexShrink:0}}>📅</button>
-        <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&send()} placeholder="Escribe un mensaje..." style={{flex:1,background:C.card,border:"1px solid "+C.border,borderRadius:8,padding:"9px 12px",color:C.text,fontFamily:"inherit",fontSize:13,outline:"none"}} />
-        <button onClick={send} disabled={sending} style={{padding:"8px 14px",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:8,color:"#000",fontWeight:900,cursor:"pointer",fontSize:14,opacity:sending?0.5:1,flexShrink:0}}>→</button>
-      </div>
-    </div>
-  );
-}
-
-
-// ─── BUSCADOR EXPRESS 3 PASOS ───
-function BuscadorExpress({workers, onResult, onWorkerSelect, onClose}:{workers:UserRow[];onResult:(oficio:string,zona:string,urgency:string)=>void;onWorkerSelect:(w:UserRow)=>void;onClose?:()=>void}){
-  const [step,setStep]=useState(0); // 0=home, 1=oficio, 2=urgencia, 3=zona/resultados
-  const [selOficio,setSelOficio]=useState("");
-  const [selUrgency,setSelUrgency]=useState("");
-  const [selZona,setSelZona]=useState("Todas");
-  const [textSearch,setTextSearch]=useState("");
-  const [expanded,setExpanded]=useState(false);
-
-  const filtered=workers.filter(w=>
-    (!selOficio||w.trade===selOficio)&&
-    (selZona==="Todas"||w.zone===selZona||(w.service_zones||[]).includes(selZona))
-  ).sort((a,b)=>{
-    const order:Record<Plan,number>={elite:3,pro:2,basico:1,gratis:0};
-    if(selUrgency==="urgente"&&a.schedule?.includes("24h")!==b.schedule?.includes("24h"))
-      return b.schedule?.includes("24h")?1:-1;
-    return order[b.plan as Plan]-order[a.plan as Plan]||b.rating-a.rating;
-  });
-
-  const URGENCY_OPTS=[
-    {id:"urgente",icon:"🔴",title:"¡Urgencia ahora!",sub:"Avería crítica · Lo necesito hoy",border:C.red,bg:C.red+"15"},
-    {id:"semana",icon:"🟡",title:"Esta semana",sub:"Tengo unos días de margen",border:C.orange,bg:C.orange+"12"},
-    {id:"presupuesto",icon:"🟢",title:"Solo presupuesto",sub:"Proyecto o consulta sin prisa",border:C.green,bg:C.green+"10"},
-  ];
-
-  const topOficios=OFICIOS_TOP;
-  const filteredBySearch=OFICIOS.filter(o=>!textSearch||o.toLowerCase().includes(textSearch.toLowerCase()));
-
-  const reset=()=>{setStep(0);setSelOficio("");setSelUrgency("");setSelZona("Todas");setTextSearch("");setExpanded(false);onClose&&onClose();};
-
-  // STEP 0 — home card (collapsed)
-  if(step===0) return(
-    <div style={{marginBottom:16}}>
-      {/* Buscador compacto clickable */}
-      <div onClick={()=>setStep(1)} style={{display:"flex",alignItems:"center",gap:12,background:"linear-gradient(135deg,"+C.card+","+C.surface+")",borderRadius:16,border:"1px solid "+C.accent+"44",padding:"14px 18px",cursor:"pointer",boxShadow:"0 4px 24px rgba(255,215,0,0.08)",transition:"all 0.2s"}}>
-        <div style={{width:40,height:40,borderRadius:12,background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0,boxShadow:"0 4px 14px "+C.accent+"44"}}>🔍</div>
-        <div style={{flex:1}}>
-          <p style={{fontWeight:700,color:C.text,fontSize:15,marginBottom:2}}>¿Qué profesional necesitas?</p>
-          <p style={{fontSize:12,color:C.muted}}>Fontanero, electricista, limpieza…</p>
-        </div>
-        <div style={{background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",borderRadius:10,padding:"8px 14px",color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,flexShrink:0}}>Buscar →</div>
-      </div>
-
-      {/* Top oficios como chips rápidos */}
-      <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:4,marginTop:10}}>
-        {topOficios.map(o=>(
-          <button key={o} onClick={()=>{setSelOficio(o);setStep(2);}} style={{flexShrink:0,display:"flex",alignItems:"center",gap:5,padding:"6px 12px",borderRadius:99,border:"1px solid "+C.border,background:C.surface,color:C.mutedL,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:500,whiteSpace:"nowrap",transition:"all 0.15s"}}>
-            <span>{OFICIO_ICONS[o]||"🔧"}</span>{o}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-
-  // STEP 1 — Elige oficio
-  if(step===1) return(
-    <div style={{background:"linear-gradient(170deg,"+C.card+","+C.surface+")",borderRadius:20,border:"1px solid "+C.accent+"33",padding:20,marginBottom:16,boxShadow:"0 8px 32px rgba(0,0,0,0.4)"}}>
-      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
-        <div>
-          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:3}}>
-            <span style={{width:22,height:22,borderRadius:99,background:C.accent,color:"#000",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:900}}>1</span>
-            <p style={{fontWeight:800,fontSize:16,color:C.text}}>¿Qué necesitas?</p>
-          </div>
-          <p style={{fontSize:12,color:C.muted,marginLeft:30}}>Paso 1 de 3 · Elige el servicio</p>
-        </div>
-        <button onClick={reset} style={{background:"none",border:"1px solid "+C.border,borderRadius:8,color:C.muted,cursor:"pointer",padding:"4px 10px",fontSize:12}}>✕</button>
-      </div>
-
-      {/* Search predictive */}
-      <div style={{display:"flex",background:C.bg,borderRadius:10,border:"1px solid "+C.border,overflow:"hidden",marginBottom:14}}>
-        <span style={{padding:"0 12px",display:"flex",alignItems:"center",color:C.muted}}>🔍</span>
-        <input autoFocus value={textSearch} onChange={e=>setTextSearch(e.target.value)} placeholder="Busca un oficio..." style={{flex:1,padding:"11px 0",background:"transparent",border:"none",color:C.text,fontFamily:"inherit",fontSize:14,outline:"none"}} />
-        {textSearch&&<button onClick={()=>setTextSearch("")} style={{padding:"0 12px",background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:14}}>✕</button>}
-      </div>
-
-      {/* Top picks - most demanded */}
-      {!textSearch&&(<>
-        <p style={{fontSize:10,color:C.muted,textTransform:"uppercase",letterSpacing:"0.08em",fontWeight:700,marginBottom:8}}>🔥 Más solicitados</p>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:7,marginBottom:12}}>
-          {topOficios.map(o=>(
-            <button key={o} onClick={()=>{setSelOficio(o);setStep(2);}} style={{padding:"10px 6px",borderRadius:12,border:"1px solid "+C.border,background:C.bg,color:C.text,cursor:"pointer",fontFamily:"inherit",textAlign:"center",transition:"all 0.15s"}}>
-              <div style={{fontSize:20,marginBottom:4}}>{OFICIO_ICONS[o]||"🔧"}</div>
-              <p style={{fontSize:11,fontWeight:600,lineHeight:1.3}}>{o}</p>
-            </button>
-          ))}
-        </div>
-      </>)}
-
-      {/* All / filtered list */}
-      <p style={{fontSize:10,color:C.muted,textTransform:"uppercase",letterSpacing:"0.08em",fontWeight:700,marginBottom:8}}>{textSearch?"Resultados":"Todos los servicios"}</p>
-      <div style={{maxHeight:200,overflowY:"auto",display:"flex",flexDirection:"column",gap:5}}>
-        {filteredBySearch.map(o=>(
-          <button key={o} onClick={()=>{setSelOficio(o);setStep(2);}} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",borderRadius:10,border:"1px solid "+C.border,background:C.bg,color:C.text,cursor:"pointer",fontFamily:"inherit",textAlign:"left",transition:"all 0.15s"}}>
-            <span style={{fontSize:18,flexShrink:0}}>{OFICIO_ICONS[o]||"🔧"}</span>
-            <span style={{fontSize:13,fontWeight:600}}>{o}</span>
-            <span style={{marginLeft:"auto",fontSize:10,color:C.muted}}>{OFICIO_CATEGORIES[o]?.split(" ")[0]||""}</span>
-          </button>
-        ))}
-        {filteredBySearch.length===0&&<p style={{textAlign:"center",color:C.muted,fontSize:13,padding:16}}>No encontrado · <button onClick={()=>{setSelOficio("Otros servicios");setStep(2);}} style={{background:"none",border:"none",color:C.accent,cursor:"pointer",fontWeight:700}}>Continuar con "Otros"</button></p>}
-      </div>
-    </div>
-  );
-
-  // STEP 2 — Urgencia
-  if(step===2) return(
-    <div style={{background:"linear-gradient(170deg,"+C.card+","+C.surface+")",borderRadius:20,border:"1px solid "+C.accent+"33",padding:20,marginBottom:16,boxShadow:"0 8px 32px rgba(0,0,0,0.4)"}}>
-      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:4}}>
-        <button onClick={()=>setStep(1)} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:18,padding:"0 6px 0 0"}}>←</button>
-        <div style={{flex:1}}>
-          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:3}}>
-            <span style={{width:22,height:22,borderRadius:99,background:C.accent,color:"#000",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:900}}>2</span>
-            <p style={{fontWeight:800,fontSize:16,color:C.text}}>¿Con qué urgencia?</p>
-          </div>
-          <p style={{fontSize:12,color:C.muted,marginLeft:30}}>
-            <span style={{color:C.accent,fontWeight:600}}>{OFICIO_ICONS[selOficio]||"🔧"} {selOficio}</span> · Paso 2 de 3
-          </p>
-        </div>
-        <button onClick={reset} style={{background:"none",border:"1px solid "+C.border,borderRadius:8,color:C.muted,cursor:"pointer",padding:"4px 10px",fontSize:12}}>✕</button>
-      </div>
-
-      <div style={{display:"flex",flexDirection:"column",gap:10,marginTop:16}}>
-        {URGENCY_OPTS.map(opt=>(
-          <button key={opt.id} onClick={()=>{setSelUrgency(opt.id);setStep(3);}} style={{display:"flex",gap:14,alignItems:"center",padding:"16px 18px",borderRadius:14,border:"2px solid "+opt.border+"55",background:opt.bg,cursor:"pointer",fontFamily:"inherit",textAlign:"left",transition:"all 0.15s",position:"relative",overflow:"hidden"}}>
-            <div style={{position:"absolute",top:-10,right:-10,width:50,height:50,borderRadius:"50%",background:opt.border+"15",pointerEvents:"none"}} />
-            <span style={{fontSize:28,flexShrink:0}}>{opt.icon}</span>
-            <div>
-              <p style={{fontWeight:800,fontSize:15,color:C.text,marginBottom:3}}>{opt.title}</p>
-              <p style={{fontSize:12,color:C.mutedL}}>{opt.sub}</p>
-            </div>
-            <span style={{marginLeft:"auto",fontSize:16,color:opt.border,flexShrink:0}}>→</span>
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-
-  // STEP 3 — Zona + Resultados
-  return(
-    <div style={{marginBottom:16}}>
-      {/* Header del wizard */}
-      <div style={{background:"linear-gradient(170deg,"+C.card+","+C.surface+")",borderRadius:20,border:"1px solid "+C.accent+"33",padding:"16px 18px",marginBottom:14,boxShadow:"0 4px 20px rgba(0,0,0,0.3)"}}>
-        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}>
-          <button onClick={()=>setStep(2)} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:18,padding:"0 4px 0 0"}}>←</button>
-          <div style={{flex:1,display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
-            <span style={{display:"flex",alignItems:"center",gap:5,background:C.accent+"18",border:"1px solid "+C.accent+"33",borderRadius:99,padding:"4px 10px",fontSize:12,color:C.accent,fontWeight:700}}>
-              {OFICIO_ICONS[selOficio]||"🔧"} {selOficio}
-            </span>
-            <span style={{display:"flex",alignItems:"center",gap:5,background:C.surface,border:"1px solid "+C.border,borderRadius:99,padding:"4px 10px",fontSize:12,color:C.mutedL}}>
-              {selUrgency==="urgente"?"🔴 Urgente":selUrgency==="semana"?"🟡 Esta semana":"🟢 Presupuesto"}
-            </span>
-          </div>
-          <button onClick={reset} style={{background:"none",border:"none",color:C.accent,cursor:"pointer",fontSize:11,fontWeight:700,flexShrink:0}}>Nueva búsqueda</button>
-        </div>
-
-        {/* Zona selector */}
-        <div style={{display:"flex",gap:8,alignItems:"center"}}>
-          <span style={{fontSize:12,color:C.muted,flexShrink:0}}>📍 Zona:</span>
-          <select value={selZona} onChange={e=>setSelZona(e.target.value)} style={{flex:1,padding:"8px 10px",background:C.bg,border:"1px solid "+C.border,borderRadius:8,color:selZona==="Todas"?C.muted:C.text,fontFamily:"inherit",fontSize:13,cursor:"pointer",outline:"none"}}>
-            <option style={{background:C.card}}>Todas</option>
-            {[...ZONAS,...SEVILLA_ZONAS].filter((v,i,a)=>a.indexOf(v)===i).map(z=><option key={z} style={{background:C.card}}>{z}</option>)}
-          </select>
-        </div>
-      </div>
-
-      {/* Resultados */}
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-        <p style={{fontSize:12,color:C.muted}}>
-          <span style={{color:C.text,fontWeight:700}}>{filtered.length}</span> profesionales encontrados
-          {selUrgency==="urgente"&&<span style={{color:C.red,fontWeight:600,marginLeft:6}}>· Filtrando urgencias 24h primero</span>}
-        </p>
-      </div>
-
-      {filtered.length===0&&(
-        <div style={{textAlign:"center",padding:"32px 20px",color:C.muted,background:C.card,borderRadius:14,border:"1px solid "+C.border}}>
-          <p style={{fontSize:28,marginBottom:8}}>😕</p>
-          <p style={{fontWeight:700,color:C.text,fontSize:16,marginBottom:6}}>Sin profesionales disponibles</p>
-          <p style={{fontSize:13,marginBottom:16}}>Prueba con otra zona o cambia el oficio</p>
-          <button onClick={()=>setSelZona("Todas")} style={{background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:10,color:"#000",cursor:"pointer",padding:"10px 20px",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13}}>Ver en todas las zonas</button>
-        </div>
-      )}
-
-      <div style={{display:"flex",flexDirection:"column",gap:10}}>
-        {filtered.map(w=>{
-          const col=wColor(w.id);
-          const isUrgent=w.schedule?.includes("24h");
-          return(
-            <div key={w.id} onClick={()=>onWorkerSelect(w)} style={{background:C.card,borderRadius:14,border:"1px solid "+(selUrgency==="urgente"&&isUrgent?C.red+"44":col+"25"),padding:16,cursor:"pointer",transition:"all 0.2s",position:"relative",overflow:"hidden"}}>
-              {selUrgency==="urgente"&&isUrgent&&(
-                <div style={{position:"absolute",top:10,right:10,background:C.red,borderRadius:6,padding:"2px 8px",fontSize:9,color:"#fff",fontWeight:800}}>24H</div>
-              )}
-              <div style={{display:"flex",gap:12,alignItems:"center"}}>
-                <Ava s={w.name.substring(0,2).toUpperCase()} size={48} color={col} online={w.available} />
-                <div style={{flex:1,minWidth:0}}>
-                  <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:2,flexWrap:"wrap"}}>
-                    <p style={{fontWeight:700,color:C.text,fontSize:15}}>{w.name}</p>
-                    {w.verified&&<span style={{fontSize:10,color:C.green}}>✓</span>}
-                    {(w.plan==="pro"||w.plan==="elite")&&<Badge plan={w.plan} />}
-                  </div>
-                  <p style={{fontSize:12,color:col,fontWeight:600,marginBottom:2}}>{OFICIO_ICONS[w.trade||""]||"🔧"} {w.trade}</p>
-                  <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
-                    <Stars n={w.rating} size={10} />
-                    <span style={{fontSize:11,color:C.text,fontWeight:700}}>{w.rating>0?w.rating.toFixed(1):"Nuevo"}</span>
-                    {w.reviews>0&&<span style={{fontSize:10,color:C.muted}}>({w.reviews})</span>}
-                    <span style={{fontSize:10,color:C.muted}}>📍{w.zone}</span>
-                  </div>
-                </div>
-                <div style={{textAlign:"right",flexShrink:0}}>
-                  <p style={{fontWeight:800,fontSize:18,color:C.accent}}>{w.price}€<span style={{fontSize:10,color:C.muted,fontWeight:400}}>/h</span></p>
-                  {w.free_quote&&<p style={{fontSize:10,color:C.green,marginTop:2}}>Ppto. gratis</p>}
-                  <p style={{fontSize:10,color:w.available?C.green:C.muted,marginTop:2}}>●{w.available?" Disponible":" Ocupado"}</p>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-// ─── CLIENT HOME ───
-function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
-  const [tab,setTab]=useState<"buscar"|"ranking"|"chats"|"perfil">("buscar");
-  const [zona,setZona]=useState("Todas");
-  const [oficio,setOficio]=useState("Todos");
-  const [search,setSearch]=useState("");
-  const [soloDisp,setSoloDisp]=useState(false);
-  const [catFilter,setCatFilter]=useState("Todos");
-  const [showWizard,setShowWizard]=useState(false);
-  const [workers,setWorkers]=useState<UserRow[]>([]);
-  const [loading,setLoading]=useState(true);
-  const [selectedWorker,setSelectedWorker]=useState<UserRow|null>(null);
-  const [chatWorker,setChatWorker]=useState<UserRow|null>(null);
-  const [chatPartners,setChatPartners]=useState<UserRow[]>([]);
-  const [toast,setToast]=useState<string|null>(null);
-  const showToast=(m:string)=>{setToast(m);setTimeout(()=>setToast(null),3000);};
-
-  // Filtered workers for Idealista-style list
-  const filteredWorkers=workers.filter(w=>{
-    if(soloDisp&&!w.available)return false;
-    if(zona!=="Todas"&&w.zone!==zona&&!(w.service_zones||[]).includes(zona))return false;
-    if(oficio!=="Todos"&&w.trade!==oficio)return false;
-    if(catFilter!=="Todos"){
-      const cat=OFICIO_CATEGORIES[w.trade||""]||"";
-      if(!cat.includes(catFilter.split(" ").slice(1).join(" ")))return false;
-    }
-    if(search){
-      const s=search.toLowerCase();
-      if(!w.name.toLowerCase().includes(s)&&!(w.trade||"").toLowerCase().includes(s)&&!(w.bio||"").toLowerCase().includes(s))return false;
-    }
-    return true;
-  });
-
-  const loadWorkers=useCallback(async()=>{
-    setLoading(true);
-    // Load all profesionales — BuscadorExpress handles filtering client-side
-    const {data}=await db.from("users").select("*").eq("type","profesional");
-    const sorted=(data||[]).sort((a:UserRow,b:UserRow)=>{
-      const order:Record<Plan,number>={elite:3,pro:2,basico:1,gratis:0};
-      return order[b.plan as Plan]-order[a.plan as Plan]||b.rating-a.rating;
-    });
-    setWorkers(sorted); setLoading(false);
-  },[]);
-
-  useEffect(()=>{loadWorkers();},[loadWorkers]);
-
-  const loadChats=useCallback(async()=>{
-    const {data}=await db.from("messages").select("from_id,to_id").or("from_id.eq."+user.id+",to_id.eq."+user.id);
-    if(!data?.length){setChatPartners([]);return;}
-    const ids=[...new Set((data as any[]).map((m:any)=>m.from_id===user.id?m.to_id:m.from_id))];
-    const {data:ws}=await db.from("users").select("*").in("id",ids);
-    setChatPartners(ws||[]);
-  },[user.id]);
-
-  useEffect(()=>{if(tab==="chats")loadChats();},[tab,loadChats]);
-
-  const handleChat=async(w:UserRow)=>{
-    const ok=await logLead(w.id,user.id,"message");
-    if(!ok){showToast("⛔ Este profesional ha alcanzado su límite de contactos este mes");return;}
-    setSelectedWorker(null); setChatWorker(w); showToast("Chat abierto con "+w.name);
-  };
-
-  return (
-    <div style={{minHeight:"100dvh",background:C.bg,backgroundImage:"radial-gradient(ellipse at 15% 0%,#1a0a3a22,transparent 50%),radial-gradient(ellipse at 85% 100%,#0a1a3a22,transparent 50%)",paddingBottom:72}}>
-      <header style={{background:"rgba(10,10,15,0.94)",backdropFilter:"blur(20px)",borderBottom:"1px solid "+C.border,position:"sticky",top:0,zIndex:100,boxShadow:"0 2px 20px rgba(0,0,0,0.4)"}}>
-        <div style={{maxWidth:900,margin:"0 auto",padding:"0 16px",display:"flex",alignItems:"center",justifyContent:"space-between",height:52}}>
-          <button onClick={()=>setTab("buscar")} style={{display:"flex",alignItems:"center",gap:8,background:"none",border:"none",cursor:"pointer",padding:0}}>
-            <div style={{width:28,height:28,borderRadius:8,background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14}}>🔨</div>
-            <span style={{fontWeight:900,fontSize:19,letterSpacing:"-0.03em"}}><span style={{color:C.text}}>Oficio</span><span style={{color:C.accent}}>Ya</span></span>
-            <span style={{fontSize:9,color:C.accent,background:C.accent+"15",padding:"2px 7px",borderRadius:3,fontWeight:700}}>SEVILLA</span>
-          </button>
-          <button onClick={onLogout} style={{background:"none",border:"1px solid "+C.border,borderRadius:6,color:C.muted,cursor:"pointer",padding:"4px 10px",fontSize:11}}>Salir</button>
-        </div>
-      </header>
-
-      <div style={{maxWidth:900,margin:"0 auto",padding:"0 16px"}}>
-        {tab==="buscar"&&(<>
-          {/* ── HERO ── */}
-          <div style={{padding:"14px 0 10px"}}>
-            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
-              <div style={{display:"inline-flex",gap:5,background:C.green+"15",border:"1px solid "+C.green+"30",borderRadius:99,padding:"4px 10px"}}>
-                <span style={{fontSize:8,color:C.green,animation:"pulse 2s infinite"}}>●</span>
-                <span style={{fontSize:11,color:C.green,fontWeight:700}}>{workers.filter(w=>w.available).length} disponibles ahora</span>
-              </div>
-            </div>
-            <h1 style={{fontWeight:900,fontSize:"clamp(20px,5vw,36px)",lineHeight:1.1,letterSpacing:"-0.02em",marginBottom:4}}>
-              <span style={{color:C.text}}>El profesional que necesitas,</span><br/>
-              <span style={{background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>en tu ciudad.</span>
-            </h1>
-          </div>
-
-          {/* ── BUSCADOR DIRECTO (como Idealista) ── */}
-          <div style={{marginBottom:12}}>
-            {/* Barra de búsqueda */}
-            <div style={{display:"flex",background:C.card,borderRadius:14,border:"1px solid "+C.border,overflow:"hidden",marginBottom:8,boxShadow:"0 2px 16px rgba(0,0,0,0.25)"}}>
-              <span style={{padding:"0 14px",display:"flex",alignItems:"center",color:C.muted,fontSize:17}}>🔍</span>
-              <input
-                value={search}
-                onChange={e=>setSearch(e.target.value)}
-                placeholder="Electricista, fontanero, pintor..."
-                style={{flex:1,padding:"14px 0",background:"transparent",border:"none",color:C.text,fontFamily:"inherit",fontSize:15,outline:"none"}}
-              />
-              {search&&<button onClick={()=>setSearch("")} style={{padding:"0 14px",background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:15}}>✕</button>}
-            </div>
-
-            {/* Filtros rápidos en una línea */}
-            <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
-              <select value={zona} onChange={e=>setZona(e.target.value)} style={{flex:1,minWidth:100,padding:"7px 10px",background:C.surface,border:"1px solid "+C.border,borderRadius:8,color:zona==="Todas"?C.muted:C.accent,fontFamily:"inherit",fontSize:12,cursor:"pointer",outline:"none",fontWeight:zona==="Todas"?400:600}}>
-                <option style={{background:C.card}}>Todas</option>
-                {ZONAS.map(z=><option key={z} style={{background:C.card}}>{z}</option>)}
-              </select>
-              <label style={{display:"flex",alignItems:"center",gap:5,cursor:"pointer",fontSize:12,color:soloDisp?C.green:C.mutedL,flexShrink:0,padding:"7px 10px",background:soloDisp?C.green+"12":C.surface,borderRadius:8,border:"1px solid "+(soloDisp?C.green+"44":C.border),transition:"all 0.15s"}}>
-                <input type="checkbox" checked={soloDisp} onChange={e=>setSoloDisp(e.target.checked)} style={{accentColor:C.green,width:13,height:13}} />
-                Disponibles
-              </label>
-            </div>
-          </div>
-
-          {/* ── BOTÓN WIZARD "¿QUÉ NECESITAS?" ── */}
-          {!showWizard&&(
-            <button onClick={()=>setShowWizard(true)} style={{width:"100%",display:"flex",alignItems:"center",gap:12,background:"linear-gradient(135deg,"+C.accent+"18,"+C.orange+"10)",borderRadius:14,border:"1px solid "+C.accent+"44",padding:"13px 18px",cursor:"pointer",marginBottom:14,boxShadow:"0 3px 16px rgba(255,215,0,0.1)",transition:"all 0.2s",fontFamily:"'DM Sans',sans-serif"}}>
-              <div style={{width:36,height:36,borderRadius:10,background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>⚡</div>
-              <div style={{textAlign:"left",flex:1}}>
-                <p style={{fontWeight:700,color:C.text,fontSize:14,marginBottom:1}}>¿Qué profesional necesitas?</p>
-                <p style={{fontSize:11,color:C.muted}}>Te guiamos en 3 pasos al mejor disponible</p>
-              </div>
-              <span style={{background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",borderRadius:8,padding:"6px 12px",color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:12,flexShrink:0}}>Iniciar →</span>
-            </button>
-          )}
-
-          {/* Wizard inline */}
-          {showWizard&&(
-            <div style={{marginBottom:14}}>
-              <BuscadorExpress
-                workers={workers}
-                onResult={(o,z,u)=>{setOficio(o);setZona(z);setShowWizard(false);}}
-                onWorkerSelect={w=>{setSelectedWorker(w);setShowWizard(false);}}
-                onClose={()=>setShowWizard(false)}
-              />
-            </div>
-          )}
-
-          {/* ── CATEGORÍAS ── */}
-          {!showWizard&&(
-            <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:4,marginBottom:14}}>
-              {[
-                {cat:"Todos",icon:"✦"},
-                {cat:"⚡ Técnico",icon:""},
-                {cat:"🌿 Servicios",icon:""},
-                {cat:"🐾 Mascotas",icon:""},
-                {cat:"💆 Cuidados",icon:""},
-                {cat:"🏺 Artesanía",icon:""},
-                {cat:"🎪 Eventos",icon:""},
-              ].map(({cat})=>(
-                <button key={cat} onClick={()=>{setCatFilter(cat);setOficio("Todos");}} style={{flexShrink:0,padding:"7px 14px",borderRadius:99,border:"1px solid "+(catFilter===cat?C.accent:C.border),background:catFilter===cat?"linear-gradient(135deg,"+C.accent+"28,"+C.orange+"18)":"transparent",color:catFilter===cat?C.accent:C.muted,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:catFilter===cat?700:400,whiteSpace:"nowrap",transition:"all 0.15s"}}>
-                  {cat}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* ── LISTA DE PROFESIONALES (estilo Idealista) ── */}
-          {!showWizard&&(<>
-            {loading?<Spin />:(<>
-              {/* Contador + info */}
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-                <p style={{fontSize:12,color:C.muted}}>
-                  <span style={{color:C.text,fontWeight:700}}>{filteredWorkers.length}</span> profesionales
-                  {oficio!=="Todos"&&<span> de <span style={{color:C.accent,fontWeight:600}}>{oficio}</span></span>}
-                  {zona!=="Todas"&&<span style={{color:C.muted}}> en {zona}</span>}
-                </p>
-                {(oficio!=="Todos"||zona!=="Todas"||search||soloDisp)&&(
-                  <button onClick={()=>{setOficio("Todos");setZona("Todas");setSearch("");setSoloDisp(false);setCatFilter("Todos");}} style={{background:"none",border:"none",color:C.accent,cursor:"pointer",fontSize:11,fontWeight:700}}>✕ Quitar filtros</button>
-                )}
-              </div>
-
-              {filteredWorkers.length===0&&(
-                <div style={{textAlign:"center",padding:"32px 20px",color:C.muted}}>
-                  <p style={{fontSize:32,marginBottom:8}}>🔍</p>
-                  <p style={{fontWeight:700,color:C.text,fontSize:16,marginBottom:6}}>Sin resultados</p>
-                  <p style={{fontSize:13}}>Prueba con otra búsqueda o zona</p>
-                </div>
-              )}
-
-              <div style={{display:"flex",flexDirection:"column",gap:10}}>
-                {filteredWorkers.map(w=><WorkerCardIdealista key={w.id} w={w} onChat={()=>handleChat(w)} onSelect={()=>setSelectedWorker(w)} />)}
-              </div>
-            </>)}
-          </>)}
-        </>)}
-
-        {tab==="ranking"&&<RankingSection workers={workers} onSelect={setSelectedWorker} />}
-
-        {tab==="chats"&&(<>
-          <div style={{padding:"22px 0 16px"}}><h2 style={{fontWeight:800,fontSize:22,color:C.text}}>Mis conversaciones</h2></div>
-          {chatPartners.length===0?<div style={{textAlign:"center",padding:48,color:C.muted}}>
-            <p style={{fontSize:36,marginBottom:8}}>💬</p>
-            <p style={{fontWeight:700,fontSize:16,marginBottom:6}}>Sin conversaciones</p>
-            <Btn onClick={()=>setTab("buscar")} small>Buscar profesionales →</Btn>
-          </div>:
-          <div style={{display:"flex",flexDirection:"column",gap:10}}>
-            {chatPartners.map(w=>{
-              const col=wColor(w.id);
-              return <GCard key={w.id} onClick={()=>setChatWorker(w)} glow={col}>
-                <div style={{display:"flex",gap:12,alignItems:"center"}}>
-                  <Ava s={w.name.substring(0,2).toUpperCase()} size={46} color={col} online={w.available} />
-                  <div style={{flex:1,minWidth:0}}>
-                    <p style={{fontWeight:700,color:C.text,fontSize:14}}>{w.name}</p>
-                    <p style={{fontSize:12,color:col}}>{OFICIO_ICONS[w.trade||""]||"🔧"} {w.trade} · {w.zone}</p>
-                  </div>
-                  <Btn small onClick={(e:any)=>{e.stopPropagation();setChatWorker(w);}}>Abrir →</Btn>
-                </div>
-              </GCard>;
-            })}
-          </div>}
-        </>)}
-
-        {tab==="perfil"&&(<>
-          <div style={{padding:"22px 0 16px"}}><h2 style={{fontWeight:800,fontSize:22,color:C.text}}>Mi perfil</h2></div>
-          <GCard style={{marginBottom:14}}>
-            <div style={{display:"flex",gap:14,alignItems:"center",marginBottom:14}}>
-              <Ava s={user.name.substring(0,2).toUpperCase()} size={52} color={C.blue} />
-              <div>
-                <p style={{fontWeight:800,fontSize:18,color:C.text}}>{user.name}</p>
-                <p style={{fontSize:13,color:C.muted}}>{user.email}</p>
-                <p style={{fontSize:12,color:C.muted}}>{user.phone}</p>
-                <div style={{marginTop:5}}><Badge plan={user.plan} /></div>
-              </div>
-            </div>
-          </GCard>
-          <Btn full outline danger onClick={onLogout} color={C.red}>Cerrar sesión</Btn>
-        </>)}
-      </div>
-
-      <nav style={{position:"fixed",bottom:0,left:0,right:0,background:"rgba(10,10,15,0.97)",backdropFilter:"blur(20px)",borderTop:"1px solid "+C.border,display:"flex",zIndex:200}}>
-        {([["buscar","buscar"],["ranking","ranking"],["chats","chats"],["perfil","perfil"]] as const).map(([id])=>{
-          const icons:Record<string,React.ReactNode>={
-            buscar:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>,
-            ranking:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>,
-            chats:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
-            perfil:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
-          };
-          const labels:Record<string,string>={buscar:"Buscar",ranking:"Ranking",chats:"Mensajes",perfil:"Perfil"};
-          const isActive=tab===id;
-          return (
-            <button key={id} onClick={()=>setTab(id as any)} style={{flex:1,padding:"8px 4px 10px",background:"none",border:"none",color:isActive?C.accent:C.muted+"88",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:3,transition:"all 0.2s",position:"relative"}}>
-              {isActive&&<div style={{position:"absolute",top:0,left:"50%",transform:"translateX(-50%)",width:32,height:2,background:"linear-gradient(90deg,"+C.accent+","+C.orange+")",borderRadius:"0 0 2px 2px"}} />}
-              <div style={{color:isActive?C.accent:C.muted+"88"}}>{icons[id]}</div>
-              <span style={{fontSize:9,fontWeight:isActive?700:500,letterSpacing:"0.04em",textTransform:"uppercase"}}>{labels[id]}</span>
-            </button>
-          );
-        })}
-      </nav>
-
-      {selectedWorker&&<WorkerSheet worker={selectedWorker} onClose={()=>setSelectedWorker(null)} onChat={w=>{setSelectedWorker(null);handleChat(w);}} currentUser={user} />}
-      {chatWorker&&<ChatPanel toUser={chatWorker} currentUser={user} onClose={()=>setChatWorker(null)} currentUserFull={user} />}
-      <Ping msg={toast} />
-    </div>
-  );
-}
-
 // ─── PRO DASHBOARD ───
 function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;onUpdate:(u:UserRow)=>void}){
   const [tab,setTab]=useState<"inicio"|"chats"|"trabajos"|"perfil"|"planes">("inicio");
@@ -1619,6 +1477,23 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
         showToast("💬 Nuevo mensaje de un cliente");
       }).subscribe();
     return ()=>{db.removeChannel(ch);};
+  },[user.id]);
+
+  const [inAppNotif,setInAppNotif]=useState<{msg:string;from:string;fromId:string}|null>(null);
+  const [unreadMsgs,setUnreadMsgs]=useState(false);
+
+  // Realtime notifications para pro
+  useEffect(()=>{
+    const chNotif=db.channel("pro-notif-"+user.id)
+      .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"to_id=eq."+user.id},(p:any)=>{
+        const m=p.new;
+        db.from("users").select("name").eq("id",m.from_id).single().then(({data}:any)=>{
+          const senderName=data?.name||"Cliente";
+          setInAppNotif({msg:m.text.substring(0,60)+(m.text.length>60?"...":""),from:senderName,fromId:m.from_id});
+          setUnreadMsgs(true);
+        });
+      }).subscribe();
+    return ()=>{db.removeChannel(chNotif);};
   },[user.id]);
 
   const loadChats=useCallback(async()=>{
@@ -1974,12 +1849,12 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
         ))}
       </nav>
 
-      {chatUser&&<ChatPanel toUser={chatUser} currentUser={user} onClose={()=>setChatUser(null)} />}
+      {inAppNotif&&<InAppNotification msg={inAppNotif.msg} from={"💬 "+inAppNotif.from} onClose={()=>setInAppNotif(null)} onClick={()=>{setInAppNotif(null);const c=chatPartners.find(x=>x.id===inAppNotif.fromId);if(c)setChatUser(c);else{setTab("chats");loadChats();}}}/>}
+      {chatUser&&<ChatPanel toUser={chatUser} currentUser={user} onClose={()=>{setChatUser(null);setUnreadMsgs(false);}}/>}
       <Ping msg={toast} />
     </div>
   );
 }
-
 // ─── ADMIN ───
 function Admin({onLogout}:{onLogout:()=>void}){
   type AdminTab="overview"|"funnel"|"usuarios"|"registros"|"trabajos"|"mensajes"|"reseñas";
@@ -2441,442 +2316,11 @@ export default function App(){
       ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:#1E1E30;border-radius:99px;}
       @keyframes spin{to{transform:rotate(360deg);}}
       @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+      @keyframes slideDown{from{transform:translateX(-50%) translateY(-100%);opacity:0;}to{transform:translateX(-50%) translateY(0);opacity:1;}}
     `}</style>
     {!user&&<Auth onLogin={login} />}
     {user&&user.type==="admin"&&<Admin onLogout={logout} />}
     {user&&user.type==="profesional"&&<ProDashboard user={user} onLogout={logout} onUpdate={update} />}
     {user&&user.type==="cliente"&&<ClientHome user={user} onLogout={logout} />}
   </>);
-}
-
-// ─── QUICK MATCH MODAL — Buscador Express 3 pasos ───
-function QuickMatchModal({workers,onClose,onSelect,currentUser}:{workers:UserRow[];onClose:()=>void;onSelect:(w:UserRow)=>void;currentUser:UserRow|null}){
-  const [step,setStep]=useState(0);
-  const [trade,setTrade]=useState("");
-  const [tradeSearch,setTradeSearch]=useState("");
-  const [zone,setZone]=useState("");
-  const [urgency,setUrgency]=useState<"now"|"week"|"quote">("now");
-  const [desc,setDesc]=useState("");
-  const [saving,setSaving]=useState(false);
-  const [sent,setSent]=useState(false);
-
-  // Filtered trades by search
-  const filteredTrades=tradeSearch
-    ?OFICIOS.filter(o=>o.toLowerCase().includes(tradeSearch.toLowerCase()))
-    :OFICIOS;
-
-  const matches=workers.filter(w=>
-    (!trade||w.trade===trade)&&
-    (!zone||w.zone===zone||(w.service_zones||[]).includes(zone))&&
-    w.available
-  ).sort((a,b)=>{
-    const order:Record<Plan,number>={elite:3,pro:2,basico:1,gratis:0};
-    return order[b.plan as Plan]-order[a.plan as Plan]||b.rating-a.rating;
-  }).slice(0,5);
-
-  const urgencyConfig={
-    now:{icon:"🚨",label:"Urgente — necesito ayuda hoy",color:C.red,desc:"Los profesionales disponibles ahora mismo te verán primero"},
-    week:{icon:"📅",label:"Esta semana — tengo tiempo",color:C.blue,desc:"Sin prisas, buscamos el mejor para ti"},
-    quote:{icon:"💬",label:"Solo quiero presupuesto",color:C.green,desc:"Te enviamos varias ofertas para comparar"},
-  };
-
-  const publishRequest=async()=>{
-    if(!trade){return;}
-    setSaving(true);
-    // Save as job request so pros see it
-    if(currentUser){
-      await db.from("jobs").insert({
-        worker_id: matches[0]?.id||"pending",
-        client_id: currentUser.id,
-        client_name: currentUser.name,
-        title: urgencyConfig[urgency].icon+" ["+urgency.toUpperCase()+"] "+trade+(zone?" en "+zone:""),
-        description: desc||(urgency==="now"?"Urgente":"Sin descripción"),
-        status:"pending",
-      });
-    }
-    setSaving(false);
-    setSent(true);
-  };
-
-  const STEP_LABELS=["Servicio","Zona","Urgencia","Resultado"];
-  const STEP_ICONS=["🔍","📍","⚡","✅"];
-
-  return (
-    <Sheet onClose={onClose}>
-      {/* Header */}
-      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:18}}>
-        <div style={{width:36,height:36,borderRadius:10,background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>⚡</div>
-        <div style={{flex:1}}>
-          <p style={{fontWeight:900,fontSize:16,color:C.text}}>Buscador Express</p>
-          <p style={{fontSize:11,color:C.muted}}>Paso {step+1} de 4 · {STEP_LABELS[step]}</p>
-        </div>
-        <button onClick={onClose} style={{background:"none",border:"1px solid "+C.border,borderRadius:8,color:C.muted,cursor:"pointer",padding:"5px 10px",fontSize:14}}>✕</button>
-      </div>
-      {/* Progress */}
-      <div style={{display:"flex",gap:3,marginBottom:20}}>
-        {STEP_LABELS.map((_,i)=>(
-          <div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
-            <div style={{width:"100%",height:4,borderRadius:99,background:i<=step?"linear-gradient(90deg,"+C.accent+","+C.orange+")":C.border,transition:"background 0.35s"}} />
-            <span style={{fontSize:9,color:i<=step?C.accent:C.muted,fontWeight:i===step?700:400}}>{STEP_ICONS[i]}</span>
-          </div>
-        ))}
-      </div>
-
-      {/* ─── PASO 0: QUÉ NECESITAS ─── */}
-      {step===0&&!sent&&(<>
-        <p style={{fontWeight:800,fontSize:16,color:C.text,marginBottom:4}}>¿Qué profesional necesitas?</p>
-        <p style={{fontSize:12,color:C.muted,marginBottom:14}}>Toca el servicio o escribe para buscar</p>
-        {/* Search inside modal */}
-        <div style={{display:"flex",background:C.surface,borderRadius:10,border:"1px solid "+C.border,overflow:"hidden",marginBottom:12}}>
-          <span style={{padding:"0 10px",display:"flex",alignItems:"center",color:C.muted}}>🔍</span>
-          <input value={tradeSearch} onChange={e=>setTradeSearch(e.target.value)} placeholder="Ej: fontanero, limpieza..." style={{flex:1,padding:"11px 0",background:"transparent",border:"none",color:C.text,fontFamily:"inherit",fontSize:14,outline:"none"}} autoFocus />
-          {tradeSearch&&<button onClick={()=>setTradeSearch("")} style={{padding:"0 10px",background:"none",border:"none",color:C.muted,cursor:"pointer"}}>✕</button>}
-        </div>
-        {/* Top picks when not searching */}
-        {!tradeSearch&&(
-          <div style={{marginBottom:10}}>
-            <p style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:8}}>Los más buscados</p>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:7,marginBottom:12}}>
-              {OFICIOS_TOP.map(t=>(
-                <button key={t} onClick={()=>{setTrade(t);setTradeSearch("");setStep(1);}} style={{padding:"10px 4px",borderRadius:10,border:"1px solid "+(trade===t?C.accent:C.border),background:trade===t?"linear-gradient(135deg,"+C.accent+"22,"+C.orange+"12)":C.surface,color:trade===t?C.accent:C.text,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontWeight:trade===t?700:500,fontSize:11,display:"flex",flexDirection:"column",alignItems:"center",gap:4,transition:"all 0.15s"}}>
-                  <span style={{fontSize:20}}>{OFICIO_ICONS[t]||"🔧"}</span>
-                  <span style={{lineHeight:1.2,textAlign:"center"}}>{t}</span>
-                </button>
-              ))}
-            </div>
-            <p style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:8}}>Todos los servicios</p>
-          </div>
-        )}
-        {/* All or filtered trades */}
-        <div style={{display:"flex",flexWrap:"wrap",gap:6,maxHeight:200,overflowY:"auto",paddingRight:4}}>
-          {filteredTrades.filter(t=>!OFICIOS_TOP.includes(t)||tradeSearch).map(t=>(
-            <button key={t} onClick={()=>{setTrade(t);setTradeSearch("");setStep(1);}} style={{padding:"7px 12px",borderRadius:99,border:"1px solid "+(trade===t?C.accent:C.border),background:trade===t?C.accent+"20":C.surface,color:trade===t?C.accent:C.text,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:trade===t?700:400,display:"inline-flex",alignItems:"center",gap:5,transition:"all 0.15s",whiteSpace:"nowrap"}}>
-              <span>{OFICIO_ICONS[t]||"🔧"}</span>{t}
-            </button>
-          ))}
-          {filteredTrades.length===0&&<p style={{fontSize:13,color:C.muted,padding:"16px 0"}}>Sin resultados para "{tradeSearch}"</p>}
-        </div>
-        {trade&&<div style={{marginTop:12,padding:"8px 12px",background:C.accent+"15",borderRadius:8,border:"1px solid "+C.accent+"33",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-          <span style={{fontSize:13,color:C.accent,fontWeight:700}}>{OFICIO_ICONS[trade]} {trade} seleccionado</span>
-          <button onClick={()=>setStep(1)} style={{padding:"5px 14px",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:8,color:"#000",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:12}}>Siguiente →</button>
-        </div>}
-      </>)}
-
-      {/* ─── PASO 1: ZONA ─── */}
-      {step===1&&!sent&&(<>
-        <p style={{fontWeight:800,fontSize:16,color:C.text,marginBottom:4}}>¿En qué zona de Sevilla?</p>
-        <p style={{fontSize:12,color:C.muted,marginBottom:14}}>Encontramos al profesional más cercano a ti</p>
-        <div style={{display:"flex",flexWrap:"wrap",gap:7,maxHeight:260,overflowY:"auto",paddingRight:4}}>
-          {SEVILLA_ZONAS.map(z=>(
-            <button key={z} onClick={()=>{setZone(z);setStep(2);}} style={{padding:"9px 13px",borderRadius:10,border:"1px solid "+(zone===z?C.blue:C.border),background:zone===z?"linear-gradient(135deg,"+C.blue+"25,"+C.purple+"12)":C.surface,color:zone===z?C.blue:C.text,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:zone===z?700:400,transition:"all 0.15s",display:"inline-flex",alignItems:"center",gap:5}}>
-              <span style={{fontSize:10}}>📍</span>{z}
-            </button>
-          ))}
-        </div>
-        <div style={{marginTop:12,display:"flex",gap:8}}>
-          <button onClick={()=>setStep(0)} style={{padding:"9px 14px",background:"none",border:"1px solid "+C.border,borderRadius:8,color:C.muted,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12}}>← Atrás</button>
-          <button onClick={()=>setStep(2)} style={{flex:1,padding:"9px",background:C.surface,border:"1px solid "+C.border,borderRadius:8,color:C.mutedL,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12}}>Toda Sevilla — no importa la zona →</button>
-        </div>
-      </>)}
-
-      {/* ─── PASO 2: URGENCIA ─── */}
-      {step===2&&!sent&&(<>
-        <p style={{fontWeight:800,fontSize:16,color:C.text,marginBottom:4}}>¿Con qué urgencia?</p>
-        <p style={{fontSize:12,color:C.muted,marginBottom:14}}>El profesional sabrá exactamente cómo prepararse</p>
-        <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:16}}>
-          {(["now","week","quote"] as const).map(u=>{
-            const cfg=urgencyConfig[u];
-            const isSelected=urgency===u;
-            return(
-              <div key={u} onClick={()=>setUrgency(u)} style={{padding:"14px 16px",borderRadius:12,border:"2px solid "+(isSelected?cfg.color:C.border),background:isSelected?cfg.color+"15":C.surface,cursor:"pointer",transition:"all 0.15s",position:"relative"}}>
-                <div style={{display:"flex",alignItems:"center",gap:12}}>
-                  <span style={{fontSize:24,flexShrink:0}}>{cfg.icon}</span>
-                  <div style={{flex:1}}>
-                    <p style={{fontWeight:700,fontSize:13,color:isSelected?cfg.color:C.text}}>{cfg.label}</p>
-                    <p style={{fontSize:11,color:C.muted,marginTop:2}}>{cfg.desc}</p>
-                  </div>
-                  <div style={{width:18,height:18,borderRadius:"50%",border:"2px solid "+(isSelected?cfg.color:C.border),background:isSelected?cfg.color:"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                    {isSelected&&<div style={{width:8,height:8,borderRadius:"50%",background:"#000"}} />}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        {/* Optional description */}
-        <div style={{marginBottom:14}}>
-          <p style={{fontSize:11,color:C.muted,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:6,fontWeight:700}}>Describe el trabajo (opcional)</p>
-          <textarea value={desc} onChange={e=>setDesc(e.target.value)} placeholder={"Ej: Tengo una fuga en el baño, lleva 2 días... / Quiero pintar el salón de 20m²..."} style={{width:"100%",background:C.surface,border:"1px solid "+C.border,borderRadius:8,padding:"10px 12px",color:C.text,fontFamily:"inherit",fontSize:13,outline:"none",resize:"none",minHeight:68}} />
-        </div>
-        <div style={{display:"flex",gap:8}}>
-          <button onClick={()=>setStep(1)} style={{padding:"11px 14px",background:"none",border:"1px solid "+C.border,borderRadius:8,color:C.muted,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12}}>← Atrás</button>
-          <button onClick={()=>{publishRequest();setStep(3);}} style={{flex:1,padding:"12px",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:10,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:800,fontSize:14,cursor:"pointer",boxShadow:"0 4px 16px "+C.accent+"44"}}>
-            {urgency==="now"?"🚨 Buscar urgente →":urgency==="week"?"📅 Buscar esta semana →":"💬 Pedir presupuestos →"}
-          </button>
-        </div>
-      </>)}
-
-      {/* ─── PASO 3: RESULTADOS ─── */}
-      {step===3&&(<>
-        {sent&&urgency==="now"&&(
-          <div style={{background:"linear-gradient(135deg,"+C.red+"18,"+C.orange+"12)",borderRadius:12,border:"1px solid "+C.red+"33",padding:"14px",marginBottom:14,textAlign:"center"}}>
-            <p style={{fontSize:22,marginBottom:4}}>🚨</p>
-            <p style={{fontWeight:800,color:C.red,fontSize:14,marginBottom:3}}>¡Solicitud urgente enviada!</p>
-            <p style={{fontSize:12,color:C.muted}}>Los profesionales disponibles en {zone||"Sevilla"} ya pueden ver tu solicitud</p>
-          </div>
-        )}
-        {sent&&urgency==="quote"&&(
-          <div style={{background:C.green+"12",borderRadius:12,border:"1px solid "+C.green+"33",padding:"14px",marginBottom:14,textAlign:"center"}}>
-            <p style={{fontSize:22,marginBottom:4}}>💬</p>
-            <p style={{fontWeight:800,color:C.green,fontSize:14,marginBottom:3}}>Solicitud de presupuesto enviada</p>
-            <p style={{fontSize:12,color:C.muted}}>Los profesionales te contactarán con sus ofertas</p>
-          </div>
-        )}
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-          <p style={{fontWeight:800,fontSize:15,color:C.text}}>
-            {matches.length>0?`${matches.length} profesional${matches.length>1?"es":""} disponible${matches.length>1?"s":""}`:"Sin resultados exactos"}
-            {trade&&<span style={{color:C.accent}}> · {OFICIO_ICONS[trade]} {trade}</span>}
-          </p>
-          {zone&&<span style={{fontSize:11,color:C.blue}}>📍 {zone}</span>}
-        </div>
-        {matches.length===0&&(
-          <div style={{textAlign:"center",padding:"24px 0",color:C.muted,marginBottom:14}}>
-            <p style={{fontSize:32,marginBottom:8}}>🔍</p>
-            <p style={{fontSize:13,marginBottom:12}}>No hay profesionales disponibles ahora con ese filtro</p>
-            <button onClick={()=>{setZone("");setStep(3);}} style={{background:"none",border:"1px solid "+C.accent+"44",borderRadius:8,color:C.accent,cursor:"pointer",fontSize:12,padding:"7px 14px",fontFamily:"'DM Sans',sans-serif",fontWeight:700}}>Ampliar a toda Sevilla</button>
-          </div>
-        )}
-        <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:14}}>
-          {matches.map(w=>{
-            const col=wColor(w.id);
-            return(
-              <GCard key={w.id} onClick={()=>onSelect(w)} glow={col} style={{padding:14,position:"relative",overflow:"hidden"}}>
-                {(w.plan==="elite"||w.plan==="pro")&&<div style={{position:"absolute",top:0,right:0,background:"linear-gradient(135deg,"+PLAN_COLORS[w.plan]+","+PLAN_COLORS[w.plan]+"88)",padding:"3px 10px",fontSize:8,fontWeight:900,color:w.plan==="pro"?"#000":"#000",borderRadius:"0 14px 0 8px"}}>{w.plan.toUpperCase()}</div>}
-                <div style={{display:"flex",gap:12,alignItems:"center"}}>
-                  <Ava s={w.name.substring(0,2).toUpperCase()} size={46} color={col} online={w.available} />
-                  <div style={{flex:1,minWidth:0}}>
-                    <div style={{display:"flex",gap:5,alignItems:"center",marginBottom:2}}>
-                      <p style={{fontWeight:700,color:C.text,fontSize:14}}>{w.name}</p>
-                      {w.verified&&<span style={{fontSize:10,color:C.green}}>✓</span>}
-                    </div>
-                    <p style={{fontSize:12,color:col,marginBottom:3}}>{OFICIO_ICONS[w.trade||""]||"🔧"} {w.trade} · {w.zone}</p>
-                    <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
-                      <Stars n={w.rating} size={10} />
-                      <span style={{fontSize:11,color:C.text,fontWeight:700}}>{w.rating>0?w.rating.toFixed(1):"Nuevo"}</span>
-                      {w.free_quote&&<span style={{fontSize:10,color:C.green}}>· Presupuesto gratis</span>}
-                      {w.response_time&&<span style={{fontSize:10,color:C.cyan}}>· Resp. en {w.response_time}</span>}
-                    </div>
-                  </div>
-                  <div style={{textAlign:"right",flexShrink:0}}>
-                    <p style={{fontWeight:800,fontSize:18,color:C.accent}}>{w.price}€<span style={{fontSize:10,color:C.muted,fontWeight:400}}>/h</span></p>
-                    <p style={{fontSize:10,color:C.green,fontWeight:600}}>● Disponible</p>
-                  </div>
-                </div>
-              </GCard>
-            );
-          })}
-        </div>
-        <Btn full onClick={onClose} color={C.accent}>Ver todos los profesionales →</Btn>
-      </>)}
-
-      {saving&&<div style={{position:"absolute",inset:0,background:"rgba(10,10,15,0.7)",display:"flex",alignItems:"center",justifyContent:"center",borderRadius:20}}><Spin /></div>}
-    </Sheet>
-  );
-}
-
-// ─── SEVILLA MAP ───
-const PUEBLOS_CERCANOS=[
-  {id:"Dos Hermanas",label:"Dos Hermanas",lat:37.296,lng:-5.922},
-  {id:"Alcalá de Guadaíra",label:"Alcalá de Guadaíra",lat:37.339,lng:-5.840},
-  {id:"Mairena del Aljarafe",label:"Mairena del Aljarafe",lat:37.347,lng:-6.062},
-  {id:"Camas",label:"Camas",lat:37.399,lng:-6.031},
-  {id:"San Juan de Aznalfarache",label:"San Juan",lat:37.370,lng:-6.025},
-  {id:"Bormujos",label:"Bormujos",lat:37.362,lng:-6.071},
-  {id:"Tomares",label:"Tomares",lat:37.371,lng:-6.047},
-  {id:"Gelves",label:"Gelves",lat:37.340,lng:-6.013},
-  {id:"La Rinconada",label:"La Rinconada",lat:37.476,lng:-5.981},
-];
-
-const BARRIOS_SEVILLA=[
-  {id:"Centro",color:"#FFD700",latlngs:[[37.3961,-5.9953],[37.3958,-5.9916],[37.3944,-5.9873],[37.3921,-5.9836],[37.3896,-5.9823],[37.3872,-5.9829],[37.3854,-5.9851],[37.3851,-5.9883],[37.3862,-5.9921],[37.3886,-5.9952],[37.3916,-5.9967],[37.3944,-5.9965]]},
-  {id:"Triana",color:"#FF6B6B",latlngs:[[37.3989,-6.0156],[37.3991,-6.0098],[37.3978,-6.0052],[37.3955,-6.0012],[37.3921,-5.9988],[37.3892,-5.9981],[37.3869,-5.9991],[37.3851,-6.0018],[37.3843,-6.0058],[37.3851,-6.0101],[37.3874,-6.0138],[37.3909,-6.0158],[37.3946,-6.0162],[37.3971,-6.0158]]},
-  {id:"Los Remedios",color:"#4ECDC4",latlngs:[[37.3851,-6.0018],[37.3843,-6.0058],[37.3851,-6.0101],[37.3836,-6.0098],[37.3798,-6.0071],[37.3768,-6.0038],[37.3754,-5.9998],[37.3758,-5.9958],[37.3779,-5.9928],[37.3812,-5.9918],[37.3843,-5.9934],[37.3869,-5.9991]]},
-  {id:"Nervión",color:"#45B7D1",latlngs:[[37.3961,-5.9953],[37.3944,-5.9965],[37.3960,-5.9895],[37.3988,-5.9833],[37.4008,-5.9776],[37.4001,-5.9718],[37.3978,-5.9678],[37.3954,-5.9668],[37.3928,-5.9689],[37.3911,-5.9728],[37.3913,-5.9772],[37.3929,-5.9810],[37.3944,-5.9837],[37.3961,-5.9873]]},
-  {id:"La Macarena",color:"#A78BFA",latlngs:[[37.4098,-5.9988],[37.4121,-5.9941],[37.4128,-5.9881],[37.4118,-5.9821],[37.4091,-5.9773],[37.4058,-5.9743],[37.4021,-5.9738],[37.3988,-5.9758],[37.3972,-5.9791],[37.3961,-5.9831],[37.3961,-5.9873],[37.3988,-5.9833],[37.4008,-5.9776],[37.4038,-5.9761],[37.4068,-5.9771],[37.4088,-5.9801],[37.4091,-5.9851],[37.4078,-5.9901],[37.4058,-5.9941]]},
-  {id:"San Pablo",color:"#FB923C",latlngs:[[37.4098,-5.9988],[37.4058,-5.9941],[37.4078,-5.9901],[37.4091,-5.9851],[37.4088,-5.9801],[37.4121,-5.9741],[37.4148,-5.9701],[37.4168,-5.9638],[37.4158,-5.9578],[37.4131,-5.9541],[37.4098,-5.9531],[37.4068,-5.9548],[37.4048,-5.9578],[37.4038,-5.9621],[37.4041,-5.9671],[37.4058,-5.9718],[37.4088,-5.9738]]},
-  {id:"Bellavista",color:"#34D399",latlngs:[[37.3758,-5.9958],[37.3754,-5.9998],[37.3768,-6.0038],[37.3748,-6.0031],[37.3718,-5.9998],[37.3694,-5.9951],[37.3681,-5.9898],[37.3686,-5.9841],[37.3708,-5.9798],[37.3738,-5.9778],[37.3768,-5.9788],[37.3791,-5.9818],[37.3798,-5.9858],[37.3791,-5.9901],[37.3779,-5.9928]]},
-  {id:"Cerro-Amate",color:"#60A5FA",latlngs:[[37.3978,-5.9678],[37.4001,-5.9718],[37.4008,-5.9776],[37.3988,-5.9833],[37.3961,-5.9873],[37.3944,-5.9837],[37.3928,-5.9810],[37.3911,-5.9771],[37.3898,-5.9721],[37.3891,-5.9661],[37.3901,-5.9601],[37.3924,-5.9558],[37.3954,-5.9541],[37.3984,-5.9558],[37.4001,-5.9594],[37.4001,-5.9638]]},
-  {id:"Sur",color:"#F472B6",latlngs:[[37.3791,-5.9818],[37.3768,-5.9788],[37.3738,-5.9778],[37.3718,-5.9798],[37.3698,-5.9841],[37.3691,-5.9888],[37.3664,-5.9871],[37.3638,-5.9838],[37.3624,-5.9791],[37.3628,-5.9741],[37.3651,-5.9701],[37.3681,-5.9678],[37.3714,-5.9678],[37.3744,-5.9694],[37.3764,-5.9724],[37.3771,-5.9771]]},
-  {id:"Norte",color:"#6EE7B7",latlngs:[[37.4128,-5.9881],[37.4148,-5.9941],[37.4168,-5.9988],[37.4188,-6.0028],[37.4198,-6.0078],[37.4188,-6.0121],[37.4158,-6.0148],[37.4121,-6.0151],[37.4088,-6.0128],[37.4068,-6.0091],[37.4068,-6.0041],[37.4088,-6.0001],[37.4118,-5.9971],[37.4128,-5.9928]]},
-];
-
-function SevillaMap({selectedZone,onZoneSelect}:{selectedZone:string;onZoneSelect:(z:string)=>void}){
-  const mapRef=useRef<HTMLDivElement>(null);
-  const leafletRef=useRef<L.Map|null>(null);
-  const polysRef=useRef<Record<string,L.Polygon>>({});
-  const [filter,setFilter]=useState<"sevilla"|"pueblos">("sevilla");
-
-  useEffect(()=>{
-    if(!mapRef.current||leafletRef.current)return;
-    const map=L.map(mapRef.current,{center:[37.388,-5.982],zoom:12,zoomControl:false,scrollWheelZoom:true,attributionControl:false});
-    L.control.zoom({position:"bottomright"}).addTo(map);
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png",{subdomains:"abcd",maxZoom:19}).addTo(map);
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png",{subdomains:"abcd",maxZoom:19,opacity:0.6}).addTo(map);
-
-    BARRIOS_SEVILLA.forEach(b=>{
-      const coords=b.latlngs.map(c=>[c[0],c[1]] as L.LatLngTuple);
-      const isActive=selectedZone===b.id;
-      const poly=L.polygon(coords,{color:b.color,fillColor:b.color,fillOpacity:isActive?0.50:0.18,weight:isActive?2.5:1.2,opacity:isActive?1:0.65,dashArray:isActive?undefined:"5,4",smoothFactor:2}).addTo(map);
-      poly.on("mouseover",()=>{if(selectedZone!==b.id)poly.setStyle({fillOpacity:0.38,dashArray:undefined,weight:2});});
-      poly.on("mouseout",()=>{if(selectedZone!==b.id)poly.setStyle({fillOpacity:0.18,dashArray:"5,4",weight:1.2});});
-      poly.on("click",()=>onZoneSelect(selectedZone===b.id?"":b.id));
-      polysRef.current[b.id]=poly;
-      const center=poly.getBounds().getCenter();
-      const icon=L.divIcon({html:`<span style="color:${isActive?"#fff":b.color};font-size:${isActive?"11px":"9.5px"};font-weight:${isActive?"800":"600"};font-family:'DM Sans',sans-serif;text-shadow:0 1px 4px rgba(0,0,0,0.95);white-space:nowrap;pointer-events:none">${b.id}</span>`,iconSize:[90,18],iconAnchor:[45,9],className:""});
-      L.marker(center,{icon,interactive:false}).addTo(map);
-    });
-
-    PUEBLOS_CERCANOS.forEach(p=>{
-      const isActive=selectedZone===p.id;
-      const icon=L.divIcon({html:`<div style="display:flex;flex-direction:column;align-items:center;pointer-events:none"><div style="width:${isActive?10:7}px;height:${isActive?10:7}px;border-radius:50%;background:${isActive?"#FFD700":"#4ECDC4"};box-shadow:0 0 8px ${isActive?"#FFD700":"#4ECDC4"}88;border:2px solid ${isActive?"#FFD700":"rgba(255,255,255,0.3)"}"></div><span style="color:${isActive?"#FFD700":"#aaa"};font-size:9px;font-weight:${isActive?700:500};font-family:'DM Sans',sans-serif;text-shadow:0 1px 3px rgba(0,0,0,0.9);margin-top:2px;white-space:nowrap">${p.label}</span></div>`,iconSize:[80,32],iconAnchor:[40,5],className:""});
-      const marker=L.marker([p.lat,p.lng],{icon,interactive:true}).addTo(map);
-      marker.on("click",()=>onZoneSelect(selectedZone===p.id?"":p.id));
-    });
-
-    leafletRef.current=map;
-    return ()=>{map.remove();leafletRef.current=null;};
-  },[]);
-
-  useEffect(()=>{
-    BARRIOS_SEVILLA.forEach(b=>{
-      const poly=polysRef.current[b.id];
-      if(!poly)return;
-      const isActive=selectedZone===b.id;
-      poly.setStyle({fillOpacity:isActive?0.50:0.18,weight:isActive?2.5:1.2,dashArray:isActive?undefined:"5,4",opacity:isActive?1:0.65});
-    });
-  },[selectedZone]);
-
-  useEffect(()=>{
-    const map=leafletRef.current;
-    if(!map)return;
-    if(filter==="sevilla")map.flyTo([37.388,-5.982],13,{duration:0.8});
-    else map.flyTo([37.38,-6.0],11,{duration:0.8});
-  },[filter]);
-
-  return (
-    <div style={{marginBottom:16,borderRadius:16,overflow:"hidden",border:"1px solid "+(selectedZone?C.accent+"55":C.border),background:C.card,boxShadow:"0 8px 32px rgba(0,0,0,0.5)"}}>
-      <div style={{padding:"12px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"linear-gradient(135deg,"+C.card+",#0F0F1A)",borderBottom:"1px solid "+C.border}}>
-        <div>
-          <p style={{fontSize:13,fontWeight:700,color:C.text}}>🗺️ Selecciona una zona</p>
-          <p style={{fontSize:10,color:C.muted,marginTop:1}}>Haz clic en el mapa o usa los botones</p>
-        </div>
-        {selectedZone&&(
-          <button onClick={()=>onZoneSelect("")} style={{display:"flex",alignItems:"center",gap:5,padding:"4px 10px",background:C.accent+"15",border:"1px solid "+C.accent+"44",borderRadius:99,color:C.accent,cursor:"pointer",fontSize:11,fontWeight:700,fontFamily:"'DM Sans',sans-serif"}}>
-            <span style={{maxWidth:100,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{selectedZone}</span>
-            <span>✕</span>
-          </button>
-        )}
-      </div>
-      <div ref={mapRef} style={{height:260,width:"100%"}} />
-      <div style={{background:"linear-gradient(180deg,"+C.card+",#0F0F1A)",borderTop:"1px solid "+C.border}}>
-        <div style={{display:"flex",padding:"10px 12px 6px",gap:6}}>
-          <button onClick={()=>setFilter("sevilla")} style={{flex:1,padding:"8px",borderRadius:10,border:"1px solid "+(filter==="sevilla"?C.accent:C.border),background:filter==="sevilla"?"linear-gradient(135deg,"+C.accent+"22,"+C.orange+"11)":"transparent",color:filter==="sevilla"?C.accent:C.muted,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12,fontWeight:filter==="sevilla"?700:500}}>🏙️ Sevilla capital</button>
-          <button onClick={()=>setFilter("pueblos")} style={{flex:1,padding:"8px",borderRadius:10,border:"1px solid "+(filter==="pueblos"?C.cyan:C.border),background:filter==="pueblos"?"linear-gradient(135deg,"+C.cyan+"22,transparent)":"transparent",color:filter==="pueblos"?C.cyan:C.muted,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12,fontWeight:filter==="pueblos"?700:500}}>🏘️ Pueblos cercanos</button>
-        </div>
-        {filter==="sevilla"&&(
-          <div style={{padding:"4px 12px 10px",display:"flex",gap:5,flexWrap:"wrap",maxHeight:70,overflowY:"auto"}}>
-            {BARRIOS_SEVILLA.map(b=>{
-              const isActive=selectedZone===b.id;
-              return <button key={b.id} onClick={()=>onZoneSelect(isActive?"":b.id)} style={{padding:"4px 10px",borderRadius:99,border:"1px solid "+(isActive?b.color:C.border),background:isActive?b.color+"25":"transparent",color:isActive?b.color:C.muted,cursor:"pointer",fontSize:10,fontFamily:"'DM Sans',sans-serif",fontWeight:isActive?700:400,transition:"all 0.15s",whiteSpace:"nowrap"}}>
-                {b.id}
-              </button>;
-            })}
-          </div>
-        )}
-        {filter==="pueblos"&&(
-          <div style={{padding:"4px 12px 10px",display:"flex",gap:5,flexWrap:"wrap",maxHeight:70,overflowY:"auto"}}>
-            {PUEBLOS_CERCANOS.map(p=>{
-              const isActive=selectedZone===p.id;
-              return <button key={p.id} onClick={()=>onZoneSelect(isActive?"":p.id)} style={{padding:"4px 10px",borderRadius:99,border:"1px solid "+(isActive?C.cyan:C.border),background:isActive?C.cyan+"22":"transparent",color:isActive?C.cyan:C.muted,cursor:"pointer",fontSize:10,fontFamily:"'DM Sans',sans-serif",fontWeight:isActive?700:400,transition:"all 0.15s",whiteSpace:"nowrap"}}>
-                📍 {p.label}
-              </button>;
-            })}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ─── RANKING SECTION ───
-function RankingSection({workers,onSelect}:{workers:UserRow[];onSelect:(w:UserRow)=>void}){
-  const [filterZone,setFilterZone]=useState("Todas");
-  const [filterTrade,setFilterTrade]=useState("Todos");
-
-  const eligible=workers.filter(w=>
-    PLAN_GATES.ranking[w.plan as Plan]&&
-    (filterZone==="Todas"||w.zone===filterZone)&&
-    (filterTrade==="Todos"||w.trade===filterTrade)
-  ).sort((a,b)=>b.rating*b.reviews-a.rating*a.reviews);
-
-  const pCol=["#FFD700","#C0C0C0","#CD7F32"];
-
-  return (
-    <div style={{padding:"22px 0 16px"}}>
-      <h2 style={{fontWeight:900,fontSize:24,letterSpacing:"-0.02em",marginBottom:4}}><span style={{color:C.text}}>🏆 Ranking de</span> <span style={{color:C.accent}}>Profesionales</span></h2>
-      <p style={{fontSize:13,color:C.muted,marginBottom:16}}>Los mejores valorados de la plataforma</p>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:16}}>
-        <select value={filterZone} onChange={e=>setFilterZone(e.target.value)} style={{padding:"10px 12px",background:C.card,border:"1px solid "+C.border,borderRadius:8,color:C.text,fontFamily:"inherit",fontSize:13,cursor:"pointer",outline:"none"}}>
-          <option style={{background:C.card}}>Todas</option>
-          {ZONAS.map(z=><option key={z} style={{background:C.card}}>{z}</option>)}
-        </select>
-        <select value={filterTrade} onChange={e=>setFilterTrade(e.target.value)} style={{padding:"10px 12px",background:C.card,border:"1px solid "+C.border,borderRadius:8,color:C.text,fontFamily:"inherit",fontSize:13,cursor:"pointer",outline:"none"}}>
-          <option style={{background:C.card}}>Todos</option>
-          {OFICIOS.map(o=><option key={o} style={{background:C.card}}>{o}</option>)}
-        </select>
-      </div>
-
-      {eligible.length===0&&<div style={{textAlign:"center",padding:40,color:C.muted}}>
-        <p style={{fontSize:32,marginBottom:8}}>🏆</p>
-        <p style={{fontWeight:700,fontSize:16,marginBottom:6}}>Sin profesionales en el ranking</p>
-        <p style={{fontSize:13}}>El ranking muestra profesionales con plan Pro o Élite</p>
-      </div>}
-
-      {eligible.length>=3&&(
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:16,alignItems:"flex-end"}}>
-          {[eligible[1],eligible[0],eligible[2]].map((w,i)=>{
-            const positions=[2,1,3];const heights=[110,150,90];const col=pCol[i];const pos=positions[i];
-            return <div key={w.id} style={{textAlign:"center",cursor:"pointer"}} onClick={()=>onSelect(w)}>
-              <div style={{display:"flex",justifyContent:"center",marginBottom:6}}><Ava s={w.name.substring(0,2).toUpperCase()} size={pos===1?58:44} color={col} /></div>
-              <p style={{fontWeight:700,color:C.text,fontSize:pos===1?14:12,marginBottom:2}}>{w.name.split(" ")[0]}</p>
-              <p style={{fontSize:10,color:C.muted,marginBottom:4}}>{w.zone}</p>
-              <Stars n={w.rating} size={pos===1?13:10} />
-              <div style={{height:heights[i],background:"linear-gradient(180deg,"+col+"20,transparent)",border:"1px solid "+col+"55",borderRadius:"8px 8px 0 0",display:"flex",alignItems:"center",justifyContent:"center",marginTop:8}}>
-                <span style={{fontFamily:"monospace",fontSize:36,fontWeight:900,color:col}}>#{pos}</span>
-              </div>
-            </div>;
-          })}
-        </div>
-      )}
-
-      <div style={{display:"flex",flexDirection:"column",gap:8}}>
-        {eligible.slice(eligible.length>=3?3:0).map((w,i)=>{
-          const col=wColor(w.id);
-          return <GCard key={w.id} onClick={()=>onSelect(w)} glow={col} style={{padding:"12px 16px",display:"flex",alignItems:"center",gap:12}}>
-            <span style={{fontWeight:800,fontSize:18,color:C.muted,width:28,textAlign:"center"}}>#{i+(eligible.length>=3?4:1)}</span>
-            <Ava s={w.name.substring(0,2).toUpperCase()} size={38} color={col} online={w.available} />
-            <div style={{flex:1,minWidth:0}}>
-              <p style={{fontWeight:700,color:C.text,fontSize:13}}>{w.name}</p>
-              <p style={{fontSize:11,color:C.muted}}>{w.trade} · {w.zone}</p>
-            </div>
-            <div style={{textAlign:"right"}}>
-              <Stars n={w.rating} size={11} />
-              <p style={{fontSize:11,fontWeight:700,color:C.accent}}>{w.rating>0?w.rating.toFixed(1):"Nuevo"}</p>
-              <p style={{fontSize:10,color:C.muted}}>({w.reviews})</p>
-            </div>
-          </GCard>;
-        })}
-      </div>
-    </div>
-  );
 }
