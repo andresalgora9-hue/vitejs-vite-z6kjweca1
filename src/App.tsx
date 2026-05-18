@@ -694,12 +694,20 @@ function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:User
 }
 
 // ─── BUSCADOR EXPRESS MODAL ───
+// ════════════════════════════════════════════════════════════════
+// REEMPLAZA el BuscadorExpressModal completo en tu App.tsx
+// Busca: "function BuscadorExpressModal(" y reemplaza todo el bloque
+// ════════════════════════════════════════════════════════════════
+
 function BuscadorExpressModal({workers,onResult,onWorkerSelect,onClose}:{workers:UserRow[];onResult:(oficio:string,zona:string,urgency:string)=>void;onWorkerSelect:(w:UserRow)=>void;onClose:()=>void}){
   const [step,setStep]=useState(1);
   const [selOficio,setSelOficio]=useState("");
   const [selUrgency,setSelUrgency]=useState("");
   const [selZona,setSelZona]=useState("Todas");
   const [textSearch,setTextSearch]=useState("");
+  const searchInputRef=useRef<HTMLInputElement>(null);
+
+  useEffect(()=>{setTimeout(()=>searchInputRef.current?.focus(),120);},[]);
 
   const URGENCY_OPTS=[
     {id:"urgente",icon:"🔴",title:"¡Urgencia ahora!",sub:"Avería crítica · Lo necesito hoy",border:C.red,bg:C.red+"15"},
@@ -708,65 +716,135 @@ function BuscadorExpressModal({workers,onResult,onWorkerSelect,onClose}:{workers
   ];
 
   const filteredBySearch=OFICIOS.filter(o=>!textSearch||o.toLowerCase().includes(textSearch.toLowerCase()));
-
   const handleSelectOficio=(o:string)=>{setSelOficio(o);setStep(2);};
   const handleSelectUrgency=(id:string)=>{setSelUrgency(id);onResult(selOficio,selZona,id);onClose();};
 
+  // Agrupar oficios por categoría
+  const grouped=OFICIOS.reduce((acc:Record<string,string[]>,o)=>{
+    const cat=(OFICIO_CATEGORIES[o]||"🛠️ Servicios").split(" ").slice(1).join(" ")||"Otros";
+    if(!acc[cat])acc[cat]=[];
+    acc[cat].push(o);
+    return acc;
+  },{});
+
   return(
-    <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(4,4,12,0.85)",backdropFilter:"blur(16px)",zIndex:800,display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
-      <div onClick={e=>e.stopPropagation()} style={{background:"linear-gradient(170deg,#14141F,#0A0A14)",borderRadius:20,width:"100%",maxWidth:480,maxHeight:"85vh",overflowY:"auto",border:"1px solid "+C.accent+"33",boxShadow:"0 20px 60px rgba(0,0,0,0.8),0 0 0 1px "+C.accent+"11"}}>
-        <div style={{padding:"16px 20px 0",display:"flex",alignItems:"center",gap:8}}>
-          {[1,2].map(s=>(
-            <div key={s} style={{display:"flex",alignItems:"center",gap:6}}>
-              <div style={{width:22,height:22,borderRadius:"50%",background:step>=s?C.accent:C.border,color:step>=s?"#000":C.muted,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:900}}>{s}</div>
-              <span style={{fontSize:11,color:step>=s?C.accent:C.muted,fontWeight:step===s?700:400}}>{s===1?"¿Qué necesitas?":"¿Con qué urgencia?"}</span>
-              {s<2&&<div style={{width:20,height:1,background:step>s?C.accent:C.border,margin:"0 2px"}} />}
-            </div>
-          ))}
-          <button onClick={onClose} style={{marginLeft:"auto",background:"none",border:"1px solid "+C.border,borderRadius:8,color:C.muted,cursor:"pointer",padding:"4px 10px",fontSize:12}}>✕</button>
+    <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(4,4,12,0.85)",backdropFilter:"blur(16px)",zIndex:800,display:"flex",alignItems:"flex-start",justifyContent:"center"}}>
+      <div onClick={e=>e.stopPropagation()} style={{background:"linear-gradient(170deg,#14141F,#0A0A14)",width:"100%",maxWidth:520,height:"100dvh",borderRight:"1px solid "+C.accent+"22",boxShadow:"8px 0 40px rgba(0,0,0,0.8)",display:"flex",flexDirection:"column",overflowY:"hidden"}}>
+
+        {/* Header sticky */}
+        <div style={{padding:"14px 18px",borderBottom:"1px solid "+C.border+"44",display:"flex",alignItems:"center",gap:10,flexShrink:0,background:"rgba(10,10,15,0.95)",backdropFilter:"blur(20px)"}}>
+          <div style={{width:34,height:34,borderRadius:10,background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>⚡</div>
+          <div style={{flex:1}}>
+            <p style={{fontWeight:900,color:C.text,fontSize:15,lineHeight:1}}>{step===1?"¿Qué profesional necesitas?":"¿Con qué urgencia?"}</p>
+            <p style={{fontSize:10,color:C.muted,marginTop:2}}>{step===1?"Selecciona el servicio que buscas":"Paso 2 de 2 · "+selOficio}</p>
+          </div>
+          <div style={{display:"flex",gap:3,alignItems:"center"}}>
+            {[1,2].map(s=><div key={s} style={{width:s===step?18:6,height:5,borderRadius:99,background:s<=step?C.accent:C.border,transition:"all 0.3s"}} />)}
+          </div>
+          <button onClick={onClose} style={{background:"none",border:"1px solid "+C.border+"66",borderRadius:8,color:C.muted,cursor:"pointer",padding:"5px 10px",fontSize:13,flexShrink:0}}>✕</button>
         </div>
-        <div style={{padding:"16px 20px 20px"}}>
+
+        {/* Contenido scrollable */}
+        <div style={{flex:1,overflowY:"auto",padding:"18px"}}>
+
           {step===1&&(<>
-            <div style={{display:"flex",background:C.bg,borderRadius:10,border:"1px solid "+C.border,overflow:"hidden",marginBottom:14}}>
-              <span style={{padding:"0 12px",display:"flex",alignItems:"center",color:C.muted}}>🔍</span>
-              <input autoFocus value={textSearch} onChange={e=>setTextSearch(e.target.value)} placeholder="Busca fontanero, electricista..." style={{flex:1,padding:"12px 0",background:"transparent",border:"none",color:C.text,fontFamily:"inherit",fontSize:14,outline:"none"}} />
-              {textSearch&&<button onClick={()=>setTextSearch("")} style={{padding:"0 12px",background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:14}}>✕</button>}
+            {/* Buscador */}
+            <div style={{display:"flex",background:C.bg,borderRadius:12,border:"1px solid "+C.accent+"33",overflow:"hidden",marginBottom:18,boxShadow:"0 4px 16px rgba(0,0,0,0.3),0 0 0 1px "+C.accent+"11"}}>
+              <span style={{padding:"0 14px",display:"flex",alignItems:"center",color:C.accent,fontSize:16}}>🔍</span>
+              <input
+                ref={searchInputRef}
+                autoFocus
+                value={textSearch}
+                onChange={e=>setTextSearch(e.target.value)}
+                placeholder="Electricista, fontanero, pintor..."
+                style={{flex:1,padding:"13px 0",background:"transparent",border:"none",color:C.text,fontFamily:"'DM Sans',sans-serif",fontSize:14,outline:"none"}}
+              />
+              {textSearch&&<button onClick={()=>setTextSearch("")} style={{padding:"0 14px",background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:14}}>✕</button>}
             </div>
+
+            {/* Top picks — solo si no hay búsqueda */}
             {!textSearch&&(<>
-              <p style={{fontSize:10,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.08em",fontWeight:700,marginBottom:8}}>🔥 Más solicitados</p>
-              <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:7,marginBottom:14}}>
+              <p style={{fontSize:10,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.1em",fontWeight:800,marginBottom:10}}>🔥 Los más solicitados</p>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:7,marginBottom:22}}>
                 {OFICIOS_TOP.map(o=>(
-                  <button key={o} onClick={()=>handleSelectOficio(o)} style={{padding:"10px 6px",borderRadius:12,border:"1px solid "+C.border,background:"linear-gradient(135deg,"+C.card+","+C.surface+")",color:C.text,cursor:"pointer",fontFamily:"inherit",textAlign:"center",transition:"all 0.15s",boxShadow:"0 2px 8px rgba(0,0,0,0.3)"}}>
-                    <div style={{fontSize:22,marginBottom:4}}>{OFICIO_ICONS[o]||"🔧"}</div>
-                    <p style={{fontSize:11,fontWeight:600,lineHeight:1.3,color:C.text}}>{o}</p>
+                  <button key={o} onClick={()=>handleSelectOficio(o)} style={{padding:"12px 4px",borderRadius:14,border:"1px solid "+C.border+"88",background:"linear-gradient(135deg,"+C.card+","+C.surface+")",color:C.text,cursor:"pointer",fontFamily:"inherit",textAlign:"center" as const,transition:"all 0.18s",display:"flex",flexDirection:"column" as const,alignItems:"center",gap:5}}>
+                    <div style={{fontSize:22}}>{OFICIO_ICONS[o]||"🔧"}</div>
+                    <p style={{fontSize:9,fontWeight:700,lineHeight:1.3,color:C.text}}>{o}</p>
                   </button>
                 ))}
               </div>
+
+              {/* Todos los servicios agrupados */}
+              <p style={{fontSize:10,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.1em",fontWeight:800,marginBottom:12}}>Todos los servicios · {OFICIOS.length}</p>
+              {Object.entries(grouped).map(([catName,oficios])=>{
+                const catIcon=Object.entries(OFICIO_CATEGORIES).find(([,v])=>v.split(" ").slice(1).join(" ")===catName)?.[1]?.split(" ")[0]||"🔧";
+                return(
+                  <div key={catName} style={{marginBottom:18}}>
+                    <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8,paddingLeft:2}}>
+                      <span style={{fontSize:13}}>{catIcon}</span>
+                      <p style={{fontSize:10,color:C.mutedL,fontWeight:700,letterSpacing:"0.07em",textTransform:"uppercase" as const}}>{catName}</p>
+                    </div>
+                    <div style={{display:"flex",flexDirection:"column" as const,gap:3}}>
+                      {oficios.map(o=>(
+                        <button key={o} onClick={()=>handleSelectOficio(o)} style={{display:"flex",alignItems:"center",gap:12,padding:"11px 14px",borderRadius:10,border:"1px solid "+C.border+"44",background:C.bg,color:C.text,cursor:"pointer",fontFamily:"inherit",textAlign:"left" as const,transition:"all 0.15s"}}>
+                          <span style={{fontSize:18,flexShrink:0,width:26,textAlign:"center" as const}}>{OFICIO_ICONS[o]||"🔧"}</span>
+                          <span style={{fontSize:13,fontWeight:600,flex:1}}>{o}</span>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </>)}
-            <p style={{fontSize:10,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.08em",fontWeight:700,marginBottom:8}}>{textSearch?"Resultados":"Todos los servicios"}</p>
-            <div style={{maxHeight:220,overflowY:"auto",display:"flex",flexDirection:"column",gap:5}}>
-              {filteredBySearch.map(o=>(
-                <button key={o} onClick={()=>handleSelectOficio(o)} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",borderRadius:10,border:"1px solid "+C.border,background:C.bg,color:C.text,cursor:"pointer",fontFamily:"inherit",textAlign:"left",transition:"all 0.15s"}}>
-                  <span style={{fontSize:18,flexShrink:0}}>{OFICIO_ICONS[o]||"🔧"}</span>
-                  <span style={{fontSize:13,fontWeight:600,flex:1}}>{o}</span>
-                  <span style={{fontSize:10,color:C.muted}}>{OFICIO_CATEGORIES[o]?.split(" ")[0]||""}</span>
-                </button>
-              ))}
-              {filteredBySearch.length===0&&<p style={{textAlign:"center",color:C.muted,fontSize:13,padding:16}}>No encontrado · <button onClick={()=>handleSelectOficio("Otros servicios")} style={{background:"none",border:"none",color:C.accent,cursor:"pointer",fontWeight:700}}>Continuar con "Otros"</button></p>}
-            </div>
+
+            {/* Resultados de búsqueda */}
+            {textSearch&&(<>
+              <p style={{fontSize:10,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.1em",fontWeight:800,marginBottom:10}}>Resultados · {filteredBySearch.length}</p>
+              <div style={{display:"flex",flexDirection:"column" as const,gap:4}}>
+                {filteredBySearch.map(o=>(
+                  <button key={o} onClick={()=>handleSelectOficio(o)} style={{display:"flex",alignItems:"center",gap:12,padding:"12px 14px",borderRadius:10,border:"1px solid "+C.border+"66",background:C.bg,color:C.text,cursor:"pointer",fontFamily:"inherit",textAlign:"left" as const,transition:"all 0.15s"}}>
+                    <span style={{fontSize:20,flexShrink:0}}>{OFICIO_ICONS[o]||"🔧"}</span>
+                    <div style={{flex:1}}>
+                      <span style={{fontSize:13,fontWeight:600}}>{o}</span>
+                      <p style={{fontSize:10,color:C.muted,marginTop:1}}>{OFICIO_CATEGORIES[o]||""}</p>
+                    </div>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
+                  </button>
+                ))}
+                {filteredBySearch.length===0&&(
+                  <div style={{textAlign:"center" as const,padding:"32px 20px",color:C.muted}}>
+                    <p style={{fontSize:32,marginBottom:8}}>🔍</p>
+                    <p style={{fontSize:13,marginBottom:12}}>Sin resultados para "{textSearch}"</p>
+                    <button onClick={()=>handleSelectOficio("Otros servicios")} style={{background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:10,color:"#000",padding:"10px 20px",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13}}>
+                      Continuar con "Otros servicios" →
+                    </button>
+                  </div>
+                )}
+              </div>
+            </>)}
           </>)}
+
           {step===2&&(<>
-            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
-              <button onClick={()=>setStep(1)} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:20}}>←</button>
-              <p style={{fontSize:13,color:C.muted}}><span style={{color:C.accent,fontWeight:700}}>{OFICIO_ICONS[selOficio]||"🔧"} {selOficio}</span> · Paso 2 de 2</p>
+            <button onClick={()=>setStep(1)} style={{display:"flex",alignItems:"center",gap:8,background:"none",border:"1px solid "+C.border,borderRadius:10,color:C.mutedL,cursor:"pointer",padding:"8px 14px",fontFamily:"'DM Sans',sans-serif",fontSize:13,marginBottom:20}}>
+              ← Cambiar servicio
+            </button>
+            <div style={{padding:"14px",background:C.accent+"12",borderRadius:12,border:"1px solid "+C.accent+"33",marginBottom:24}}>
+              <p style={{fontSize:10,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.06em",marginBottom:3}}>Servicio seleccionado</p>
+              <p style={{fontWeight:800,color:C.accent,fontSize:16}}>{OFICIO_ICONS[selOficio]||"🔧"} {selOficio}</p>
             </div>
-            <div style={{display:"flex",flexDirection:"column",gap:10}}>
+            <p style={{fontWeight:900,fontSize:22,color:C.text,marginBottom:4,letterSpacing:"-0.02em"}}>¿Con qué urgencia lo necesitas?</p>
+            <p style={{fontSize:13,color:C.muted,marginBottom:20}}>Esto nos ayuda a conectarte con el profesional adecuado</p>
+            <div style={{display:"flex",flexDirection:"column" as const,gap:10}}>
               {URGENCY_OPTS.map(opt=>(
-                <button key={opt.id} onClick={()=>handleSelectUrgency(opt.id)} style={{display:"flex",gap:14,alignItems:"center",padding:"16px 18px",borderRadius:14,border:"2px solid "+opt.border+"55",background:opt.bg,cursor:"pointer",fontFamily:"inherit",textAlign:"left",transition:"all 0.15s",position:"relative",overflow:"hidden"}}>
-                  <div style={{position:"absolute",top:-10,right:-10,width:50,height:50,borderRadius:"50%",background:opt.border+"15",pointerEvents:"none"}} />
-                  <span style={{fontSize:28,flexShrink:0}}>{opt.icon}</span>
-                  <div><p style={{fontWeight:800,fontSize:15,color:C.text,marginBottom:3}}>{opt.title}</p><p style={{fontSize:12,color:C.mutedL}}>{opt.sub}</p></div>
-                  <span style={{marginLeft:"auto",fontSize:16,color:opt.border,flexShrink:0}}>→</span>
+                <button key={opt.id} onClick={()=>handleSelectUrgency(opt.id)} style={{display:"flex",gap:16,alignItems:"center",padding:"18px 20px",borderRadius:16,border:"2px solid "+opt.border+"55",background:opt.bg,cursor:"pointer",fontFamily:"inherit",textAlign:"left" as const,transition:"all 0.18s",position:"relative",overflow:"hidden"}}>
+                  <div style={{position:"absolute",top:-20,right:-20,width:70,height:70,borderRadius:"50%",background:opt.border+"15",pointerEvents:"none"}} />
+                  <span style={{fontSize:30,flexShrink:0}}>{opt.icon}</span>
+                  <div>
+                    <p style={{fontWeight:800,fontSize:16,color:C.text,marginBottom:3}}>{opt.title}</p>
+                    <p style={{fontSize:12,color:C.mutedL}}>{opt.sub}</p>
+                  </div>
+                  <span style={{marginLeft:"auto",fontSize:18,color:opt.border,flexShrink:0}}>→</span>
                 </button>
               ))}
             </div>
@@ -991,13 +1069,17 @@ function RankingSection({workers,onSelect}:{workers:UserRow[];onSelect:(w:UserRo
 }
 
 // ─── CLIENT HOME ───
+// ════════════════════════════════════════════════════════════════
+// REEMPLAZA el ClientHome completo en tu App.tsx
+// Busca: "function ClientHome({user,onLogout}:" y reemplaza todo
+// ════════════════════════════════════════════════════════════════
+
 function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
   const [tab,setTab]=useState<"buscar"|"ranking"|"chats"|"perfil">("buscar");
   const [zona,setZona]=useState("Todas");
   const [oficio,setOficio]=useState("Todos");
   const [search,setSearch]=useState("");
   const [soloDisp,setSoloDisp]=useState(false);
-  const [catFilter,setCatFilter]=useState("Todos");
   const [showWizard,setShowWizard]=useState(false);
   const [workers,setWorkers]=useState<UserRow[]>([]);
   const [loading,setLoading]=useState(true);
@@ -1013,7 +1095,6 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
     if(soloDisp&&!w.available)return false;
     if(zona!=="Todas"&&w.zone!==zona&&!(w.service_zones||[]).includes(zona))return false;
     if(oficio!=="Todos"&&w.trade!==oficio)return false;
-    if(catFilter!=="Todos"){const cat=OFICIO_CATEGORIES[w.trade||""]||"";if(!cat.includes(catFilter.split(" ").slice(1).join(" ")))return false;}
     if(search){const s=search.toLowerCase();if(!w.name.toLowerCase().includes(s)&&!(w.trade||"").toLowerCase().includes(s)&&!(w.bio||"").toLowerCase().includes(s))return false;}
     return true;
   });
@@ -1025,12 +1106,11 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
       const order:Record<Plan,number>={elite:3,pro:2,basico:1,gratis:0};
       return order[b.plan as Plan]-order[a.plan as Plan]||b.rating-a.rating;
     });
-    setWorkers(sorted); setLoading(false);
+    setWorkers(sorted);setLoading(false);
   },[]);
 
   useEffect(()=>{loadWorkers();},[loadWorkers]);
 
-  // Count unread messages
   const countUnread=useCallback(async()=>{
     const {count}=await db.from("messages").select("id",{count:"exact"} as any).eq("to_id",user.id).eq("read",false);
     setUnreadChats(count||0);
@@ -1038,7 +1118,6 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
 
   useEffect(()=>{countUnread();},[countUnread]);
 
-  // Realtime notifications
   useEffect(()=>{
     const ch=db.channel("client-notif-"+user.id)
       .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"to_id=eq."+user.id},(p:any)=>{
@@ -1068,16 +1147,13 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
   const handleChat=async(w:UserRow)=>{
     const ok=await logLead(w.id,user.id,"message");
     if(!ok){showToast("⛔ Este profesional ha alcanzado su límite de contactos este mes");return;}
-    // ── NEW: notify professional immediately with urgent lead alert ──
-    await notifyProOfNewLead(w.id, user.name, w.trade||"servicios");
+    await notifyProOfNewLead(w.id,user.name,w.trade||"servicios");
     setSelectedWorker(null);setChatWorker(w);
   };
 
   const handleWizardResult=(oficio:string,_zona:string,_urgency:string)=>{
     if(oficio)setOficio(oficio);setShowWizard(false);
   };
-
-  const CATS=["Todos","⚡ Técnico","🏗️ Obras","🏠 Servicios","🐾 Mascotas","❤️ Cuidados","💻 Tecnología","🏺 Artesanía"];
 
   return(
     <div style={{minHeight:"100dvh",background:C.bg,backgroundImage:"radial-gradient(ellipse at 15% 0%,#1a0a3a22,transparent 50%),radial-gradient(ellipse at 85% 100%,#0a1a3a22,transparent 50%)",paddingBottom:72}}>
@@ -1094,6 +1170,7 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
         }}
       />}
 
+      {/* ── HEADER ── */}
       <header style={{background:"rgba(10,10,15,0.94)",backdropFilter:"blur(20px)",borderBottom:"1px solid "+C.border,position:"sticky",top:0,zIndex:100,boxShadow:"0 2px 20px rgba(0,0,0,0.4)"}}>
         <div style={{maxWidth:900,margin:"0 auto",padding:"0 16px",display:"flex",alignItems:"center",justifyContent:"space-between",height:52}}>
           <button onClick={()=>setTab("buscar")} style={{display:"flex",alignItems:"center",gap:8,background:"none",border:"none",cursor:"pointer",padding:0}}>
@@ -1108,69 +1185,210 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
       <div style={{maxWidth:900,margin:"0 auto",padding:"0 16px"}}>
         {tab==="buscar"&&(<>
           <div style={{padding:"14px 0 0"}}>
-            <div onClick={()=>setShowWizard(true)} style={{display:"flex",alignItems:"center",gap:12,background:"linear-gradient(135deg,"+C.card+","+C.surface+")",borderRadius:16,border:"1px solid "+C.accent+"55",padding:"14px 18px",cursor:"pointer",boxShadow:"0 4px 24px rgba(255,215,0,0.10)",transition:"all 0.2s",marginBottom:12,position:"relative",overflow:"hidden"}}>
-              <div style={{position:"absolute",top:-15,right:-15,width:70,height:70,borderRadius:"50%",background:C.accent+"10",pointerEvents:"none"}} />
-              <div style={{width:42,height:42,borderRadius:12,background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0,boxShadow:"0 4px 14px "+C.accent+"44"}}>⚡</div>
-              <div style={{flex:1}}>
-                <p style={{fontWeight:800,color:C.text,fontSize:15,marginBottom:2}}>¿Qué profesional necesitas?</p>
-                <p style={{fontSize:12,color:C.muted}}>Te conectamos con el más adecuado en segundos</p>
+
+            {/* ════════════════════════════
+                HERO CTA — rectángulo grande
+                ════════════════════════════ */}
+            <div
+              onClick={()=>setShowWizard(true)}
+              style={{
+                background:"linear-gradient(135deg,#0d0d1a,#131320)",
+                borderRadius:20,
+                border:"1.5px solid "+C.accent+"55",
+                padding:"24px 22px",
+                cursor:"pointer",
+                boxShadow:"0 8px 40px rgba(255,215,0,0.12),0 0 0 1px "+C.accent+"0A",
+                transition:"all 0.2s",
+                marginBottom:16,
+                position:"relative",
+                overflow:"hidden",
+              }}
+            >
+              {/* Orbs decorativos */}
+              <div style={{position:"absolute",top:-50,right:-50,width:180,height:180,borderRadius:"50%",background:"radial-gradient(circle,"+C.accent+"14 0%,transparent 70%)",pointerEvents:"none"}} />
+              <div style={{position:"absolute",bottom:-40,left:-20,width:120,height:120,borderRadius:"50%",background:"radial-gradient(circle,"+C.orange+"10 0%,transparent 70%)",pointerEvents:"none"}} />
+
+              {/* Badge disponibles */}
+              <div style={{display:"inline-flex",alignItems:"center",gap:5,background:C.green+"1A",border:"1px solid "+C.green+"33",borderRadius:99,padding:"4px 10px",marginBottom:12}}>
+                <span style={{width:6,height:6,borderRadius:"50%",background:C.green,display:"inline-block",boxShadow:"0 0 6px "+C.green}} />
+                <span style={{fontSize:9,color:C.green,fontWeight:800,letterSpacing:"0.07em"}}>{workers.filter(w=>w.available).length} DISPONIBLES AHORA</span>
               </div>
-              <div style={{background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",borderRadius:10,padding:"8px 14px",color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,flexShrink:0}}>Buscar →</div>
+
+              {/* Titular */}
+              <h1 style={{fontWeight:900,fontSize:26,color:C.text,lineHeight:1.1,marginBottom:4,letterSpacing:"-0.03em"}}>
+                El profesional que necesitas,
+              </h1>
+              <h1 style={{fontWeight:900,fontSize:26,lineHeight:1.1,marginBottom:8,letterSpacing:"-0.03em",color:C.accent}}>
+                en tu ciudad.
+              </h1>
+              <p style={{fontSize:12,color:C.mutedL,marginBottom:22}}>Presupuesto gratis · Sin compromiso · Pago directo al profesional</p>
+
+              {/* Botón CTA interno */}
+              <div style={{
+                background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",
+                borderRadius:14,
+                padding:"15px 20px",
+                display:"flex",
+                alignItems:"center",
+                gap:12,
+                boxShadow:"0 6px 22px "+C.accent+"44",
+              }}>
+                <div style={{width:34,height:34,borderRadius:10,background:"rgba(0,0,0,0.18)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:17,flexShrink:0}}>⚡</div>
+                <div style={{flex:1}}>
+                  <p style={{fontWeight:900,color:"#000",fontSize:14,lineHeight:1}}>¿Necesitas un profesional ahora?</p>
+                  <p style={{fontSize:11,color:"rgba(0,0,0,0.55)",marginTop:2}}>Te conectamos con el más adecuado en segundos</p>
+                </div>
+                <div style={{background:"rgba(0,0,0,0.15)",borderRadius:10,padding:"8px 14px",color:"#000",fontWeight:900,fontSize:14,flexShrink:0,whiteSpace:"nowrap" as const}}>Buscar →</div>
+              </div>
             </div>
-            <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:4,marginBottom:14,scrollbarWidth:"none"}}>
-              {OFICIOS_TOP.map(o=>(
-                <button key={o} onClick={()=>setOficio(oficio===o?"Todos":o)} style={{flexShrink:0,display:"flex",alignItems:"center",gap:5,padding:"6px 12px",borderRadius:99,border:"1px solid "+(oficio===o?C.accent:C.border),background:oficio===o?C.accent+"18":C.surface,color:oficio===o?C.accent:C.mutedL,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:oficio===o?700:500,whiteSpace:"nowrap",transition:"all 0.15s"}}>
-                  <span>{OFICIO_ICONS[o]||"🔧"}</span>{o}
+
+            {/* ════════════════════════════════════════════
+                BUSCADOR con scroll de TODAS las profesiones
+                ════════════════════════════════════════════ */}
+            <div style={{background:C.card,borderRadius:16,border:"1px solid "+C.border,padding:"14px",marginBottom:14}}>
+
+              {/* Input texto */}
+              <div style={{display:"flex",background:C.bg,borderRadius:11,border:"1px solid "+C.border,overflow:"hidden",marginBottom:11}}>
+                <span style={{padding:"0 13px",display:"flex",alignItems:"center",color:C.muted,fontSize:15}}>🔍</span>
+                <input
+                  value={search}
+                  onChange={e=>{setSearch(e.target.value);if(e.target.value)setOficio("Todos");}}
+                  placeholder="Electricista, fontanero, pintor..."
+                  style={{flex:1,padding:"12px 0",background:"transparent",border:"none",color:C.text,fontFamily:"inherit",fontSize:14,outline:"none"}}
+                />
+                {search&&<button onClick={()=>setSearch("")} style={{padding:"0 13px",background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:14}}>✕</button>}
+              </div>
+
+              {/* Zona + botón mapa */}
+              <div style={{display:"grid",gridTemplateColumns:"1fr auto",gap:8,marginBottom:11}}>
+                <select value={zona} onChange={e=>setZona(e.target.value)} style={{padding:"10px 13px",background:C.surface,border:"1px solid "+C.border,borderRadius:10,color:C.text,fontFamily:"'DM Sans',sans-serif",fontSize:13,cursor:"pointer",outline:"none"}}>
+                  <option style={{background:C.surface}}>Todas</option>
+                  {ZONAS.map(z=><option key={z} style={{background:C.surface}}>{z}</option>)}
+                  <option disabled style={{background:C.surface}}>── Barrios Sevilla ──</option>
+                  {SEVILLA_ZONAS.map(z=><option key={z} style={{background:C.surface}}>{z}</option>)}
+                </select>
+
+                {/* Botón mapa — dorado pulsante */}
+                <button
+                  onClick={()=>showToast("🗺️ Mapa de zonas próximamente")}
+                  style={{
+                    padding:"10px 14px",
+                    background:"linear-gradient(135deg,#1C1A0A,#141208)",
+                    border:"1.5px solid "+C.accent+"55",
+                    borderRadius:10,
+                    color:C.accent,
+                    cursor:"pointer",
+                    display:"flex",
+                    alignItems:"center",
+                    gap:6,
+                    fontFamily:"'DM Sans',sans-serif",
+                    fontWeight:700,
+                    fontSize:12,
+                    flexShrink:0,
+                    boxShadow:"0 0 14px "+C.accent+"22",
+                    animation:"mapPulse 2.5s ease-in-out infinite",
+                  }}
+                >
+                  <span style={{fontSize:16}}>🗺️</span>
+                  <span style={{whiteSpace:"nowrap" as const}}>Ver en mapa</span>
                 </button>
+              </div>
+
+              {/* ── Pills scroll TODAS las profesiones ── */}
+              <div style={{marginBottom:10}}>
+                <p style={{fontSize:10,color:C.muted,fontWeight:700,letterSpacing:"0.06em",textTransform:"uppercase" as const,marginBottom:7}}>Profesión</p>
+                <div style={{position:"relative"}}>
+                  <div style={{
+                    display:"flex",
+                    gap:6,
+                    overflowX:"auto",
+                    paddingBottom:6,
+                    paddingTop:2,
+                    scrollbarWidth:"none",
+                  } as any}>
+                    {/* Todos */}
+                    <button
+                      onClick={()=>setOficio("Todos")}
+                      style={{
+                        flexShrink:0,
+                        padding:"7px 14px",
+                        borderRadius:99,
+                        border:"1.5px solid "+(oficio==="Todos"?C.accent:C.border+"88"),
+                        background:oficio==="Todos"?"linear-gradient(135deg,"+C.accent+"22,"+C.orange+"11)":"rgba(255,255,255,0.02)",
+                        color:oficio==="Todos"?C.accent:C.mutedL,
+                        cursor:"pointer",
+                        fontSize:12,
+                        fontFamily:"'DM Sans',sans-serif",
+                        fontWeight:oficio==="Todos"?800:500,
+                        whiteSpace:"nowrap" as const,
+                        transition:"all 0.15s",
+                        boxShadow:oficio==="Todos"?"0 2px 8px "+C.accent+"22":"none",
+                      }}
+                    >
+                      Todos
+                    </button>
+
+                    {/* Todas las profesiones */}
+                    {OFICIOS.map(o=>(
+                      <button
+                        key={o}
+                        onClick={()=>setOficio(oficio===o?"Todos":o)}
+                        style={{
+                          flexShrink:0,
+                          display:"flex",
+                          alignItems:"center",
+                          gap:5,
+                          padding:"7px 12px",
+                          borderRadius:99,
+                          border:"1.5px solid "+(oficio===o?C.accent:C.border+"66"),
+                          background:oficio===o
+                            ?"linear-gradient(135deg,"+C.accent+"22,"+C.orange+"11)"
+                            :"rgba(255,255,255,0.025)",
+                          color:oficio===o?C.accent:C.mutedL,
+                          cursor:"pointer",
+                          fontSize:11,
+                          fontFamily:"'DM Sans',sans-serif",
+                          fontWeight:oficio===o?700:400,
+                          whiteSpace:"nowrap" as const,
+                          transition:"all 0.15s",
+                          boxShadow:oficio===o?"0 2px 8px "+C.accent+"22":"none",
+                        }}
+                      >
+                        <span style={{fontSize:12}}>{OFICIO_ICONS[o]||"🔧"}</span>
+                        <span>{o}</span>
+                      </button>
+                    ))}
+                  </div>
+                  {/* Fade derecha */}
+                  <div style={{position:"absolute",top:0,right:0,bottom:6,width:36,background:"linear-gradient(to right,transparent,"+C.card+")",pointerEvents:"none"}} />
+                </div>
+              </div>
+
+              {/* Solo disponibles + count */}
+              <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                <button onClick={()=>setSoloDisp(!soloDisp)} style={{display:"flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:99,border:"1px solid "+(soloDisp?C.green:C.border),background:soloDisp?C.green+"15":"transparent",color:soloDisp?C.green:C.muted,cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:soloDisp?700:400,transition:"all 0.15s"}}>
+                  <span style={{width:6,height:6,borderRadius:"50%",background:soloDisp?C.green:C.muted,display:"inline-block"}} />
+                  Solo disponibles
+                </button>
+                <span style={{fontSize:12,color:C.muted,marginLeft:"auto"}}>{filteredWorkers.length} profesionales</span>
+              </div>
+            </div>
+
+            {/* Stats */}
+            <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginBottom:16}}>
+              {[{l:"Profesionales",v:workers.length+"+"},{l:"Trabajos",v:"1.8K"},{l:"Ciudades",v:"15"},{l:"Valoración",v:"4.8★"}].map(s=>(
+                <div key={s.l} style={{background:C.surface,borderRadius:10,padding:"10px 8px",textAlign:"center" as const,border:"1px solid "+C.border}}>
+                  <p style={{fontWeight:800,fontSize:16,color:C.accent}}>{s.v}</p>
+                  <p style={{fontSize:9,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.05em"}}>{s.l}</p>
+                </div>
               ))}
             </div>
           </div>
 
-          <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginBottom:14}}>
-            {[{l:"Profesionales",v:workers.length+"+"},{l:"Trabajos",v:"1.8K"},{l:"Ciudades",v:"15"},{l:"Valoración",v:"4.8★"}].map(s=>(
-              <div key={s.l} style={{background:C.surface,borderRadius:10,padding:"10px 8px",textAlign:"center",border:"1px solid "+C.border}}>
-                <p style={{fontWeight:800,fontSize:16,color:C.accent}}>{s.v}</p>
-                <p style={{fontSize:9,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.05em"}}>{s.l}</p>
-              </div>
-            ))}
-          </div>
-
-          <div style={{background:C.card,borderRadius:14,border:"1px solid "+C.border,padding:"12px 14px",marginBottom:14}}>
-            <div style={{display:"flex",background:C.bg,borderRadius:10,border:"1px solid "+C.border,overflow:"hidden",marginBottom:10}}>
-              <span style={{padding:"0 12px",display:"flex",alignItems:"center",color:C.muted,fontSize:14}}>🔍</span>
-              <input value={search} onChange={e=>{setSearch(e.target.value);if(e.target.value)setOficio("Todos");}} placeholder="Busca por nombre, oficio o descripción..." style={{flex:1,padding:"11px 0",background:"transparent",border:"none",color:C.text,fontFamily:"inherit",fontSize:14,outline:"none"}} />
-              {search&&<button onClick={()=>setSearch("")} style={{padding:"0 12px",background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:14}}>✕</button>}
-            </div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:10}}>
-              <select value={zona} onChange={e=>setZona(e.target.value)} style={{padding:"9px 12px",background:C.surface,border:"1px solid "+C.border,borderRadius:8,color:C.text,fontFamily:"inherit",fontSize:13,cursor:"pointer",outline:"none"}}>
-                <option style={{background:C.surface}}>Todas</option>
-                {ZONAS.map(z=><option key={z} style={{background:C.surface}}>{z}</option>)}
-                <option disabled style={{background:C.surface}}>── Barrios Sevilla ──</option>
-                {SEVILLA_ZONAS.map(z=><option key={z} style={{background:C.surface}}>{z}</option>)}
-              </select>
-              <select value={oficio} onChange={e=>setOficio(e.target.value)} style={{padding:"9px 12px",background:C.surface,border:"1px solid "+C.border,borderRadius:8,color:C.text,fontFamily:"inherit",fontSize:13,cursor:"pointer",outline:"none"}}>
-                <option style={{background:C.surface}}>Todos</option>
-                {OFICIOS.map(o=><option key={o} style={{background:C.surface}}>{o}</option>)}
-              </select>
-            </div>
-            <div style={{display:"flex",gap:8,alignItems:"center"}}>
-              <button onClick={()=>setSoloDisp(!soloDisp)} style={{display:"flex",alignItems:"center",gap:6,padding:"5px 10px",borderRadius:99,border:"1px solid "+(soloDisp?C.green:C.border),background:soloDisp?C.green+"15":"transparent",color:soloDisp?C.green:C.muted,cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:soloDisp?700:400,transition:"all 0.15s"}}>
-                <span style={{width:6,height:6,borderRadius:"50%",background:soloDisp?C.green:C.muted,display:"inline-block"}} />Solo disponibles
-              </button>
-              <span style={{fontSize:12,color:C.muted,marginLeft:"auto"}}>{filteredWorkers.length} profesionales</span>
-            </div>
-          </div>
-
-          <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:4,marginBottom:14,scrollbarWidth:"none"}}>
-            {CATS.map(c=>(
-              <button key={c} onClick={()=>setCatFilter(c)} style={{flexShrink:0,padding:"7px 14px",borderRadius:99,border:"1px solid "+(catFilter===c?C.accent:C.border),background:catFilter===c?C.accent+"18":C.surface,color:catFilter===c?C.accent:C.muted,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:catFilter===c?700:500,whiteSpace:"nowrap",transition:"all 0.15s"}}>{c}</button>
-            ))}
-          </div>
-
           {loading?<Spin/>:(
             <>
-              {filteredWorkers.length===0&&<div style={{textAlign:"center",padding:"32px 20px",color:C.muted}}><p style={{fontSize:32,marginBottom:8}}>🔍</p><p style={{fontWeight:700,color:C.text,fontSize:16,marginBottom:6}}>Sin resultados</p><p style={{fontSize:13}}>Prueba con otra búsqueda o zona</p></div>}
-              <div style={{display:"flex",flexDirection:"column",gap:10}}>
+              {filteredWorkers.length===0&&<div style={{textAlign:"center" as const,padding:"32px 20px",color:C.muted}}><p style={{fontSize:32,marginBottom:8}}>🔍</p><p style={{fontWeight:700,color:C.text,fontSize:16,marginBottom:6}}>Sin resultados</p><p style={{fontSize:13}}>Prueba con otra búsqueda o zona</p></div>}
+              <div style={{display:"flex",flexDirection:"column" as const,gap:10}}>
                 {filteredWorkers.map(w=><WorkerCardIdealista key={w.id} w={w} onChat={()=>handleChat(w)} onSelect={()=>setSelectedWorker(w)} />)}
               </div>
             </>
@@ -1181,12 +1399,12 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
 
         {tab==="chats"&&(<>
           <div style={{padding:"22px 0 16px"}}><h2 style={{fontWeight:800,fontSize:22,color:C.text}}>Mis conversaciones</h2></div>
-          {chatPartners.length===0?<div style={{textAlign:"center",padding:48,color:C.muted}}>
+          {chatPartners.length===0?<div style={{textAlign:"center" as const,padding:48,color:C.muted}}>
             <p style={{fontSize:36,marginBottom:8}}>💬</p>
             <p style={{fontWeight:700,fontSize:16,marginBottom:6}}>Sin conversaciones</p>
             <Btn onClick={()=>setTab("buscar")} small>Buscar profesionales →</Btn>
           </div>:
-          <div style={{display:"flex",flexDirection:"column",gap:10}}>
+          <div style={{display:"flex",flexDirection:"column" as const,gap:10}}>
             {chatPartners.map(w=>{
               const col=wColor(w.id);
               return <GCard key={w.id} onClick={()=>setChatWorker(w)} glow={col}>
@@ -1220,28 +1438,107 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
         </>)}
       </div>
 
-      <nav style={{position:"fixed",bottom:0,left:0,right:0,background:"rgba(10,10,15,0.97)",backdropFilter:"blur(20px)",borderTop:"1px solid "+C.border,display:"flex",zIndex:200}}>
-        {([["buscar","buscar"],["ranking","ranking"],["chats","chats"],["perfil","perfil"]] as const).map(([id])=>{
-          const icons:Record<string,React.ReactNode>={
-            buscar:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>,
-            ranking:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>,
-            chats:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
-            perfil:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
-          };
-          const labels:Record<string,string>={buscar:"Buscar",ranking:"Ranking",chats:"Mensajes",perfil:"Perfil"};
+      {/* ══════════════════════════════════════════════
+          NAV BAR MODERNA
+          ══════════════════════════════════════════════ */}
+      <nav style={{
+        position:"fixed",bottom:0,left:0,right:0,
+        background:"rgba(8,8,14,0.97)",
+        backdropFilter:"blur(24px) saturate(180%)",
+        borderTop:"1px solid "+C.border+"66",
+        display:"flex",
+        zIndex:200,
+        boxShadow:"0 -4px 30px rgba(0,0,0,0.5)",
+        paddingBottom:"env(safe-area-inset-bottom)",
+      }}>
+        {[
+          {id:"buscar" as const,label:"Buscar",active:(id:string)=>id==="buscar",icon:(active:boolean)=>(
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active?2.5:1.8} strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+          )},
+          {id:"ranking" as const,label:"Ranking",active:(id:string)=>id==="ranking",icon:(active:boolean)=>(
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active?2.5:1.8} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+            </svg>
+          )},
+          {id:"chats" as const,label:"Mensajes",active:(id:string)=>id==="chats",icon:(active:boolean)=>(
+            <svg width="21" height="21" viewBox="0 0 24 24" fill={active?"currentColor":"none"} stroke={active?"none":"currentColor"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+          )},
+          {id:"perfil" as const,label:"Perfil",active:(id:string)=>id==="perfil",icon:(active:boolean)=>(
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active?2.5:1.8} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+            </svg>
+          )},
+        ].map(({id,label,icon})=>{
           const isActive=tab===id;
           return(
-            <button key={id} onClick={()=>setTab(id as any)} style={{flex:1,padding:"8px 4px 10px",background:"none",border:"none",color:isActive?C.accent:C.muted+"88",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:3,transition:"all 0.2s",position:"relative"}}>
-              {isActive&&<div style={{position:"absolute",top:0,left:"50%",transform:"translateX(-50%)",width:32,height:2,background:"linear-gradient(90deg,"+C.accent+","+C.orange+")",borderRadius:"0 0 2px 2px"}} />}
-              <div style={{color:isActive?C.accent:C.muted+"88",position:"relative"}}>
-                {icons[id]}
+            <button
+              key={id}
+              onClick={()=>setTab(id)}
+              style={{
+                flex:1,
+                padding:"10px 4px 12px",
+                background:"none",
+                border:"none",
+                color:isActive?C.accent:C.muted+"55",
+                cursor:"pointer",
+                display:"flex",
+                flexDirection:"column" as const,
+                alignItems:"center",
+                gap:4,
+                transition:"all 0.2s",
+                position:"relative",
+              }}
+            >
+              {/* Línea activa arriba */}
+              {isActive&&(
+                <div style={{
+                  position:"absolute",top:0,left:"50%",transform:"translateX(-50%)",
+                  width:30,height:3,
+                  background:"linear-gradient(90deg,"+C.accent+","+C.orange+")",
+                  borderRadius:"0 0 4px 4px",
+                  boxShadow:"0 0 10px "+C.accent+"88",
+                }} />
+              )}
+
+              {/* Icono */}
+              <div style={{
+                color:isActive?C.accent:C.muted+"66",
+                position:"relative",
+                transform:isActive?"scale(1.1)":"scale(1)",
+                transition:"transform 0.2s",
+              }}>
+                {icon(isActive)}
                 {id==="chats"&&unreadChats>0&&!isActive&&(
-                  <span style={{position:"absolute",top:-4,right:-4,background:C.red,color:"#fff",borderRadius:99,minWidth:16,height:16,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:900,border:"1.5px solid "+C.bg,padding:"0 3px"}}>
+                  <span style={{
+                    position:"absolute",top:-5,right:-5,
+                    background:"linear-gradient(135deg,#FF4455,#FF6677)",
+                    color:"#fff",borderRadius:99,
+                    minWidth:17,height:17,
+                    display:"flex",alignItems:"center",justifyContent:"center",
+                    fontSize:9,fontWeight:900,
+                    border:"1.5px solid "+C.bg,
+                    padding:"0 3px",
+                    boxShadow:"0 2px 8px rgba(255,68,85,0.5)",
+                  }}>
                     {unreadChats>9?"9+":unreadChats}
                   </span>
                 )}
               </div>
-              <span style={{fontSize:9,fontWeight:isActive?700:500,letterSpacing:"0.04em",textTransform:"uppercase"}}>{labels[id]}</span>
+
+              <span style={{
+                fontSize:9,
+                fontWeight:isActive?800:400,
+                letterSpacing:"0.05em",
+                textTransform:"uppercase" as const,
+                color:isActive?C.accent:C.muted+"55",
+                transition:"all 0.2s",
+              }}>
+                {label}
+              </span>
             </button>
           );
         })}
@@ -1254,7 +1551,6 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
     </div>
   );
 }
-
 // ─── AUTH ───
 function Auth({onLogin}:{onLogin:(u:UserRow)=>void}){
   const [mode,setMode]=useState<"login"|"pick"|"register_cliente"|"register_pro">("login");
