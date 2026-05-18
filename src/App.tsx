@@ -1111,7 +1111,6 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
             <div onClick={()=>setShowWizard(true)} style={{display:"flex",alignItems:"center",gap:12,background:"linear-gradient(135deg,"+C.card+","+C.surface+")",borderRadius:16,border:"1px solid "+C.accent+"55",padding:"14px 18px",cursor:"pointer",boxShadow:"0 4px 24px rgba(255,215,0,0.10)",transition:"all 0.2s",marginBottom:12,position:"relative",overflow:"hidden"}}>
               <div style={{position:"absolute",top:-15,right:-15,width:70,height:70,borderRadius:"50%",background:C.accent+"10",pointerEvents:"none"}} />
               <div style={{width:42,height:42,borderRadius:12,background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0,boxShadow:"0 4px 14px "+C.accent+"44"}}>⚡</div>
-              <MapSection selectedZone={zona} onZoneSelect={(z)=>setZona(z)} />
               <div style={{flex:1}}>
                 <p style={{fontWeight:800,color:C.text,fontSize:15,marginBottom:2}}>¿Qué profesional necesitas?</p>
                 <p style={{fontSize:12,color:C.muted}}>Te conectamos con el más adecuado en segundos</p>
