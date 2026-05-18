@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { db, STORAGE_URL } from "./supabase";
 import type { UserRow, MessageRow, JobRow, CertRow, Plan, PhotoRow } from "./supabase";
+import { MapaZonas, MapaProModal } from './MapaZonas';
 
 const C = {
   bg:"#0A0A0F", surface:"#111118", card:"#16161F", cardHover:"#1C1C2A",
@@ -1089,11 +1090,21 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
   const [toast,setToast]=useState<string|null>(null);
   const [inAppNotif,setInAppNotif]=useState<{msg:string;from:string;fromId:string;isAdmin:boolean}|null>(null);
   const [unreadChats,setUnreadChats]=useState(0);
+  const [showMapa,setShowMapa]=useState(false);
+  const [mapaZones,setMapaZones]=useState<string[]>([]);
+  const prosByZone=useCallback((zone:string)=>{
+    return workers.filter(w=>w.zone===zone||(w.service_zones||[]).includes(zone)).length;
+  },[workers]);
   const showToast=(m:string)=>{setToast(m);setTimeout(()=>setToast(null),3000);};
 
   const filteredWorkers=workers.filter(w=>{
     if(soloDisp&&!w.available)return false;
-    if(zona!=="Todas"&&w.zone!==zona&&!(w.service_zones||[]).includes(zona))return false;
+    if(mapaZones.length>0){
+      const wz=[w.zone,...(w.service_zones||[])].filter(Boolean);
+      if(!mapaZones.some(z=>wz.includes(z)))return false;
+    } else if(zona!=="Todas"){
+      if(w.zone!==zona&&!(w.service_zones||[]).includes(zona))return false;
+    }
     if(oficio!=="Todos"&&w.trade!==oficio)return false;
     if(search){const s=search.toLowerCase();if(!w.name.toLowerCase().includes(s)&&!(w.trade||"").toLowerCase().includes(s)&&!(w.bio||"").toLowerCase().includes(s))return false;}
     return true;
@@ -1270,7 +1281,7 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
 
                 {/* Botón mapa — dorado pulsante */}
                 <button
-                  onClick={()=>showToast("🗺️ Mapa de zonas próximamente")}
+                  onClick={()=>setShowMapa(true)}
                   style={{
                     padding:"10px 14px",
                     background:"linear-gradient(135deg,#1C1A0A,#141208)",
@@ -1544,6 +1555,20 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
         })}
       </nav>
 
+{showMapa&&(
+        <MapaZonas
+          selectedZones={mapaZones}
+          onZonesChange={setMapaZones}
+          prosByZone={prosByZone}
+          onClose={()=>setShowMapa(false)}
+          onSearch={(zones)=>{
+            setMapaZones(zones);
+            setZona("Todas");
+            setShowMapa(false);
+          }}
+        />
+      )}
+      
       {showWizard&&<BuscadorExpressModal workers={workers} onResult={handleWizardResult} onWorkerSelect={w=>{setShowWizard(false);setSelectedWorker(w);}} onClose={()=>setShowWizard(false)} />}
       {selectedWorker&&<WorkerSheet worker={selectedWorker} onClose={()=>setSelectedWorker(null)} onChat={w=>{setSelectedWorker(null);handleChat(w);}} currentUser={user} />}
       {chatWorker&&<ChatPanel toUser={chatWorker} currentUser={user} onClose={()=>setChatWorker(null)} />}
@@ -1796,6 +1821,7 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
   const [photoFile,setPhotoFile]=useState<File|null>(null);
   const [photoPreview,setPhotoPreview]=useState<string>("");
   const [uploadingPhoto,setUploadingPhoto]=useState(false);
+  const [showMapaPro,setShowMapaPro]=useState(false);
   const photoLimit=PLAN_GATES.photos[user.plan as Plan] as number;
   const canAddPhoto=photoLimit===999||photos.length<photoLimit;
 
@@ -2101,7 +2127,20 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
               </div>
             </div>
           </GCard>
-          <GCard style={{marginBottom:14}}><MultiSelect label="Zonas donde prestas servicio" options={ZONAS} selected={serviceZones} onChange={setServiceZones} /></GCard>
+        <GCard style={{marginBottom:14}}>
+  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+    <p style={{fontWeight:700,color:C.text,fontSize:13}}>📍 Zonas de servicio</p>
+    <button onClick={()=>setShowMapaPro(true)} style={{padding:"6px 12px",background:"linear-gradient(135deg,#1C1A0A,#141208)",border:"1.5px solid "+C.accent+"44",borderRadius:8,color:C.accent,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:11,display:"flex",alignItems:"center",gap:5}}>
+      <span>🗺️</span> Editar en mapa
+    </button>
+  </div>
+  {serviceZones.length===0
+    ?<p style={{fontSize:12,color:C.muted}}>Sin zonas · Pulsa "Editar en mapa"</p>
+    :<div style={{display:"flex",flexWrap:"wrap",gap:5}}>
+      {serviceZones.map(z=><span key={z} style={{fontSize:11,padding:"3px 9px",borderRadius:99,background:C.accent+"15",color:C.accent,border:"1px solid "+C.accent+"33"}}>{z}</span>)}
+    </div>
+  }
+</GCard>
           <GCard style={{marginBottom:14}}><MultiSelect label="Tus especialidades" options={availableSpecialties} selected={specialties} onChange={setSpecialties} /></GCard>
           <GCard style={{marginBottom:14}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
@@ -2200,6 +2239,20 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
         ))}
       </nav>
 
+{showMapaPro&&(
+        <MapaProModal
+          currentZones={serviceZones}
+          onClose={()=>setShowMapaPro(false)}
+          onSave={async(zones)=>{
+            setServiceZones(zones);
+            await db.from("users").update({service_zones:zones}).eq("id",user.id);
+            onUpdate({...user,service_zones:zones});
+            setShowMapaPro(false);
+            showToast("✓ Zonas actualizadas");
+          }}
+        />
+      )}
+      
       {chatUser&&<ChatPanel toUser={chatUser} currentUser={user} onClose={()=>{setChatUser(null);setUnreadMsgs(0);}} />}
       <Ping msg={toast} />
     </div>
@@ -2656,7 +2709,8 @@ export default function App(){
       input::placeholder,textarea::placeholder{color:#44445A;}
       select option{background:#16161F;color:#F0F0FA;}
       ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:#1E1E30;border-radius:99px;}
-      @keyframes spin{to{transform:rotate(360deg);}}
+      @keyframes spin{to{transform:rotate(360deg);}}@keyframes mapPulse{0%,100%{box-shadow:0 0 14px rgba(255,215,0,0.15);}50%{box-shadow:0 0 24px rgba(255,215,0,0.4);}}
+      .leaflet-tooltip{background:transparent!important;border:none!important;box-shadow:none!important;padding:0!important;}
       @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
       @keyframes slideDownNotif{from{transform:translateX(-50%) translateY(-110%);opacity:0;}to{transform:translateX(-50%) translateY(0);opacity:1;}}
       @keyframes slideInFromRight{from{transform:translateX(100%);opacity:0;}to{transform:translateX(0);opacity:1;}}
