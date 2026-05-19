@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import EliteLanding from "./EliteLanding";
 import { db, STORAGE_URL } from "./supabase";
 import type { UserRow, MessageRow, JobRow, CertRow, Plan, PhotoRow } from "./supabase";
 import { MapaZonas, MapaProModal } from './MapaZonas';
@@ -2697,6 +2698,11 @@ export default function App(){
   const update=(u:UserRow)=>{setUser(u);localStorage.setItem("oy_user",JSON.stringify(u));};
 
   if(!ready)return <div style={{minHeight:"100dvh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center"}}><Spin /></div>;
+
+  // Landing de lanzamiento
+  if(window.location.pathname === "/elite-gratis") return <EliteLanding />;
+
+  return (<>
 
   return (<>
     <style>{`
