@@ -268,13 +268,71 @@ function MultiSelect({label,options,selected,onChange}:{label:string;options:str
 }
 
 // ─── URGENT LEAD BANNER (aparece encima de todo, rojo pulsante) ───
-function UrgentLeadBanner({msg,onClose,onClick}:{msg:string;onClose:()=>void;onClick:()=>void}){
+function UrgentLeadBanner({msg,onClose,onClick,jobId,proId}:{msg:string;onClose:()=>void;onClick:()=>void;jobId?:string;proId?:string}){
+  const [procesando,setProcesando]=useState(false);
+  const [slots,setSlots]=useState<number>(4);
+
   useEffect(()=>{
-    // vibrate if available
     if(navigator.vibrate) navigator.vibrate([200,100,200,100,400]);
-    const t=setTimeout(onClose,12000);
+    const t=setTimeout(onClose,15000);
+    // Leer cuántos slots quedan en tiempo real
+    if(jobId){
+      db.from("jobs").select("profesionales_aceptados").eq("id",jobId).single().then(({data}:any)=>{
+        if(data) setSlots(4-(data.profesionales_aceptados||[]).length);
+      });
+    }
     return()=>clearTimeout(t);
-  },[onClose]);
+  },[onClose,jobId]);
+
+  const aceptar=async()=>{
+    if(!jobId||!proId||procesando) return;
+    setProcesando(true);
+    // Leer estado actual del servidor para evitar colisiones
+    const {data:job}=await db.from("jobs").select("*").eq("id",jobId).single();
+    if(job){
+      const lista=job.profesionales_aceptados||[];
+      if(lista.length>=4){
+        alert("Este trabajo ya tiene 4 profesionales asignados.");
+        onClose(); setProcesando(false); return;
+      }
+      if(lista.includes(proId)){
+        onClick(); onClose(); return;
+      }
+      await db.from("jobs").update({profesionales_aceptados:[...lista,proId]}).eq("id",jobId);
+    }
+    setProcesando(false);
+    onClick();
+    onClose();
+  };
+
+  return(
+    <div style={{
+      position:"fixed",bottom:88,right:16,zIndex:20000,
+      background:"#111118",border:"2px solid #FF4455",
+      borderRadius:16,padding:"16px",maxWidth:320,
+      boxShadow:"0 10px 30px rgba(255,68,85,0.35)",
+      animation:"urgentPulse 2s ease-in-out infinite",
+    }}>
+      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+        <div style={{width:32,height:32,borderRadius:"50%",background:"rgba(255,68,85,0.15)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,animation:"urgentBell 0.5s ease-in-out infinite"}}>🔔</div>
+        <div>
+          <p style={{fontWeight:900,color:"#FF4455",fontSize:13,margin:0}}>🔴 CLIENTE NUEVO</p>
+          {slots<4&&<p style={{fontSize:10,color:"#FF8C00",margin:0}}>⚡ Quedan {slots} de 4 plazas</p>}
+        </div>
+        <button onClick={e=>{e.stopPropagation();onClose();}} style={{marginLeft:"auto",background:"none",border:"none",color:"#44445A",cursor:"pointer",fontSize:16}}>✕</button>
+      </div>
+      <p style={{fontSize:12,color:"#F0F0FA",lineHeight:1.6,marginBottom:14,overflow:"hidden",textOverflow:"ellipsis",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical" as any}}>{msg.replace("🔴 *NUEVO CLIENTE INTERESADO*\n\n","")}</p>
+      <div style={{display:"flex",gap:8}}>
+        <button onClick={aceptar} disabled={procesando} style={{flex:1,background:"#00D68F",color:"#000",border:"none",borderRadius:8,padding:"9px",fontWeight:800,fontSize:13,cursor:procesando?"not-allowed":"pointer",opacity:procesando?0.6:1}}>
+          {procesando?"Conectando...":"✓ Aceptar y chatear"}
+        </button>
+        <button onClick={onClose} style={{background:"transparent",color:"#44445A",border:"1px solid #1E1E30",borderRadius:8,padding:"9px 12px",cursor:"pointer",fontSize:12}}>
+          Ignorar
+        </button>
+      </div>
+    </div>
+  );
+}
   return(
     <div onClick={onClick} style={{
       position:"fixed",top:0,left:0,right:0,zIndex:20000,
@@ -1805,7 +1863,13 @@ function Auth({onLogin}:{onLogin:(u:UserRow)=>void}){
     </p>
   </div>
 )}
-              <Btn full disabled={loading} onClick={registerPro}>{loading?"Creando tu perfil...":"Crear perfil profesional →"}</Btn>
+              <div style={{padding:"12px 14px",marginBottom:16,backgroundColor:"#16161F",border:"1px solid #1E1E30",borderRadius:8,textAlign:"left" as const}}>
+  <p style={{fontSize:11,color:"#7777AA",lineHeight:1.6,margin:0}}>
+    Información de suscripción: El período de prueba cuenta con 30 días de acceso gratuito. Las solicitudes de cancelación deben procesarse con un mínimo de <strong style={{color:"#F0F0FA"}}>15 días de antelación</strong> respecto a la fecha de renovación para evitar el cargo automático del ciclo posterior ({plan==="elite"?"49,99€":plan==="pro"?"24,99€":"9,99€"}/mes). Al continuar, confirmas la aceptación de nuestros <a href="/terminos" target="_blank" style={{color:"#FFD700",textDecoration:"underline"}}>Términos de Servicio</a> y <a href="/cancelacion" target="_blank" style={{color:"#FFD700",textDecoration:"underline"}}>Política de Cancelación</a>.
+  </p>
+</div>
+<Btn full disabled={loading} onClick={registerPro}>{loading?"Creando tu perfil...":"Crear perfil profesional →"}</Btn>
+</>)}
             </>)}
           </GCard>
         )}
@@ -1982,13 +2046,15 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
 
       {/* ── URGENT LEAD BANNER ── */}
       {urgentLead&&(
-        <UrgentLeadBanner
-          msg={urgentLead.msg.replace("🔴 *NUEVO CLIENTE INTERESADO*\n\n","").substring(0,80)}
-          onClose={()=>setUrgentLead(null)}
-          onClick={()=>{setUrgentLead(null);setTab("chats");loadChats();}}
-        />
-      )}
-
+        {urgentLead&&(
+  <UrgentLeadBanner
+    msg={urgentLead.msg}
+    jobId={urgentLead.fromId}
+    proId={user.id}
+    onClose={()=>setUrgentLead(null)}
+    onClick={()=>{setUrgentLead(null);setTab("chats");loadChats();}}
+  />
+)}
       {/* ── Admin / normal notification ── */}
       {inAppNotif&&(
         <InAppNotification
