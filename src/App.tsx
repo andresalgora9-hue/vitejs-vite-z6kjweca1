@@ -2685,25 +2685,17 @@ function Admin({onLogout}:{onLogout:()=>void}){
 export default function App(){
   const [user,setUser]=useState<UserRow|null>(null);
   const [ready,setReady]=useState(false);
-
   useEffect(()=>{
     const s=localStorage.getItem("oy_user");
     if(s){try{setUser(JSON.parse(s));}catch{localStorage.removeItem("oy_user");}}
     setReady(true);
     db.from("visits").insert({page:"home",user_id:null}).then(()=>{});
   },[]);
-
   const login=(u:UserRow)=>{setUser(u);localStorage.setItem("oy_user",JSON.stringify(u));};
   const logout=()=>{setUser(null);localStorage.removeItem("oy_user");};
   const update=(u:UserRow)=>{setUser(u);localStorage.setItem("oy_user",JSON.stringify(u));};
-
   if(!ready)return <div style={{minHeight:"100dvh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center"}}><Spin /></div>;
-
-  // Landing de lanzamiento
-  if(window.location.pathname === "/elite-gratis") return <EliteLanding />;
-
-  return (<>
-
+  if(window.location.pathname==="/elite-gratis")return <EliteLanding />;
   return (<>
     <style>{`
       @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap');
