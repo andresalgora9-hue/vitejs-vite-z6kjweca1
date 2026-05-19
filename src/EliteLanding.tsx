@@ -406,7 +406,17 @@ function StepTarjeta({ datos, onSuccess }) {
         {loading ? "⟳  Activando tu cuenta…" : "Activar 30 días gratis →"}
       </Btn>
       <p style={{ color:C.dim, fontSize:11, textAlign:"center", lineHeight:1.8 }}>
-        Sin cargo hoy · Se cobra el día 30 · Cancela cuando quieras
+       <div style={{background:"rgba(255,68,85,0.06)",border:"1px solid rgba(255,68,85,0.2)",borderRadius:8,padding:"12px 14px",marginBottom:4}}>
+  <p style={{color:"#ff8888",fontSize:11,lineHeight:1.7,margin:0}}>
+    ⚠ Dispones de los primeros <strong style={{color:"#fff"}}>15 días naturales</strong> para cancelar sin coste.
+    A partir del día 16, aunque canceles, se realizará el cargo de <strong style={{color:"#fff"}}>49,99€</strong> al vencimiento del período de prueba.
+    La cancelación debe solicitarse con <strong style={{color:"#fff"}}>15 días de antelación</strong> al siguiente cobro.
+    Al activar aceptas los{" "}
+    <a href="/terminos" target="_blank" style={{color:"#FFB800"}}>Términos</a>,{" "}
+    <a href="/privacidad" target="_blank" style={{color:"#FFB800"}}>Privacidad</a> y{" "}
+    <a href="/cancelacion" target="_blank" style={{color:"#FFB800"}}>Política de Cancelación</a>.
+  </p>
+</div>
       </p>
     </div>
   );
