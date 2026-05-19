@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import EliteLanding from "./EliteLanding";
+import Terminos from "./Terminos";
+import Privacidad from "./Privacidad";
+import Cancelacion from "./Cancelacion";
 import { db, STORAGE_URL } from "./supabase";
 import type { UserRow, MessageRow, JobRow, CertRow, Plan, PhotoRow } from "./supabase";
 import { MapaZonas, MapaProModal } from './MapaZonas';
@@ -200,8 +203,20 @@ function StatusDot({status}:{status:string}){
 }
 function Spin(){return <div style={{display:"flex",justifyContent:"center",padding:40}}><div style={{width:28,height:28,border:"3px solid "+C.border,borderTop:"3px solid "+C.accent,borderRadius:"50%",animation:"spin 0.8s linear infinite"}} /></div>;}
 function Ping({msg}:{msg:string|null}){
-  if(!msg)return null;
-  return <div style={{position:"fixed",bottom:88,left:"50%",transform:"translateX(-50%)",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",color:"#000",borderRadius:10,padding:"10px 20px",fontWeight:700,fontSize:13,zIndex:9999,whiteSpace:"nowrap",boxShadow:"0 4px 20px "+C.accent+"55",pointerEvents:"none"}}>{msg}</div>;
+if(!msg)return null;
+return <div style={{position:"fixed",bottom:88,left:"50%",transform:"translateX(-50%)",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",color:"#000",borderRadius:10,padding:"10px 20px",fontWeight:700,fontSize:13,zIndex:9999,whiteSpace:"nowrap",boxShadow:"0 4px 20px "+C.accent+"55",pointerEvents:"none"}}>{msg}</div>;
+}
+function LegalFooter(){
+  return(
+    <div style={{padding:"24px 20px",borderTop:"1px solid #1E1E30",textAlign:"center" as const,background:"#080810",marginTop:40}}>
+      <p style={{fontSize:12,color:"#44445A",marginBottom:10}}>© {new Date().getFullYear()} OfficioYa. Todos los derechos reservados.</p>
+      <div style={{display:"flex",justifyContent:"center",gap:16,flexWrap:"wrap" as const}}>
+        {[["Términos y Condiciones","/terminos"],["Política de Privacidad","/privacidad"],["Política de Cancelación","/cancelacion"]].map(([l,h])=>(
+          <a key={l} href={h} style={{color:"#44445A",fontSize:11,textDecoration:"none"}}>{l}</a>
+        ))}
+      </div>
+    </div>
+  );
 }
 function Sheet({children,onClose,title}:{children:React.ReactNode;onClose:()=>void;title?:string}){
   const startY=useRef(0);
@@ -1784,7 +1799,13 @@ function Auth({onLogin}:{onLogin:(u:UserRow)=>void}){
             </>)}
           </GCard>
         )}
-        <p style={{textAlign:"center",fontSize:11,color:C.muted,marginTop:14}}>Al continuar aceptas los <span style={{color:C.accent,cursor:"pointer"}}>Términos de Uso</span> y la <span style={{color:C.accent,cursor:"pointer"}}>Política de Privacidad</span></p>
+        <p style={{textAlign:"center",fontSize:11,color:C.muted,marginTop:14}}>
+  Al continuar aceptas los{" "}
+  <a href="/terminos" style={{color:C.accent,textDecoration:"none"}}>Términos de Uso</a>
+  {" "}y la{" "}
+  <a href="/privacidad" style={{color:C.accent,textDecoration:"none"}}>Política de Privacidad</a>
+</p>
+<LegalFooter/>
       </div>
     </div>
   );
@@ -2696,6 +2717,9 @@ export default function App(){
   const update=(u:UserRow)=>{setUser(u);localStorage.setItem("oy_user",JSON.stringify(u));};
   if(!ready)return <div style={{minHeight:"100dvh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center"}}><Spin /></div>;
   if(window.location.pathname==="/elite-gratis")return <EliteLanding />;
+  if(window.location.pathname==="/terminos")return <Terminos />;
+if(window.location.pathname==="/privacidad")return <Privacidad />;
+if(window.location.pathname==="/cancelacion")return <Cancelacion />;
   return (<>
     <style>{`
       @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap');
