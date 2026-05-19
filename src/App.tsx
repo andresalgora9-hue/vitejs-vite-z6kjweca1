@@ -1795,6 +1795,16 @@ function Auth({onLogin}:{onLogin:(u:UserRow)=>void}){
                   );
                 })}
               </div>
+              {plan==="elite"&&(
+  <div style={{padding:"10px 12px",marginBottom:12,background:"rgba(255,68,85,0.08)",border:"1px solid rgba(255,68,85,0.2)",borderRadius:8}}>
+    <p style={{fontSize:11,color:"#ff8888",lineHeight:1.7,margin:0}}>
+      ⚠ Tienes <strong style={{color:"#ffaaaa"}}>15 días</strong> para cancelar sin coste.
+      A partir del día 16 se cobrará <strong style={{color:"#ffaaaa"}}>49,99€</strong> al vencimiento del trial.
+      Cancelación con <strong style={{color:"#ffaaaa"}}>15 días de antelación</strong> al siguiente cobro.{" "}
+      <a href="/cancelacion" target="_blank" style={{color:"#FFD700"}}>Ver política completa</a>
+    </p>
+  </div>
+)}
               <Btn full disabled={loading} onClick={registerPro}>{loading?"Creando tu perfil...":"Crear perfil profesional →"}</Btn>
             </>)}
           </GCard>
