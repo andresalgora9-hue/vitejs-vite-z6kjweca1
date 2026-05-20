@@ -1218,8 +1218,21 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
     setSelectedWorker(null);setChatWorker(w);
   };
 
-  const handleWizardResult=(oficio:string,_zona:string,_urgency:string)=>{
-    if(oficio)setOficio(oficio);setShowWizard(false);
+  const handleWizardResult=async(oficio:string,_zona:string,urgency:string)=>{
+    if(oficio)setOficio(oficio);
+    setShowWizard(false);
+    if(urgency==="urgente"&&oficio){
+      await db.from("jobs").insert({
+        worker_id:null,
+        client_id:user.id,
+        client_name:user.name,
+        title:"Busca "+oficio+" — urgente",
+        description:"Cliente busca "+oficio+" con urgencia en "+zona,
+        status:"pending",
+        es_urgente:true,
+        profesionales_aceptados:[],
+      });
+    }
   };
 
   return(
@@ -1939,9 +1952,20 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
           });
         }
       })
-      .on("postgres_changes",{event:"INSERT",schema:"public",table:"jobs",filter:"worker_id=eq."+user.id},(p:any)=>{
-        setJobs(prev=>[p.new,...prev]);
-        showToast("🔔 Nueva solicitud de trabajo de "+p.new.client_name);
+      .on("postgres_changes",{event:"INSERT",schema:"public",table:"jobs"},(p:any)=>{
+        const job=p.new;
+        // Si es urgente y es del oficio del profesional → mostrar alerta
+        if(job.es_urgente&&job.worker_id===null){
+          const lista=job.profesionales_aceptados||[];
+          if(lista.length<4&&!lista.includes(user.id)){
+            setUrgentLead({msg:"⚡ "+job.client_name+" necesita un "+job.title.replace("Busca ","").replace(" — urgente","")+" ahora · "+job.description,fromId:job.id});
+          }
+        }
+        // Si es un trabajo asignado directamente a este pro
+        if(job.worker_id===user.id){
+          setJobs(prev=>[job,...prev]);
+          showToast("🔔 Nueva solicitud de trabajo de "+job.client_name);
+        }
       })
       .subscribe();
     return ()=>{db.removeChannel(ch);};
