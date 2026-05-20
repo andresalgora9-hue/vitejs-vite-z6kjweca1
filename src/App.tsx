@@ -2027,7 +2027,6 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
 
       {/* ── URGENT LEAD BANNER ── */}
       {urgentLead&&(
-        {urgentLead&&(
   <UrgentLeadBanner
     msg={urgentLead.msg}
     jobId={urgentLead.fromId}
