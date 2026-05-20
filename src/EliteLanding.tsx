@@ -421,9 +421,9 @@ function StepTarjeta({ datos, onSuccess }) {
       <p style={{ color:C.dim, fontSize:11, textAlign:"center", lineHeight:1.8 }}>
        <div style={{background:"transparent",border:"none",borderRadius:8,padding:"8px 0",marginBottom:4}}>
   <p style={{color:"#444",fontSize:10,lineHeight:1.6,margin:0,textAlign:"center" as const}}>
-    ⚠ Dispones de los primeros <strong style={{color:"#fff"}}>15 días naturales</strong> para cancelar sin coste.
-    A partir del día 16, aunque canceles, se realizará el cargo de <strong style={{color:"#fff"}}>49,99€</strong> al vencimiento del período de prueba.
-    La cancelación debe solicitarse con <strong style={{color:"#fff"}}>15 días de antelación</strong> al siguiente cobro.
+    ⚠ Dispones de los primeros <strong style={{color:"#555"}}>15 días naturales</strong> para cancelar sin coste.
+    A partir del día 16, aunque canceles, se realizará el cargo de <strong style={{color:"#555"}}>49,99€</strong> al vencimiento del período de prueba.
+    La cancelación debe solicitarse con <strong style={{color:"#555"}}>15 días de antelación</strong> al siguiente cobro.
     Al activar aceptas los{" "}
     <a href="/terminos" target="_blank" style={{color:"#FFB800"}}>Términos</a>,{" "}
     <a href="/privacidad" target="_blank" style={{color:"#FFB800"}}>Privacidad</a> y{" "}
