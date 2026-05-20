@@ -333,24 +333,7 @@ function UrgentLeadBanner({msg,onClose,onClick,jobId,proId}:{msg:string;onClose:
     </div>
   );
 }
-return(
-    <div onClick={onClick} style={{
-      position:"fixed",top:0,left:0,right:0,zIndex:20000,
-      background:"linear-gradient(135deg,#FF1A1A,#FF4455,#FF8C00)",
-      padding:"12px 16px",cursor:"pointer",
-      boxShadow:"0 4px 30px rgba(255,68,85,0.7)",
-      animation:"urgentPulse 1.5s ease-in-out infinite",
-      display:"flex",alignItems:"center",gap:12,
-    }}>
-      <div style={{width:36,height:36,borderRadius:"50%",background:"rgba(0,0,0,0.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0,animation:"urgentBell 0.5s ease-in-out infinite"}}>🔔</div>
-      <div style={{flex:1,minWidth:0}}>
-        <p style={{fontWeight:900,color:"#fff",fontSize:13,marginBottom:1}}>🔴 CLIENTE NUEVO — ¡RESPONDE AHORA!</p>
-        <p style={{fontSize:12,color:"rgba(255,255,255,0.9)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{msg}</p>
-      </div>
-      <button onClick={e=>{e.stopPropagation();onClose();}} style={{background:"rgba(0,0,0,0.25)",border:"none",borderRadius:"50%",width:28,height:28,color:"#fff",cursor:"pointer",fontSize:14,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>
-    </div>
-  );
-}
+
 // ─── IN-APP NOTIFICATION (normal, desde arriba) ───
 function InAppNotification({msg,from,onClose,onClick,isAdmin=false}:{msg:string;from:string;onClose:()=>void;onClick:()=>void;isAdmin?:boolean}){
   useEffect(()=>{const t=setTimeout(onClose,6000);return()=>clearTimeout(t);},[onClose]);
