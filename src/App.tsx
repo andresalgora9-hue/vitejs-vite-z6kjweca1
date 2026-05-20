@@ -333,7 +333,7 @@ function UrgentLeadBanner({msg,onClose,onClick,jobId,proId}:{msg:string;onClose:
     </div>
   );
 }
-  return(
+return(
     <div onClick={onClick} style={{
       position:"fixed",top:0,left:0,right:0,zIndex:20000,
       background:"linear-gradient(135deg,#FF1A1A,#FF4455,#FF8C00)",
@@ -351,7 +351,6 @@ function UrgentLeadBanner({msg,onClose,onClick,jobId,proId}:{msg:string;onClose:
     </div>
   );
 }
-
 // ─── IN-APP NOTIFICATION (normal, desde arriba) ───
 function InAppNotification({msg,from,onClose,onClick,isAdmin=false}:{msg:string;from:string;onClose:()=>void;onClick:()=>void;isAdmin?:boolean}){
   useEffect(()=>{const t=setTimeout(onClose,6000);return()=>clearTimeout(t);},[onClose]);
