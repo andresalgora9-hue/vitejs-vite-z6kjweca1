@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 
-const STRIPE_PUBLIC_KEY = "pk_test_REEMPLAZA_CON_TU_CLAVE_PUBLICA";
-const STRIPE_PRICE_ID   = "price_REEMPLAZA_CON_TU_PRICE_ID";
+const STRIPE_PUBLIC_KEY = "pk_live_51TBJWACZe2kZYfZCHz1oLjVx17xGuoJzAHZpiOjXjsdfCDoWMyQMJ27BPJCizC5ncJPhefHaxNNpf6n4PTyGHB4100zzShI0xN";
+const STRIPE_PRICE_ID   = "price_1TYuneCZe2kZYfZCxD24mHGx";
 
 /* ─── TOKENS VISUALES (fieles a la app) ─────────────────────────── */
 const C = {
@@ -364,7 +364,20 @@ function StepTarjeta({ datos, onSuccess }) {
     if(error){setErr(error.message);setLoading(false);return;}
     // TODO: llamar a tu Supabase Edge Function
     // await fetch("/api/crear-suscripcion", { method:"POST", body:JSON.stringify({ paymentMethodId:paymentMethod.id, email:datos.email, nombre:datos.nombre, priceId:STRIPE_PRICE_ID }) })
-    await new Promise(r=>setTimeout(r,1600));
+    const res = await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/dynamic-handler", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        paymentMethodId: paymentMethod.id,
+        email: datos.email,
+        nombre: datos.nombre,
+        telefono: datos.telefono || "",
+        priceId: STRIPE_PRICE_ID,
+        userId: "",
+      }),
+    });
+    const result = await res.json();
+    if (!result.ok) { setErr(result.error || "Error al procesar el pago"); setLoading(false); return; }
     onSuccess();
   };
 
