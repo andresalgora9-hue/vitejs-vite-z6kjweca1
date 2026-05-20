@@ -1852,7 +1852,6 @@ function Auth({onLogin}:{onLogin:(u:UserRow)=>void}){
 </div>
 <Btn full disabled={loading} onClick={registerPro}>{loading?"Creando tu perfil...":"Crear perfil profesional →"}</Btn>
 </>)}
-            </>)}
           </GCard>
         )}
         <p style={{textAlign:"center",fontSize:11,color:C.muted,marginTop:14}}>
