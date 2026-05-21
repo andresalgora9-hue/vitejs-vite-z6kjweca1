@@ -2042,27 +2042,52 @@ function StripePayModal({user,priceId,plan,onClose,onSuccess}:{user:UserRow;pric
   const [ready,setReady]=useState(false);
   const [loading,setLoading]=useState(false);
   const [err,setErr]=useState<string|null>(null);
-  const STRIPE_PUBLIC_KEY="pk_live_51TBJWACZe2kZYfZCHz1oLjVx17xGuoJzAHZpiOjXjsdfCDoWMyQMJ27BPJCizC5ncJPhefHaxNNpf6n4PTyGHB4100zzShI0xN";
+  const [mounted,setMounted]=useState(false);
+  const STRIPE_PUBLIC_KEY="PEGA_AQUI_TU_PK_LIVE";
+  const col=PLAN_COLORS[plan];
+  const nuncaTuvoElite=!((user as any).stripe_customer_id);
 
- useEffect(()=>{
-    if(!cardRef.current)return;
+  useEffect(()=>{
+    setMounted(false);
+    setReady(false);
+    setErr(null);
+    setLoading(false);
+    if(cardEl.current){try{cardEl.current.destroy();}catch(e){}cardEl.current=null;}
+    const timer=setTimeout(()=>setMounted(true),50);
+    return()=>{
+      clearTimeout(timer);
+      if(cardEl.current){try{cardEl.current.destroy();}catch(e){}cardEl.current=null;}
+    };
+  },[priceId]);
+
+  useEffect(()=>{
+    if(!mounted||!cardRef.current)return;
     const init=()=>{
       if(!cardRef.current)return;
-      stripeRef.current=(window as any).Stripe(pk_live_51TBJWACZe2kZYfZCHz1oLjVx17xGuoJzAHZpiOjXjsdfCDoWMyQMJ27BPJCizC5ncJPhefHaxNNpf6n4PTyGHB4100zzShI0xN);
-      cardEl.current=stripeRef.current.elements().create("card",{
-        style:{base:{color:"#F0F0FA",fontFamily:"'DM Sans',sans-serif",fontSize:"16px","::placeholder":{color:"#44445A"},iconColor:"#FFD700"},invalid:{color:"#FF4455"}},
-        hidePostalCode:true,
-      });
-      cardEl.current.mount(cardRef.current);
-      cardEl.current.on("ready",()=>setReady(true));
-      cardEl.current.on("change",(e:any)=>setErr(e.error?.message||null));
+      try{
+        stripeRef.current=(window as any).Stripe(STRIPE_PUBLIC_KEY);
+        const elements=stripeRef.current.elements();
+        cardEl.current=elements.create("card",{
+          style:{
+            base:{color:"#F0F0FA",fontFamily:"'DM Sans',sans-serif",fontSize:"16px","::placeholder":{color:"#44445A"},iconColor:col},
+            invalid:{color:"#FF4455"},
+          },
+          hidePostalCode:true,
+        });
+        cardEl.current.mount(cardRef.current);
+        cardEl.current.on("ready",()=>setReady(true));
+        cardEl.current.on("change",(e:any)=>setErr(e.error?.message||null));
+      }catch(e){console.error(e);}
     };
-  if((window as any).Stripe){init();return;}
-    const s=document.createElement("script");s.src="https://js.stripe.com/v3/";s.onload=init;document.head.appendChild(s);
+    if((window as any).Stripe){init();return;}
+    const s=document.createElement("script");
+    s.src="https://js.stripe.com/v3/";
+    s.onload=init;
+    document.head.appendChild(s);
     return()=>{
-      try{if(cardEl.current){cardEl.current.destroy();cardEl.current=null;}}catch(e){}
+      if(cardEl.current){try{cardEl.current.destroy();}catch(e){}cardEl.current=null;}
     };
-  },[]);
+  },[mounted]);
 
   const pay=async()=>{
     if(!ready||loading)return;
@@ -2084,38 +2109,100 @@ function StripePayModal({user,priceId,plan,onClose,onSuccess}:{user:UserRow;pric
   };
 
   return(
-    <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(4,4,12,0.88)",backdropFilter:"blur(16px)",zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
-      <div onClick={e=>e.stopPropagation()} style={{background:"linear-gradient(170deg,#14141F,#0A0A14)",borderRadius:20,width:"100%",maxWidth:420,border:"1px solid #FFD70022",padding:24,boxShadow:"0 -8px 40px rgba(0,0,0,0.6)"}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
-          <div>
-            <p style={{fontWeight:900,fontSize:18,color:"#F0F0FA"}}>Activar plan {plan.toUpperCase()}</p>
-            <p style={{fontSize:13,color:"#44445A",marginTop:2}}>{PLAN_PRICES[plan]===0?"Gratis":PLAN_PRICES[plan]+"€/mes"}{plan==="elite"?" · 30 días gratis":""}</p>
+    <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(4,4,12,0.92)",backdropFilter:"blur(20px)",zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",padding:20,overflowY:"auto"}}>
+      <div onClick={e=>e.stopPropagation()} style={{background:"linear-gradient(170deg,#14141F,#0A0A14)",borderRadius:20,width:"100%",maxWidth:440,border:"1px solid "+col+"33",boxShadow:"0 0 60px "+col+"18",overflow:"hidden"}}>
+
+        {/* ── BANNER ELITE GRATIS ── */}
+        {plan==="elite"&&nuncaTuvoElite&&(
+          <div style={{background:"linear-gradient(135deg,"+col+",#FF8C00)",padding:"14px 20px",display:"flex",alignItems:"center",gap:12}}>
+            <span style={{fontSize:28}}>🎁</span>
+            <div>
+              <p style={{fontWeight:900,color:"#000",fontSize:15,margin:0}}>¡1 mes ÉLITE completamente gratis!</p>
+              <p style={{fontSize:12,color:"rgba(0,0,0,0.65)",margin:0}}>No se realiza ningún cargo hoy · Cancela antes del día 30</p>
+            </div>
           </div>
-          <button onClick={onClose} style={{background:"none",border:"1px solid #1E1E30",borderRadius:8,color:"#44445A",cursor:"pointer",padding:"5px 10px",fontSize:14}}>✕</button>
-        </div>
-        <div style={{background:"#FFD70012",border:"1px solid #FFD70033",borderRadius:12,padding:"12px 16px",marginBottom:20,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-          <div>
-            <p style={{color:"#FFD700",fontWeight:700,fontSize:13}}>{plan.toUpperCase()}</p>
-            <p style={{color:"#44445A",fontSize:11,marginTop:2}}>{plan==="elite"?"30 días gratis · luego ":""}{PLAN_PRICES[plan]}€/mes</p>
+        )}
+
+        <div style={{padding:24}}>
+          {/* ── HEADER ── */}
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:20}}>
+            <div>
+              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
+                <span style={{padding:"3px 10px",borderRadius:4,fontSize:11,fontWeight:900,color:col,background:col+"22",border:"1px solid "+col+"44"}}>{plan.toUpperCase()}</span>
+                {plan==="elite"&&nuncaTuvoElite&&<span style={{padding:"3px 10px",borderRadius:4,fontSize:11,fontWeight:900,color:"#000",background:"linear-gradient(135deg,"+col+",#FF8C00)"}}>30 DÍAS GRATIS</span>}
+              </div>
+              <p style={{fontWeight:900,fontSize:22,color:"#F0F0FA",margin:0}}>
+                {plan==="elite"&&nuncaTuvoElite ? "0,00€" : PLAN_PRICES[plan]+"€"}
+                <span style={{fontSize:13,color:"#44445A",fontWeight:400}}>{plan==="elite"&&nuncaTuvoElite?" hoy":"/mes"}</span>
+              </p>
+              {plan==="elite"&&nuncaTuvoElite&&<p style={{fontSize:11,color:"#44445A",margin:"2px 0 0"}}>Luego 49,99€/mes · Cancela cuando quieras</p>}
+            </div>
+            <button onClick={onClose} style={{background:"none",border:"1px solid #1E1E30",borderRadius:8,color:"#44445A",cursor:"pointer",padding:"6px 12px",fontSize:14}}>✕</button>
           </div>
-          <p style={{color:"#00D68F",fontSize:22,fontWeight:900}}>{plan==="elite"?"0,00€":PLAN_PRICES[plan]+"€"}</p>
-        </div>
-        <div style={{background:"#16161F",border:"1px solid #1E1E30",borderRadius:12,padding:"16px",marginBottom:16}}>
-          <p style={{fontSize:11,color:"#44445A",textTransform:"uppercase" as const,letterSpacing:"0.08em",marginBottom:12,fontWeight:700}}>Datos de tarjeta</p>
-          <div ref={cardRef} style={{minHeight:28}}/>
-          {!ready&&<p style={{color:"#44445A",fontSize:11,marginTop:8}}>Cargando formulario seguro…</p>}
-          {err&&<p style={{color:"#FF4455",fontSize:12,marginTop:8}}>⚠ {err}</p>}
-          <div style={{display:"flex",alignItems:"center",gap:6,marginTop:12,paddingTop:12,borderTop:"1px solid #1E1E30"}}>
-            <span style={{fontSize:14}}>🔒</span>
-            <span style={{color:"#44445A",fontSize:11}}>Pago cifrado con Stripe</span>
+
+          {/* ── BENEFICIOS ── */}
+          <div style={{background:col+"0A",border:"1px solid "+col+"22",borderRadius:12,padding:"14px",marginBottom:20}}>
+            <p style={{fontSize:10,color:col,fontWeight:800,letterSpacing:2,textTransform:"uppercase" as const,marginBottom:10}}>Incluye en el plan {plan.toUpperCase()}</p>
+            <div style={{display:"flex",flexDirection:"column" as const,gap:6}}>
+              {PLAN_FEATURES[plan].map(f=>(
+                <div key={f} style={{display:"flex",alignItems:"center",gap:8}}>
+                  <span style={{color:col,fontSize:13,flexShrink:0}}>✓</span>
+                  <span style={{fontSize:13,color:"#aaa"}}>{f}</span>
+                </div>
+              ))}
+            </div>
           </div>
+
+          {/* ── STRIPE CARD ── */}
+          <div style={{background:"#111118",border:"1px solid #1E1E30",borderRadius:12,padding:"16px",marginBottom:16}}>
+            <p style={{fontSize:11,color:"#44445A",textTransform:"uppercase" as const,letterSpacing:"0.08em",marginBottom:12,fontWeight:700}}>Datos de tarjeta</p>
+            {mounted ? (
+              <div ref={cardRef} style={{minHeight:28}}/>
+            ) : (
+              <div style={{minHeight:28,display:"flex",alignItems:"center"}}>
+                <p style={{color:"#44445A",fontSize:11}}>Cargando formulario seguro…</p>
+              </div>
+            )}
+            {!ready&&mounted&&<p style={{color:"#44445A",fontSize:11,marginTop:8}}>Cargando formulario seguro…</p>}
+            {err&&<p style={{color:"#FF4455",fontSize:12,marginTop:8}}>⚠ {err}</p>}
+            <div style={{display:"flex",alignItems:"center",gap:6,marginTop:12,paddingTop:12,borderTop:"1px solid #1E1E30"}}>
+              <span style={{fontSize:14}}>🔒</span>
+              <span style={{color:"#44445A",fontSize:11}}>Pago cifrado con Stripe · Datos seguros</span>
+            </div>
+          </div>
+
+          {/* ── LOGOS TARJETAS ── */}
+          <div style={{display:"flex",gap:6,marginBottom:16}}>
+            {["VISA","Mastercard","AMEX"].map(c=>(
+              <span key={c} style={{border:"1px solid #1E1E30",borderRadius:4,padding:"2px 8px",color:"#44445A",fontSize:10,letterSpacing:1}}>{c}</span>
+            ))}
+          </div>
+
+          {/* ── BOTÓN ── */}
+          <button
+            onClick={pay}
+            disabled={!ready||loading}
+            style={{
+              width:"100%",padding:"15px",
+              background:!ready||loading?"#222":"linear-gradient(135deg,"+col+","+(plan==="elite"?"#FF8C00":col)+"BB)",
+              border:"none",borderRadius:12,
+              color:!ready||loading?"#555":"#000",
+              fontFamily:"'DM Sans',sans-serif",fontWeight:900,fontSize:15,
+              cursor:!ready||loading?"not-allowed":"pointer",
+              boxShadow:!ready||loading?"none":"0 4px 20px "+col+"44",
+              transition:"all 0.2s",
+            }}
+          >
+            {loading?"⟳ Procesando...":
+             plan==="elite"&&nuncaTuvoElite?"Activar 30 días gratis →":
+             "Activar "+plan.toUpperCase()+" por "+PLAN_PRICES[plan]+"€/mes →"}
+          </button>
+
+          <p style={{color:"#333",fontSize:10,textAlign:"center" as const,marginTop:10,lineHeight:1.6}}>
+            {plan==="elite"?"Sin cargo hoy · Se cobra 49,99€ al día 30 · ":""}
+            Cancela cuando quieras desde tu perfil
+          </p>
         </div>
-        <Btn full disabled={!ready||loading} onClick={pay} color="#FFD700">
-          {loading?"⟳ Procesando...":plan==="elite"?"Activar 30 días gratis →":"Activar "+plan.toUpperCase()+" por "+PLAN_PRICES[plan]+"€/mes →"}
-        </Btn>
-        <p style={{color:"#44445A",fontSize:11,textAlign:"center" as const,marginTop:10}}>
-          {plan==="elite"?"Sin cargo hoy · Se cobra al día 30 · ":""}Cancela cuando quieras
-        </p>
       </div>
     </div>
   );
