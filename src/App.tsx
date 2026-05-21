@@ -753,18 +753,32 @@ function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:User
 // ─── BUSCADOR EXPRESS MODAL ───
 // ════════════════════════════════════════════════════════════════
 // REEMPLAZA el BuscadorExpressModal completo en tu App.tsx
-// Busca: "function BuscadorExpressModal(" y reemplaza todo el bloque
+// Busca: "(" y reemplaza todo el bloque
 // ════════════════════════════════════════════════════════════════
-
 function BuscadorExpressModal({workers,onResult,onWorkerSelect,onClose}:{workers:UserRow[];onResult:(oficio:string,zona:string,urgency:string)=>void;onWorkerSelect:(w:UserRow)=>void;onClose:()=>void}){
   const [step,setStep]=useState(1);
   const [selOficio,setSelOficio]=useState("");
-  const [selUrgency,setSelUrgency]=useState("");
-  const [selZona,setSelZona]=useState("Todas");
+  const [selUbicacion,setSelUbicacion]=useState<"sevilla"|"pueblos"|"">("");
+  const [selZonas,setSelZonas]=useState<string[]>([]);
   const [textSearch,setTextSearch]=useState("");
   const searchInputRef=useRef<HTMLInputElement>(null);
 
   useEffect(()=>{setTimeout(()=>searchInputRef.current?.focus(),120);},[]);
+
+  const BARRIOS_SEVILLA=[
+    "Todo Sevilla",
+    "Centro / Casco Antiguo","Triana","Los Remedios","Nervión","La Macarena",
+    "San Pablo / Santa Justa","Bellavista / La Palmera","Cerro-Amate","Sur",
+    "Este / Alcosa / Torreblanca","Norte",
+  ];
+
+  const PUEBLOS=[
+    "Todos los pueblos",
+    "Camas","Dos Hermanas","Alcalá de Guadaíra","Mairena del Aljarafe",
+    "San Juan de Aznalfarache","Bormujos","Tomares","Gelves","La Rinconada",
+    "Alcalá del Río","Brenes","Carmona","Écija","Utrera","Morón de la Frontera",
+    "Lebrija","Las Cabezas de San Juan","Marchena","Osuna","Estepa",
+  ];
 
   const URGENCY_OPTS=[
     {id:"urgente",icon:"🔴",title:"¡Urgencia ahora!",sub:"Avería crítica · Lo necesito hoy",border:C.red,bg:C.red+"15"},
@@ -772,11 +786,31 @@ function BuscadorExpressModal({workers,onResult,onWorkerSelect,onClose}:{workers
     {id:"presupuesto",icon:"🟢",title:"Solo presupuesto",sub:"Proyecto o consulta sin prisa",border:C.green,bg:C.green+"10"},
   ];
 
+  const listaZonas = selUbicacion==="sevilla" ? BARRIOS_SEVILLA : PUEBLOS;
+  const opcionTodos = selUbicacion==="sevilla" ? "Todo Sevilla" : "Todos los pueblos";
+  const zonasReales = listaZonas.filter(z=>z!==opcionTodos);
+
+  const toggleZona=(z:string)=>{
+    if(z===opcionTodos){
+      if(selZonas.length===zonasReales.length) setSelZonas([]);
+      else setSelZonas(zonasReales);
+      return;
+    }
+    setSelZonas(prev=>prev.includes(z)?prev.filter(x=>x!==z):[...prev,z]);
+  };
+
+  const todosSeleccionados = selZonas.length===zonasReales.length;
+
   const filteredBySearch=OFICIOS.filter(o=>!textSearch||o.toLowerCase().includes(textSearch.toLowerCase()));
   const handleSelectOficio=(o:string)=>{setSelOficio(o);setStep(2);};
-  const handleSelectUrgency=(id:string)=>{setSelUrgency(id);onResult(selOficio,selZona,id);onClose();};
+  const handleSelectUrgency=async(id:string)=>{
+    const zonaFinal = selZonas.length===0||todosSeleccionados
+      ? (selUbicacion==="sevilla"?"Sevilla (toda)":"Área metropolitana (toda)")
+      : selZonas.join(", ");
+    onResult(selOficio,zonaFinal,id);
+    onClose();
+  };
 
-  // Agrupar oficios por categoría
   const grouped=OFICIOS.reduce((acc:Record<string,string[]>,o)=>{
     const cat=(OFICIO_CATEGORIES[o]||"🛠️ Servicios").split(" ").slice(1).join(" ")||"Otros";
     if(!acc[cat])acc[cat]=[];
@@ -784,42 +818,45 @@ function BuscadorExpressModal({workers,onResult,onWorkerSelect,onClose}:{workers
     return acc;
   },{});
 
+  const stepTitles={
+    1:"¿Qué profesional necesitas?",
+    2:"¿Dónde lo necesitas?",
+    3:selUbicacion==="sevilla"?"¿En qué barrio?":"¿En qué pueblo?",
+    4:"¿Con qué urgencia?",
+  };
+
   return(
     <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(4,4,12,0.85)",backdropFilter:"blur(16px)",zIndex:800,display:"flex",alignItems:"flex-start",justifyContent:"center"}}>
       <div onClick={e=>e.stopPropagation()} style={{background:"linear-gradient(170deg,#14141F,#0A0A14)",width:"100%",maxWidth:520,height:"100dvh",borderRight:"1px solid "+C.accent+"22",boxShadow:"8px 0 40px rgba(0,0,0,0.8)",display:"flex",flexDirection:"column",overflowY:"hidden"}}>
 
-        {/* Header sticky */}
+        {/* Header */}
         <div style={{padding:"14px 18px",borderBottom:"1px solid "+C.border+"44",display:"flex",alignItems:"center",gap:10,flexShrink:0,background:"rgba(10,10,15,0.95)",backdropFilter:"blur(20px)"}}>
           <div style={{width:34,height:34,borderRadius:10,background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>⚡</div>
           <div style={{flex:1}}>
-            <p style={{fontWeight:900,color:C.text,fontSize:15,lineHeight:1}}>{step===1?"¿Qué profesional necesitas?":"¿Con qué urgencia?"}</p>
-            <p style={{fontSize:10,color:C.muted,marginTop:2}}>{step===1?"Selecciona el servicio que buscas":"Paso 2 de 2 · "+selOficio}</p>
+            <p style={{fontWeight:900,color:C.text,fontSize:15,lineHeight:1}}>{stepTitles[step as keyof typeof stepTitles]}</p>
+            <p style={{fontSize:10,color:C.muted,marginTop:2}}>Paso {step} de 4{selOficio?" · "+selOficio:""}</p>
           </div>
-          <div style={{display:"flex",gap:3,alignItems:"center"}}>
-            {[1,2].map(s=><div key={s} style={{width:s===step?18:6,height:5,borderRadius:99,background:s<=step?C.accent:C.border,transition:"all 0.3s"}} />)}
+          {/* Stepper dots */}
+          <div style={{display:"flex",gap:4,alignItems:"center"}}>
+            {[1,2,3,4].map(s=><div key={s} style={{width:s===step?18:6,height:5,borderRadius:99,background:s<=step?C.accent:C.border,transition:"all 0.3s"}} />)}
           </div>
           <button onClick={onClose} style={{background:"none",border:"1px solid "+C.border+"66",borderRadius:8,color:C.muted,cursor:"pointer",padding:"5px 10px",fontSize:13,flexShrink:0}}>✕</button>
         </div>
 
-        {/* Contenido scrollable */}
+        {/* Contenido */}
         <div style={{flex:1,overflowY:"auto",padding:"18px"}}>
 
+          {/* ── PASO 1: OFICIO ── */}
           {step===1&&(<>
-            {/* Buscador */}
-            <div style={{display:"flex",background:C.bg,borderRadius:12,border:"1px solid "+C.accent+"33",overflow:"hidden",marginBottom:18,boxShadow:"0 4px 16px rgba(0,0,0,0.3),0 0 0 1px "+C.accent+"11"}}>
+            <div style={{display:"flex",background:C.bg,borderRadius:12,border:"1px solid "+C.accent+"33",overflow:"hidden",marginBottom:18,boxShadow:"0 4px 16px rgba(0,0,0,0.3)"}}>
               <span style={{padding:"0 14px",display:"flex",alignItems:"center",color:C.accent,fontSize:16}}>🔍</span>
-              <input
-                ref={searchInputRef}
-                autoFocus
-                value={textSearch}
-                onChange={e=>setTextSearch(e.target.value)}
+              <input ref={searchInputRef} autoFocus value={textSearch} onChange={e=>setTextSearch(e.target.value)}
                 placeholder="Electricista, fontanero, pintor..."
                 style={{flex:1,padding:"13px 0",background:"transparent",border:"none",color:C.text,fontFamily:"'DM Sans',sans-serif",fontSize:14,outline:"none"}}
               />
               {textSearch&&<button onClick={()=>setTextSearch("")} style={{padding:"0 14px",background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:14}}>✕</button>}
             </div>
 
-            {/* Top picks — solo si no hay búsqueda */}
             {!textSearch&&(<>
               <p style={{fontSize:10,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.1em",fontWeight:800,marginBottom:10}}>🔥 Los más solicitados</p>
               <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:7,marginBottom:22}}>
@@ -830,8 +867,6 @@ function BuscadorExpressModal({workers,onResult,onWorkerSelect,onClose}:{workers
                   </button>
                 ))}
               </div>
-
-              {/* Todos los servicios agrupados */}
               <p style={{fontSize:10,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.1em",fontWeight:800,marginBottom:12}}>Todos los servicios · {OFICIOS.length}</p>
               {Object.entries(grouped).map(([catName,oficios])=>{
                 const catIcon=Object.entries(OFICIO_CATEGORIES).find(([,v])=>v.split(" ").slice(1).join(" ")===catName)?.[1]?.split(" ")[0]||"🔧";
@@ -855,7 +890,6 @@ function BuscadorExpressModal({workers,onResult,onWorkerSelect,onClose}:{workers
               })}
             </>)}
 
-            {/* Resultados de búsqueda */}
             {textSearch&&(<>
               <p style={{fontSize:10,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.1em",fontWeight:800,marginBottom:10}}>Resultados · {filteredBySearch.length}</p>
               <div style={{display:"flex",flexDirection:"column" as const,gap:4}}>
@@ -882,19 +916,127 @@ function BuscadorExpressModal({workers,onResult,onWorkerSelect,onClose}:{workers
             </>)}
           </>)}
 
+          {/* ── PASO 2: UBICACIÓN ── */}
           {step===2&&(<>
-            <button onClick={()=>setStep(1)} style={{display:"flex",alignItems:"center",gap:8,background:"none",border:"1px solid "+C.border,borderRadius:10,color:C.mutedL,cursor:"pointer",padding:"8px 14px",fontFamily:"'DM Sans',sans-serif",fontSize:13,marginBottom:20}}>
+            <button onClick={()=>setStep(1)} style={{display:"flex",alignItems:"center",gap:8,background:"none",border:"1px solid "+C.border,borderRadius:10,color:C.mutedL,cursor:"pointer",padding:"8px 14px",fontFamily:"'DM Sans',sans-serif",fontSize:13,marginBottom:24}}>
               ← Cambiar servicio
             </button>
-            <div style={{padding:"14px",background:C.accent+"12",borderRadius:12,border:"1px solid "+C.accent+"33",marginBottom:24}}>
-              <p style={{fontSize:10,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.06em",marginBottom:3}}>Servicio seleccionado</p>
+            <div style={{padding:"14px",background:C.accent+"12",borderRadius:12,border:"1px solid "+C.accent+"33",marginBottom:28}}>
+              <p style={{fontSize:10,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.06em",marginBottom:3}}>Servicio</p>
               <p style={{fontWeight:800,color:C.accent,fontSize:16}}>{OFICIO_ICONS[selOficio]||"🔧"} {selOficio}</p>
             </div>
-            <p style={{fontWeight:900,fontSize:22,color:C.text,marginBottom:4,letterSpacing:"-0.02em"}}>¿Con qué urgencia lo necesitas?</p>
+            <p style={{fontWeight:900,fontSize:20,color:C.text,marginBottom:4}}>¿Dónde lo necesitas?</p>
+            <p style={{fontSize:13,color:C.muted,marginBottom:20}}>Selecciona la zona para encontrar profesionales cercanos</p>
+            <div style={{display:"flex",flexDirection:"column" as const,gap:12}}>
+              {[
+                {id:"sevilla",icon:"🏛️",title:"Sevilla ciudad",sub:"Barrios y distritos de Sevilla capital",color:C.accent},
+                {id:"pueblos",icon:"🌳",title:"Pueblos del área metropolitana",sub:"Dos Hermanas, Mairena, Alcalá y más",color:C.green},
+              ].map(opt=>(
+                <button key={opt.id} onClick={()=>{setSelUbicacion(opt.id as any);setSelZonas([]);setStep(3);}}
+                  style={{display:"flex",gap:16,alignItems:"center",padding:"20px",borderRadius:16,border:"2px solid "+opt.color+"44",background:opt.color+"10",cursor:"pointer",fontFamily:"inherit",textAlign:"left" as const,transition:"all 0.18s"}}>
+                  <span style={{fontSize:36,flexShrink:0}}>{opt.icon}</span>
+                  <div>
+                    <p style={{fontWeight:800,fontSize:16,color:C.text,marginBottom:3}}>{opt.title}</p>
+                    <p style={{fontSize:12,color:C.mutedL}}>{opt.sub}</p>
+                  </div>
+                  <span style={{marginLeft:"auto",fontSize:18,color:opt.color,flexShrink:0}}>→</span>
+                </button>
+              ))}
+            </div>
+          </>)}
+
+          {/* ── PASO 3: BARRIOS O PUEBLOS ── */}
+          {step===3&&(<>
+            <button onClick={()=>setStep(2)} style={{display:"flex",alignItems:"center",gap:8,background:"none",border:"1px solid "+C.border,borderRadius:10,color:C.mutedL,cursor:"pointer",padding:"8px 14px",fontFamily:"'DM Sans',sans-serif",fontSize:13,marginBottom:20}}>
+              ← Cambiar ubicación
+            </button>
+            <p style={{fontWeight:900,fontSize:18,color:C.text,marginBottom:4}}>
+              {selUbicacion==="sevilla"?"¿En qué barrio o barrios?":"¿En qué pueblo o pueblos?"}
+            </p>
+            <p style={{fontSize:13,color:C.muted,marginBottom:16}}>Puedes seleccionar varios o todos a la vez</p>
+
+            {/* Botón seleccionar todos */}
+            <button onClick={()=>toggleZona(opcionTodos)}
+              style={{
+                width:"100%",padding:"12px 16px",borderRadius:12,marginBottom:12,
+                border:"2px solid "+(todosSeleccionados?C.accent:C.border),
+                background:todosSeleccionados?"linear-gradient(135deg,"+C.accent+"22,"+C.orange+"11)":"transparent",
+                color:todosSeleccionados?C.accent:C.mutedL,
+                cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontWeight:800,fontSize:14,
+                display:"flex",alignItems:"center",justifyContent:"space-between",
+                transition:"all 0.15s",
+              }}>
+              <span>{selUbicacion==="sevilla"?"🗺️ Todo Sevilla":"🌍 Todos los pueblos"}</span>
+              <span style={{fontSize:12,color:todosSeleccionados?C.accent:C.muted}}>
+                {todosSeleccionados?`✓ ${zonasReales.length} seleccionados`:"Seleccionar todos"}
+              </span>
+            </button>
+
+            {/* Lista de zonas */}
+            <div style={{display:"flex",flexDirection:"column" as const,gap:6}}>
+              {zonasReales.map(z=>{
+                const sel=selZonas.includes(z);
+                return(
+                  <button key={z} onClick={()=>toggleZona(z)}
+                    style={{
+                      display:"flex",alignItems:"center",gap:12,padding:"12px 14px",
+                      borderRadius:10,border:"1px solid "+(sel?C.accent:C.border+"66"),
+                      background:sel?"linear-gradient(135deg,"+C.accent+"18,"+C.orange+"0A)":"transparent",
+                      color:sel?C.accent:C.text,cursor:"pointer",fontFamily:"inherit",
+                      textAlign:"left" as const,transition:"all 0.15s",fontWeight:sel?700:400,
+                    }}>
+                    <div style={{
+                      width:20,height:20,borderRadius:6,border:"1.5px solid "+(sel?C.accent:C.border),
+                      background:sel?C.accent:"transparent",display:"flex",alignItems:"center",
+                      justifyContent:"center",flexShrink:0,transition:"all 0.15s",
+                    }}>
+                      {sel&&<span style={{color:"#000",fontSize:12,fontWeight:900}}>✓</span>}
+                    </div>
+                    <span style={{fontSize:13,flex:1}}>{z}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Contador y botón listo */}
+            <div style={{position:"sticky",bottom:0,paddingTop:16,paddingBottom:8,background:"linear-gradient(to top,#0A0A14 80%,transparent)"}}>
+              {selZonas.length>0&&(
+                <p style={{fontSize:12,color:C.muted,textAlign:"center" as const,marginBottom:8}}>
+                  {todosSeleccionados?`Toda la zona seleccionada`:`${selZonas.length} ${selZonas.length===1?"zona seleccionada":"zonas seleccionadas"}`}
+                </p>
+              )}
+              <button
+                onClick={()=>{if(selZonas.length===0&&!todosSeleccionados){toggleZona(opcionTodos);}setStep(4);}}
+                style={{
+                  width:"100%",padding:"14px",borderRadius:12,
+                  background:selZonas.length>0||todosSeleccionados?"linear-gradient(135deg,"+C.accent+","+C.orange+")":"linear-gradient(135deg,"+C.accent+"88,"+C.orange+"88)",
+                  border:"none",color:"#000",fontFamily:"'DM Sans',sans-serif",
+                  fontWeight:800,fontSize:14,cursor:"pointer",
+                }}>
+                {selZonas.length===0?"Seleccionar toda la zona y continuar →":"Listo · Continuar →"}
+              </button>
+            </div>
+          </>)}
+
+          {/* ── PASO 4: URGENCIA ── */}
+          {step===4&&(<>
+            <button onClick={()=>setStep(3)} style={{display:"flex",alignItems:"center",gap:8,background:"none",border:"1px solid "+C.border,borderRadius:10,color:C.mutedL,cursor:"pointer",padding:"8px 14px",fontFamily:"'DM Sans',sans-serif",fontSize:13,marginBottom:20}}>
+              ← Cambiar zona
+            </button>
+            <div style={{padding:"12px 14px",background:C.accent+"12",borderRadius:12,border:"1px solid "+C.accent+"33",marginBottom:24,display:"flex",gap:10,flexWrap:"wrap" as const}}>
+              <span style={{fontSize:12,color:C.muted}}>📍</span>
+              <span style={{fontSize:12,color:C.accent,fontWeight:600}}>
+                {todosSeleccionados
+                  ?(selUbicacion==="sevilla"?"Todo Sevilla":"Todos los pueblos")
+                  :selZonas.join(" · ")}
+              </span>
+            </div>
+            <p style={{fontWeight:900,fontSize:22,color:C.text,marginBottom:4}}>¿Con qué urgencia lo necesitas?</p>
             <p style={{fontSize:13,color:C.muted,marginBottom:20}}>Esto nos ayuda a conectarte con el profesional adecuado</p>
             <div style={{display:"flex",flexDirection:"column" as const,gap:10}}>
               {URGENCY_OPTS.map(opt=>(
-                <button key={opt.id} onClick={()=>handleSelectUrgency(opt.id)} style={{display:"flex",gap:16,alignItems:"center",padding:"18px 20px",borderRadius:16,border:"2px solid "+opt.border+"55",background:opt.bg,cursor:"pointer",fontFamily:"inherit",textAlign:"left" as const,transition:"all 0.18s",position:"relative",overflow:"hidden"}}>
+                <button key={opt.id} onClick={()=>handleSelectUrgency(opt.id)}
+                  style={{display:"flex",gap:16,alignItems:"center",padding:"18px 20px",borderRadius:16,border:"2px solid "+opt.border+"55",background:opt.bg,cursor:"pointer",fontFamily:"inherit",textAlign:"left" as const,transition:"all 0.18s",position:"relative",overflow:"hidden"}}>
                   <div style={{position:"absolute",top:-20,right:-20,width:70,height:70,borderRadius:"50%",background:opt.border+"15",pointerEvents:"none"}} />
                   <span style={{fontSize:30,flexShrink:0}}>{opt.icon}</span>
                   <div>
@@ -906,11 +1048,13 @@ function BuscadorExpressModal({workers,onResult,onWorkerSelect,onClose}:{workers
               ))}
             </div>
           </>)}
+
         </div>
       </div>
     </div>
   );
 }
+
 
 // ─── WORKER CARD ───
 function WorkerCardIdealista({w,onSelect,onChat}:{w:UserRow;onSelect:()=>void;onChat:()=>void}){
