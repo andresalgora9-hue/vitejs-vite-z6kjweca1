@@ -763,6 +763,18 @@ function BuscadorExpressModal({workers,onResult,onWorkerSelect,onClose}:{workers
   const [textSearch,setTextSearch]=useState("");
   const searchInputRef=useRef<HTMLInputElement>(null);
 
+
+  useEffect(()=>{
+  const handleKey=(e:KeyboardEvent)=>{
+    if(e.key!=="Enter")return;
+    if(step===1&&selOficio)setStep(2);
+    if(step===2&&selUbicacion)setStep(3);
+    if(step===3){if(selZonas.length===0)toggleZona(opcionTodos);setStep(4);}
+  };
+  window.addEventListener("keydown",handleKey);
+  return()=>window.removeEventListener("keydown",handleKey);
+},[step,selOficio,selUbicacion,selZonas,opcionTodos]);
+
   useEffect(()=>{setTimeout(()=>searchInputRef.current?.focus(),120);},[]);
 
   const BARRIOS_SEVILLA=[
@@ -2056,6 +2068,7 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
   const [photoPreview,setPhotoPreview]=useState<string>("");
   const [uploadingPhoto,setUploadingPhoto]=useState(false);
   const [showMapaPro,setShowMapaPro]=useState(false);
+  const [showStripeModal,setShowStripeModal]=useState<{priceId:string;plan:Plan}|null>(null);
   const photoLimit=PLAN_GATES.photos[user.plan as Plan] as number;
   const canAddPhoto=photoLimit===999||photos.length<photoLimit;
 
@@ -2454,9 +2467,22 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
                 <div style={{display:"flex",flexWrap:"wrap",gap:5,marginBottom:isCurrent?0:14}}>
                   {PLAN_FEATURES[pl].map(f=><span key={f} style={{fontSize:11,color:C.mutedL,background:C.surface,padding:"3px 8px",borderRadius:99,border:"1px solid "+C.border}}>✓ {f}</span>)}
                 </div>
-                {!isCurrent&&<button onClick={()=>showToast("🚀 Redirigiendo a Stripe...")} style={{marginTop:14,width:"100%",padding:"11px",background:pl==="pro"?"linear-gradient(135deg,"+col+","+C.orange+")":"transparent",border:"1px solid "+col+"66",borderRadius:8,color:pl==="pro"?"#000":col,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:14,cursor:"pointer"}}>
-                  {pl==="gratis"?"Volver a gratuito →":"Activar "+pl.toUpperCase()+" por "+PLAN_PRICES[pl]+"€/mes →"}
-                </button>}
+              {!isCurrent&&<button onClick={async()=>{
+  if(pl==="gratis"){
+    await db.from("users").update({plan:"gratis",stripe_subscription_id:null}).eq("id",user.id);
+    onUpdate({...user,plan:"gratis"});
+    showToast("✓ Vuelto a plan gratuito");
+    return;
+  }
+  const priceMap:Record<string,string>={
+    basico:"price_1TYugfCZe2kZYfZChXHjTrsg",
+    pro:"price_1TYuioCZe2kZYfZChYFbWcrt",
+    elite:(user as any).stripe_customer_id?"price_1TYxjFCZe2kZYfZCNN2TBfzs":"price_1TYuneCZe2kZYfZCxD24mHGx",
+  };
+  setShowStripeModal({priceId:priceMap[pl],plan:pl});
+}} style={{marginTop:14,width:"100%",padding:"11px",background:pl==="pro"?"linear-gradient(135deg,"+col+","+C.orange+")":"transparent",border:"1px solid "+col+"66",borderRadius:8,color:pl==="pro"?"#000":col,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:14,cursor:"pointer"}}>
+  {pl==="gratis"?"Volver a gratuito →":"Activar "+pl.toUpperCase()+" por "+PLAN_PRICES[pl]+"€/mes →"}
+</button>}
               </div>;
             })}
           </div>
@@ -2500,6 +2526,19 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
       )}
       
       {chatUser&&<ChatPanel toUser={chatUser} currentUser={user} onClose={()=>{setChatUser(null);setUnreadMsgs(0);}} />}
+      {showStripeModal&&(
+  <StripePayModal
+    user={user}
+    priceId={showStripeModal.priceId}
+    plan={showStripeModal.plan}
+    onClose={()=>setShowStripeModal(null)}
+    onSuccess={(pl)=>{
+      onUpdate({...user,plan:pl});
+      showToast("✅ Plan "+pl.toUpperCase()+" activado");
+      setShowStripeModal(null);
+    }}
+  />
+)}
       <Ping msg={toast} />
     </div>
   );
