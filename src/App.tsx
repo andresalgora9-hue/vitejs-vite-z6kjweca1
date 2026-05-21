@@ -1475,7 +1475,17 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
       />}
 
       {/* ── HEADER ── */}
-      <header style={{background:"rgba(10,10,15,0.94)",backdropFilter:"blur(20px)",borderBottom:"1px solid "+C.border,position:"sticky",top:0,zIndex:100,boxShadow:"0 2px 20px rgba(0,0,0,0.4)"}}>
+      <header style={{
+        background:"rgba(10,10,15,0.96)",
+        backdropFilter:"blur(20px)",
+        borderBottom:"1px solid "+C.border,
+        position:"sticky",
+        top:0,
+        zIndex:100,
+        boxShadow:"0 2px 20px rgba(0,0,0,0.4)",
+        // Esto empuja el contenido debajo de la Isla Dinámica/Notch
+        paddingTop: "env(safe-area-inset-top)"
+      }}>
         <div style={{maxWidth:900,margin:"0 auto",padding:"0 16px",display:"flex",alignItems:"center",justifyContent:"space-between",height:52}}>
           <button onClick={()=>setTab("buscar")} style={{display:"flex",alignItems:"center",gap:8,background:"none",border:"none",cursor:"pointer",padding:0}}>
             <div style={{width:28,height:28,borderRadius:8,background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14}}>🔨</div>
@@ -1745,15 +1755,20 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
       {/* ══════════════════════════════════════════════
           NAV BAR MODERNA
           ══════════════════════════════════════════════ */}
-      <nav style={{
-        position:"fixed",bottom:0,left:0,right:0,
-        background:"rgba(8,8,14,0.97)",
-        backdropFilter:"blur(24px) saturate(180%)",
+     <nav style={{
+        position:"fixed",
+        bottom:0,
+        left:0,
+        right:0,
+        background:"rgba(8,8,14,0.98)",
+        backdropFilter:"blur(25px) saturate(200%)",
         borderTop:"1px solid "+C.border+"66",
         display:"flex",
         zIndex:200,
-        boxShadow:"0 -4px 30px rgba(0,0,0,0.5)",
-        paddingBottom:"env(safe-area-inset-bottom)",
+        boxShadow:"0 -4px 30px rgba(0,0,0,0.8)",
+        // Ajuste extra de espacio para la barra de gestos de iPhone
+        paddingBottom: "calc(10px + env(safe-area-inset-bottom))",
+        paddingTop: "10px"
       }}>
         {[
           {id:"buscar" as const,label:"Buscar",active:(id:string)=>id==="buscar",icon:(active:boolean)=>(
@@ -2473,7 +2488,15 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
         />
       )}
 
-      <header style={{background:"rgba(10,10,15,0.94)",backdropFilter:"blur(20px)",borderBottom:"1px solid "+C.border,position:"sticky",top:0,zIndex:100}}>
+     <header style={{
+        background:"rgba(10,10,15,0.96)",
+        backdropFilter:"blur(20px)",
+        borderBottom:"1px solid "+C.border,
+        position:"sticky",
+        top:0,
+        zIndex:100,
+        paddingTop: "env(safe-area-inset-top)" // Fix para iPhone
+      }}>
         <div style={{maxWidth:900,margin:"0 auto",padding:"0 16px",display:"flex",alignItems:"center",justifyContent:"space-between",height:52}}>
           <div style={{display:"flex",alignItems:"center",gap:8}}>
             <div style={{width:28,height:28,borderRadius:8,background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14}}>🔨</div>
@@ -2730,7 +2753,19 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
         </>)}
       </div>
 
-      <nav style={{position:"fixed",bottom:0,left:0,right:0,background:"rgba(10,10,15,0.97)",backdropFilter:"blur(20px)",borderTop:"1px solid "+C.border,display:"flex",zIndex:200}}>
+    <nav style={{
+        position:"fixed",
+        bottom:0,
+        left:0,
+        right:0,
+        background:"rgba(10,10,15,0.98)",
+        backdropFilter:"blur(25px) saturate(200%)",
+        borderTop:"1px solid "+C.border,
+        display:"flex",
+        zIndex:200,
+        paddingBottom: "calc(10px + env(safe-area-inset-bottom))", // Fix para iPhone
+        paddingTop: "10px"
+      }}>
         {([["inicio","🏠","Inicio"],["chats","💬","Mensajes"],["trabajos","🔨","Trabajos"],["perfil","👤","Perfil"],["planes","💎","Planes"]] as const).map(([id,icon,label])=>(
           <button key={id} onClick={()=>setTab(id as any)} style={{flex:1,padding:"8px 2px 10px",background:"none",border:"none",color:tab===id?C.accent:C.muted,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:2,transition:"color 0.15s",position:"relative"}}>
             <span style={{fontSize:18,position:"relative"}}>
@@ -3188,7 +3223,20 @@ function Admin({onLogout}:{onLogout:()=>void}){
         </>)}
       </div>
 
-      <nav style={{position:"fixed",bottom:0,left:0,right:0,background:"rgba(10,10,15,0.97)",backdropFilter:"blur(20px)",borderTop:"1px solid "+C.accent+"22",display:"flex",zIndex:200,overflowX:"auto"}}>
+      <nav style={{
+        position:"fixed",
+        bottom:0,
+        left:0,
+        right:0,
+        background:"rgba(10,10,15,0.98)",
+        backdropFilter:"blur(20px)",
+        borderTop:"1px solid "+C.accent+"22",
+        display:"flex",
+        zIndex:200,
+        overflowX:"auto",
+        paddingBottom: "calc(10px + env(safe-area-inset-bottom))", // Fix para iPhone
+        paddingTop: "10px"
+      }}>
         {([["overview","📊","Overview"],["usuarios","👥","Usuarios"],["registros","📅","Registros"],["trabajos","🔨","Trabajos"],["mensajes","💬","Mensajes"],["reseñas","⭐","Reseñas"]] as const).map(([id,icon,label])=>(
           <button key={id} onClick={()=>{setTab(id as AdminTab);if(id==="mensajes")setUnreadAdminMsgs(0);}} style={{flex:"0 0 auto",minWidth:60,padding:"8px 4px 10px",background:"none",border:"none",color:tab===id?C.accent:C.muted,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:2,borderBottom:tab===id?"2px solid "+C.accent:"2px solid transparent",position:"relative"}}>
             <span style={{fontSize:16,position:"relative"}}>
@@ -3211,7 +3259,13 @@ function Admin({onLogout}:{onLogout:()=>void}){
 export default function App(){
   const [user,setUser]=useState<UserRow|null>(null);
   const [ready,setReady]=useState(false);
-  useEffect(()=>{
+ useEffect(()=>{
+    // Fix para iPhone: Forzar el viewport para que respete safe-areas
+    const meta = document.createElement('meta');
+    meta.name = "viewport";
+    meta.content = "width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no";
+    document.getElementsByTagName('head')[0].appendChild(meta);
+
     const s=localStorage.getItem("oy_user");
     if(s){try{setUser(JSON.parse(s));}catch{localStorage.removeItem("oy_user");}}
     setReady(true);
@@ -3229,9 +3283,26 @@ if(window.location.pathname==="/cancelacion")return <Cancelacion />;
     <style>{`
       @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap');
       *{box-sizing:border-box;margin:0;padding:0;}
-      html{overflow-x:hidden;background:#0A0A0F;}
-      body{background:#0A0A0F;color:#F0F0FA;font-family:'DM Sans',sans-serif;overflow-x:hidden;min-height:100dvh;}
-      #root{min-height:100dvh;background:#0A0A0F;}
+      html, body {
+        overflow-x: hidden;
+        background: #0A0A0F;
+        height: 100%;
+        /* Evita rebotes raros en iPhone */
+        position: fixed; 
+        width: 100%;
+      }
+      body {
+        color: #F0F0FA;
+        font-family: 'DM Sans', sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      #root {
+        height: 100%;
+        background: #0A0A0F;
+        overflow-y: auto;
+        /* Habilita scroll suave en iOS */
+        -webkit-overflow-scrolling: touch; 
+      }
       input,textarea,select{box-sizing:border-box;}
       input::placeholder,textarea::placeholder{color:#44445A;}
       select option{background:#16161F;color:#F0F0FA;}
