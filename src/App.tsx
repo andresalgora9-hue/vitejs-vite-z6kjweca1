@@ -206,6 +206,74 @@ function Ping({msg}:{msg:string|null}){
 if(!msg)return null;
 return <div style={{position:"fixed",bottom:88,left:"50%",transform:"translateX(-50%)",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",color:"#000",borderRadius:10,padding:"10px 20px",fontWeight:700,fontSize:13,zIndex:9999,whiteSpace:"nowrap",boxShadow:"0 4px 20px "+C.accent+"55",pointerEvents:"none"}}>{msg}</div>;
 }
+function InstallBanner(){
+  const [show,setShow]=useState(false);
+  const [deferredPrompt,setDeferredPrompt]=useState<any>(null);
+
+  useEffect(()=>{
+    // Ya instalada o ya cerrada → no mostrar
+    if(localStorage.getItem("oy_install_dismissed"))return;
+    if(window.matchMedia("(display-mode: standalone)").matches)return;
+
+    const handler=(e:any)=>{
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShow(true);
+    };
+    window.addEventListener("beforeinstallprompt",handler);
+    return()=>window.removeEventListener("beforeinstallprompt",handler);
+  },[]);
+
+  const install=async()=>{
+    if(!deferredPrompt)return;
+    deferredPrompt.prompt();
+    const {outcome}=await deferredPrompt.userChoice;
+    if(outcome==="accepted"){
+      // Pedir permisos de notificaciones tras instalar
+      if("Notification" in window){
+        await Notification.requestPermission();
+      }
+    }
+    setShow(false);
+    localStorage.setItem("oy_install_dismissed","1");
+  };
+
+  const dismiss=()=>{
+    setShow(false);
+    localStorage.setItem("oy_install_dismissed","1");
+  };
+
+  if(!show)return null;
+
+  return(
+    <div style={{
+      position:"fixed",bottom:72,left:12,right:12,zIndex:300,
+      background:"linear-gradient(135deg,#14141F,#0d0d1a)",
+      border:"1px solid #FFD70044",
+      borderRadius:16,padding:"14px 16px",
+      boxShadow:"0 -4px 30px rgba(255,215,0,0.12)",
+      display:"flex",alignItems:"center",gap:12,
+      animation:"slideUp 0.4s cubic-bezier(0.34,1.56,0.64,1)",
+    }}>
+      <div style={{width:40,height:40,borderRadius:10,background:"linear-gradient(135deg,#FFD700,#FF8C00)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>🔨</div>
+      <div style={{flex:1,minWidth:0}}>
+        <p style={{fontWeight:800,color:"#F0F0FA",fontSize:13,margin:0,lineHeight:1.3}}>Instala OfficioYa</p>
+        <p style={{fontSize:11,color:"#7777AA",margin:"2px 0 0"}}>Recibe alertas aunque el móvil esté bloqueado</p>
+      </div>
+      <button onClick={install} style={{
+        background:"linear-gradient(135deg,#FFD700,#FF8C00)",
+        border:"none",borderRadius:8,padding:"8px 14px",
+        color:"#000",fontFamily:"'DM Sans',sans-serif",
+        fontWeight:800,fontSize:12,cursor:"pointer",
+        whiteSpace:"nowrap" as const,flexShrink:0,
+      }}>
+        Instalar
+      </button>
+      <button onClick={dismiss} style={{background:"none",border:"none",color:"#44445A",cursor:"pointer",fontSize:18,padding:"0 2px",flexShrink:0}}>✕</button>
+      <style>{`@keyframes slideUp{from{transform:translateY(100px);opacity:0}to{transform:translateY(0);opacity:1}}`}</style>
+    </div>
+  );
+}
 function LegalFooter(){
   return(
     <div style={{padding:"24px 20px",borderTop:"1px solid #1E1E30",textAlign:"center" as const,background:"#080810",marginTop:40}}>
@@ -1797,7 +1865,8 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
       {showWizard&&<BuscadorExpressModal workers={workers} onResult={handleWizardResult} onWorkerSelect={w=>{setShowWizard(false);setSelectedWorker(w);}} onClose={()=>setShowWizard(false)} />}
       {selectedWorker&&<WorkerSheet worker={selectedWorker} onClose={()=>setSelectedWorker(null)} onChat={w=>{setSelectedWorker(null);handleChat(w);}} currentUser={user} />}
       {chatWorker&&<ChatPanel toUser={chatWorker} currentUser={user} onClose={()=>setChatWorker(null)} />}
-      <Ping msg={toast} />
+      <InstallBanner/>
+<Ping msg={toast} />
     </div>
   );
 }
@@ -2711,7 +2780,8 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
     }}
   />
 )}
-      <Ping msg={toast} />
+     <InstallBanner/>
+<Ping msg={toast} />
     </div>
   );
 }
