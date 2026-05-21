@@ -2044,8 +2044,10 @@ function StripePayModal({user,priceId,plan,onClose,onSuccess}:{user:UserRow;pric
   const [err,setErr]=useState<string|null>(null);
   const STRIPE_PUBLIC_KEY="pk_live_51TBJWACZe2kZYfZCHz1oLjVx17xGuoJzAHZpiOjXjsdfCDoWMyQMJ27BPJCizC5ncJPhefHaxNNpf6n4PTyGHB4100zzShI0xN";
 
-  useEffect(()=>{
+ useEffect(()=>{
+    if(!cardRef.current)return;
     const init=()=>{
+      if(!cardRef.current)return;
       stripeRef.current=(window as any).Stripe(pk_live_51TBJWACZe2kZYfZCHz1oLjVx17xGuoJzAHZpiOjXjsdfCDoWMyQMJ27BPJCizC5ncJPhefHaxNNpf6n4PTyGHB4100zzShI0xN);
       cardEl.current=stripeRef.current.elements().create("card",{
         style:{base:{color:"#F0F0FA",fontFamily:"'DM Sans',sans-serif",fontSize:"16px","::placeholder":{color:"#44445A"},iconColor:"#FFD700"},invalid:{color:"#FF4455"}},
@@ -2057,6 +2059,11 @@ function StripePayModal({user,priceId,plan,onClose,onSuccess}:{user:UserRow;pric
     };
     if((window as any).Stripe){init();return;}
     const s=document.createElement("script");s.src="https://js.stripe.com/v3/";s.onload=init;document.head.appendChild(s);
+  if((window as any).Stripe){init();return;}
+    const s=document.createElement("script");s.src="https://js.stripe.com/v3/";s.onload=init;document.head.appendChild(s);
+    return()=>{
+      try{if(cardEl.current){cardEl.current.destroy();cardEl.current=null;}}catch(e){}
+    };
   },[]);
 
   const pay=async()=>{
