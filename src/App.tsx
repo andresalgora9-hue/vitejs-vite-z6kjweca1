@@ -2057,8 +2057,6 @@ function StripePayModal({user,priceId,plan,onClose,onSuccess}:{user:UserRow;pric
       cardEl.current.on("ready",()=>setReady(true));
       cardEl.current.on("change",(e:any)=>setErr(e.error?.message||null));
     };
-    if((window as any).Stripe){init();return;}
-    const s=document.createElement("script");s.src="https://js.stripe.com/v3/";s.onload=init;document.head.appendChild(s);
   if((window as any).Stripe){init();return;}
     const s=document.createElement("script");s.src="https://js.stripe.com/v3/";s.onload=init;document.head.appendChild(s);
     return()=>{
