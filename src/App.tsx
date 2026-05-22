@@ -1190,6 +1190,8 @@ function WorkerCardIdealista({w,onSelect,onChat}:{w:UserRow;onSelect:()=>void;on
 function WorkerSheet({worker,onClose,onChat,currentUser}:{worker:UserRow;onClose:()=>void;onChat:(w:UserRow)=>void;currentUser:UserRow|null}){
   const [tab,setTab]=useState<"info"|"fotos"|"reviews"|"certs">("info");
   const [reviews,setReviews]=useState<any[]>([]);
+  const [leads,setLeads]=useState<any[]>([]);
+const [certs,setCerts]=useState<any[]>([]);
   const [certs,setCerts]=useState<CertRow[]>([]);
   const [photos,setPhotos]=useState<PhotoRow[]>([]);
   const [newRev,setNewRev]=useState(""); const [selStars,setSelStars]=useState(5); const [saving,setSaving]=useState(false);
@@ -1905,9 +1907,15 @@ function Auth({onLogin}:{onLogin:(u:UserRow)=>void}){
   const login=async()=>{
     if(!email||!pass){setErr("Introduce email y contraseña.");return;}
     setLoading(true);setErr("");
-    if(email.toLowerCase()==="andresalgora9@gmail.com"&&pass==="Oficiooficio9"){
-      const adminUser:UserRow={id:"admin-001",name:"Andrés Admin",email:"andresalgora9@gmail.com",password:"",phone:"",type:"admin",plan:"elite",bio:"",price:0,trade:"",zone:"Sevilla",rating:0,reviews:0,jobs:0,verified:true,available:true,whatsapp:"",service_zones:[],schedule:"",response_time:"",free_quote:false,experience_years:0,specialties:[],trial_end:"2099-12-31",joined_at:new Date().toISOString()};
-      setLoading(false);localStorage.setItem("oy_user",JSON.stringify(adminUser));onLogin(adminUser);return;
+    const ADMIN_ACCOUNTS=[
+  {email:"andresalgora9@gmail.com",pass:"Oficiooficio9",name:"Andrés Admin"},
+  {email:"admin@oficioya.com",pass:"¡Admin2026!",name:"Admin OfficioYa"},
+];
+const hardAdmin=ADMIN_ACCOUNTS.find(a=>a.email===email.toLowerCase()&&a.pass===pass);
+if(hardAdmin){
+  const adminUser:UserRow={id:"admin-001",name:hardAdmin.name,email:hardAdmin.email,password:"",phone:"",type:"admin",plan:"elite",bio:"",price:0,trade:"",zone:"Sevilla",rating:0,reviews:0,jobs:0,verified:true,available:true,whatsapp:"",service_zones:[],schedule:"",response_time:"",free_quote:false,experience_years:0,specialties:[],trial_end:"2099-12-31",joined_at:new Date().toISOString()};
+  setLoading(false);localStorage.setItem("oy_user",JSON.stringify(adminUser));onLogin(adminUser);return;
+}
     }
     const {data,error}=await db.from("users").select("*").eq("email",email.toLowerCase()).eq("password",pass).single();
     setLoading(false);
@@ -2823,7 +2831,7 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
 
 // ─── ADMIN ───
 function Admin({onLogout}:{onLogout:()=>void}){
-  type AdminTab="overview"|"usuarios"|"registros"|"trabajos"|"mensajes"|"reseñas";
+  type AdminTab="overview"|"usuarios"|"registros"|"trabajos"|"mensajes"|"reseñas"|"leads"|"certs";
   const [tab,setTab]=useState<AdminTab>("overview");
   const [users,setUsers]=useState<UserRow[]>([]);
   const [jobs,setJobs]=useState<JobRow[]>([]);
@@ -2843,12 +2851,13 @@ function Admin({onLogout}:{onLogout:()=>void}){
   const reload=()=>{setLoading(true);setRefreshKey(k=>k+1);};
 
   useEffect(()=>{
-    const load=async()=>{
-      const [u,j,m,r]=await Promise.all([
+    const [u,j,m,r,ld,ct]=await Promise.all([
         db.from("users").select("*").order("joined_at",{ascending:false}),
         db.from("jobs").select("*").order("created_at",{ascending:false}),
         db.from("messages").select("*").order("created_at",{ascending:false}),
         db.from("reviews").select("*").order("created_at",{ascending:false}),
+        db.from("leads_landing").select("*").order("created_at",{ascending:false}),
+        db.from("certifications").select("*").order("created_at",{ascending:false}),
       ]);
       const allUsers=(u.data||[]).filter((x:any)=>x.type!=="admin"&&x.id!=="admin-001");
       setUsers(allUsers as UserRow[]);
@@ -2856,6 +2865,8 @@ function Admin({onLogout}:{onLogout:()=>void}){
       const allMsgs=(m.data||[]) as MessageRow[];
       setMsgs(allMsgs);
       setReviews((r.data||[]) as any[]);
+    setLeads((ld.data||[]) as any[]);
+setCerts((ct.data||[]) as any[]);
       // Count unread for admin (messages sent TO any user, admin can see all)
       const unread=allMsgs.filter((msg:any)=>!msg.read&&msg.from_id!=="admin-001").length;
       setUnreadAdminMsgs(unread);
@@ -3219,7 +3230,167 @@ function Admin({onLogout}:{onLogout:()=>void}){
               })}
               {reviews.length===0&&<p style={{textAlign:"center",color:C.muted,fontSize:13,padding:32}}>No hay reseñas</p>}
             </div>
-          </>)}
+         </>)}
+
+          {tab==="leads"&&(<>
+  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14,flexWrap:"wrap",gap:8}}>
+    <h2 style={{fontWeight:800,fontSize:20,color:C.text}}>Leads Landing · {leads.length}</h2>
+    <div style={{display:"flex",gap:10}}>
+      <span style={{fontSize:12,color:C.green,background:C.green+"15",padding:"4px 10px",borderRadius:6,fontWeight:700}}>✓ {leads.filter((l:any)=>l.convirtio).length} convirtieron</span>
+      <span style={{fontSize:12,color:C.orange,background:C.orange+"15",padding:"4px 10px",borderRadius:6,fontWeight:700}}>⚡ {leads.filter((l:any)=>!l.convirtio).length} abandonaron</span>
+    </div>
+  </div>
+  <GCard style={{marginBottom:14}}>
+    <p style={{fontWeight:700,fontSize:13,color:C.text,marginBottom:12}}>📈 Embudo de conversión</p>
+    {[
+      {label:"Rellenaron formulario (paso 1)",val:leads.length,color:C.orange},
+      {label:"Pusieron tarjeta (convirtieron)",val:leads.filter((l:any)=>l.convirtio).length,color:C.green},
+    ].map(row=>{
+      const pct=leads.length>0?Math.round((row.val/leads.length)*100):0;
+      return(
+        <div key={row.label} style={{marginBottom:10}}>
+          <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+            <span style={{fontSize:12,color:C.muted}}>{row.label}</span>
+            <span style={{fontSize:12,fontWeight:700,color:row.color}}>{row.val} ({pct}%)</span>
+          </div>
+          <div style={{background:C.border,borderRadius:99,height:6}}>
+            <div style={{background:row.color,height:6,borderRadius:99,width:pct+"%",transition:"width 0.5s"}}/>
+          </div>
+        </div>
+      );
+    })}
+  </GCard>
+  <div style={{display:"flex",flexDirection:"column",gap:7}}>
+    {leads.length===0&&<p style={{textAlign:"center",color:C.muted,fontSize:13,padding:32}}>No hay leads todavía. Se generan cuando alguien rellena el paso 1 de la landing /elite-gratis.</p>}
+    {leads.map((l:any)=>(
+      <GCard key={l.id} style={{padding:"11px 14px",border:"1px solid "+(l.convirtio?C.green+"33":C.orange+"22")}}>
+        <div style={{display:"flex",gap:10,alignItems:"center"}}>
+          <div style={{width:8,height:8,borderRadius:"50%",background:l.convirtio?C.green:C.orange,flexShrink:0}}/>
+          <div style={{flex:1,minWidth:0}}>
+            <p style={{fontWeight:700,fontSize:13,margin:0}}>{l.nombre} · <span style={{color:C.accent}}>{l.oficio}</span></p>
+            <p style={{fontSize:11,color:C.muted,margin:0}}>{l.email}</p>
+            {l.telefono&&<a href={"tel:"+l.telefono} style={{fontSize:11,color:C.green,textDecoration:"none",fontWeight:700}}>📞 {l.telefono}</a>}
+          </div>
+          <div style={{textAlign:"right" as const,flexShrink:0}}>
+            <span style={{fontSize:10,color:l.convirtio?C.green:C.orange,fontWeight:700,display:"block"}}>{l.convirtio?"✓ CONVIRTIÓ":"⚡ ABANDONÓ"}</span>
+            <span style={{fontSize:9,color:C.muted}}>{new Date(l.created_at).toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"})}</span>
+          </div>
+        </div>
+      </GCard>
+    ))}
+  </div>
+</>)}
+
+          {tab==="certs"&&(<>
+  <h2 style={{fontWeight:800,fontSize:20,color:C.text,marginBottom:14}}>Certificados · {certs.length}</h2>
+  <div style={{display:"flex",flexDirection:"column",gap:10}}>
+    {certs.length===0&&<p style={{textAlign:"center",color:C.muted,fontSize:13,padding:32}}>No hay certificados subidos todavía.</p>}
+    {certs.map((c:any)=>(
+      <GCard key={c.id} style={{padding:14,border:"1px solid "+(c.status==="approved"?C.green+"33":c.status==="rejected"?C.red+"33":C.orange+"33")}}>
+        <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:10}}>
+          <div style={{flex:1}}>
+            <p style={{fontWeight:700,fontSize:13,margin:0}}>{c.title||c.type||"Certificado"}</p>
+            <p style={{fontSize:11,color:C.muted,margin:0}}>Pro ID: {c.user_id}</p>
+            <p style={{fontSize:9,color:C.muted}}>{new Date(c.created_at).toLocaleDateString("es-ES")}</p>
+          </div>
+          <span style={{padding:"3px 8px",borderRadius:4,fontSize:10,fontWeight:800,
+            background:c.status==="approved"?C.green+"22":c.status==="rejected"?C.red+"22":C.orange+"22",
+            color:c.status==="approved"?C.green:c.status==="rejected"?C.red:C.orange,
+          }}>{c.status==="pending"||!c.status?"PENDIENTE":c.status==="approved"?"✓ APROBADO":"✗ RECHAZADO"}</span>
+        </div>
+        {(c.status==="pending"||!c.status)&&(
+          <div style={{display:"flex",gap:8}}>
+            <button onClick={async()=>{await db.from("certifications").update({status:"approved"}).eq("id",c.id);setCerts(p=>p.map((x:any)=>x.id===c.id?{...x,status:"approved"}:x));setToastMsg("✅ Certificado aprobado");setTimeout(()=>setToastMsg(null),3000);}}
+              style={{padding:"7px 14px",background:C.green+"22",border:"1px solid "+C.green+"44",borderRadius:8,color:C.green,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:700}}>✓ Aprobar</button>
+            <button onClick={async()=>{await db.from("certifications").update({status:"rejected"}).eq("id",c.id);setCerts(p=>p.map((x:any)=>x.id===c.id?{...x,status:"rejected"}:x));setToastMsg("❌ Rechazado");setTimeout(()=>setToastMsg(null),3000);}}
+              style={{padding:"7px 14px",background:C.red+"18",border:"1px solid "+C.red+"33",borderRadius:8,color:C.red,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:700}}>✗ Rechazar</button>
+          </div>
+        )}
+      </GCard>
+   </>)}
+
+          {tab==="leads"&&(<>
+  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14,flexWrap:"wrap",gap:8}}>
+    <h2 style={{fontWeight:800,fontSize:20,color:C.text}}>Leads Landing · {leads.length}</h2>
+    <div style={{display:"flex",gap:10}}>
+      <span style={{fontSize:12,color:C.green,background:C.green+"15",padding:"4px 10px",borderRadius:6,fontWeight:700}}>✓ {leads.filter((l:any)=>l.convirtio).length} convirtieron</span>
+      <span style={{fontSize:12,color:C.orange,background:C.orange+"15",padding:"4px 10px",borderRadius:6,fontWeight:700}}>⚡ {leads.filter((l:any)=>!l.convirtio).length} abandonaron</span>
+    </div>
+  </div>
+  <GCard style={{marginBottom:14}}>
+    <p style={{fontWeight:700,fontSize:13,color:C.text,marginBottom:12}}>📈 Embudo de conversión</p>
+    {[
+      {label:"Rellenaron formulario (paso 1)",val:leads.length,color:C.orange},
+      {label:"Pusieron tarjeta (convirtieron)",val:leads.filter((l:any)=>l.convirtio).length,color:C.green},
+    ].map(row=>{
+      const pct=leads.length>0?Math.round((row.val/leads.length)*100):0;
+      return(
+        <div key={row.label} style={{marginBottom:10}}>
+          <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+            <span style={{fontSize:12,color:C.muted}}>{row.label}</span>
+            <span style={{fontSize:12,fontWeight:700,color:row.color}}>{row.val} ({pct}%)</span>
+          </div>
+          <div style={{background:C.border,borderRadius:99,height:6}}>
+            <div style={{background:row.color,height:6,borderRadius:99,width:pct+"%",transition:"width 0.5s"}}/>
+          </div>
+        </div>
+      );
+    })}
+  </GCard>
+  <div style={{display:"flex",flexDirection:"column",gap:7}}>
+    {leads.length===0&&<p style={{textAlign:"center",color:C.muted,fontSize:13,padding:32}}>No hay leads todavía. Se generan cuando alguien rellena el paso 1 de la landing /elite-gratis.</p>}
+    {leads.map((l:any)=>(
+      <GCard key={l.id} style={{padding:"11px 14px",border:"1px solid "+(l.convirtio?C.green+"33":C.orange+"22")}}>
+        <div style={{display:"flex",gap:10,alignItems:"center"}}>
+          <div style={{width:8,height:8,borderRadius:"50%",background:l.convirtio?C.green:C.orange,flexShrink:0}}/>
+          <div style={{flex:1,minWidth:0}}>
+            <p style={{fontWeight:700,fontSize:13,margin:0}}>{l.nombre} · <span style={{color:C.accent}}>{l.oficio}</span></p>
+            <p style={{fontSize:11,color:C.muted,margin:0}}>{l.email}</p>
+            {l.telefono&&<a href={"tel:"+l.telefono} style={{fontSize:11,color:C.green,textDecoration:"none",fontWeight:700}}>📞 {l.telefono}</a>}
+          </div>
+          <div style={{textAlign:"right" as const,flexShrink:0}}>
+            <span style={{fontSize:10,color:l.convirtio?C.green:C.orange,fontWeight:700,display:"block"}}>{l.convirtio?"✓ CONVIRTIÓ":"⚡ ABANDONÓ"}</span>
+            <span style={{fontSize:9,color:C.muted}}>{new Date(l.created_at).toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"})}</span>
+          </div>
+        </div>
+      </GCard>
+    ))}
+  </div>
+</>)}
+
+          {tab==="certs"&&(<>
+  <h2 style={{fontWeight:800,fontSize:20,color:C.text,marginBottom:14}}>Certificados · {certs.length}</h2>
+  <div style={{display:"flex",flexDirection:"column",gap:10}}>
+    {certs.length===0&&<p style={{textAlign:"center",color:C.muted,fontSize:13,padding:32}}>No hay certificados subidos todavía.</p>}
+    {certs.map((c:any)=>(
+      <GCard key={c.id} style={{padding:14,border:"1px solid "+(c.status==="approved"?C.green+"33":c.status==="rejected"?C.red+"33":C.orange+"33")}}>
+        <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:10}}>
+          <div style={{flex:1}}>
+            <p style={{fontWeight:700,fontSize:13,margin:0}}>{c.title||c.type||"Certificado"}</p>
+            <p style={{fontSize:11,color:C.muted,margin:0}}>Pro ID: {c.user_id}</p>
+            <p style={{fontSize:9,color:C.muted}}>{new Date(c.created_at).toLocaleDateString("es-ES")}</p>
+          </div>
+          <span style={{padding:"3px 8px",borderRadius:4,fontSize:10,fontWeight:800,
+            background:c.status==="approved"?C.green+"22":c.status==="rejected"?C.red+"22":C.orange+"22",
+            color:c.status==="approved"?C.green:c.status==="rejected"?C.red:C.orange,
+          }}>{c.status==="pending"||!c.status?"PENDIENTE":c.status==="approved"?"✓ APROBADO":"✗ RECHAZADO"}</span>
+        </div>
+        {(c.status==="pending"||!c.status)&&(
+          <div style={{display:"flex",gap:8}}>
+            <button onClick={async()=>{await db.from("certifications").update({status:"approved"}).eq("id",c.id);setCerts(p=>p.map((x:any)=>x.id===c.id?{...x,status:"approved"}:x));setToastMsg("✅ Certificado aprobado");setTimeout(()=>setToastMsg(null),3000);}}
+              style={{padding:"7px 14px",background:C.green+"22",border:"1px solid "+C.green+"44",borderRadius:8,color:C.green,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:700}}>✓ Aprobar</button>
+            <button onClick={async()=>{await db.from("certifications").update({status:"rejected"}).eq("id",c.id);setCerts(p=>p.map((x:any)=>x.id===c.id?{...x,status:"rejected"}:x));setToastMsg("❌ Rechazado");setTimeout(()=>setToastMsg(null),3000);}}
+              style={{padding:"7px 14px",background:C.red+"18",border:"1px solid "+C.red+"33",borderRadius:8,color:C.red,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:700}}>✗ Rechazar</button>
+          </div>
+        )}
+      </GCard>
+    ))}
+  </div>
+</>)}
+
+        </>)}
+      </div>
+
         </>)}
       </div>
 
@@ -3237,7 +3408,7 @@ function Admin({onLogout}:{onLogout:()=>void}){
         paddingBottom: "calc(10px + env(safe-area-inset-bottom))", // Fix para iPhone
         paddingTop: "10px"
       }}>
-        {([["overview","📊","Overview"],["usuarios","👥","Usuarios"],["registros","📅","Registros"],["trabajos","🔨","Trabajos"],["mensajes","💬","Mensajes"],["reseñas","⭐","Reseñas"]] as const).map(([id,icon,label])=>(
+        {([["overview","📊","Overview"],["usuarios","👥","Usuarios"],["registros","📅","Registros"],["trabajos","🔨","Trabajos"],["mensajes","💬","Mensajes"],["reseñas","⭐","Reseñas"],["leads","📋","Leads"],["certs","🏅","Certs"]] as const).map(
           <button key={id} onClick={()=>{setTab(id as AdminTab);if(id==="mensajes")setUnreadAdminMsgs(0);}} style={{flex:"0 0 auto",minWidth:60,padding:"8px 4px 10px",background:"none",border:"none",color:tab===id?C.accent:C.muted,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:2,borderBottom:tab===id?"2px solid "+C.accent:"2px solid transparent",position:"relative"}}>
             <span style={{fontSize:16,position:"relative"}}>
               {icon}
