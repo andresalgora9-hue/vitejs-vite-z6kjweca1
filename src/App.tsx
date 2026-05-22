@@ -3357,7 +3357,10 @@ export default function App(){
     meta.name = "viewport";
     meta.content = "width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no";
     document.getElementsByTagName('head')[0].appendChild(meta);
-
+// Registrar Service Worker para push notifications
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.register('/sw.js').catch(()=>{});
+    }
     const s=localStorage.getItem("oy_user");
     if(s){try{setUser(JSON.parse(s));}catch{localStorage.removeItem("oy_user");}}
     setReady(true);
