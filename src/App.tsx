@@ -1191,7 +1191,6 @@ function WorkerSheet({worker,onClose,onChat,currentUser}:{worker:UserRow;onClose
   const [tab,setTab]=useState<"info"|"fotos"|"reviews"|"certs">("info");
   const [reviews,setReviews]=useState<any[]>([]);
   const [leads,setLeads]=useState<any[]>([]);
-const [certs,setCerts]=useState<any[]>([]);
   const [certs,setCerts]=useState<CertRow[]>([]);
   const [photos,setPhotos]=useState<PhotoRow[]>([]);
   const [newRev,setNewRev]=useState(""); const [selStars,setSelStars]=useState(5); const [saving,setSaving]=useState(false);
@@ -1916,7 +1915,6 @@ if(hardAdmin){
   const adminUser:UserRow={id:"admin-001",name:hardAdmin.name,email:hardAdmin.email,password:"",phone:"",type:"admin",plan:"elite",bio:"",price:0,trade:"",zone:"Sevilla",rating:0,reviews:0,jobs:0,verified:true,available:true,whatsapp:"",service_zones:[],schedule:"",response_time:"",free_quote:false,experience_years:0,specialties:[],trial_end:"2099-12-31",joined_at:new Date().toISOString()};
   setLoading(false);localStorage.setItem("oy_user",JSON.stringify(adminUser));onLogin(adminUser);return;
 }
-    }
     const {data,error}=await db.from("users").select("*").eq("email",email.toLowerCase()).eq("password",pass).single();
     setLoading(false);
     if(error||!data){setErr("Email o contraseña incorrectos.");return;}
