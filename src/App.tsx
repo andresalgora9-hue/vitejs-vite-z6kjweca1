@@ -3308,8 +3308,6 @@ setCerts((ct.data||[]) as any[]);
       </GCard>
    </>)}
 
-         </>)}
-
           {tab==="certs"&&(<>
   <h2 style={{fontWeight:800,fontSize:20,color:C.text,marginBottom:14}}>Certificados · {certs.length}</h2>
   <div style={{display:"flex",flexDirection:"column",gap:10}}>
