@@ -2334,6 +2334,22 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
   const photoLimit=PLAN_GATES.photos[user.plan as Plan] as number;
   const canAddPhoto=photoLimit===999||photos.length<photoLimit;
 
+  // Pedir permiso de notificaciones push
+  useEffect(()=>{
+    if("Notification" in window && Notification.permission==="default"){
+      setTimeout(()=>{
+        Notification.requestPermission().then(perm=>{
+          if(perm==="granted"){
+            new Notification("🔔 OfficioYa activado",{
+              body:"Recibirás alertas de nuevos clientes aunque el móvil esté bloqueado",
+              icon:"/icon-192.png",
+            });
+          }
+        });
+      },3000);
+    }
+  },[]);
+
   useEffect(()=>{
     db.from("certificates").select("*").eq("worker_id",user.id).then(({data}:any)=>setCerts(data||[]));
     db.from("photos").select("*").eq("worker_id",user.id).order("created_at",{ascending:false}).then(({data}:any)=>setPhotos(data||[]));
