@@ -3229,7 +3229,7 @@ setCerts((ct.data||[]) as any[]);
               })}
               {reviews.length===0&&<p style={{textAlign:"center",color:C.muted,fontSize:13,padding:32}}>No hay reseñas</p>}
             </div>
-         </>)}
+          </>)}
 
           {tab==="leads"&&(<>
   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14,flexWrap:"wrap",gap:8}}>
@@ -3358,7 +3358,7 @@ setCerts((ct.data||[]) as any[]);
         paddingBottom: "calc(10px + env(safe-area-inset-bottom))", // Fix para iPhone
         paddingTop: "10px"
       }}>
-        {([["overview","📊","Overview"],["usuarios","👥","Usuarios"],["registros","📅","Registros"],["trabajos","🔨","Trabajos"],["mensajes","💬","Mensajes"],["reseñas","⭐","Reseñas"],["leads","📋","Leads"],["certs","🏅","Certs"]] as const).map(
+        {([["overview","📊","Overview"],["usuarios","👥","Usuarios"],["registros","📅","Registros"],["trabajos","🔨","Trabajos"],["mensajes","💬","Mensajes"],["reseñas","⭐","Reseñas"],["leads","📋","Leads"],["certs","🏅","Certs"]] as const).map(([id,icon,label])=>(
           <button key={id} onClick={()=>{setTab(id as AdminTab);if(id==="mensajes")setUnreadAdminMsgs(0);}} style={{flex:"0 0 auto",minWidth:60,padding:"8px 4px 10px",background:"none",border:"none",color:tab===id?C.accent:C.muted,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:2,borderBottom:tab===id?"2px solid "+C.accent:"2px solid transparent",position:"relative"}}>
             <span style={{fontSize:16,position:"relative"}}>
               {icon}
