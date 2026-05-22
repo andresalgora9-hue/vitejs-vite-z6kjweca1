@@ -2373,6 +2373,27 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
           // ── URGENT RED BANNER for new lead ──
           setUrgentLead({msg:m.text,fromId:m.from_id});
           setUnreadMsgs(c=>c+1);
+          // Push notification nativa
+          if("Notification" in window && Notification.permission==="granted"){
+            new Notification("🔴 Cliente nuevo — OfficioYa",{
+              body:"Un cliente necesita tus servicios ahora. Toca para responder.",
+              icon:"/icon-192.png",
+              badge:"/icon-192.png",
+              tag:"lead-urgente",
+            } as any);
+          }
+          // Service worker push (funciona con móvil bloqueado)
+          if("serviceWorker" in navigator){
+            navigator.serviceWorker.ready.then(sw=>{
+              sw.showNotification("🔴 Cliente nuevo — OfficioYa",{
+                body:"Un cliente necesita tus servicios ahora. Toca para responder.",
+                icon:"/icon-192.png",
+                badge:"/icon-192.png",
+                tag:"lead-urgente",
+                vibrate:[200,100,200,100,400],
+              } as any);
+            }).catch(()=>{});
+          }
         } else if(isAdmin){
           // ── Admin notification ──
           setInAppNotif({msg:m.text.replace("[Soporte OfficioYa] ",""),from:"👑 OfficioYa Soporte",fromId:m.from_id,isAdmin:true});
