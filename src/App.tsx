@@ -2849,6 +2849,7 @@ function Admin({onLogout}:{onLogout:()=>void}){
   const reload=()=>{setLoading(true);setRefreshKey(k=>k+1);};
 
   useEffect(()=>{
+    const load=async()=>{
     const [u,j,m,r,ld,ct]=await Promise.all([
         db.from("users").select("*").order("joined_at",{ascending:false}),
         db.from("jobs").select("*").order("created_at",{ascending:false}),
@@ -3307,54 +3308,7 @@ setCerts((ct.data||[]) as any[]);
       </GCard>
    </>)}
 
-          {tab==="leads"&&(<>
-  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14,flexWrap:"wrap",gap:8}}>
-    <h2 style={{fontWeight:800,fontSize:20,color:C.text}}>Leads Landing · {leads.length}</h2>
-    <div style={{display:"flex",gap:10}}>
-      <span style={{fontSize:12,color:C.green,background:C.green+"15",padding:"4px 10px",borderRadius:6,fontWeight:700}}>✓ {leads.filter((l:any)=>l.convirtio).length} convirtieron</span>
-      <span style={{fontSize:12,color:C.orange,background:C.orange+"15",padding:"4px 10px",borderRadius:6,fontWeight:700}}>⚡ {leads.filter((l:any)=>!l.convirtio).length} abandonaron</span>
-    </div>
-  </div>
-  <GCard style={{marginBottom:14}}>
-    <p style={{fontWeight:700,fontSize:13,color:C.text,marginBottom:12}}>📈 Embudo de conversión</p>
-    {[
-      {label:"Rellenaron formulario (paso 1)",val:leads.length,color:C.orange},
-      {label:"Pusieron tarjeta (convirtieron)",val:leads.filter((l:any)=>l.convirtio).length,color:C.green},
-    ].map(row=>{
-      const pct=leads.length>0?Math.round((row.val/leads.length)*100):0;
-      return(
-        <div key={row.label} style={{marginBottom:10}}>
-          <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
-            <span style={{fontSize:12,color:C.muted}}>{row.label}</span>
-            <span style={{fontSize:12,fontWeight:700,color:row.color}}>{row.val} ({pct}%)</span>
-          </div>
-          <div style={{background:C.border,borderRadius:99,height:6}}>
-            <div style={{background:row.color,height:6,borderRadius:99,width:pct+"%",transition:"width 0.5s"}}/>
-          </div>
-        </div>
-      );
-    })}
-  </GCard>
-  <div style={{display:"flex",flexDirection:"column",gap:7}}>
-    {leads.length===0&&<p style={{textAlign:"center",color:C.muted,fontSize:13,padding:32}}>No hay leads todavía. Se generan cuando alguien rellena el paso 1 de la landing /elite-gratis.</p>}
-    {leads.map((l:any)=>(
-      <GCard key={l.id} style={{padding:"11px 14px",border:"1px solid "+(l.convirtio?C.green+"33":C.orange+"22")}}>
-        <div style={{display:"flex",gap:10,alignItems:"center"}}>
-          <div style={{width:8,height:8,borderRadius:"50%",background:l.convirtio?C.green:C.orange,flexShrink:0}}/>
-          <div style={{flex:1,minWidth:0}}>
-            <p style={{fontWeight:700,fontSize:13,margin:0}}>{l.nombre} · <span style={{color:C.accent}}>{l.oficio}</span></p>
-            <p style={{fontSize:11,color:C.muted,margin:0}}>{l.email}</p>
-            {l.telefono&&<a href={"tel:"+l.telefono} style={{fontSize:11,color:C.green,textDecoration:"none",fontWeight:700}}>📞 {l.telefono}</a>}
-          </div>
-          <div style={{textAlign:"right" as const,flexShrink:0}}>
-            <span style={{fontSize:10,color:l.convirtio?C.green:C.orange,fontWeight:700,display:"block"}}>{l.convirtio?"✓ CONVIRTIÓ":"⚡ ABANDONÓ"}</span>
-            <span style={{fontSize:9,color:C.muted}}>{new Date(l.created_at).toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"})}</span>
-          </div>
-        </div>
-      </GCard>
-    ))}
-  </div>
-</>)}
+         </>)}
 
           {tab==="certs"&&(<>
   <h2 style={{fontWeight:800,fontSize:20,color:C.text,marginBottom:14}}>Certificados · {certs.length}</h2>
