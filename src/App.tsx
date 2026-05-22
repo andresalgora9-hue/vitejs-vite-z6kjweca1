@@ -3275,7 +3275,7 @@ setCerts((ct.data||[]) as any[]);
             <span style={{fontSize:9,color:C.muted}}>{new Date(l.created_at).toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"})}</span>
           </div>
         </div>
-      </GCard>
+     </GCard>
     ))}
   </div>
 </>)}
@@ -3305,41 +3305,10 @@ setCerts((ct.data||[]) as any[]);
               style={{padding:"7px 14px",background:C.red+"18",border:"1px solid "+C.red+"33",borderRadius:8,color:C.red,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:700}}>✗ Rechazar</button>
           </div>
         )}
-      </GCard>
-   </>)}
-
-          {tab==="certs"&&(<>
-  <h2 style={{fontWeight:800,fontSize:20,color:C.text,marginBottom:14}}>Certificados · {certs.length}</h2>
-  <div style={{display:"flex",flexDirection:"column",gap:10}}>
-    {certs.length===0&&<p style={{textAlign:"center",color:C.muted,fontSize:13,padding:32}}>No hay certificados subidos todavía.</p>}
-    {certs.map((c:any)=>(
-      <GCard key={c.id} style={{padding:14,border:"1px solid "+(c.status==="approved"?C.green+"33":c.status==="rejected"?C.red+"33":C.orange+"33")}}>
-        <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:10}}>
-          <div style={{flex:1}}>
-            <p style={{fontWeight:700,fontSize:13,margin:0}}>{c.title||c.type||"Certificado"}</p>
-            <p style={{fontSize:11,color:C.muted,margin:0}}>Pro ID: {c.user_id}</p>
-            <p style={{fontSize:9,color:C.muted}}>{new Date(c.created_at).toLocaleDateString("es-ES")}</p>
-          </div>
-          <span style={{padding:"3px 8px",borderRadius:4,fontSize:10,fontWeight:800,
-            background:c.status==="approved"?C.green+"22":c.status==="rejected"?C.red+"22":C.orange+"22",
-            color:c.status==="approved"?C.green:c.status==="rejected"?C.red:C.orange,
-          }}>{c.status==="pending"||!c.status?"PENDIENTE":c.status==="approved"?"✓ APROBADO":"✗ RECHAZADO"}</span>
-        </div>
-        {(c.status==="pending"||!c.status)&&(
-          <div style={{display:"flex",gap:8}}>
-            <button onClick={async()=>{await db.from("certifications").update({status:"approved"}).eq("id",c.id);setCerts(p=>p.map((x:any)=>x.id===c.id?{...x,status:"approved"}:x));setToastMsg("✅ Certificado aprobado");setTimeout(()=>setToastMsg(null),3000);}}
-              style={{padding:"7px 14px",background:C.green+"22",border:"1px solid "+C.green+"44",borderRadius:8,color:C.green,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:700}}>✓ Aprobar</button>
-            <button onClick={async()=>{await db.from("certifications").update({status:"rejected"}).eq("id",c.id);setCerts(p=>p.map((x:any)=>x.id===c.id?{...x,status:"rejected"}:x));setToastMsg("❌ Rechazado");setTimeout(()=>setToastMsg(null),3000);}}
-              style={{padding:"7px 14px",background:C.red+"18",border:"1px solid "+C.red+"33",borderRadius:8,color:C.red,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:700}}>✗ Rechazar</button>
-          </div>
-        )}
-      </GCard>
+</GCard>
     ))}
   </div>
 </>)}
-
-        </>)}
-      </div>
 
         </>)}
       </div>
