@@ -833,15 +833,16 @@ function BuscadorExpressModal({workers,onResult,onWorkerSelect,onClose}:{workers
 
 
   useEffect(()=>{
-  const handleKey=(e:KeyboardEvent)=>{
-    if(e.key!=="Enter")return;
-    if(step===1&&selOficio)setStep(2);
-    if(step===2&&selUbicacion)setStep(3);
-    if(step===3){if(selZonas.length===0)toggleZona(opcionTodos);setStep(4);}
-  };
-  window.addEventListener("keydown",handleKey);
-  return()=>window.removeEventListener("keydown",handleKey);
-},[step,selOficio,selUbicacion,selZonas,opcionTodos]);
+  const opcionTodosLocal=selUbicacion==="sevilla"?"Todo Sevilla":"Todos los pueblos";
+    const handleKey=(e:KeyboardEvent)=>{
+      if(e.key!=="Enter")return;
+      if(step===1&&selOficio)setStep(2);
+      if(step===2&&selUbicacion)setStep(3);
+      if(step===3){if(selZonas.length===0)toggleZona(opcionTodosLocal);setStep(4);}
+    };
+    window.addEventListener("keydown",handleKey);
+    return()=>window.removeEventListener("keydown",handleKey);
+  },[step,selOficio,selUbicacion,selZonas]);
 
   useEffect(()=>{setTimeout(()=>searchInputRef.current?.focus(),120);},[]);
 
