@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-
+import { db } from "./supabase";
 const STRIPE_PUBLIC_KEY = "pk_live_51TBJWACZe2kZYfZCHz1oLjVx17xGuoJzAHZpiOjXjsdfCDoWMyQMJ27BPJCizC5ncJPhefHaxNNpf6n4PTyGHB4100zzShI0xN";
 const STRIPE_PRICE_ID   = "price_1TYuneCZe2kZYfZCxD24mHGx";
 
@@ -290,14 +290,9 @@ function StepDatos({ onNext }) {
   };
 
   const change = e => { setForm(p=>({...p,[e.target.name]:e.target.value})); setErrors(p=>({...p,[e.target.name]:null})); };
-  const saveLead=async(form:any)=>{
+ const saveLead=async(form:any)=>{
     try{
-      const {createClient}=await import("@supabase/supabase-js");
-      const supabase=createClient(
-        "https://rjwojxwrsbvwwshwwpvq.supabase.co",
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo"
-      );
-      await supabase.from("leads_landing").insert({nombre:form.nombre,email:form.email,telefono:form.telefono,oficio:form.oficio,convirtio:false});
+      await db.from("leads_landing").insert({nombre:form.nombre,email:form.email,telefono:form.telefono,oficio:form.oficio,convirtio:false});
     }catch(e){console.log("Lead save error",e);}
   };
 
@@ -390,12 +385,7 @@ function StepTarjeta({ datos, onSuccess }) {
     if (!result.ok) { setErr(result.error || "Error al procesar el pago"); setLoading(false); return; }
     /// Marcar lead como convertido
     try{
-      const {createClient}=await import("@supabase/supabase-js");
-      const supabase=createClient(
-        "https://rjwojxwrsbvwwshwwpvq.supabase.co",
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo"
-      );
-      await supabase.from("leads_landing").update({convirtio:true}).eq("email",datos.email);
+      await db.from("leads_landing").update({convirtio:true}).eq("email",datos.email);
     }catch(e){}
     onSuccess();
   };
