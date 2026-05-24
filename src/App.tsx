@@ -2963,10 +2963,10 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
 </button>}
               </div>;
             })}
-          </div>
+         </div>
+          <div style={{height:40}} />
         </>)}
       </div>
-
     <nav style={{
         position:"fixed",
         bottom:0,
