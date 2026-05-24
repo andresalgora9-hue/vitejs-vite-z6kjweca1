@@ -1795,6 +1795,19 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
               </div>
             </div>
           </GCard>
+          {(user.plan!=="gratis")&&(
+            <GCard style={{marginBottom:14,border:"1px solid "+C.red+"33"}}>
+              <p style={{fontWeight:700,color:C.text,fontSize:13,marginBottom:6}}>⚠️ Cancelar suscripción</p>
+              <p style={{fontSize:12,color:C.muted,marginBottom:10}}>Si quieres darte de baja escríbenos directamente. Gestionaremos tu baja en menos de 24h.</p>
+              <button onClick={async()=>{
+                const adminUser={id:"admin-001",name:"OfficioYa Soporte",email:"admin@oficioya.com",password:"",phone:"",type:"admin",plan:"elite",bio:"",price:0,trade:"",zone:"",rating:0,reviews:0,jobs:0,verified:true,available:true,whatsapp:"",service_zones:[],schedule:"",response_time:"",free_quote:false,experience_years:0,specialties:[],trial_end:"",joined_at:""};
+                await db.from("messages").insert({from_id:user.id,to_id:"admin-001",text:"Hola, quiero darme de baja de mi suscripción "+user.plan.toUpperCase()+". Por favor, gestiona mi cancelación. Gracias.",read:false});
+                setTab("chats");
+              }} style={{width:"100%",padding:"10px",background:C.red+"18",border:"1px solid "+C.red+"44",borderRadius:8,color:C.red,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,cursor:"pointer"}}>
+                Solicitar baja de suscripción →
+              </button>
+            </GCard>
+          )}
           <Btn full outline danger onClick={onLogout} color={C.red}>Cerrar sesión</Btn>
         </>)}
       </div>
