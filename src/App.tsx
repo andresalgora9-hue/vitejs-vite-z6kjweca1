@@ -805,7 +805,12 @@ function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:User
                       </div>
                     </div>
                   )}
-                  
+                  <p style={{fontSize:9,color:C.muted,marginTop:6,textAlign:isMe?"right":"left" as any}}>{formatTime(m.created_at)}</p>
+                </div>
+              </div>
+            );
+          }
+
           // Lead alert special rendering
           if(isLead&&!isMe){
             return(
