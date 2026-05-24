@@ -797,9 +797,8 @@ function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:User
                       <button onClick={()=>{
                       const link=amount==="15€"?"https://buy.stripe.com/28E9ASbGR1phbtreKu1B601":"https://buy.stripe.com/7sY5kC5it3xp1SR9qa1B602";
                       window.open(link,"_blank");
-                    }} style={{width:"100%",padding:"8px",background:"linear-gradient(135deg,#FFD700,#FF8C00)",border:"none",borderRadius:8,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:12,cursor:"pointer",marginTop:4}}>
+                    }}  disabled={procesandoAnticipo} style={{width:"100%",padding:"8px",background:"linear-gradient(135deg,#FFD700,#FF8C00)",border:"none",borderRadius:8,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:12,cursor:"pointer",marginTop:4}}>
                       💳 Pagar ahora →
-                    </button>
                     <p style={{fontSize:9,color:C.muted,textAlign:"center" as const,marginTop:4}}>Se abre la página de pago seguro de Stripe</p>
                   )}
                   <p style={{fontSize:9,color:C.muted,marginTop:6,textAlign:isMe?"right":"left" as any}}>{formatTime(m.created_at)}</p>
