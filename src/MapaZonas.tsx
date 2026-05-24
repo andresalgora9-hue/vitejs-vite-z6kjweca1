@@ -12,7 +12,7 @@
 // ════════════════════════════════════════════════════════════════════
 
 import React, { useState, useEffect, useCallback } from "react";
-import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, GeoJSON, Marker, Popup, useMap } from "react-leaflet";
 import type { Layer, LeafletMouseEvent } from "leaflet";
 import L from "leaflet";
 import { SEVILLA_GEOJSON } from "./sevillaGeoJSON";
@@ -35,6 +35,12 @@ const zoneColor = (name: string) =>
   ZONE_COLORS[Math.abs([...name].reduce((a,c)=>a+c.charCodeAt(0),0)) % ZONE_COLORS.length];
 
 // ── FlyTo helper ──
+const proIcon = L.divIcon({
+  className: "",
+  html: `<div style="width:14px;height:14px;background:linear-gradient(135deg,#FFD700,#FF8C00);border-radius:50%;border:2px solid #fff;box-shadow:0 0 8px rgba(255,215,0,0.8);cursor:pointer;"></div>`,
+  iconSize: [14, 14],
+  iconAnchor: [7, 7],
+});
 function FlyTo({ center, zoom }: { center: [number, number]; zoom: number }) {
   const map = useMap();
   useEffect(() => { map.flyTo(center, zoom, { duration: 0.8 }); }, []);
@@ -52,9 +58,11 @@ interface MapaZonasProps {
   onClose: () => void;
   // Función que devuelve cuántos profesionales hay en una zona
   prosByZone: (zone: string) => number;
+  workers?: any[];
+  onWorkerSelect?: (w: any) => void;
 }
 
-export function MapaZonas({ selectedZones, onZonesChange, onSearch, onClose, prosByZone }: MapaZonasProps) {
+export function MapaZonas({ selectedZones, onZonesChange, onSearch, onClose, prosByZone, workers=[], onWorkerSelect }: MapaZonasProps) {
   const [hoveredZone, setHoveredZone] = useState<string | null>(null);
   const [mapReady, setMapReady] = useState(false);
 
@@ -171,7 +179,7 @@ export function MapaZonas({ selectedZones, onZonesChange, onSearch, onClose, pro
           whenReady={() => setMapReady(true)}
         >
           <TileLayer
-            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
             attribution=""
           />
           <GeoJSON
@@ -180,6 +188,18 @@ export function MapaZonas({ selectedZones, onZonesChange, onSearch, onClose, pro
             style={styleFeature}
             onEachFeature={onEachFeature}
           />
+          {workers.filter((w:any)=>w.show_on_map&&w.map_lat&&w.map_lng).map((w:any)=>(
+            <Marker key={w.id} position={[w.map_lat,w.map_lng]} icon={proIcon}>
+              <Popup>
+                <div style={{background:"#14141F",border:"1px solid #FFD70044",borderRadius:10,padding:"10px 12px",fontFamily:"'DM Sans',sans-serif",minWidth:160}}>
+                  <p style={{fontWeight:800,fontSize:13,color:"#F0F0FA",margin:"0 0 3px"}}>{w.name}</p>
+                  <p style={{fontSize:11,color:"#FFD700",margin:"0 0 8px"}}>{w.trade} · {w.zone}</p>
+                  <p style={{fontSize:11,color:"#00D68F",margin:"0 0 8px"}}>⭐ {w.rating>0?w.rating.toFixed(1):"Nuevo"} · {w.price}€/h</p>
+                  {onWorkerSelect&&<button onClick={()=>{onWorkerSelect(w);onClose();}} style={{width:"100%",padding:"7px",background:"linear-gradient(135deg,#FFD700,#FF8C00)",border:"none",borderRadius:7,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:12,cursor:"pointer"}}>Ver perfil →</button>}
+                </div>
+              </Popup>
+            </Marker>
+          ))}
         </MapContainer>
 
         {/* Zoom controls custom */}
@@ -387,7 +407,7 @@ export function MapaProModal({ currentZones, onSave, onClose }: MapaProModalProp
           attributionControl={false}
         >
           <TileLayer
-            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
             attribution=""
           />
           <GeoJSON
