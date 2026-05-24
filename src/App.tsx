@@ -1420,6 +1420,7 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
         db.from("users").select("name").eq("id",m.from_id).single().then(({data}:any)=>{
           const senderName=isAdmin?"👑 OfficioYa Soporte":(data?.name||"Profesional");
           setInAppNotif({msg:m.text.substring(0,60)+(m.text.length>60?"...":""),from:senderName,fromId:m.from_id,isAdmin});
+          setUnreadByWorker(p=>({...p,[m.from_id]:(p[m.from_id]||0)+1}));
           setUnreadChats(c=>c+1);
         });
       }).subscribe();
@@ -1443,7 +1444,7 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
   },[user.id]);
 
   useEffect(()=>{
-    if(tab==="chats"){loadChats();setUnreadChats(0);}
+    if(tab==="chats"){loadChats();}
   },[tab,loadChats]);
 
   const handleChat=async(w:UserRow)=>{
@@ -2458,7 +2459,7 @@ const loadChats=useCallback(async()=>{
   },[user.id]);
 
   useEffect(()=>{
-    if(tab==="chats"){loadChats();setUnreadMsgs(0);}
+    if(tab==="chats"){loadChats();}
   },[tab,loadChats]);
 
   const saveProfile=async()=>{
