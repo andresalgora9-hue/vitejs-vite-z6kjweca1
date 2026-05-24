@@ -2331,6 +2331,7 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
   const [photoPreview,setPhotoPreview]=useState<string>("");
   const [uploadingPhoto,setUploadingPhoto]=useState(false);
   const [showMapaPro,setShowMapaPro]=useState(false);
+  const [showPosMap,setShowPosMap]=useState(false);
   const [showStripeModal,setShowStripeModal]=useState<{priceId:string;plan:Plan}|null>(null);
   const photoLimit=PLAN_GATES.photos[user.plan as Plan] as number;
   const canAddPhoto=photoLimit===999||photos.length<photoLimit;
@@ -2679,6 +2680,25 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
             <Toggle value={freeQuote} onChange={setFreeQuote} label="Ofrezco presupuesto gratuito" />
             <Toggle value={available} onChange={v=>{setAvailable(v);db.from("users").update({available:v}).eq("id",user.id);onUpdate({...user,available:v});}} label="Disponible para nuevos trabajos" />
             <Toggle value={(user as any).show_on_map||false} onChange={async v=>{await db.from("users").update({show_on_map:v}).eq("id",user.id);onUpdate({...user,show_on_map:v} as any);showToast(v?"📍 Apareces en el mapa":"Ya no apareces en el mapa");}} label="📍 Aparecer en el mapa para clientes" />
+            {(user as any).show_on_map&&(
+              <div style={{padding:"10px 12px",background:"#FFD70012",border:"1px solid #FFD70033",borderRadius:8,marginTop:4}}>
+                <p style={{fontSize:12,color:"#FFD700",marginBottom:8}}>📍 Tu posición en el mapa</p>
+                <button onClick={()=>{
+                  if(navigator.geolocation){
+                    navigator.geolocation.getCurrentPosition(async pos=>{
+                      const lat=pos.coords.latitude;
+                      const lng=pos.coords.longitude;
+                      await db.from("users").update({map_lat:lat,map_lng:lng}).eq("id",user.id);
+                      onUpdate({...user,map_lat:lat,map_lng:lng} as any);
+                      showToast("✓ Posición actualizada en el mapa");
+                    },()=>showToast("⛔ No pudimos obtener tu ubicación"));
+                  }
+                }} style={{width:"100%",padding:"9px",background:"linear-gradient(135deg,#FFD700,#FF8C00)",border:"none",borderRadius:8,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,cursor:"pointer"}}>
+                  📍 Usar mi ubicación actual
+                </button>
+                {(user as any).map_lat&&<p style={{fontSize:11,color:"#00D68F",marginTop:6,textAlign:"center" as const}}>✓ Posición guardada</p>}
+              </div>
+            )}
           </GCard>
           <GCard style={{marginBottom:14}}>
             <p style={{fontWeight:700,color:C.text,fontSize:13,marginBottom:12}}>Disponibilidad y respuesta</p>
