@@ -794,23 +794,20 @@ function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:User
                     {isPagado&&<span style={{marginLeft:"auto",fontSize:10,color:"#00D68F",background:"#00D68F22",padding:"2px 8px",borderRadius:4,fontWeight:700}}>✓ PAGADO</span>}
                   </div>
                   {isSolicitado&&!isMe&&currentUser.type==="cliente"&&(
+                    <div>
                       <button onClick={()=>{
-                      const link=amount==="15€"?"https://buy.stripe.com/28E9ASbGR1phbtreKu1B601":"https://buy.stripe.com/7sY5kC5it3xp1SR9qa1B602";
-                      window.open(link,"_blank");
-                    }}  disabled={procesandoAnticipo} style={{width:"100%",padding:"8px",background:"linear-gradient(135deg,#FFD700,#FF8C00)",border:"none",borderRadius:8,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:12,cursor:"pointer",marginTop:4}}>
-                      💳 Pagar ahora →
-                    </button>
-                    <div style={{marginTop:8,padding:"8px 10px",background:"rgba(0,214,143,0.08)",border:"1px solid rgba(0,214,143,0.2)",borderRadius:8,display:"flex",alignItems:"center",gap:6}}>
-                      <span style={{fontSize:14}}>🔒</span>
-                      <p style={{fontSize:10,color:"#00D68F",margin:0,lineHeight:1.4}}>Pago 100% seguro · OfficioYa garantiza el servicio</p>
+                        const link=amount==="15€"?"https://buy.stripe.com/28E9ASbGR1phbtreKu1B601":"https://buy.stripe.com/7sY5kC5it3xp1SR9qa1B602";
+                        window.open(link,"_blank");
+                      }} disabled={procesandoAnticipo} style={{width:"100%",padding:"8px",background:"linear-gradient(135deg,#FFD700,#FF8C00)",border:"none",borderRadius:8,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:12,cursor:"pointer",marginTop:4}}>
+                        💳 Pagar ahora →
+                      </button>
+                      <div style={{marginTop:8,padding:"8px 10px",background:"rgba(0,214,143,0.08)",border:"1px solid rgba(0,214,143,0.2)",borderRadius:8,display:"flex",alignItems:"center",gap:6}}>
+                        <span style={{fontSize:14}}>🔒</span>
+                        <p style={{fontSize:10,color:"#00D68F",margin:0,lineHeight:1.4}}>Pago 100% seguro · OfficioYa garantiza el servicio</p>
+                      </div>
                     </div>
-                  </div>
                   )}
-                  <p style={{fontSize:9,color:C.muted,marginTop:6,textAlign:isMe?"right":"left" as any}}>{formatTime(m.created_at)}</p>
-                </div>
-              </div>
-            );
-          }
+                  
           // Lead alert special rendering
           if(isLead&&!isMe){
             return(
