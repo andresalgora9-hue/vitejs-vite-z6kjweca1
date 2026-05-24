@@ -177,6 +177,31 @@ async function notifyProOfNewLead(proId:string, clientName:string, oficio:string
   });
 }
 
+function showPushNotification(title:string, body:string):void{
+  // 1. Si tiene permiso → notificación nativa del sistema
+  if("Notification" in window && Notification.permission==="granted"){
+    // Intentar via Service Worker primero (funciona con móvil bloqueado)
+    if("serviceWorker" in navigator){
+      navigator.serviceWorker.ready.then(sw=>{
+        sw.showNotification(title,{
+          body,
+          icon:"/icon-192.png",
+          badge:"/icon-192.png",
+          vibrate:[200,100,200],
+          requireInteraction:true,
+          tag:"officioya-notif",
+        } as any).catch(()=>{
+          // Fallback: notificación directa
+          new Notification(title,{body,icon:"/icon-192.png"});
+        });
+      }).catch(()=>{
+        new Notification(title,{body,icon:"/icon-192.png"});
+      });
+    } else {
+      new Notification(title,{body,icon:"/icon-192.png"});
+    }
+  }
+}
 const wColor=(id:string)=>[C.purple,C.blue,C.pink,"#10B981",C.orange,C.cyan][id.charCodeAt(id.length-1)%6];
 function trialDaysLeft(t:string){return Math.max(0,Math.ceil((new Date(t).getTime()-Date.now())/86400000));}
 function timeAgo(iso:string){
