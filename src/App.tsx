@@ -2215,7 +2215,7 @@ function StripePayModal({user,priceId,plan,onClose,onSuccess}:{user:UserRow;pric
   const [loading,setLoading]=useState(false);
   const [err,setErr]=useState<string|null>(null);
   const [mounted,setMounted]=useState(false);
-  const STRIPE_PUBLIC_KEY="PEGA_AQUI_TU_PK_LIVE";
+  const STRIPE_PUBLIC_KEY="pk_test_51TBJWACZe2kZYfZCrbwqy9DKqrGJCoKbdVtFCNik74ByAeaFi0Dw1oP3vP4fze2bHanAjV2pYC90jc4Ek6p9lW8j00eHBDNZvo";
   const col=PLAN_COLORS[plan];
   const nuncaTuvoElite=!((user as any).stripe_customer_id);
 
