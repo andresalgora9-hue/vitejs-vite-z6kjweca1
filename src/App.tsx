@@ -524,6 +524,11 @@ function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:User
   const [sending,setSending]=useState(false);
   const [isTyping,setIsTyping]=useState(false);
   const [showVisitForm,setShowVisitForm]=useState(false);
+  const [showAnticipoForm,setShowAnticipoForm]=useState(false);
+  const [showSolicitarAnticipo,setShowSolicitarAnticipo]=useState(false);
+  const [anticipoAmount,setAnticipoAmount]=useState("");
+  const [anticipoMotivo,setAnticipoMotivo]=useState("");
+  const [procesandoAnticipo,setProcesandoAnticipo]=useState(false);
   const [visitDate,setVisitDate]=useState("");
   const [visitSlot,setVisitSlot]=useState<"mañana"|"tarde">("mañana");
   const [visitDesc,setVisitDesc]=useState("");
@@ -693,6 +698,63 @@ function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:User
         </div>
       )}
 
+      {/* Formulario anticipo cliente */}
+      {showAnticipoForm&&(
+        <div style={{padding:"14px 16px",background:"linear-gradient(135deg,#1a1a0a,#141208)",borderBottom:"1px solid #FFD70033",flexShrink:0}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+            <p style={{fontSize:13,fontWeight:800,color:"#FFD700"}}>💰 Pagar anticipo</p>
+            <button onClick={()=>setShowAnticipoForm(false)} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:16}}>✕</button>
+          </div>
+          <div style={{display:"flex",gap:8,marginBottom:8}}>
+            {[20,50,100,200].map(v=>(
+              <button key={v} onClick={()=>setAnticipoAmount(String(v))} style={{flex:1,padding:"8px 4px",borderRadius:8,border:"1px solid "+(anticipoAmount===String(v)?"#FFD700":C.border),background:anticipoAmount===String(v)?"#FFD70022":"transparent",color:anticipoAmount===String(v)?"#FFD700":C.muted,cursor:"pointer",fontFamily:"inherit",fontSize:13,fontWeight:700}}>{v}€</button>
+            ))}
+          </div>
+          <input value={anticipoAmount} onChange={e=>setAnticipoAmount(e.target.value)} placeholder="O escribe el importe..." type="number" style={{width:"100%",background:C.card,border:"1px solid "+C.border,borderRadius:8,padding:"9px 12px",color:C.text,fontFamily:"inherit",fontSize:13,outline:"none",marginBottom:8,boxSizing:"border-box" as any}} />
+          <button disabled={procesandoAnticipo||!anticipoAmount} onClick={async()=>{
+            if(!anticipoAmount)return;
+            setProcesandoAnticipo(true);
+            // Crear PaymentMethod primero con Stripe
+            const stripe=(window as any).Stripe("pk_live_51TBJWACZe2kZYfZCHz1oLjVx17xGuoJzAHZpiOjXjsdfCDoWMyQMJ27BPJCizC5ncJPhefHaxNNpf6n4PTyGHB4100zzShI0xN");
+            // Buscar método de pago guardado
+            const res=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/anticipo-handler",{
+              method:"POST",
+              headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo"},
+              body:JSON.stringify({amount:parseInt(anticipoAmount),clientId:currentUser.id,clientName:currentUser.name,proId:toUser.id,proName:toUser.name}),
+            });
+            const result=await res.json();
+            if(result.ok){
+              await db.from("messages").insert({from_id:currentUser.id,to_id:toUser.id,text:`💰 ANTICIPO_PAGADO:${anticipoAmount}€:${result.intentId}`,read:false});
+              showPushNotification("💰 Anticipo pagado","Has enviado un anticipo de "+anticipoAmount+"€ a "+toUser.name);
+              setShowAnticipoForm(false);setAnticipoAmount("");
+            } else {
+              alert("Error: "+result.error);
+            }
+            setProcesandoAnticipo(false);
+          }} style={{width:"100%",padding:"10px",background:procesandoAnticipo||!anticipoAmount?"#222":"linear-gradient(135deg,#FFD700,#FF8C00)",border:"none",borderRadius:8,color:procesandoAnticipo||!anticipoAmount?"#555":"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,cursor:procesandoAnticipo||!anticipoAmount?"not-allowed":"pointer"}}>
+            {procesandoAnticipo?"Procesando...":"Pagar anticipo →"}
+          </button>
+        </div>
+      )}
+
+      {/* Formulario solicitar anticipo profesional */}
+      {showSolicitarAnticipo&&(
+        <div style={{padding:"14px 16px",background:"linear-gradient(135deg,#1a1a0a,#141208)",borderBottom:"1px solid #FFD70033",flexShrink:0}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+            <p style={{fontSize:13,fontWeight:800,color:"#FFD700"}}>💰 Solicitar anticipo al cliente</p>
+            <button onClick={()=>setShowSolicitarAnticipo(false)} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:16}}>✕</button>
+          </div>
+          <input value={anticipoAmount} onChange={e=>setAnticipoAmount(e.target.value)} placeholder="Importe (€)" type="number" style={{width:"100%",background:C.card,border:"1px solid "+C.border,borderRadius:8,padding:"9px 12px",color:C.text,fontFamily:"inherit",fontSize:13,outline:"none",marginBottom:8,boxSizing:"border-box" as any}} />
+          <input value={anticipoMotivo} onChange={e=>setAnticipoMotivo(e.target.value)} placeholder="Motivo (ej: para material)" style={{width:"100%",background:C.card,border:"1px solid "+C.border,borderRadius:8,padding:"9px 12px",color:C.text,fontFamily:"inherit",fontSize:13,outline:"none",marginBottom:8,boxSizing:"border-box" as any}} />
+          <button disabled={!anticipoAmount||!anticipoMotivo} onClick={async()=>{
+            await db.from("messages").insert({from_id:currentUser.id,to_id:toUser.id,text:`💰 ANTICIPO_SOLICITADO:${anticipoAmount}€:${anticipoMotivo}:${currentUser.id}:${toUser.id}`,read:false});
+            setShowSolicitarAnticipo(false);setAnticipoAmount("");setAnticipoMotivo("");
+            showPushNotification("💰 Solicitud de anticipo","El profesional solicita un anticipo de "+anticipoAmount+"€");
+          }} style={{width:"100%",padding:"10px",background:!anticipoAmount||!anticipoMotivo?"#222":"linear-gradient(135deg,#FFD700,#FF8C00)",border:"none",borderRadius:8,color:!anticipoAmount||!anticipoMotivo?"#555":"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,cursor:!anticipoAmount||!anticipoMotivo?"not-allowed":"pointer"}}>
+            Solicitar anticipo →
+          </button>
+        </div>
+      )}
       {/* ── Messages area ── */}
       <div style={{
         flex:1,overflowY:"auto",padding:"16px 12px",
