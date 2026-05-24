@@ -1258,6 +1258,26 @@ function WorkerSheet({worker,onClose,onChat,currentUser}:{worker:UserRow;onClose
         </div>
       )}
       {!currentUser&&<div style={{padding:"12px",background:C.surface,borderRadius:10,border:"1px solid "+C.border,textAlign:"center",marginBottom:14}}><p style={{fontSize:13,color:C.muted}}>Regístrate gratis para contactar con este profesional</p></div>}
+      {currentUser&&(
+        <div style={{display:"flex",gap:8,marginBottom:14}}>
+          <button onClick={async()=>{
+            const msg=prompt("¿Qué quieres sugerir sobre este profesional?");
+            if(!msg)return;
+            await db.from("reports").insert({type:"sugerencia",worker_id:worker.id,worker_name:worker.name,from_id:currentUser.id,from_name:currentUser.name,message:msg,status:"pending"});
+            alert("✅ Sugerencia enviada. Gracias.");
+          }} style={{flex:1,padding:"8px",background:C.surface,border:"1px solid "+C.border,borderRadius:8,color:C.mutedL,fontFamily:"'DM Sans',sans-serif",fontSize:11,fontWeight:600,cursor:"pointer"}}>
+            💡 Sugerir mejora
+          </button>
+          <button onClick={async()=>{
+            const msg=prompt("¿Por qué quieres denunciar a este profesional?");
+            if(!msg)return;
+            await db.from("reports").insert({type:"denuncia",worker_id:worker.id,worker_name:worker.name,from_id:currentUser.id,from_name:currentUser.name,message:msg,status:"pending"});
+            alert("🚩 Denuncia enviada. La revisaremos en breve.");
+          }} style={{flex:1,padding:"8px",background:C.red+"12",border:"1px solid "+C.red+"33",borderRadius:8,color:C.red,fontFamily:"'DM Sans',sans-serif",fontSize:11,fontWeight:600,cursor:"pointer"}}>
+            🚩 Denunciar
+          </button>
+        </div>
+      )}
 
       <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:14}}>
         {[{l:"Trabajos",v:String(worker.jobs)},{l:"Precio/h",v:(worker.price||30)+"€"},{l:"Valoración",v:avgRating>0?avgRating.toFixed(1)+"★":"Nuevo"}].map(s=>(
