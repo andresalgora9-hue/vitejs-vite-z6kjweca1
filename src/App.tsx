@@ -613,6 +613,7 @@ function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:User
 
   // Detect lead alert messages
   const isLeadAlert=(text:string)=>text.includes("NUEVO CLIENTE INTERESADO")||text.includes("is_lead_alert");
+  const isAnticipoMsg=(text:string)=>text.includes("ANTICIPO_PAGADO:")||text.includes("ANTICIPO_SOLICITADO:");
 
   return(
     <div onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}
@@ -775,7 +776,51 @@ function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:User
           const isMe=m.from_id===currentUser.id;
           const isAdmin=m.from_id==="admin-001"||m.from_id==="system-lead";
           const isLead=isLeadAlert(m.text);
-
+// Anticipo special rendering
+          if(isAnticipoMsg(m.text)){
+            const isPagado=m.text.includes("ANTICIPO_PAGADO:");
+            const isSolicitado=m.text.includes("ANTICIPO_SOLICITADO:");
+            const parts=m.text.split(":");
+            const amount=parts[1]||"";
+            const motivo=isPagado?"":parts[2]||"";
+            const proId=isSolicitado?parts[3]||"":"";
+            const clientId=isSolicitado?parts[4]||"":"";
+            return(
+              <div key={m.id} style={{display:"flex",justifyContent:isMe?"flex-end":"flex-start",marginBottom:6}}>
+                <div style={{maxWidth:"80%",background:"linear-gradient(135deg,#1a1a0a,#141208)",border:"2px solid #FFD70066",borderRadius:14,padding:"12px 14px"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+                    <span style={{fontSize:20}}>💰</span>
+                    <div>
+                      <p style={{fontWeight:900,color:"#FFD700",fontSize:13,margin:0}}>{isPagado?"Anticipo pagado":"Solicitud de anticipo"}</p>
+                      <p style={{fontSize:12,color:"#aaa",margin:0}}>{amount}{motivo?" · "+motivo:""}</p>
+                    </div>
+                    {isPagado&&<span style={{marginLeft:"auto",fontSize:10,color:"#00D68F",background:"#00D68F22",padding:"2px 8px",borderRadius:4,fontWeight:700}}>✓ PAGADO</span>}
+                  </div>
+                  {isSolicitado&&!isMe&&currentUser.type==="cliente"&&(
+                    <button onClick={async()=>{
+                      setProcesandoAnticipo(true);
+                      const res=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/anticipo-handler",{
+                        method:"POST",
+                        headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo"},
+                        body:JSON.stringify({amount:parseInt(amount),clientId:currentUser.id,clientName:currentUser.name,proId:toUser.id,proName:toUser.name}),
+                      });
+                      const result=await res.json();
+                      if(result.ok){
+                        await db.from("messages").insert({from_id:currentUser.id,to_id:toUser.id,text:`💰 ANTICIPO_PAGADO:${amount}€:${result.intentId}`,read:false});
+                        showPushNotification("💰 Anticipo pagado","Has pagado el anticipo de "+amount+" a "+toUser.name);
+                      } else {
+                        alert("Error: "+result.error);
+                      }
+                      setProcesandoAnticipo(false);
+                    }} disabled={procesandoAnticipo} style={{width:"100%",padding:"8px",background:procesandoAnticipo?"#222":"linear-gradient(135deg,#FFD700,#FF8C00)",border:"none",borderRadius:8,color:procesandoAnticipo?"#555":"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:12,cursor:procesandoAnticipo?"not-allowed":"pointer",marginTop:4}}>
+                      {procesandoAnticipo?"Procesando...":"💳 Pagar ahora →"}
+                    </button>
+                  )}
+                  <p style={{fontSize:9,color:C.muted,marginTop:6,textAlign:isMe?"right":"left" as any}}>{formatTime(m.created_at)}</p>
+                </div>
+              </div>
+            );
+          }
           // Lead alert special rendering
           if(isLead&&!isMe){
             return(
