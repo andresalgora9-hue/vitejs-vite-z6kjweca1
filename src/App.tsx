@@ -2678,6 +2678,7 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
             <Inp label="WhatsApp / Teléfono" value={whatsapp} onChange={setWhatsapp} placeholder="+34 600 000 000" />
             <Toggle value={freeQuote} onChange={setFreeQuote} label="Ofrezco presupuesto gratuito" />
             <Toggle value={available} onChange={v=>{setAvailable(v);db.from("users").update({available:v}).eq("id",user.id);onUpdate({...user,available:v});}} label="Disponible para nuevos trabajos" />
+            <Toggle value={(user as any).show_on_map||false} onChange={async v=>{await db.from("users").update({show_on_map:v}).eq("id",user.id);onUpdate({...user,show_on_map:v} as any);showToast(v?"📍 Apareces en el mapa":"Ya no apareces en el mapa");}} label="📍 Aparecer en el mapa para clientes" />
           </GCard>
           <GCard style={{marginBottom:14}}>
             <p style={{fontWeight:700,color:C.text,fontSize:13,marginBottom:12}}>Disponibilidad y respuesta</p>
