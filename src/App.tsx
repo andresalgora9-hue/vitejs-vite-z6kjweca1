@@ -1204,6 +1204,20 @@ function WorkerSheet({worker,onClose,onChat,currentUser}:{worker:UserRow;onClose
     db.from("visits").insert({page:"worker_"+worker.id,user_id:currentUser?.id||null}).then(()=>{});
   },[worker.id,currentUser?.id]);
 
+  useEffect(()=>{
+    const ch=db.channel("reviews-"+worker.id)
+      .on("postgres_changes",{event:"UPDATE",schema:"public",table:"reviews",filter:"worker_id=eq."+worker.id},(p:any)=>{
+        const r=p.new;
+        if(r.approved===false||r.approved===null){
+          setReviews(prev=>prev.filter((x:any)=>x.id!==r.id));
+        }
+      })
+      .on("postgres_changes",{event:"DELETE",schema:"public",table:"reviews",filter:"worker_id=eq."+worker.id},(p:any)=>{
+        setReviews(prev=>prev.filter((x:any)=>x.id!==p.old.id));
+      })
+      .subscribe();
+    return()=>{db.removeChannel(ch);};
+  },[worker.id]);
   const submitReview=async()=>{
     if(!newRev.trim())return;
     setSaving(true);
