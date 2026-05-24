@@ -134,10 +134,33 @@ async function logLead(proId:string, visitorId:string|null, type:"whatsapp"|"cal
   return true;
 }
 
+async function compressImage(file:File, maxWidth=1200, quality=0.82):Promise<File>{
+  return new Promise(resolve=>{
+    const img=new Image();
+    const url=URL.createObjectURL(file);
+    img.onload=()=>{
+      const ratio=Math.min(1,maxWidth/img.width);
+      const canvas=document.createElement("canvas");
+      canvas.width=img.width*ratio;
+      canvas.height=img.height*ratio;
+      const ctx=canvas.getContext("2d");
+      if(!ctx){resolve(file);return;}
+      ctx.drawImage(img,0,0,canvas.width,canvas.height);
+      canvas.toBlob(blob=>{
+        if(!blob){resolve(file);return;}
+        resolve(new File([blob],file.name,{type:"image/jpeg"}));
+      },"image/jpeg",quality);
+      URL.revokeObjectURL(url);
+    };
+    img.onerror=()=>resolve(file);
+    img.src=url;
+  });
+}
+
 async function uploadImage(file:File, path:string):Promise<string|null>{
-  const ext=file.name.split('.').pop();
-  const fileName=path+"/"+Date.now()+"."+ext;
-  const {error}=await db.storage.from("photos").upload(fileName, file, {contentType:file.type, upsert:true});
+  const compressed=await compressImage(file);
+  const fileName=path+"/"+Date.now()+".jpg";
+  const {error}=await db.storage.from("photos").upload(fileName, compressed, {contentType:"image/jpeg", upsert:true});
   if(error){console.error("Upload error:",error);return null;}
   return STORAGE_URL+fileName;
 }
