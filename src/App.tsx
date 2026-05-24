@@ -703,57 +703,54 @@ function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:User
       {showAnticipoForm&&(
         <div style={{padding:"14px 16px",background:"linear-gradient(135deg,#1a1a0a,#141208)",borderBottom:"1px solid #FFD70033",flexShrink:0}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-            <p style={{fontSize:13,fontWeight:800,color:"#FFD700"}}>💰 Pagar anticipo</p>
+            <p style={{fontSize:13,fontWeight:800,color:"#FFD700"}}>💰 Pagar anticipo a {toUser.name}</p>
             <button onClick={()=>setShowAnticipoForm(false)} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:16}}>✕</button>
           </div>
-          <div style={{display:"flex",gap:8,marginBottom:8}}>
-            {[20,50,100,200].map(v=>(
-              <button key={v} onClick={()=>setAnticipoAmount(String(v))} style={{flex:1,padding:"8px 4px",borderRadius:8,border:"1px solid "+(anticipoAmount===String(v)?"#FFD700":C.border),background:anticipoAmount===String(v)?"#FFD70022":"transparent",color:anticipoAmount===String(v)?"#FFD700":C.muted,cursor:"pointer",fontFamily:"inherit",fontSize:13,fontWeight:700}}>{v}€</button>
-            ))}
+          <p style={{fontSize:12,color:C.muted,marginBottom:12}}>Elige el importe — se abre la página de pago seguro de Stripe</p>
+          <div style={{display:"flex",gap:8}}>
+            <button onClick={async()=>{
+              await db.from("messages").insert({from_id:currentUser.id,to_id:toUser.id,text:`💰 ANTICIPO_SOLICITADO:15€:anticipo`,read:false});
+              window.open("https://buy.stripe.com/28E9ASbGR1phbtreKu1B601","_blank");
+              setShowAnticipoForm(false);
+            }} style={{flex:1,padding:"14px",background:"linear-gradient(135deg,#FFD700,#FF8C00)",border:"none",borderRadius:10,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:800,fontSize:15,cursor:"pointer"}}>
+              💰 15€
+            </button>
+            <button onClick={async()=>{
+              await db.from("messages").insert({from_id:currentUser.id,to_id:toUser.id,text:`💰 ANTICIPO_SOLICITADO:50€:anticipo`,read:false});
+              window.open("https://buy.stripe.com/7sY5kC5it3xp1SR9qa1B602","_blank");
+              setShowAnticipoForm(false);
+            }} style={{flex:1,padding:"14px",background:"linear-gradient(135deg,#FFD700,#FF8C00)",border:"none",borderRadius:10,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:800,fontSize:15,cursor:"pointer"}}>
+              💰 50€
+            </button>
           </div>
-          <input value={anticipoAmount} onChange={e=>setAnticipoAmount(e.target.value)} placeholder="O escribe el importe..." type="number" style={{width:"100%",background:C.card,border:"1px solid "+C.border,borderRadius:8,padding:"9px 12px",color:C.text,fontFamily:"inherit",fontSize:13,outline:"none",marginBottom:8,boxSizing:"border-box" as any}} />
-          <button disabled={procesandoAnticipo||!anticipoAmount} onClick={async()=>{
-            if(!anticipoAmount)return;
-            setProcesandoAnticipo(true);
-            // Crear PaymentMethod primero con Stripe
-            const stripe=(window as any).Stripe("pk_live_51TBJWACZe2kZYfZCHz1oLjVx17xGuoJzAHZpiOjXjsdfCDoWMyQMJ27BPJCizC5ncJPhefHaxNNpf6n4PTyGHB4100zzShI0xN");
-            // Buscar método de pago guardado
-            const res=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/anticipo-handler",{
-              method:"POST",
-              headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo"},
-              body:JSON.stringify({amount:parseInt(anticipoAmount),clientId:currentUser.id,clientName:currentUser.name,proId:toUser.id,proName:toUser.name}),
-            });
-            const result=await res.json();
-            if(result.ok){
-              await db.from("messages").insert({from_id:currentUser.id,to_id:toUser.id,text:`💰 ANTICIPO_PAGADO:${anticipoAmount}€:${result.intentId}`,read:false});
-              showPushNotification("💰 Anticipo pagado","Has enviado un anticipo de "+anticipoAmount+"€ a "+toUser.name);
-              setShowAnticipoForm(false);setAnticipoAmount("");
-            } else {
-              alert("Error: "+result.error);
-            }
-            setProcesandoAnticipo(false);
-          }} style={{width:"100%",padding:"10px",background:procesandoAnticipo||!anticipoAmount?"#222":"linear-gradient(135deg,#FFD700,#FF8C00)",border:"none",borderRadius:8,color:procesandoAnticipo||!anticipoAmount?"#555":"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,cursor:procesandoAnticipo||!anticipoAmount?"not-allowed":"pointer"}}>
-            {procesandoAnticipo?"Procesando...":"Pagar anticipo →"}
-          </button>
+          <p style={{fontSize:10,color:C.muted,textAlign:"center" as const,marginTop:8}}>🔒 Pago seguro con Stripe · El profesional recibirá confirmación</p>
         </div>
       )}
 
-      {/* Formulario solicitar anticipo profesional */}
+     {/* Formulario solicitar anticipo profesional */}
       {showSolicitarAnticipo&&(
         <div style={{padding:"14px 16px",background:"linear-gradient(135deg,#1a1a0a,#141208)",borderBottom:"1px solid #FFD70033",flexShrink:0}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
             <p style={{fontSize:13,fontWeight:800,color:"#FFD700"}}>💰 Solicitar anticipo al cliente</p>
             <button onClick={()=>setShowSolicitarAnticipo(false)} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:16}}>✕</button>
           </div>
-          <input value={anticipoAmount} onChange={e=>setAnticipoAmount(e.target.value)} placeholder="Importe (€)" type="number" style={{width:"100%",background:C.card,border:"1px solid "+C.border,borderRadius:8,padding:"9px 12px",color:C.text,fontFamily:"inherit",fontSize:13,outline:"none",marginBottom:8,boxSizing:"border-box" as any}} />
-          <input value={anticipoMotivo} onChange={e=>setAnticipoMotivo(e.target.value)} placeholder="Motivo (ej: para material)" style={{width:"100%",background:C.card,border:"1px solid "+C.border,borderRadius:8,padding:"9px 12px",color:C.text,fontFamily:"inherit",fontSize:13,outline:"none",marginBottom:8,boxSizing:"border-box" as any}} />
-          <button disabled={!anticipoAmount||!anticipoMotivo} onClick={async()=>{
-            await db.from("messages").insert({from_id:currentUser.id,to_id:toUser.id,text:`💰 ANTICIPO_SOLICITADO:${anticipoAmount}€:${anticipoMotivo}:${currentUser.id}:${toUser.id}`,read:false});
-            setShowSolicitarAnticipo(false);setAnticipoAmount("");setAnticipoMotivo("");
-            showPushNotification("💰 Solicitud de anticipo","El profesional solicita un anticipo de "+anticipoAmount+"€");
-          }} style={{width:"100%",padding:"10px",background:!anticipoAmount||!anticipoMotivo?"#222":"linear-gradient(135deg,#FFD700,#FF8C00)",border:"none",borderRadius:8,color:!anticipoAmount||!anticipoMotivo?"#555":"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,cursor:!anticipoAmount||!anticipoMotivo?"not-allowed":"pointer"}}>
-            Solicitar anticipo →
-          </button>
+          <p style={{fontSize:12,color:C.muted,marginBottom:12}}>El cliente recibirá un mensaje con el botón de pago directo</p>
+          <div style={{display:"flex",gap:8}}>
+            <button onClick={async()=>{
+              await db.from("messages").insert({from_id:currentUser.id,to_id:toUser.id,text:`💰 ANTICIPO_SOLICITADO:15€:anticipo solicitado por el profesional`,read:false});
+              setShowSolicitarAnticipo(false);
+              showPushNotification("💰 Anticipo solicitado","Has solicitado un anticipo de 15€ a "+toUser.name);
+            }} style={{flex:1,padding:"14px",background:"transparent",border:"2px solid #FFD700",borderRadius:10,color:"#FFD700",fontFamily:"'DM Sans',sans-serif",fontWeight:800,fontSize:15,cursor:"pointer"}}>
+              💰 15€
+            </button>
+            <button onClick={async()=>{
+              await db.from("messages").insert({from_id:currentUser.id,to_id:toUser.id,text:`💰 ANTICIPO_SOLICITADO:50€:anticipo solicitado por el profesional`,read:false});
+              setShowSolicitarAnticipo(false);
+              showPushNotification("💰 Anticipo solicitado","Has solicitado un anticipo de 50€ a "+toUser.name);
+            }} style={{flex:1,padding:"14px",background:"transparent",border:"2px solid #FFD700",borderRadius:10,color:"#FFD700",fontFamily:"'DM Sans',sans-serif",fontWeight:800,fontSize:15,cursor:"pointer"}}>
+              💰 50€
+            </button>
+          </div>
         </div>
       )}
       {/* ── Messages area ── */}
@@ -797,24 +794,13 @@ function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:User
                     {isPagado&&<span style={{marginLeft:"auto",fontSize:10,color:"#00D68F",background:"#00D68F22",padding:"2px 8px",borderRadius:4,fontWeight:700}}>✓ PAGADO</span>}
                   </div>
                   {isSolicitado&&!isMe&&currentUser.type==="cliente"&&(
-                    <button onClick={async()=>{
-                      setProcesandoAnticipo(true);
-                      const res=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/anticipo-handler",{
-                        method:"POST",
-                        headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo"},
-                        body:JSON.stringify({amount:parseInt(amount),clientId:currentUser.id,clientName:currentUser.name,proId:toUser.id,proName:toUser.name}),
-                      });
-                      const result=await res.json();
-                      if(result.ok){
-                        await db.from("messages").insert({from_id:currentUser.id,to_id:toUser.id,text:`💰 ANTICIPO_PAGADO:${amount}€:${result.intentId}`,read:false});
-                        showPushNotification("💰 Anticipo pagado","Has pagado el anticipo de "+amount+" a "+toUser.name);
-                      } else {
-                        alert("Error: "+result.error);
-                      }
-                      setProcesandoAnticipo(false);
-                    }} disabled={procesandoAnticipo} style={{width:"100%",padding:"8px",background:procesandoAnticipo?"#222":"linear-gradient(135deg,#FFD700,#FF8C00)",border:"none",borderRadius:8,color:procesandoAnticipo?"#555":"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:12,cursor:procesandoAnticipo?"not-allowed":"pointer",marginTop:4}}>
-                      {procesandoAnticipo?"Procesando...":"💳 Pagar ahora →"}
+                      <button onClick={()=>{
+                      const link=amount==="15€"?"https://buy.stripe.com/28E9ASbGR1phbtreKu1B601":"https://buy.stripe.com/7sY5kC5it3xp1SR9qa1B602";
+                      window.open(link,"_blank");
+                    }} style={{width:"100%",padding:"8px",background:"linear-gradient(135deg,#FFD700,#FF8C00)",border:"none",borderRadius:8,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:12,cursor:"pointer",marginTop:4}}>
+                      💳 Pagar ahora →
                     </button>
+                    <p style={{fontSize:9,color:C.muted,textAlign:"center" as const,marginTop:4}}>Se abre la página de pago seguro de Stripe</p>
                   )}
                   <p style={{fontSize:9,color:C.muted,marginTop:6,textAlign:isMe?"right":"left" as any}}>{formatTime(m.created_at)}</p>
                 </div>
