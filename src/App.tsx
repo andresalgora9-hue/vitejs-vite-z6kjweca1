@@ -800,7 +800,6 @@ function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:User
                     }}  disabled={procesandoAnticipo} style={{width:"100%",padding:"8px",background:"linear-gradient(135deg,#FFD700,#FF8C00)",border:"none",borderRadius:8,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:12,cursor:"pointer",marginTop:4}}>
                       💳 Pagar ahora →
                     </button>
-                    <p style={{fontSize:9,color:C.muted,textAlign:"center" as const,marginTop:4}}>Se abre la página de pago seguro de Stripe</p>
                   )}
                   <p style={{fontSize:9,color:C.muted,marginTop:6,textAlign:isMe?"right":"left" as any}}>{formatTime(m.created_at)}</p>
                 </div>
