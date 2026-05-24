@@ -2623,6 +2623,58 @@ function StripePayModal({user,priceId,plan,onClose,onSuccess}:{user:UserRow;pric
     </div>
   );
 }
+function PresupuestoForm({msg,proId,proName,proPlan,proRating,onClose,onSent}:{msg:string;proId:string;proName:string;proPlan:string;proRating:number;onClose:()=>void;onSent:()=>void}){
+  const [price,setPrice]=useState("");
+  const [desc,setDesc]=useState("");
+  const [time,setTime]=useState("1-2 días");
+  const [sending,setSending]=useState(false);
+
+  // Extraer request_id del mensaje
+  const send=async()=>{
+    if(!price||!desc)return;
+    setSending(true);
+    // Buscar la solicitud más reciente abierta que coincida
+    const {data:requests}=await db.from("budget_requests")
+      .select("*").eq("status","open")
+      .order("created_at",{ascending:false}).limit(10);
+    if(requests&&requests.length>0){
+      // Buscar la que coincida con el oficio del pro
+      const req=requests[0];
+      // Verificar que no haya más de 3 ofertas
+      const {count}=await db.from("budget_offers").select("id",{count:"exact"} as any).eq("request_id",req.id);
+      if((count||0)>=3){setSending(false);onClose();return;}
+      await db.from("budget_offers").insert({
+        request_id:req.id,
+        pro_id:proId,pro_name:proName,
+        pro_plan:proPlan,pro_rating:proRating,
+        price:parseInt(price),
+        description:desc,
+        time_estimate:time,
+        status:"pending",
+      });
+    }
+    setSending(false);
+    onSent();
+  };
+
+  return(
+    <div>
+      <div style={{display:"flex",gap:8,marginBottom:8}}>
+        <input value={price} onChange={e=>setPrice(e.target.value)} placeholder="Tu precio (€)" type="number" style={{flex:1,background:C.card,border:"1px solid "+C.border,borderRadius:8,padding:"9px 10px",color:C.text,fontFamily:"inherit",fontSize:13,outline:"none"}} />
+        <select value={time} onChange={e=>setTime(e.target.value)} style={{flex:1,background:C.card,border:"1px solid "+C.border,borderRadius:8,padding:"9px 10px",color:C.text,fontFamily:"inherit",fontSize:12,outline:"none"}}>
+          {["Mismo día","1-2 días","3-5 días","1 semana","Más de 1 semana"].map(t=><option key={t}>{t}</option>)}
+        </select>
+      </div>
+      <textarea value={desc} onChange={e=>setDesc(e.target.value)} placeholder="Describe tu propuesta..." rows={2} style={{width:"100%",background:C.card,border:"1px solid "+C.border,borderRadius:8,padding:"8px 10px",color:C.text,fontFamily:"inherit",fontSize:12,outline:"none",resize:"none",marginBottom:8,boxSizing:"border-box" as any}} />
+      <div style={{display:"flex",gap:8}}>
+        <button onClick={send} disabled={sending||!price||!desc} style={{flex:2,padding:"9px",background:sending||!price||!desc?"#222":"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:8,color:sending||!price||!desc?"#555":"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,cursor:sending||!price||!desc?"not-allowed":"pointer"}}>
+          {sending?"Enviando...":"Enviar presupuesto →"}
+        </button>
+        <button onClick={onClose} style={{flex:1,padding:"9px",background:"transparent",border:"1px solid "+C.border,borderRadius:8,color:C.muted,cursor:"pointer",fontFamily:"inherit",fontSize:12}}>Cancelar</button>
+      </div>
+    </div>
+  );
+}
 // ─── PRO DASHBOARD ───
 function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;onUpdate:(u:UserRow)=>void}){
   const [tab,setTab]=useState<"inicio"|"chats"|"trabajos"|"perfil"|"planes">("inicio");
@@ -2646,7 +2698,8 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
   const [chatPartners,setChatPartners]=useState<UserRow[]>([]);
   const [chatUser,setChatUser]=useState<UserRow|null>(null);
   const [stats,setStats]=useState({visits:0,contacts:0,reviews:0});
-  const [urgentLead,setUrgentLead]=useState<{msg:string;fromId:string}|null>(null);
+  const [urgentLead,setUrgentLead]=useState<{msg:string;fromId:string;isPresupuesto?:boolean}|null>(null);
+  const [showPresupuestoForm,setShowPresupuestoForm]=useState<{requestId:string;clientName:string;oficio:string;desc:string}|null>(null);
   const [inAppNotif,setInAppNotif]=useState<{msg:string;from:string;fromId:string;isAdmin:boolean}|null>(null);
   const [unreadMsgs,setUnreadMsgs]=useState(0);
   const [unreadByUser,setUnreadByUser]=useState<Record<string,number>>({});
@@ -2698,10 +2751,13 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
         const isAdmin=m.from_id==="admin-001";
 
        if(isLeadAlert){
-          // ── URGENT RED BANNER for new lead ──
-          setUrgentLead({msg:m.text,fromId:m.from_id});
+          const isPresupuesto=m.text.includes("NUEVO PRESUPUESTO SOLICITADO");
+          setUrgentLead({msg:m.text,fromId:m.from_id,isPresupuesto});
           setUnreadMsgs(c=>c+1);
-          showPushNotification("🔴 Cliente nuevo — OfficioYa","Un cliente necesita tus servicios ahora. Toca para responder.");
+          showPushNotification(
+            isPresupuesto?"📋 Nueva solicitud de presupuesto":"🔴 Cliente nuevo — OfficioYa",
+            isPresupuesto?"Un cliente solicita presupuesto para tu servicio. Sé de los 3 primeros.":"Un cliente necesita tus servicios ahora. Toca para responder."
+          );
         } else if(isAdmin){
           // ── Admin notification ──
           setInAppNotif({msg:m.text.replace("[Soporte OfficioYa] ",""),from:"👑 OfficioYa Soporte",fromId:m.from_id,isAdmin:true});
@@ -2867,7 +2923,7 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
     <div style={{minHeight:"100dvh",background:C.bg,backgroundImage:"radial-gradient(ellipse at 70% 0%,#2a0a3a18,transparent 50%)",paddingBottom:72}}>
 
       {/* ── URGENT LEAD BANNER ── */}
-      {urgentLead&&(
+      {urgentLead&&!urgentLead.isPresupuesto&&(
   <UrgentLeadBanner
     msg={urgentLead.msg}
     jobId={urgentLead.fromId}
@@ -2875,6 +2931,28 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
     onClose={()=>setUrgentLead(null)}
     onClick={()=>{setUrgentLead(null);setTab("chats");loadChats();}}
   />
+)}
+      {urgentLead&&urgentLead.isPresupuesto&&(
+  <div style={{position:"fixed",bottom:88,right:16,zIndex:20000,background:"#111118",border:"2px solid "+C.accent,borderRadius:16,padding:"16px",maxWidth:320,boxShadow:"0 10px 30px "+C.accent+"44"}}>
+    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+      <span style={{fontSize:24}}>📋</span>
+      <div style={{flex:1}}>
+        <p style={{fontWeight:900,color:C.accent,fontSize:13,margin:0}}>SOLICITUD DE PRESUPUESTO</p>
+        <p style={{fontSize:10,color:C.muted,margin:0}}>Sé de los 3 primeros en responder</p>
+      </div>
+      <button onClick={()=>setUrgentLead(null)} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:16}}>✕</button>
+    </div>
+    <p style={{fontSize:12,color:C.text,lineHeight:1.6,marginBottom:14}}>{urgentLead.msg.replace("🔴 *NUEVO PRESUPUESTO SOLICITADO*\n\n","")}</p>
+    <PresupuestoForm
+      msg={urgentLead.msg}
+      proId={user.id}
+      proName={user.name}
+      proPlan={user.plan}
+      proRating={user.rating}
+      onClose={()=>setUrgentLead(null)}
+      onSent={()=>{setUrgentLead(null);showToast("✅ Presupuesto enviado");}}
+    />
+  </div>
 )}
       {/* ── Admin / normal notification ── */}
       {inAppNotif&&(
