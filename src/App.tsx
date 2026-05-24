@@ -802,8 +802,9 @@ function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:User
                     </button>
                     <div style={{marginTop:8,padding:"8px 10px",background:"rgba(0,214,143,0.08)",border:"1px solid rgba(0,214,143,0.2)",borderRadius:8,display:"flex",alignItems:"center",gap:6}}>
                       <span style={{fontSize:14}}>🔒</span>
-                      <p style={{fontSize:10,color:"#00D68F",margin:0,lineHeight:1.4}}>Pago 100% seguro con Stripe · Tu banco confirmará el pago · OfficioYa garantiza el servicio</p>
+                      <p style={{fontSize:10,color:"#00D68F",margin:0,lineHeight:1.4}}>Pago 100% seguro · OfficioYa garantiza el servicio</p>
                     </div>
+                  </div>
                   )}
                   <p style={{fontSize:9,color:C.muted,marginTop:6,textAlign:isMe?"right":"left" as any}}>{formatTime(m.created_at)}</p>
                 </div>
