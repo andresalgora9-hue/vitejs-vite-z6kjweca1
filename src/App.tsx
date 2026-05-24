@@ -1982,6 +1982,9 @@ function Auth({onLogin}:{onLogin:(u:UserRow)=>void}){
   const [zone,setZone]=useState(ZONAS[0]);
   const [plan,setPlan]=useState<Plan>("gratis");
   const [showPlanDetail,setShowPlanDetail]=useState<Plan|null>(null);
+  const [pendingUser,setPendingUser]=useState<UserRow|null>(null);
+  const [pendingPriceId,setPendingPriceId]=useState<string>("");
+  const [showRegisterStripe,setShowRegisterStripe]=useState(false);
 
   const resetForm=()=>{setName("");setEmail("");setPhone("");setPass("");setTrade(OFICIOS[0]);setZone(ZONAS[0]);setPlan("gratis");setErr("");setProStep(1);};
 
@@ -2031,12 +2034,25 @@ if(hardAdmin){
       const {data:ex}=await db.from("users").select("id").eq("email",email.toLowerCase()).maybeSingle();
       if(ex){setLoading(false);setErr("Ya existe una cuenta con ese email.");return;}
       const trial_end=new Date(Date.now()+30*86400000).toISOString().split("T")[0];
-      const insertData:any={name:name.trim(),email:email.toLowerCase().trim(),password:pass,phone:phone.trim(),type:"profesional",plan,trade,zone,bio:"",price:30,available:true,verified:false,jobs:0,rating:0,reviews:0,trial_end,whatsapp:phone.trim(),free_quote:true,service_zones:[zone],schedule:"Lunes a Viernes",response_time:"24h",experience_years:0,specialties:[]};
+      const insertData:any={name:name.trim(),email:email.toLowerCase().trim(),password:pass,phone:phone.trim(),type:"profesional",plan:"gratis",trade,zone,bio:"",price:30,available:true,verified:false,jobs:0,rating:0,reviews:0,trial_end,whatsapp:phone.trim(),free_quote:true,service_zones:[zone],schedule:"Lunes a Viernes",response_time:"24h",experience_years:0,specialties:[]};
       const {data,error}=await db.from("users").insert(insertData).select().single();
       setLoading(false);
       if(error){setErr("Error: "+error.message);return;}
       if(!data){setErr("Error creando cuenta.");return;}
-      localStorage.setItem("oy_user",JSON.stringify(data));onLogin(data as UserRow);
+      localStorage.setItem("oy_user",JSON.stringify(data));
+      // Si eligió plan de pago → mostrar Stripe antes de entrar
+      if(plan!=="gratis"){
+        const priceMap:Record<string,string>={
+          basico:"price_1TYugfCZe2kZYfZChXHjTrsg",
+          pro:"price_1TYuioCZe2kZYfZChYFbWcrt",
+          elite:"price_1TYuneCZe2kZYfZCxD24mHGx",
+        };
+        setPendingUser(data as UserRow);
+        setPendingPriceId(priceMap[plan]);
+        setShowRegisterStripe(true);
+      } else {
+        onLogin(data as UserRow);
+      }
     }catch{setLoading(false);setErr("Error de conexión.");}
   };
 
@@ -2067,6 +2083,15 @@ if(hardAdmin){
   return(
     <div style={{minHeight:"100dvh",background:C.bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px 20px",backgroundImage:"radial-gradient(ellipse at 20% 0%,#2a0a5a22,transparent 55%),radial-gradient(ellipse at 80% 100%,#0a2a4a22,transparent 55%)",overflowY:"auto"}}>
       {showPlanDetail&&<PlanDetailModal pl={showPlanDetail} onClose={()=>setShowPlanDetail(null)} />}
+      {showRegisterStripe&&pendingUser&&(
+        <StripePayModal
+          user={pendingUser}
+          priceId={pendingPriceId}
+          plan={plan}
+          onClose={()=>{setShowRegisterStripe(false);onLogin(pendingUser);}}
+          onSuccess={(pl)=>{onLogin({...pendingUser,plan:pl});}}
+        />
+      )}
       <div style={{width:"100%",maxWidth:420}}>
         <Logo />
         {mode==="login"&&(
