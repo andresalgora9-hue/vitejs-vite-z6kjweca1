@@ -1433,7 +1433,189 @@ function RankingSection({workers,onSelect}:{workers:UserRow[];onSelect:(w:UserRo
     </div>
   );
 }
+// ─── SOLICITUDES TAB ───
+function SolicitudesTab({user,workers,onWorkerSelect,onChat}:{user:UserRow;workers:UserRow[];onWorkerSelect:(w:UserRow)=>void;onChat:(w:UserRow)=>void}){
+  const [solicitudes,setSolicitudes]=useState<any[]>([]);
+  const [ofertas,setOfertas]=useState<Record<string,any[]>>({});
+  const [showForm,setShowForm]=useState(false);
+  const [oficio,setOficio]=useState(OFICIOS[0]);
+  const [zona,setZona]=useState("Sevilla");
+  const [desc,setDesc]=useState("");
+  const [maxBudget,setMaxBudget]=useState("");
+  const [sending,setSending]=useState(false);
+  const [selectedSol,setSelectedSol]=useState<any|null>(null);
 
+  const loadSolicitudes=useCallback(async()=>{
+    const {data}=await db.from("budget_requests").select("*").eq("client_id",user.id).order("created_at",{ascending:false});
+    setSolicitudes(data||[]);
+    if(data&&data.length>0){
+      const ids=data.map((s:any)=>s.id);
+      const {data:of}=await db.from("budget_offers").select("*").in("request_id",ids).order("created_at",{ascending:true});
+      const grouped:Record<string,any[]>={};
+      (of||[]).forEach((o:any)=>{
+        if(!grouped[o.request_id])grouped[o.request_id]=[];
+        grouped[o.request_id].push(o);
+      });
+      setOfertas(grouped);
+    }
+  },[user.id]);
+
+  useEffect(()=>{loadSolicitudes();},[loadSolicitudes]);
+
+  const enviarSolicitud=async()=>{
+    if(!desc.trim()){return;}
+    setSending(true);
+    const {data}=await db.from("budget_requests").insert({
+      client_id:user.id,client_name:user.name,
+      oficio,zona,description:desc,
+      max_budget:maxBudget?parseInt(maxBudget):null,
+      status:"open",
+    }).select().single();
+    if(data){
+      // Notificar a profesionales por plan (Elite primero)
+      const prosElite=workers.filter(w=>w.trade===oficio&&w.plan==="elite");
+      const prosPro=workers.filter(w=>w.trade===oficio&&w.plan==="pro");
+      const prosBasico=workers.filter(w=>w.trade===oficio&&w.plan==="basico");
+      const notifyPros=async(pros:UserRow[],delay:number)=>{
+        setTimeout(async()=>{
+          for(const pro of pros){
+            await db.from("messages").insert({
+              from_id:"system-lead",to_id:pro.id,
+              text:`🔴 *NUEVO PRESUPUESTO SOLICITADO*\n\n👤 ${user.name} necesita un ${oficio} en ${zona}.\n\n📝 ${desc}${maxBudget?"\n💰 Presupuesto máximo: "+maxBudget+"€":""}\n\n⚡ Sé de los primeros 3 en responder.`,
+              read:false,is_lead_alert:true,
+            });
+          }
+        },delay);
+      };
+      await notifyPros(prosElite,0);
+      await notifyPros(prosPro,120000);
+      await notifyPros(prosBasico,300000);
+      setDesc("");setMaxBudget("");setShowForm(false);
+      loadSolicitudes();
+    }
+    setSending(false);
+  };
+
+  return(
+    <div style={{padding:"16px 0"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+        <h2 style={{fontWeight:800,fontSize:22,color:C.text}}>Mis solicitudes</h2>
+        <button onClick={()=>setShowForm(!showForm)} style={{padding:"8px 16px",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:10,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,cursor:"pointer"}}>
+          + Nueva solicitud
+        </button>
+      </div>
+
+      {showForm&&(
+        <GCard style={{marginBottom:16,border:"1px solid "+C.accent+"33"}}>
+          <p style={{fontWeight:800,fontSize:15,color:C.text,marginBottom:14}}>📋 Nueva solicitud de presupuesto</p>
+          <div style={{marginBottom:12}}>
+            <p style={{fontSize:11,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.08em",marginBottom:6,fontWeight:700}}>Servicio que necesitas</p>
+            <select value={oficio} onChange={e=>setOficio(e.target.value)} style={{width:"100%",background:C.surface,border:"1px solid "+C.border,borderRadius:8,padding:"10px 12px",color:C.text,fontFamily:"'DM Sans',sans-serif",fontSize:13,outline:"none"}}>
+              {OFICIOS.map(o=><option key={o} style={{background:C.card}}>{o}</option>)}
+            </select>
+          </div>
+          <div style={{marginBottom:12}}>
+            <p style={{fontSize:11,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.08em",marginBottom:6,fontWeight:700}}>Zona</p>
+            <select value={zona} onChange={e=>setZona(e.target.value)} style={{width:"100%",background:C.surface,border:"1px solid "+C.border,borderRadius:8,padding:"10px 12px",color:C.text,fontFamily:"'DM Sans',sans-serif",fontSize:13,outline:"none"}}>
+              {[...ZONAS,...SEVILLA_ZONAS].map(z=><option key={z} style={{background:C.card}}>{z}</option>)}
+            </select>
+          </div>
+          <Inp label="Describe el trabajo *" value={desc} onChange={setDesc} placeholder="Ej: Pintar salón de 40m², paredes blancas, incluir material..." multiline />
+          <Inp label="Presupuesto máximo (opcional)" value={maxBudget} onChange={setMaxBudget} type="number" placeholder="Ej: 500" />
+          <div style={{display:"flex",gap:8}}>
+            <Btn full disabled={sending||!desc.trim()} onClick={enviarSolicitud}>{sending?"Enviando...":"Solicitar presupuestos →"}</Btn>
+            <button onClick={()=>setShowForm(false)} style={{padding:"12px 16px",background:"transparent",border:"1px solid "+C.border,borderRadius:10,color:C.muted,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:13}}>Cancelar</button>
+          </div>
+        </GCard>
+      )}
+
+      {solicitudes.length===0&&!showForm&&(
+        <div style={{textAlign:"center" as const,padding:"40px 20px",color:C.muted}}>
+          <p style={{fontSize:36,marginBottom:8}}>📋</p>
+          <p style={{fontWeight:700,color:C.text,fontSize:16,marginBottom:6}}>Sin solicitudes aún</p>
+          <p style={{fontSize:13,marginBottom:16}}>Solicita presupuestos y recibe ofertas de hasta 3 profesionales</p>
+          <Btn onClick={()=>setShowForm(true)}>+ Crear primera solicitud</Btn>
+        </div>
+      )}
+
+      <div style={{display:"flex",flexDirection:"column" as const,gap:12}}>
+        {solicitudes.map((sol:any)=>{
+          const ofs=ofertas[sol.id]||[];
+          return(
+            <GCard key={sol.id} style={{border:"1px solid "+(ofs.length>0?C.green+"33":C.border)}}>
+              <div style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:10}}>
+                <div style={{flex:1}}>
+                  <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap" as const,marginBottom:4}}>
+                    <span style={{fontSize:14}}>{OFICIO_ICONS[sol.oficio]||"🔧"}</span>
+                    <p style={{fontWeight:700,color:C.text,fontSize:14}}>{sol.oficio}</p>
+                    <span style={{fontSize:10,color:C.muted}}>· {sol.zona}</span>
+                    <span style={{fontSize:9,padding:"1px 6px",borderRadius:3,fontWeight:700,
+                      background:ofs.length>=3?C.green+"22":ofs.length>0?C.orange+"22":C.border,
+                      color:ofs.length>=3?C.green:ofs.length>0?C.orange:C.muted,
+                    }}>{ofs.length>=3?"3/3 completo":ofs.length+"/3 ofertas"}</span>
+                  </div>
+                  <p style={{fontSize:12,color:C.mutedL,marginBottom:4}}>{sol.description}</p>
+                  {sol.max_budget&&<p style={{fontSize:11,color:C.accent}}>💰 Máximo: {sol.max_budget}€</p>}
+                </div>
+              </div>
+
+              {ofs.length===0&&(
+                <p style={{fontSize:12,color:C.muted,textAlign:"center" as const,padding:"8px 0"}}>⏳ Esperando ofertas de profesionales...</p>
+              )}
+
+              {ofs.length>0&&(
+                <div style={{display:"flex",flexDirection:"column" as const,gap:8}}>
+                  {ofs.map((o:any,i:number)=>{
+                    const pro=workers.find(w=>w.id===o.pro_id);
+                    const col=PLAN_COLORS[o.pro_plan as Plan]||C.muted;
+                    return(
+                      <div key={o.id} style={{background:C.surface,borderRadius:10,padding:"12px",border:"1px solid "+C.border}}>
+                        <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:8}}>
+                          <div style={{width:32,height:32,borderRadius:"50%",background:col+"33",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:800,color:col,flexShrink:0}}>
+                            {o.pro_name?.[0]||"P"}
+                          </div>
+                          <div style={{flex:1}}>
+                            <div style={{display:"flex",gap:6,alignItems:"center"}}>
+                              <p style={{fontWeight:700,fontSize:13,color:C.text}}>{o.pro_name}</p>
+                              <span style={{fontSize:9,color:col,background:col+"22",padding:"1px 5px",borderRadius:3,fontWeight:700}}>{(o.pro_plan||"").toUpperCase()}</span>
+                              {o.pro_rating>0&&<span style={{fontSize:10,color:C.accent}}>⭐{o.pro_rating.toFixed(1)}</span>}
+                            </div>
+                          </div>
+                          <div style={{textAlign:"right" as const}}>
+                            <p style={{fontWeight:900,fontSize:18,color:C.accent}}>{o.price}€</p>
+                            {o.time_estimate&&<p style={{fontSize:10,color:C.muted}}>⏱ {o.time_estimate}</p>}
+                          </div>
+                        </div>
+                        <p style={{fontSize:12,color:C.mutedL,marginBottom:10}}>{o.description}</p>
+                        <div style={{display:"flex",gap:8}}>
+                          {pro&&<button onClick={()=>onWorkerSelect(pro)} style={{flex:1,padding:"8px",background:"transparent",border:"1px solid "+C.border,borderRadius:8,color:C.mutedL,fontFamily:"'DM Sans',sans-serif",fontSize:12,cursor:"pointer",fontWeight:600}}>Ver perfil</button>}
+                          <button onClick={async()=>{
+                            // Marcar oferta como elegida
+                            await db.from("budget_offers").update({status:"chosen"}).eq("id",o.id);
+                            await db.from("budget_requests").update({status:"closed"}).eq("id",sol.id);
+                            // Notificar a los no elegidos
+                            ofs.filter((x:any)=>x.id!==o.id).forEach(async(x:any)=>{
+                              await db.from("messages").insert({from_id:"system-lead",to_id:x.pro_id,text:"Lo sentimos, el cliente eligió otro profesional para este trabajo. ¡Sigue respondiendo rápido!",read:false});
+                            });
+                            // Abrir chat con el elegido
+                            if(pro)onChat(pro);
+                            loadSolicitudes();
+                          }} style={{flex:2,padding:"8px",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:8,color:"#000",fontFamily:"'DM Sans',sans-serif",fontSize:12,fontWeight:800,cursor:"pointer"}}>
+                            ✓ Elegir y chatear →
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </GCard>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 // ─── CLIENT HOME ───
 // ════════════════════════════════════════════════════════════════
 // REEMPLAZA el ClientHome completo en tu App.tsx
@@ -1806,6 +1988,7 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
         </>)}
 
         {tab==="ranking"&&<RankingSection workers={workers} onSelect={setSelectedWorker} />}
+        {tab==="solicitudes"&&<SolicitudesTab user={user} workers={workers} onWorkerSelect={setSelectedWorker} onChat={handleChat} />}
 
         {tab==="chats"&&(<>
           <div style={{padding:"22px 0 16px"}}><h2 style={{fontWeight:800,fontSize:22,color:C.text}}>Mis conversaciones</h2></div>
