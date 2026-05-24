@@ -1372,6 +1372,7 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
   const [toast,setToast]=useState<string|null>(null);
   const [inAppNotif,setInAppNotif]=useState<{msg:string;from:string;fromId:string;isAdmin:boolean}|null>(null);
   const [unreadChats,setUnreadChats]=useState(0);
+  const [unreadByWorker,setUnreadByWorker]=useState<Record<string,number>>({});
   const [showMapa,setShowMapa]=useState(false);
   const [mapaZones,setMapaZones]=useState<string[]>([]);
   const prosByZone=useCallback((zone:string)=>{
@@ -1426,11 +1427,19 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
   },[user.id]);
 
   const loadChats=useCallback(async()=>{
-    const {data}=await db.from("messages").select("from_id,to_id").or("from_id.eq."+user.id+",to_id.eq."+user.id);
-    if(!data?.length){setChatPartners([]);return;}
+    const {data}=await db.from("messages").select("from_id,to_id,read").or("from_id.eq."+user.id+",to_id.eq."+user.id);
+    if(!data?.length){setChatPartners([]);setUnreadByWorker({});return;}
     const ids=[...new Set((data as any[]).map((m:any)=>m.from_id===user.id?m.to_id:m.from_id))];
     const {data:ws}=await db.from("users").select("*").in("id",ids);
     setChatPartners(ws||[]);
+    const counts:Record<string,number>={};
+    (data as any[]).forEach((m:any)=>{
+      if(!m.read&&m.to_id===user.id){
+        counts[m.from_id]=(counts[m.from_id]||0)+1;
+      }
+    });
+    setUnreadByWorker(counts);
+    setUnreadChats(Object.values(counts).reduce((a,b)=>a+b,0));
   },[user.id]);
 
   useEffect(()=>{
