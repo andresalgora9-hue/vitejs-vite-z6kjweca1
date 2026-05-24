@@ -292,16 +292,12 @@ function StepDatos({ onNext }) {
   const change = e => { setForm(p=>({...p,[e.target.name]:e.target.value})); setErrors(p=>({...p,[e.target.name]:null})); };
   const saveLead=async(form:any)=>{
     try{
-      await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/rest/v1/leads_landing",{
-        method:"POST",
-        headers:{
-          "Content-Type":"application/json",
-          "apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo",
-          "Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo",
-          "Prefer":"return=minimal",
-        },
-        body:JSON.stringify({nombre:form.nombre,email:form.email,telefono:form.telefono,oficio:form.oficio,convirtio:false}),
-      });
+      const {createClient}=await import("@supabase/supabase-js");
+      const supabase=createClient(
+        "https://rjwojxwrsbvwwshwwpvq.supabase.co",
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo"
+      );
+      await supabase.from("leads_landing").insert({nombre:form.nombre,email:form.email,telefono:form.telefono,oficio:form.oficio,convirtio:false});
     }catch(e){console.log("Lead save error",e);}
   };
 
@@ -392,18 +388,14 @@ function StepTarjeta({ datos, onSuccess }) {
     });
     const result = await res.json();
     if (!result.ok) { setErr(result.error || "Error al procesar el pago"); setLoading(false); return; }
-    // Marcar lead como convertido
+    /// Marcar lead como convertido
     try{
-      await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/rest/v1/leads_landing?email=eq."+encodeURIComponent(datos.email),{
-        method:"PATCH",
-        headers:{
-          "Content-Type":"application/json",
-          "apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo",
-          "Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo",
-          "Prefer":"return=minimal",
-        },
-        body:JSON.stringify({convirtio:true}),
-      });
+      const {createClient}=await import("@supabase/supabase-js");
+      const supabase=createClient(
+        "https://rjwojxwrsbvwwshwwpvq.supabase.co",
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo"
+      );
+      await supabase.from("leads_landing").update({convirtio:true}).eq("email",datos.email);
     }catch(e){}
     onSuccess();
   };
