@@ -2324,6 +2324,7 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
   const [urgentLead,setUrgentLead]=useState<{msg:string;fromId:string}|null>(null);
   const [inAppNotif,setInAppNotif]=useState<{msg:string;from:string;fromId:string;isAdmin:boolean}|null>(null);
   const [unreadMsgs,setUnreadMsgs]=useState(0);
+  const [unreadByUser,setUnreadByUser]=useState<Record<string,number>>({});
   const daysLeft=trialDaysLeft(user.trial_end);
   const showToast=(m:string)=>{setToast(m);setTimeout(()=>setToast(null),3000);};
   const photoInputRef=useRef<HTMLInputElement>(null);
@@ -2429,13 +2430,22 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
     return ()=>{db.removeChannel(ch);};
   },[user.id]);
 
-  const loadChats=useCallback(async()=>{
-    const {data}=await db.from("messages").select("from_id").eq("to_id",user.id);
-    if(!data?.length){setChatPartners([]);return;}
-    const ids=[...new Set((data as any[]).map((m:any)=>m.from_id))].filter(id=>id!=="system-lead");
+const loadChats=useCallback(async()=>{
+    const {data}=await db.from("messages").select("from_id,read").eq("to_id",user.id);
+    if(!data?.length){setChatPartners([]);setUnreadByUser({});return;}
+    const ids=[...new Set((data as any[]).map((m:any)=>m.from_id))].filter((id:string)=>id!=="system-lead");
     if(!ids.length){setChatPartners([]);return;}
     const {data:ws}=await db.from("users").select("*").in("id",ids);
     setChatPartners(ws||[]);
+    // Contar no leídos por usuario
+    const counts:Record<string,number>={};
+    (data as any[]).forEach((m:any)=>{
+      if(!m.read&&m.from_id!=="system-lead"){
+        counts[m.from_id]=(counts[m.from_id]||0)+1;
+      }
+    });
+    setUnreadByUser(counts);
+    setUnreadMsgs(Object.values(counts).reduce((a,b)=>a+b,0));
   },[user.id]);
 
   useEffect(()=>{
@@ -2616,14 +2626,21 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
           <div style={{display:"flex",flexDirection:"column",gap:10}}>
             {chatPartners.map(c=>{
               const col=wColor(c.id);
-              return <GCard key={c.id} onClick={()=>setChatUser(c)} glow={col}>
+              const unread=unreadByUser[c.id]||0;
+              return <GCard key={c.id} onClick={()=>{setChatUser(c);setUnreadByUser(p=>({...p,[c.id]:0}));setUnreadMsgs(prev=>Math.max(0,prev-(unreadByUser[c.id]||0)));}} glow={col}>
                 <div style={{display:"flex",gap:12,alignItems:"center"}}>
                   <Ava s={c.name.substring(0,2).toUpperCase()} size={44} color={col} />
                   <div style={{flex:1,minWidth:0}}>
                     <p style={{fontWeight:700,color:C.text,fontSize:14}}>{c.name}</p>
                     <p style={{fontSize:12,color:C.muted}}>Cliente · Toca para responder</p>
                   </div>
-                  <span style={{fontSize:12,color:col}}>→</span>
+                  {unread>0?(
+                    <span style={{background:C.red,color:"#fff",borderRadius:99,minWidth:22,height:22,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:900,padding:"0 6px",flexShrink:0}}>
+                      {unread>9?"9+":unread}
+                    </span>
+                  ):(
+                    <span style={{fontSize:12,color:col}}>→</span>
+                  )}
                 </div>
               </GCard>;
             })}
