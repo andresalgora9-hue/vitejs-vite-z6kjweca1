@@ -290,6 +290,20 @@ function StepDatos({ onNext }) {
   };
 
   const change = e => { setForm(p=>({...p,[e.target.name]:e.target.value})); setErrors(p=>({...p,[e.target.name]:null})); };
+  const saveLead=async(form:any)=>{
+    try{
+      await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/rest/v1/leads_landing",{
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json",
+          "apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo",
+          "Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo",
+          "Prefer":"return=minimal",
+        },
+        body:JSON.stringify({nombre:form.nombre,email:form.email,telefono:form.telefono,oficio:form.oficio,convirtio:false}),
+      });
+    }catch(e){console.log("Lead save error",e);}
+  };
 
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:18 }}>
@@ -316,7 +330,7 @@ function StepDatos({ onNext }) {
       <Field label="Contraseña" name="password" type="password" placeholder="Mínimo 6 caracteres" value={form.password} onChange={change} error={errors.password} required/>
 
       <div style={{ marginTop:4 }}>
-        <Btn onClick={()=>{ const e=validate(); if(Object.keys(e).length){setErrors(e);return;} onNext(form); }}>
+        <Btn onClick={async()=>{ const e=validate(); if(Object.keys(e).length){setErrors(e);return;} await saveLead(form); onNext(form); }}>
           Siguiente → Añadir tarjeta
         </Btn>
         <p style={{ color:C.dim, fontSize:11, textAlign:"center", marginTop:12, letterSpacing:0.5 }}>
@@ -378,6 +392,19 @@ function StepTarjeta({ datos, onSuccess }) {
     });
     const result = await res.json();
     if (!result.ok) { setErr(result.error || "Error al procesar el pago"); setLoading(false); return; }
+    // Marcar lead como convertido
+    try{
+      await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/rest/v1/leads_landing?email=eq."+encodeURIComponent(datos.email),{
+        method:"PATCH",
+        headers:{
+          "Content-Type":"application/json",
+          "apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo",
+          "Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo",
+          "Prefer":"return=minimal",
+        },
+        body:JSON.stringify({convirtio:true}),
+      });
+    }catch(e){}
     onSuccess();
   };
 
