@@ -780,8 +780,6 @@ function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:User
             const parts=m.text.split(":");
             const amount=parts[1]||"";
             const motivo=isPagado?"":parts[2]||"";
-            const proId=isSolicitado?parts[3]||"":"";
-            const clientId=isSolicitado?parts[4]||"":"";
             return(
               <div key={m.id} style={{display:"flex",justifyContent:isMe?"flex-end":"flex-start",marginBottom:6}}>
                 <div style={{maxWidth:"80%",background:"linear-gradient(135deg,#1a1a0a,#141208)",border:"2px solid #FFD70066",borderRadius:14,padding:"12px 14px"}}>
