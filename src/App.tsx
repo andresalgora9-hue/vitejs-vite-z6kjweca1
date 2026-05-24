@@ -640,12 +640,30 @@ function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:User
         </div>
 
         {!isSystem&&(
-          <button onClick={()=>setShowVisitForm(!showVisitForm)} style={{
-            padding:"7px 11px",background:showVisitForm?C.accent+"22":"transparent",
-            border:"1px solid "+(showVisitForm?C.accent+"66":C.border+"66"),
-            borderRadius:10,color:showVisitForm?C.accent:C.mutedL,
-            cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:700,
-          }}>📅 Cita</button>
+          <div style={{display:"flex",gap:6}}>
+            <button onClick={()=>setShowVisitForm(!showVisitForm)} style={{
+              padding:"7px 11px",background:showVisitForm?C.accent+"22":"transparent",
+              border:"1px solid "+(showVisitForm?C.accent+"66":C.border+"66"),
+              borderRadius:10,color:showVisitForm?C.accent:C.mutedL,
+              cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:700,
+            }}>📅 Cita</button>
+            {currentUser.type==="cliente"&&(
+              <button onClick={()=>setShowAnticipoForm(!showAnticipoForm)} style={{
+                padding:"7px 11px",background:showAnticipoForm?"#FFD70022":"transparent",
+                border:"1px solid "+(showAnticipoForm?"#FFD70066":C.border+"66"),
+                borderRadius:10,color:showAnticipoForm?"#FFD700":C.mutedL,
+                cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:700,
+              }}>💰 Anticipo</button>
+            )}
+            {currentUser.type==="profesional"&&(
+              <button onClick={()=>setShowSolicitarAnticipo(!showSolicitarAnticipo)} style={{
+                padding:"7px 11px",background:showSolicitarAnticipo?"#FFD70022":"transparent",
+                border:"1px solid "+(showSolicitarAnticipo?"#FFD70066":C.border+"66"),
+                borderRadius:10,color:showSolicitarAnticipo?"#FFD700":C.mutedL,
+                cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:700,
+              }}>💰 Solicitar anticipo</button>
+            )}
+          </div>
         )}
       </div>
 
