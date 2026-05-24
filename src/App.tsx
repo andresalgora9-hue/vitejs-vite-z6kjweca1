@@ -1441,7 +1441,7 @@ function RankingSection({workers,onSelect}:{workers:UserRow[];onSelect:(w:UserRo
 // ════════════════════════════════════════════════════════════════
 
 function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
-  const [tab,setTab]=useState<"buscar"|"ranking"|"chats"|"perfil">("buscar");
+  const [tab,setTab]=useState<"buscar"|"ranking"|"chats"|"solicitudes"|"perfil">("buscar");
   const [zona,setZona]=useState("Todas");
   const [oficio,setOficio]=useState("Todos");
   const [search,setSearch]=useState("");
@@ -1888,6 +1888,11 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
           {id:"ranking" as const,label:"Ranking",active:(id:string)=>id==="ranking",icon:(active:boolean)=>(
             <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active?2.5:1.8} strokeLinecap="round" strokeLinejoin="round">
               <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+            </svg>
+          )},
+      {id:"solicitudes" as const,label:"Solicitudes",active:(id:string)=>id==="solicitudes",icon:(active:boolean)=>(
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active?2.5:1.8} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
             </svg>
           )},
           {id:"chats" as const,label:"Mensajes",active:(id:string)=>id==="chats",icon:(active:boolean)=>(
