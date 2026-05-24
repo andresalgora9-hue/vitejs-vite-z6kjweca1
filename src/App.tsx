@@ -1171,6 +1171,7 @@ function WorkerCardIdealista({w,onSelect,onChat}:{w:UserRow;onSelect:()=>void;on
           <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:10}}>
             <span style={{fontSize:10,color:C.muted,background:C.surface,padding:"3px 8px",borderRadius:99,border:"1px solid "+C.border}}>📍 {w.zone}</span>
             {w.schedule&&w.schedule.includes("24h")&&<span style={{fontSize:10,color:C.red,background:C.red+"15",padding:"3px 8px",borderRadius:99,border:"1px solid "+C.red+"33",fontWeight:600}}>🔴 24h</span>}
+            {w.schedule&&w.schedule.includes("Lunes")&&w.schedule.includes("24h")&&<span style={{fontSize:10,color:C.orange,background:C.orange+"15",padding:"3px 8px",borderRadius:99,border:"1px solid "+C.orange+"33",fontWeight:600}}>L-V + 24h</span>}
             {w.response_time&&<span style={{fontSize:10,color:C.cyan,background:C.cyan+"12",padding:"3px 8px",borderRadius:99,border:"1px solid "+C.cyan+"33"}}>⚡ {w.response_time}</span>}
           </div>
           <div style={{display:"flex",gap:8}}>
@@ -2330,7 +2331,7 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
   const [bio,setBio]=useState(user.bio||"");
   const [price,setPrice]=useState(String(user.price||30));
   const [available,setAvailable]=useState(user.available);
-  const [schedule,setSchedule]=useState(user.schedule||"Lunes a Viernes");
+  const [schedules,setSchedules]=useState<string[]>(user.schedule?user.schedule.split("|"):["Lunes a Viernes"]);
   const [responseTime,setResponseTime]=useState(user.response_time||"24h");
   const [freeQuote,setFreeQuote]=useState(user.free_quote!==false);
   const [expYears,setExpYears]=useState(String(user.experience_years||0));
@@ -2478,7 +2479,7 @@ const loadChats=useCallback(async()=>{
 
   const saveProfile=async()=>{
     setSaving(true);
-    const upd={bio,price:parseInt(price)||30,available,schedule,response_time:responseTime,free_quote:freeQuote,experience_years:parseInt(expYears)||0,specialties,service_zones:serviceZones,whatsapp};
+    const upd={bio,price:parseInt(price)||30,available,schedule:schedules.join("|"),response_time:responseTime,free_quote:freeQuote,experience_years:parseInt(expYears)||0,specialties,service_zones:serviceZones,whatsapp};
     await db.from("users").update(upd).eq("id",user.id);
     onUpdate({...user,...upd});
     setSaving(false); showToast("✓ Perfil actualizado");
@@ -2746,7 +2747,10 @@ const loadChats=useCallback(async()=>{
             <div style={{marginBottom:14}}>
               <p style={{fontSize:11,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.08em",marginBottom:8,fontWeight:700}}>Horario de trabajo</p>
               <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
-                {SCHEDULES.map(s=><button key={s} onClick={()=>setSchedule(s)} style={{padding:"6px 12px",borderRadius:99,border:"1px solid "+(schedule===s?C.accent:C.border),background:schedule===s?C.accent+"18":"transparent",color:schedule===s?C.accent:C.muted,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:schedule===s?700:400,transition:"all 0.15s"}}>{s}</button>)}
+                {SCHEDULES.map(s=>{
+                  const sel=schedules.includes(s);
+                  return <button key={s} onClick={()=>setSchedules(prev=>sel?prev.filter(x=>x!==s):[...prev,s])} style={{padding:"6px 12px",borderRadius:99,border:"1px solid "+(sel?C.accent:C.border),background:sel?C.accent+"18":"transparent",color:sel?C.accent:C.muted,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:sel?700:400,transition:"all 0.15s"}}>{s}</button>;
+                })}
               </div>
             </div>
             <div>
