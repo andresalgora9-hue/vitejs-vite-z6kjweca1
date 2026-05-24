@@ -2996,7 +2996,7 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
 
 // ─── ADMIN ───
 function Admin({onLogout}:{onLogout:()=>void}){
-  type AdminTab="overview"|"usuarios"|"registros"|"trabajos"|"mensajes"|"reseñas"|"leads"|"certs";
+  type AdminTab="overview"|"usuarios"|"registros"|"trabajos"|"mensajes"|"reseñas"|"leads"|"certs"|"reports";
   const [tab,setTab]=useState<AdminTab>("overview");
   const [users,setUsers]=useState<UserRow[]>([]);
   const [jobs,setJobs]=useState<JobRow[]>([]);
@@ -3004,6 +3004,7 @@ function Admin({onLogout}:{onLogout:()=>void}){
   const [reviews,setReviews]=useState<any[]>([]);
   const [leads,setLeads]=useState<any[]>([]);
   const [certs,setCerts]=useState<any[]>([]);
+  const [reports,setReports]=useState<any[]>([]);
   const [loading,setLoading]=useState(true);
   const [period,setPeriod]=useState<"7d"|"30d"|"90d"|"all">("30d");
   const [filterType,setFilterType]=useState<"all"|"cliente"|"profesional">("all");
@@ -3019,13 +3020,14 @@ function Admin({onLogout}:{onLogout:()=>void}){
 
   useEffect(()=>{
     const load=async()=>{
-      const [u,j,m,r,ld,ct]=await Promise.all([
+      cconst [u,j,m,r,ld,ct,rp]=await Promise.all([[
         db.from("users").select("*").order("joined_at",{ascending:false}),
         db.from("jobs").select("*").order("created_at",{ascending:false}),
         db.from("messages").select("*").order("created_at",{ascending:false}),
         db.from("reviews").select("*").order("created_at",{ascending:false}),
         db.from("leads_landing").select("*").order("created_at",{ascending:false}),
         db.from("certifications").select("*").order("created_at",{ascending:false}),
+        db.from("reports").select("*").order("created_at",{ascending:false}),
       ]);
       const allUsers=(u.data||[]).filter((x:any)=>x.type!=="admin"&&x.id!=="admin-001");
       setUsers(allUsers as UserRow[]);
@@ -3034,6 +3036,7 @@ function Admin({onLogout}:{onLogout:()=>void}){
       setMsgs(allMsgs);
       setReviews((r.data||[]) as any[]);
     setLeads((ld.data||[]) as any[]);
+      setReports((rp.data||[]) as any[]);
 setCerts((ct.data||[]) as any[]);
       // Count unread for admin (messages sent TO any user, admin can see all)
       const unread=allMsgs.filter((msg:any)=>!msg.read&&msg.from_id!=="admin-001").length;
@@ -3496,7 +3499,7 @@ setCerts((ct.data||[]) as any[]);
         paddingBottom: "calc(10px + env(safe-area-inset-bottom))", // Fix para iPhone
         paddingTop: "10px"
       }}>
-        {([["overview","📊","Overview"],["usuarios","👥","Usuarios"],["registros","📅","Registros"],["trabajos","🔨","Trabajos"],["mensajes","💬","Mensajes"],["reseñas","⭐","Reseñas"],["leads","📋","Leads"],["certs","🏅","Certs"]] as const).map(([id,icon,label])=>(
+        {([["overview","📊","Overview"],["usuarios","👥","Usuarios"],["registros","📅","Registros"],["trabajos","🔨","Trabajos"],["mensajes","💬","Mensajes"],["reseñas","⭐","Reseñas"],["leads","📋","Leads"],["certs","🏅","Certs"],["reports","🚩","Reports"]] as const).map(([id,icon,label])=>(
           <button key={id} onClick={()=>{setTab(id as AdminTab);if(id==="mensajes")setUnreadAdminMsgs(0);}} style={{flex:"0 0 auto",minWidth:60,padding:"8px 4px 10px",background:"none",border:"none",color:tab===id?C.accent:C.muted,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:2,borderBottom:tab===id?"2px solid "+C.accent:"2px solid transparent",position:"relative"}}>
             <span style={{fontSize:16,position:"relative"}}>
               {icon}
