@@ -1504,6 +1504,7 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
           const senderName=isAdmin?"👑 OfficioYa Soporte":(data?.name||"Profesional");
           setInAppNotif({msg:m.text.substring(0,60)+(m.text.length>60?"...":""),from:senderName,fromId:m.from_id,isAdmin});
           setUnreadByWorker(p=>({...p,[m.from_id]:(p[m.from_id]||0)+1}));
+          showPushNotification("💬 "+senderName, m.text.substring(0,80));
           setUnreadChats(c=>c+1);
         });
       }).subscribe();
@@ -2508,42 +2509,23 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
         const isLeadAlert=m.from_id==="system-lead"||m.text?.includes("NUEVO CLIENTE INTERESADO");
         const isAdmin=m.from_id==="admin-001";
 
-        if(isLeadAlert){
+       if(isLeadAlert){
           // ── URGENT RED BANNER for new lead ──
           setUrgentLead({msg:m.text,fromId:m.from_id});
           setUnreadMsgs(c=>c+1);
-          // Push notification nativa
-          if("Notification" in window && Notification.permission==="granted"){
-            new Notification("🔴 Cliente nuevo — OfficioYa",{
-              body:"Un cliente necesita tus servicios ahora. Toca para responder.",
-              icon:"/icon-192.png",
-              badge:"/icon-192.png",
-              tag:"lead-urgente",
-            } as any);
-          }
-          // Service worker push (funciona con móvil bloqueado)
-          if("serviceWorker" in navigator){
-            navigator.serviceWorker.ready.then(sw=>{
-              sw.showNotification("🔴 Cliente nuevo — OfficioYa",{
-                body:"Un cliente necesita tus servicios ahora. Toca para responder.",
-                icon:"/icon-192.png",
-                badge:"/icon-192.png",
-                tag:"lead-urgente",
-                vibrate:[200,100,200,100,400],
-              } as any);
-            }).catch(()=>{});
-          }
+          showPushNotification("🔴 Cliente nuevo — OfficioYa","Un cliente necesita tus servicios ahora. Toca para responder.");
         } else if(isAdmin){
           // ── Admin notification ──
           setInAppNotif({msg:m.text.replace("[Soporte OfficioYa] ",""),from:"👑 OfficioYa Soporte",fromId:m.from_id,isAdmin:true});
           setUnreadMsgs(c=>c+1);
-          showToast("📩 Mensaje del soporte OfficioYa");
+          showPushNotification("👑 OfficioYa Soporte",m.text.replace("[Soporte OfficioYa] ","").substring(0,80));
         } else {
           // Normal message
           db.from("users").select("name").eq("id",m.from_id).single().then(({data}:any)=>{
             const senderName=data?.name||"Cliente";
             setInAppNotif({msg:m.text.substring(0,60)+(m.text.length>60?"...":""),from:senderName,fromId:m.from_id,isAdmin:false});
             setUnreadMsgs(c=>c+1);
+            showPushNotification("💬 "+senderName,m.text.substring(0,80));
           });
         }
       })
