@@ -3020,7 +3020,7 @@ function Admin({onLogout}:{onLogout:()=>void}){
 
   useEffect(()=>{
     const load=async()=>{
-      cconst [u,j,m,r,ld,ct,rp]=await Promise.all([[
+      const [u,j,m,r,ld,ct,rp]=await Promise.all([
         db.from("users").select("*").order("joined_at",{ascending:false}),
         db.from("jobs").select("*").order("created_at",{ascending:false}),
         db.from("messages").select("*").order("created_at",{ascending:false}),
