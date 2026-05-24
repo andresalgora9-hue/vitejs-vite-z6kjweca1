@@ -2271,7 +2271,12 @@ function StripePayModal({user,priceId,plan,onClose,onSuccess}:{user:UserRow;pric
     if(error){setErr(error.message);setLoading(false);return;}
     try{
       const res=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/dynamic-handler",{
-        method:"POST",headers:{"Content-Type":"application/json"},
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json",
+          "apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo",
+          "Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo",
+        },
         body:JSON.stringify({paymentMethodId:paymentMethod.id,email:user.email,nombre:user.name,telefono:user.phone||"",priceId,userId:user.id}),
       });
       const result=await res.json();
