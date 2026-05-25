@@ -553,7 +553,7 @@ function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:User
     }
   },[currentUser.id,toUser.id,toUser.name,isSystem]);
 
-  uuseEffect(()=>{
+  useEffect(()=>{
     loadMsgs();
     db.from("messages").update({read:true}).eq("to_id",currentUser.id).eq("from_id",toUser.id).eq("read",false);
 
