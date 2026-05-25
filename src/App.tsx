@@ -2199,7 +2199,7 @@ return <GCard key={w.id} onClick={()=>{
     {lastMsgByWorker[w.id]?.created_at&&(
       <span style={{fontSize:10,color:C.muted,flexShrink:0,marginRight:4}}>{timeAgo(lastMsgByWorker[w.id].created_at)}</span>
     )}
-   {unread>0?(
+   {lastMsgByWorker[w.id]&&lastMsgByWorker[w.id].from_id!==user.id?(
   <span style={{width:10,height:10,borderRadius:"50%",background:C.red,flexShrink:0}} />
 ):(
   <span style={{fontSize:12,color:col}}>→</span>
@@ -3400,7 +3400,7 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
 {lastMsgByUser[c.id]?.created_at&&(
   <span style={{fontSize:10,color:C.muted,flexShrink:0,marginRight:4}}>{timeAgo(lastMsgByUser[c.id].created_at)}</span>
 )}
-                  {unread>0?(
+                  {lastMsgByUser[c.id]&&lastMsgByUser[c.id].from_id!==user.id?(
   <span style={{width:10,height:10,borderRadius:"50%",background:C.red,flexShrink:0}} />
 ):(
   <span style={{fontSize:12,color:col}}>→</span>
