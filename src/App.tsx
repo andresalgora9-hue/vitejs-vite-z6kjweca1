@@ -1873,10 +1873,12 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
   });
   setChatPartners(sorted);
   setLastMsgByWorker(lastMsg);
- const counts:Record<string,number>={};
+const counts:Record<string,number>={};
   (received||[]).forEach((m:any)=>{
     const lastRead=lastReadTime[m.from_id];
-    if(!m.read&&m.from_id!=="system-lead"&&m.from_id!=="admin-001"&&(!lastRead||new Date(m.created_at)>new Date(lastRead))){
+    if(m.from_id!=="system-lead"&&m.from_id!=="admin-001"&&lastRead&&new Date(m.created_at)>new Date(lastRead)){
+      counts[m.from_id]=(counts[m.from_id]||0)+1;
+    } else if(m.from_id!=="system-lead"&&m.from_id!=="admin-001"&&!lastRead&&!m.read){
       counts[m.from_id]=(counts[m.from_id]||0)+1;
     }
   });
@@ -3075,10 +3077,12 @@ const loadChats=useCallback(async()=>{
     setLastMsgByUser(lastMsg);
 
     // Contar no leídos
-    const counts:Record<string,number>={};
+   const counts:Record<string,number>={};
   (received||[]).forEach((m:any)=>{
     const lastRead=lastReadTime[m.from_id];
-      if(!m.read&&m.from_id!=="system-lead"&&m.from_id!=="admin-001"&&(!lastRead||new Date(m.created_at)>new Date(lastRead))){
+    if(m.from_id!=="system-lead"&&m.from_id!=="admin-001"&&lastRead&&new Date(m.created_at)>new Date(lastRead)){
+      counts[m.from_id]=(counts[m.from_id]||0)+1;
+    } else if(m.from_id!=="system-lead"&&m.from_id!=="admin-001"&&!lastRead&&!m.read){
       counts[m.from_id]=(counts[m.from_id]||0)+1;
     }
   });
