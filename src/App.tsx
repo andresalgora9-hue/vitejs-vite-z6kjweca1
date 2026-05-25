@@ -1851,8 +1851,8 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
     const {data:ws}=await db.from("users").select("*").in("id",ids);
     setChatPartners(ws||[]);
     const counts:Record<string,number>={};
-    (data as any[]).forEach((m:any)=>{
-      if(!m.read&&m.to_id===user.id){
+    (received||[]).forEach((m:any)=>{
+      if(!m.read&&m.from_id!=="system-lead"&&m.from_id!=="admin-001"){
         counts[m.from_id]=(counts[m.from_id]||0)+1;
       }
     });
@@ -3033,7 +3033,7 @@ const loadChats=useCallback(async()=>{
     // Contar no leídos
     const counts:Record<string,number>={};
     (received||[]).forEach((m:any)=>{
-      if(!m.read&&m.from_id!=="system-lead"){
+      if(!m.read&&m.from_id!=="system-lead"&&m.from_id!=="admin-001"){
         counts[m.from_id]=(counts[m.from_id]||0)+1;
       }
     });
