@@ -572,7 +572,7 @@ setInAppNotif({msg:txt,from:toUser.name,fromId:toUser.id,isAdmin:false});
 showPushNotification("💬 "+toUser.name,m.text.substring(0,80));
 }
 }).subscribe();
-const poll=setInterval(()=>loadMsgs(),1000);
+const poll=setInterval(()=>loadMsgs(),3000);
 return ()=>{db.removeChannel(channel);clearInterval(poll);};
 },[loadMsgs,currentUser.id,toUser.id,toUser.name]);
 
@@ -3078,8 +3078,8 @@ const loadChats=useCallback(async()=>{
     counts[m.from_id]=(counts[m.from_id]||0)+1;
   }
 });
-setUnreadByWorker(counts);
-setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
+setUnreadByUser(counts);
+setUnreadMsgs(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
   },[user.id]);
 // ── REALTIME: listen for new messages + lead alerts ── 
 useEffect(()=>{ 
@@ -3385,7 +3385,6 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
   setUnreadByUser(p=>({...p,[c.id]:0}));
   setUnreadMsgs(prev=>Math.max(0,prev-(unreadByUser[c.id]||0)));
   db.from("messages").update({read:true}).eq("to_id",user.id).eq("from_id",c.id).eq("read",false);
-  setReadChats(p=>{const n=new Set([...p,c.id]);localStorage.setItem("oy_read_chats_"+user.id,JSON.stringify([...n]));return n;});
 }} glow={col}>
                 <div style={{display:"flex",gap:12,alignItems:"center"}}>
                   <Ava s={c.name.substring(0,2).toUpperCase()} size={44} color={col} />
