@@ -575,8 +575,7 @@ function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:User
         }
       }).subscribe();
 
-    const poll=setInterval(()=>loadMsgs(),8000);
-    return ()=>{db.removeChannel(channel);clearInterval(poll);};
+    return ()=>{db.removeChannel(channel);};
   },[loadMsgs,currentUser.id,toUser.id,toUser.name]);
 
   useEffect(()=>{
