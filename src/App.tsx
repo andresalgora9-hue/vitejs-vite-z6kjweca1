@@ -1789,6 +1789,7 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
   const [inAppNotif,setInAppNotif]=useState<{msg:string;from:string;fromId:string;isAdmin:boolean}|null>(null);
   const [unreadChats,setUnreadChats]=useState(0);
   const [unreadByWorker,setUnreadByWorker]=useState<Record<string,number>>({});
+  const [lastMsgByWorker,setLastMsgByWorker]=useState<Record<string,any>>({});
   const [showMapa,setShowMapa]=useState(false);
   const [mapaZones,setMapaZones]=useState<string[]>([]);
   const prosByZone=useCallback((zone:string)=>{
@@ -1845,20 +1846,38 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
   },[user.id]);
 
   const loadChats=useCallback(async()=>{
-    const {data}=await db.from("messages").select("from_id,to_id,read").or("from_id.eq."+user.id+",to_id.eq."+user.id);
-    if(!data?.length){setChatPartners([]);setUnreadByWorker({});return;}
-    const ids=[...new Set((data as any[]).map((m:any)=>m.from_id===user.id?m.to_id:m.from_id))];
-    const {data:ws}=await db.from("users").select("*").in("id",ids);
-    setChatPartners(ws||[]);
-    const counts:Record<string,number>={};
-    (received||[]).forEach((m:any)=>{
-      if(!m.read&&m.from_id!=="system-lead"&&m.from_id!=="admin-001"){
-        counts[m.from_id]=(counts[m.from_id]||0)+1;
-      }
-    });
-    setUnreadByWorker(counts);
-    setUnreadChats(Object.values(counts).reduce((a,b)=>a+b,0));
-  },[user.id]);
+  const {data:received}=await db.from("messages").select("from_id,to_id,text,read,created_at").eq("to_id",user.id);
+  const {data:sent}=await db.from("messages").select("from_id,to_id,text,read,created_at").eq("from_id",user.id);
+  const allMsgs=[...(received||[]),...(sent||[])];
+  if(!allMsgs.length){setChatPartners([]);setUnreadByWorker({});return;}
+  const ids=[...new Set(allMsgs.map((m:any)=>m.from_id===user.id?m.to_id:m.from_id))]
+    .filter((id:string)=>id!=="system-lead"&&id!=="admin-001");
+  if(!ids.length){setChatPartners([]);return;}
+  const {data:ws}=await db.from("users").select("*").in("id",ids);
+  if(!ws)return;
+  const lastMsg:Record<string,any>={};
+  allMsgs.forEach((m:any)=>{
+    const partnerId=m.from_id===user.id?m.to_id:m.from_id;
+    if(!lastMsg[partnerId]||new Date(m.created_at)>new Date(lastMsg[partnerId].created_at)){
+      lastMsg[partnerId]=m;
+    }
+  });
+  const sorted=[...ws].sort((a:any,b:any)=>{
+    const ta=lastMsg[a.id]?.created_at||"";
+    const tb=lastMsg[b.id]?.created_at||"";
+    return new Date(tb).getTime()-new Date(ta).getTime();
+  });
+  setChatPartners(sorted);
+  setLastMsgByWorker(lastMsg);
+  const counts:Record<string,number>={};
+  (received||[]).forEach((m:any)=>{
+    if(!m.read&&m.from_id!=="system-lead"&&m.from_id!=="admin-001"){
+      counts[m.from_id]=(counts[m.from_id]||0)+1;
+    }
+  });
+  setUnreadByWorker(counts);
+  setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
+},[user.id]);
 
   useEffect(()=>{
     if(tab==="chats"){
