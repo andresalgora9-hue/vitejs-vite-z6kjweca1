@@ -2174,19 +2174,35 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
           <div style={{display:"flex",flexDirection:"column" as const,gap:10}}>
             {chatPartners.map(w=>{
               const col=wColor(w.id);
-              return <GCard key={w.id} onClick={()=>{
+              const unread=unreadByWorker[w.id]||0;
+return <GCard key={w.id} onClick={()=>{
   setChatWorker(w);
+  setUnreadByWorker(p=>({...p,[w.id]:0}));
+  setUnreadChats(prev=>Math.max(0,prev-unread));
   db.from("messages").update({read:true}).eq("to_id",user.id).eq("from_id",w.id).eq("read",false);
 }} glow={col}>
-                <div style={{display:"flex",gap:12,alignItems:"center"}}>
-                  <Ava s={w.name.substring(0,2).toUpperCase()} size={46} color={col} online={w.available} />
-                  <div style={{flex:1,minWidth:0}}>
-                    <p style={{fontWeight:700,color:C.text,fontSize:14}}>{w.name}</p>
-                    <p style={{fontSize:12,color:col}}>{OFICIO_ICONS[w.trade||""]||"🔧"} {w.trade} · {w.zone}</p>
-                  </div>
-                  <Btn small onClick={(e:any)=>{e.stopPropagation();setChatWorker(w);}}>Abrir →</Btn>
-                </div>
-              </GCard>;
+  <div style={{display:"flex",gap:12,alignItems:"center"}}>
+    <Ava s={w.name.substring(0,2).toUpperCase()} size={46} color={col} online={w.available} />
+    <div style={{flex:1,minWidth:0}}>
+      <p style={{fontWeight:700,color:C.text,fontSize:14}}>{w.name}</p>
+      <p style={{fontSize:12,color:unread>0?C.text:col,fontWeight:unread>0?600:400,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" as const}}>
+        {lastMsgByWorker[w.id]?.text
+          ?(lastMsgByWorker[w.id].from_id===user.id?"Tú: ":"")+lastMsgByWorker[w.id].text.substring(0,40)+(lastMsgByWorker[w.id].text.length>40?"...":"")
+          :OFICIO_ICONS[w.trade||""]||"🔧"+" "+w.trade+" · "+w.zone}
+      </p>
+    </div>
+    {lastMsgByWorker[w.id]?.created_at&&(
+      <span style={{fontSize:10,color:C.muted,flexShrink:0,marginRight:4}}>{timeAgo(lastMsgByWorker[w.id].created_at)}</span>
+    )}
+    {unread>0?(
+      <span style={{background:C.red,color:"#fff",borderRadius:99,minWidth:22,height:22,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:900,padding:"0 6px",flexShrink:0}}>
+        {unread>9?"9+":unread}
+      </span>
+    ):(
+      <span style={{fontSize:12,color:col}}>→</span>
+    )}
+  </div>
+</GCard>;
             })}
           </div>}
         </>)}
