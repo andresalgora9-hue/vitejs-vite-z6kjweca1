@@ -4155,7 +4155,7 @@ setCerts((ct.data||[]) as any[]);
               style={{padding:"7px 14px",background:C.red+"18",border:"1px solid "+C.red+"33",borderRadius:8,color:C.red,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:700}}>✗ Rechazar</button>
           </div>
         )}
-</GCard>
+      </GCard>
     ))}
   </div>
 </>)}
