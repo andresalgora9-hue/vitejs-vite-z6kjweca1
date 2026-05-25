@@ -558,25 +558,23 @@ function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:User
     db.from("messages").update({read:true}).eq("to_id",currentUser.id).eq("from_id",toUser.id).eq("read",false);
 
     const channel=db.channel("chat-"+[currentUser.id,toUser.id].sort().join("-"))
-      .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},(payload:any)=>{
-        const m=payload.new as MessageRow;
-        if((m.from_id===currentUser.id&&m.to_id===toUser.id)||(m.from_id===toUser.id&&m.to_id===currentUser.id)){
-          setMsgs(prev=>{
-            if(prev.find(x=>x.id===m.id))return prev;
-            return [...prev,m];
-          });
-          setIsTyping(false);
-          db.from("messages").update({read:true}).eq("id",m.id);
-          if(m.from_id===toUser.id){
-            const txt=m.text.substring(0,60)+(m.text.length>60?"...":"");
-            setInAppNotif({msg:txt,from:toUser.name,fromId:toUser.id,isAdmin:false});
-            showPushNotification("💬 "+toUser.name,m.text.substring(0,80));
-          }
-        }
-      }).subscribe();
-
-    return ()=>{db.removeChannel(channel);};
-  },[loadMsgs,currentUser.id,toUser.id,toUser.name]);
+.on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"to_id=eq."+currentUser.id},(payload:any)=>{
+const m=payload.new as MessageRow;
+if(m.from_id===toUser.id){
+setMsgs(prev=>{
+if(prev.find(x=>x.id===m.id))return prev;
+return [...prev,m];
+});
+setIsTyping(false);
+db.from("messages").update({read:true}).eq("id",m.id);
+const txt=m.text.substring(0,60)+(m.text.length>60?"...":"");
+setInAppNotif({msg:txt,from:toUser.name,fromId:toUser.id,isAdmin:false});
+showPushNotification("💬 "+toUser.name,m.text.substring(0,80));
+}
+}).subscribe();
+const poll=setInterval(()=>loadMsgs(),1000);
+return ()=>{db.removeChannel(channel);clearInterval(poll);};
+},[loadMsgs,currentUser.id,toUser.id,toUser.name]);
 
   useEffect(()=>{
     setTimeout(()=>bottomRef.current?.scrollIntoView({behavior:"smooth"}),80);
@@ -3337,9 +3335,16 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
                 <div style={{display:"flex",gap:12,alignItems:"center"}}>
                   <Ava s={c.name.substring(0,2).toUpperCase()} size={44} color={col} />
                   <div style={{flex:1,minWidth:0}}>
-                    <p style={{fontWeight:700,color:C.text,fontSize:14}}>{c.name}</p>
-                    <p style={{fontSize:12,color:C.muted}}>Cliente · Toca para responder</p>
-                  </div>
+  <p style={{fontWeight:700,color:C.text,fontSize:14}}>{c.name}</p>
+  <p style={{fontSize:12,color:unread>0?C.text:C.muted,fontWeight:unread>0?600:400,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" as const}}>
+    {lastMsgByUser[c.id]?.text
+      ? (lastMsgByUser[c.id].from_id===user.id?"Tú: ":"")+lastMsgByUser[c.id].text.substring(0,40)+(lastMsgByUser[c.id].text.length>40?"...":"")
+      : "Toca para responder"}
+  </p>
+</div>
+{lastMsgByUser[c.id]?.created_at&&(
+  <span style={{fontSize:10,color:C.muted,flexShrink:0,marginRight:4}}>{timeAgo(lastMsgByUser[c.id].created_at)}</span>
+)}
                   {unread>0?(
                     <span style={{background:C.red,color:"#fff",borderRadius:99,minWidth:22,height:22,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:900,padding:"0 6px",flexShrink:0}}>
                       {unread>9?"9+":unread}
