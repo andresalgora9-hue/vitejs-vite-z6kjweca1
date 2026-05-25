@@ -2378,7 +2378,6 @@ return <GCard key={w.id} onClick={()=>{
 <Ping msg={toast} />
     </div>
   );
-}
 // ─── AUTH ───
 function Auth({onLogin}:{onLogin:(u:UserRow)=>void}){
   const [mode,setMode]=useState<"login"|"pick"|"register_cliente"|"register_pro">("login");
