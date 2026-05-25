@@ -2946,7 +2946,9 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
   const [photoCaption,setPhotoCaption]=useState("");
   const [jobs,setJobs]=useState<JobRow[]>([]);
   const [chatPartners,setChatPartners]=useState<UserRow[]>([]);
-  const [chatUser,setChatUser]=useState<UserRow|null>(null);
+const [lastMsgByUser,setLastMsgByUser]=useState<Record<string,any>>({});
+const [unreadByUser,setUnreadByUser]=useState<Record<string,number>>({});
+const [chatUser,setChatUser]=useState<UserRow|null>(null);
   const [stats,setStats]=useState({visits:0,contacts:0,reviews:0});
   const [urgentLead,setUrgentLead]=useState<{msg:string;fromId:string;isPresupuesto?:boolean}|null>(null);
   const [showPresupuestoForm,setShowPresupuestoForm]=useState<{requestId:string;clientName:string;oficio:string;desc:string}|null>(null);
@@ -3014,14 +3016,15 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
           setUnreadMsgs(c=>c+1);
           showPushNotification("👑 OfficioYa Soporte",m.text.replace("[Soporte OfficioYa] ","").substring(0,80));
         } else {
-          // Normal message
-          db.from("users").select("name").eq("id",m.from_id).single().then(({data}:any)=>{
-            const senderName=data?.name||"Cliente";
-            setInAppNotif({msg:m.text.substring(0,60)+(m.text.length>60?"...":""),from:senderName,fromId:m.from_id,isAdmin:false});
-            setUnreadMsgs(c=>c+1);
-            showPushNotification("💬 "+senderName,m.text.substring(0,80));
-          });
-        }
+  // Normal message
+  db.from("users").select("name").eq("id",m.from_id).single().then(({data}:any)=>{
+    const senderName=data?.name||"Cliente";
+    setInAppNotif({msg:m.text.substring(0,60)+(m.text.length>60?"...":""),from:senderName,fromId:m.from_id,isAdmin:false});
+    setUnreadMsgs(c=>c+1);
+    showPushNotification("💬 "+senderName,m.text.substring(0,80));
+    loadChats(); // ← AÑADE ESTA LÍNEA
+  });
+}
       })
       .on("postgres_changes",{event:"INSERT",schema:"public",table:"jobs"},(p:any)=>{
         const job=p.new;
@@ -3043,21 +3046,48 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
   },[user.id]);
 
 const loadChats=useCallback(async()=>{
-    const {data}=await db.from("messages").select("from_id,read").eq("to_id",user.id);
-    if(!data?.length){setChatPartners([]);setUnreadByUser({});return;}
-    const ids=[...new Set((data as any[]).map((m:any)=>m.from_id))].filter((id:string)=>id!=="system-lead");
+    // Traer todos los mensajes donde el pro es destinatario O remitente
+    const {data:received}=await db.from("messages").select("from_id,to_id,text,read,created_at").eq("to_id",user.id);
+    const {data:sent}=await db.from("messages").select("from_id,to_id,text,read,created_at").eq("from_id",user.id);
+    const allMsgs=[...(received||[]),...(sent||[])];
+    if(!allMsgs.length){setChatPartners([]);setUnreadByUser({});return;}
+
+    // Sacar IDs únicos del otro lado de la conversación
+    const ids=[...new Set(allMsgs.map((m:any)=>m.from_id===user.id?m.to_id:m.from_id))]
+      .filter((id:string)=>id!=="system-lead"&&id!=="admin-001");
     if(!ids.length){setChatPartners([]);return;}
+
     const {data:ws}=await db.from("users").select("*").in("id",ids);
-    setChatPartners(ws||[]);
-    // Contar no leídos por usuario
+    if(!ws)return;
+
+    // Último mensaje y timestamp por usuario
+    const lastMsg:Record<string,any>={};
+    allMsgs.forEach((m:any)=>{
+      const partnerId=m.from_id===user.id?m.to_id:m.from_id;
+      if(!lastMsg[partnerId]||new Date(m.created_at)>new Date(lastMsg[partnerId].created_at)){
+        lastMsg[partnerId]=m;
+      }
+    });
+
+    // Ordenar por último mensaje más reciente
+    const sorted=[...ws].sort((a:any,b:any)=>{
+      const ta=lastMsg[a.id]?.created_at||"";
+      const tb=lastMsg[b.id]?.created_at||"";
+      return new Date(tb).getTime()-new Date(ta).getTime();
+    });
+
+    setChatPartners(sorted);
+    setLastMsgByUser(lastMsg);
+
+    // Contar no leídos
     const counts:Record<string,number>={};
-    (data as any[]).forEach((m:any)=>{
+    (received||[]).forEach((m:any)=>{
       if(!m.read&&m.from_id!=="system-lead"){
         counts[m.from_id]=(counts[m.from_id]||0)+1;
       }
     });
     setUnreadByUser(counts);
-    setUnreadMsgs(Object.values(counts).reduce((a,b)=>a+b,0));
+    setUnreadMsgs(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
   },[user.id]);
 
   useEffect(()=>{
