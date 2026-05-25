@@ -2993,57 +2993,7 @@ const [chatUser,setChatUser]=useState<UserRow|null>(null);
     db.from("messages").select("id",{count:"exact"} as any).eq("to_id",user.id).eq("read",false).then(({count}:any)=>setUnreadMsgs(count||0));
   },[user.id]);
 
-  // ── REALTIME: listen for new messages + lead alerts ──
-  useEffect(()=>{
-    const ch=db.channel("pro-realtime-"+user.id)
-      .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"to_id=eq."+user.id},(p:any)=>{
-        const m=p.new;
-        const isLeadAlert=m.from_id==="system-lead"||m.text?.includes("NUEVO CLIENTE INTERESADO");
-        const isAdmin=m.from_id==="admin-001";
-
-       if(isLeadAlert){
-          const isPresupuesto=m.text.includes("NUEVO PRESUPUESTO SOLICITADO");
-          setUrgentLead({msg:m.text,fromId:m.from_id,isPresupuesto});
-          setUnreadMsgs(c=>c+1);
-          showPushNotification(
-            isPresupuesto?"📋 Nueva solicitud de presupuesto":"🔴 Cliente nuevo — OfficioYa",
-            isPresupuesto?"Un cliente solicita presupuesto para tu servicio. Sé de los 3 primeros.":"Un cliente necesita tus servicios ahora. Toca para responder."
-          );
-        } else if(isAdmin){
-          // ── Admin notification ──
-          setInAppNotif({msg:m.text.replace("[Soporte OfficioYa] ",""),from:"👑 OfficioYa Soporte",fromId:m.from_id,isAdmin:true});
-          setUnreadMsgs(c=>c+1);
-          showPushNotification("👑 OfficioYa Soporte",m.text.replace("[Soporte OfficioYa] ","").substring(0,80));
-        } else {
-  // Normal message
-  db.from("users").select("name").eq("id",m.from_id).single().then(({data}:any)=>{
-    const senderName=data?.name||"Cliente";
-    setInAppNotif({msg:m.text.substring(0,60)+(m.text.length>60?"...":""),from:senderName,fromId:m.from_id,isAdmin:false});
-    setUnreadMsgs(c=>c+1);
-    showPushNotification("💬 "+senderName,m.text.substring(0,80));
-    loadChats(); // ← AÑADE ESTA LÍNEA
-  });
-}
-      })
-      .on("postgres_changes",{event:"INSERT",schema:"public",table:"jobs"},(p:any)=>{
-        const job=p.new;
-        // Si es urgente y es del oficio del profesional → mostrar alerta
-        if(job.es_urgente&&job.worker_id===null){
-          const lista=job.profesionales_aceptados||[];
-          if(lista.length<4&&!lista.includes(user.id)){
-            setUrgentLead({msg:"⚡ "+job.client_name+" necesita un "+job.title.replace("Busca ","").replace(" — urgente","")+" ahora · "+job.description,fromId:job.id});
-          }
-        }
-        // Si es un trabajo asignado directamente a este pro
-        if(job.worker_id===user.id){
-          setJobs(prev=>[job,...prev]);
-          showToast("🔔 Nueva solicitud de trabajo de "+job.client_name);
-        }
-      })
-      .subscribe();
-    return ()=>{db.removeChannel(ch);};
-  },[user.id]);
-
+  
 const loadChats=useCallback(async()=>{
     // Traer todos los mensajes donde el pro es destinatario O remitente
     const {data:received}=await db.from("messages").select("from_id,to_id,text,read,created_at").eq("to_id",user.id);
@@ -3088,7 +3038,57 @@ const loadChats=useCallback(async()=>{
     setUnreadByUser(counts);
     setUnreadMsgs(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
   },[user.id]);
-
+// ── REALTIME: listen for new messages + lead alerts ── 
+useEffect(()=>{ 
+  const ch=db.channel("pro-realtime-"+user.id) 
+  .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"to_id=eq."+user.id},(p:any)=>{ 
+    const m=p.new; 
+    const isLeadAlert=m.from_id==="system-lead"||m.text?.includes("NUEVO CLIENTE INTERESADO"); 
+    const isAdmin=m.from_id==="admin-001"; 
+    if(isLeadAlert){ 
+      const isPresupuesto=m.text.includes("NUEVO PRESUPUESTO SOLICITADO"); 
+      setUrgentLead({msg:m.text,fromId:m.from_id,isPresupuesto}); 
+      setUnreadMsgs(c=>c+1); 
+      showPushNotification( 
+        isPresupuesto?"📋 Nueva solicitud de presupuesto":"🔴 Cliente nuevo — OfficioYa", 
+        isPresupuesto?"Un cliente solicita presupuesto para tu servicio. Sé de los 3 primeros.":"Un cliente necesita tus servicios ahora. Toca para responder." 
+      ); 
+    } 
+    else if(isAdmin){ 
+      // ── Admin notification ── 
+      setInAppNotif({msg:m.text.replace("[Soporte OfficioYa] ",""),from:"👑 OfficioYa Soporte",fromId:m.from_id,isAdmin:true}); 
+      setUnreadMsgs(c=>c+1); 
+      showPushNotification("👑 OfficioYa Soporte",m.text.replace("[Soporte OfficioYa] ","").substring(0,80)); 
+    } 
+    else { 
+      // Normal message 
+      db.from("users").select("name").eq("id",m.from_id).single().then(({data}:any)=>{ 
+        const senderName=data?.name||"Cliente"; 
+        setInAppNotif({msg:m.text.substring(0,60)+(m.text.length>60?"...":""),from:senderName,fromId:m.from_id,isAdmin:false}); 
+        setUnreadMsgs(c=>c+1); 
+        showPushNotification("💬 "+senderName,m.text.substring(0,80)); 
+        loadChats(); // ← AÑADE ESTA LÍNEA 
+      }); 
+    } 
+  }) 
+  .on("postgres_changes",{event:"INSERT",schema:"public",table:"jobs"},(p:any)=>{ 
+    const job=p.new; 
+    // Si es urgente y es del oficio del profesional → mostrar alerta 
+    if(job.es_urgente&&job.worker_id===null){ 
+      const lista=job.profesionales_aceptados||[]; 
+      if(lista.length<4&&!lista.includes(user.id)){ 
+        setUrgentLead({msg:"⚡ "+job.client_name+" necesita un "+job.title.replace("Busca ","").replace(" — urgente","")+" ahora · "+job.description,fromId:job.id}); 
+      } 
+    } 
+    // Si es un trabajo asignado directamente a este pro 
+    if(job.worker_id===user.id){ 
+      setJobs(prev=>[job,...prev]); 
+      showToast("🔔 Nueva solicitud de trabajo de "+job.client_name); 
+    } 
+  }) 
+  .subscribe(); 
+  return ()=>{db.removeChannel(ch);};
+},[user.id,loadChats]);
   useEffect(()=>{
     if(tab==="chats"){loadChats();}
   },[tab,loadChats]);
