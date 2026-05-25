@@ -4160,6 +4160,11 @@ setCerts((ct.data||[]) as any[]);
   </div>
 </>)}
 
+          {tab==="reports"&&(<>
+            <h2 style={{fontWeight:800,fontSize:20,color:C.text,marginBottom:14}}>Reports</h2>
+            <p style={{color:C.muted,fontSize:13}}>Sin reportes todavía.</p>
+          </>)}
+
         </>)}
       </div>
 
