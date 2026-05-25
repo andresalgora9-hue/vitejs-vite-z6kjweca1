@@ -2155,7 +2155,10 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
           <div style={{display:"flex",flexDirection:"column" as const,gap:10}}>
             {chatPartners.map(w=>{
               const col=wColor(w.id);
-              return <GCard key={w.id} onClick={()=>setChatWorker(w)} glow={col}>
+              return <GCard key={w.id} onClick={()=>{
+  setChatWorker(w);
+  db.from("messages").update({read:true}).eq("to_id",user.id).eq("from_id",w.id).eq("read",false);
+}} glow={col}>
                 <div style={{display:"flex",gap:12,alignItems:"center"}}>
                   <Ava s={w.name.substring(0,2).toUpperCase()} size={46} color={col} online={w.available} />
                   <div style={{flex:1,minWidth:0}}>
@@ -3339,7 +3342,12 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
             {chatPartners.map(c=>{
               const col=wColor(c.id);
               const unread=unreadByUser[c.id]||0;
-              return <GCard key={c.id} onClick={()=>{setChatUser(c);setUnreadByUser(p=>({...p,[c.id]:0}));setUnreadMsgs(prev=>Math.max(0,prev-(unreadByUser[c.id]||0)));}} glow={col}>
+              return <GCard key={c.id} onClick={()=>{
+  setChatUser(c);
+  setUnreadByUser(p=>({...p,[c.id]:0}));
+  setUnreadMsgs(prev=>Math.max(0,prev-(unreadByUser[c.id]||0)));
+  db.from("messages").update({read:true}).eq("to_id",user.id).eq("from_id",c.id).eq("read",false);
+}} glow={col}>
                 <div style={{display:"flex",gap:12,alignItems:"center"}}>
                   <Ava s={c.name.substring(0,2).toUpperCase()} size={44} color={col} />
                   <div style={{flex:1,minWidth:0}}>
