@@ -1861,7 +1861,11 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
   },[user.id]);
 
   useEffect(()=>{
-    if(tab==="chats"){loadChats();}
+    if(tab==="chats"){
+      loadChats();
+      const poll=setInterval(()=>loadChats(),2000);
+      return ()=>clearInterval(poll);
+    }
   },[tab,loadChats]);
 
   const handleChat=async(w:UserRow)=>{
@@ -3088,7 +3092,11 @@ useEffect(()=>{
   return ()=>{db.removeChannel(ch);};
 },[user.id,loadChats]);
   useEffect(()=>{
-    if(tab==="chats"){loadChats();}
+    if(tab==="chats"){
+      loadChats();
+      const poll=setInterval(()=>loadChats(),2000);
+      return ()=>clearInterval(poll);
+    }
   },[tab,loadChats]);
 
   const saveProfile=async()=>{
