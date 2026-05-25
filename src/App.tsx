@@ -2324,6 +2324,34 @@ function Auth({onLogin}:{onLogin:(u:UserRow)=>void}){
   const [mode,setMode]=useState<"login"|"pick"|"register_cliente"|"register_pro">("login");
   const [proStep,setProStep]=useState(1);
   const [loading,setLoading]=useState(false);
+  const [showForgot,setShowForgot]=useState(false);
+const [forgotEmail,setForgotEmail]=useState("");
+const [forgotPhone,setForgotPhone]=useState("");
+const [forgotMsg,setForgotMsg]=useState("");
+const [forgotLoading,setForgotLoading]=useState(false);
+
+const handleForgot=async()=>{
+  if(!forgotEmail||!forgotPhone){setForgotMsg("Introduce email y teléfono.");return;}
+  setForgotLoading(true);setForgotMsg("");
+  const{data:usr}=await db.from("users").select("id,name,email,phone")
+    .eq("email",forgotEmail.toLowerCase().trim())
+    .eq("phone",forgotPhone.trim())
+    .maybeSingle();
+  if(!usr){setForgotMsg("No encontramos una cuenta con ese email y teléfono.");setForgotLoading(false);return;}
+  const nueva_pass=Math.random().toString(36).slice(-8)+Math.floor(Math.random()*100);
+  await db.from("users").update({password:nueva_pass}).eq("id",usr.id);
+  await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/send-email",{
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json",
+      "apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo",
+      "Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo",
+    },
+    body:JSON.stringify({type:"recuperar_password",to:usr.email,name:usr.name,extra:{nueva_pass}}),
+  });
+  setForgotMsg("✅ ¡Enviado! Revisa tu correo con la nueva contraseña.");
+  setForgotLoading(false);
+};
   const [err,setErr]=useState("");
   const [name,setName]=useState("");
   const [email,setEmail]=useState("");
@@ -2465,6 +2493,30 @@ if(hardAdmin){
             <Inp label="Email" value={email} onChange={setEmail} type="email" placeholder="tu@email.com" />
             <Inp label="Contraseña" value={pass} onChange={setPass} type="password" placeholder="••••••••" />
             <Btn full disabled={loading} onClick={login}>{loading?"Entrando...":"Entrar →"}</Btn>
+            {!showForgot?(
+  <button onClick={()=>setShowForgot(true)} style={{background:"none",border:"none",color:"#7B5EA7",cursor:"pointer",fontSize:12,marginTop:4,textDecoration:"underline",fontFamily:"'DM Sans',sans-serif"}}>
+    ¿Olvidaste tu contraseña?
+  </button>
+):(
+  <div style={{background:"#1a1a2e",borderRadius:10,padding:16,marginTop:8,border:"1px solid #7B5EA733"}}>
+    <p style={{fontSize:13,fontWeight:700,color:"#f0f0fa",marginBottom:10}}>🔑 Recuperar contraseña</p>
+    <input value={forgotEmail} onChange={e=>setForgotEmail(e.target.value)} placeholder="Tu email" type="email"
+      style={{width:"100%",padding:"10px 12px",background:"#0a0a14",border:"1px solid #7B5EA766",borderRadius:8,color:"#f0f0fa",fontSize:13,fontFamily:"'DM Sans',sans-serif",marginBottom:8,boxSizing:"border-box" as const}}/>
+    <input value={forgotPhone} onChange={e=>setForgotPhone(e.target.value)} placeholder="Tu teléfono" type="tel"
+      style={{width:"100%",padding:"10px 12px",background:"#0a0a14",border:"1px solid #7B5EA766",borderRadius:8,color:"#f0f0fa",fontSize:13,fontFamily:"'DM Sans',sans-serif",marginBottom:10,boxSizing:"border-box" as const}}/>
+    {forgotMsg&&<p style={{fontSize:12,color:forgotMsg.includes("✅")?"#00D68F":"#FF4444",marginBottom:8}}>{forgotMsg}</p>}
+    <div style={{display:"flex",gap:8}}>
+      <button onClick={handleForgot} disabled={forgotLoading}
+        style={{flex:1,padding:"10px",background:"linear-gradient(135deg,#7B5EA7,#FF6B35)",border:"none",borderRadius:8,color:"#fff",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,cursor:"pointer"}}>
+        {forgotLoading?"Enviando...":"Enviar nueva contraseña"}
+      </button>
+      <button onClick={()=>{setShowForgot(false);setForgotMsg("");}}
+        style={{padding:"10px 14px",background:"transparent",border:"1px solid #333",borderRadius:8,color:"#aaa",cursor:"pointer",fontSize:12}}>
+        Cancelar
+      </button>
+    </div>
+  </div>
+)}
             {localStorage.getItem("oy_biometric")==="enabled"&&(
               <button onClick={async()=>{
                 try{
