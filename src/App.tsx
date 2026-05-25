@@ -553,9 +553,8 @@ function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:User
     }
   },[currentUser.id,toUser.id,toUser.name,isSystem]);
 
-  useEffect(()=>{
+  uuseEffect(()=>{
     loadMsgs();
-    // Mark messages as read
     db.from("messages").update({read:true}).eq("to_id",currentUser.id).eq("from_id",toUser.id).eq("read",false);
 
     const channel=db.channel("chat-"+[currentUser.id,toUser.id].sort().join("-"))
@@ -566,12 +565,19 @@ function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:User
             if(prev.find(x=>x.id===m.id))return prev;
             return [...prev,m];
           });
-          // Simulate typing indicator clearing
           setIsTyping(false);
+          db.from("messages").update({read:true}).eq("id",m.id);
+          if(m.from_id===toUser.id){
+            const txt=m.text.substring(0,60)+(m.text.length>60?"...":"");
+            setInAppNotif({msg:txt,from:toUser.name,fromId:toUser.id,isAdmin:false});
+            showPushNotification("💬 "+toUser.name,m.text.substring(0,80));
+          }
         }
       }).subscribe();
-    return ()=>{db.removeChannel(channel);};
-  },[loadMsgs,currentUser.id,toUser.id]);
+
+    const poll=setInterval(()=>loadMsgs(),8000);
+    return ()=>{db.removeChannel(channel);clearInterval(poll);};
+  },[loadMsgs,currentUser.id,toUser.id,toUser.name]);
 
   useEffect(()=>{
     setTimeout(()=>bottomRef.current?.scrollIntoView({behavior:"smooth"}),80);
@@ -815,9 +821,20 @@ function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:User
                   </div>
                   {isSolicitado&&!isMe&&currentUser.type==="cliente"&&(
                     <div>
-                      <button onClick={()=>{
-                        const link=amount==="15€"?"https://buy.stripe.com/28E9ASbGR1phbtreKu1B601":"https://buy.stripe.com/7sY5kC5it3xp1SR9qa1B602";
-                        window.open(link,"_blank");
+                      <button onClick={async()=>{
+                        try{
+                          const res=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/super-handler",{
+                            method:"POST",
+                            headers:{
+                              "Content-Type":"application/json",
+                              "apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo",
+                              "Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo",
+                            },
+                            body:JSON.stringify({client_id:currentUser.id,pro_id:m.from_id,pro_name:toUser.name,client_name:currentUser.name,amount:parseInt(amount)}),
+                          });
+                          const {url}=await res.json();
+                          if(url) window.open(url,"_blank");
+                        }catch{showToast("Error al generar el pago");}
                       }} disabled={procesandoAnticipo} style={{width:"100%",padding:"8px",background:"linear-gradient(135deg,#FFD700,#FF8C00)",border:"none",borderRadius:8,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:12,cursor:"pointer",marginTop:4}}>
                         💳 Pagar ahora →
                       </button>
