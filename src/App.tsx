@@ -1881,6 +1881,7 @@ const counts:Record<string,number>={};
 });
 setUnreadByWorker(counts);
 setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
+  },[user.id]);
 
   useEffect(()=>{
     if(tab==="chats"){
