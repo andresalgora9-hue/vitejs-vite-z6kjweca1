@@ -1874,22 +1874,18 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
   setChatPartners(sorted);
   setLastMsgByWorker(lastMsg);
 const counts:Record<string,number>={};
-  (received||[]).forEach((m:any)=>{
-    const lastRead=lastReadTime[m.from_id];
-    if(m.from_id!=="system-lead"&&m.from_id!=="admin-001"&&lastRead&&new Date(m.created_at)>new Date(lastRead)){
-      counts[m.from_id]=(counts[m.from_id]||0)+1;
-    } else if(m.from_id!=="system-lead"&&m.from_id!=="admin-001"&&!lastRead&&!m.read){
-      counts[m.from_id]=(counts[m.from_id]||0)+1;
-    }
-  });
-  setUnreadByWorker(counts);
-  setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
-},[user.id]);
+(received||[]).forEach((m:any)=>{
+  if(!m.read&&m.from_id!=="system-lead"&&m.from_id!=="admin-001"){
+    counts[m.from_id]=(counts[m.from_id]||0)+1;
+  }
+});
+setUnreadByWorker(counts);
+setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
 
   useEffect(()=>{
     if(tab==="chats"){
       loadChats();
-      const poll=setInterval(()=>loadChats(),2000);
+      const poll=setInterval(()=>loadChats(),10000);
       return ()=>clearInterval(poll);
     }
   },[tab,loadChats]);
@@ -3078,16 +3074,13 @@ const loadChats=useCallback(async()=>{
 
     // Contar no leídos
    const counts:Record<string,number>={};
-  (received||[]).forEach((m:any)=>{
-    const lastRead=lastReadTime[m.from_id];
-    if(m.from_id!=="system-lead"&&m.from_id!=="admin-001"&&lastRead&&new Date(m.created_at)>new Date(lastRead)){
-      counts[m.from_id]=(counts[m.from_id]||0)+1;
-    } else if(m.from_id!=="system-lead"&&m.from_id!=="admin-001"&&!lastRead&&!m.read){
-      counts[m.from_id]=(counts[m.from_id]||0)+1;
-    }
-  });
-  setUnreadByWorker(counts);
-  setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
+(received||[]).forEach((m:any)=>{
+  if(!m.read&&m.from_id!=="system-lead"&&m.from_id!=="admin-001"){
+    counts[m.from_id]=(counts[m.from_id]||0)+1;
+  }
+});
+setUnreadByWorker(counts);
+setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
   },[user.id]);
 // ── REALTIME: listen for new messages + lead alerts ── 
 useEffect(()=>{ 
@@ -3143,7 +3136,7 @@ useEffect(()=>{
   useEffect(()=>{
     if(tab==="chats"){
       loadChats();
-      const poll=setInterval(()=>loadChats(),2000);
+      const poll=setInterval(()=>loadChats(),10000);
       return ()=>clearInterval(poll);
     }
   },[tab,loadChats]);
