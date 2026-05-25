@@ -1789,7 +1789,10 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
   const [inAppNotif,setInAppNotif]=useState<{msg:string;from:string;fromId:string;isAdmin:boolean}|null>(null);
   const [unreadChats,setUnreadChats]=useState(0);
   const [unreadByWorker,setUnreadByWorker]=useState<Record<string,number>>({});
-  const [readChats,setReadChats]=useState<Set<string>>(new Set());
+  const [readChats,setReadChats]=useState<Set<string>>(()=>{
+  try{const s=localStorage.getItem("oy_read_chats_"+user.id);return s?new Set(JSON.parse(s)):new Set();}
+  catch{return new Set();}
+});
   const [lastMsgByWorker,setLastMsgByWorker]=useState<Record<string,any>>({});
   const [showMapa,setShowMapa]=useState(false);
   const [mapaZones,setMapaZones]=useState<string[]>([]);
@@ -2181,7 +2184,7 @@ return <GCard key={w.id} onClick={()=>{
   setUnreadByWorker(p=>({...p,[w.id]:0}));
   setUnreadChats(prev=>Math.max(0,prev-unread));
   db.from("messages").update({read:true}).eq("to_id",user.id).eq("from_id",w.id).eq("read",false);
-  setReadChats(p=>new Set([...p,w.id]));
+  setReadChats(p=>{const n=new Set([...p,w.id]);localStorage.setItem("oy_read_chats_"+user.id,JSON.stringify([...n]));return n;});
 }} glow={col}>
   <div style={{display:"flex",gap:12,alignItems:"center"}}>
     <Ava s={w.name.substring(0,2).toUpperCase()} size={46} color={col} online={w.available} />
@@ -3384,6 +3387,7 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
   setUnreadByUser(p=>({...p,[c.id]:0}));
   setUnreadMsgs(prev=>Math.max(0,prev-(unreadByUser[c.id]||0)));
   db.from("messages").update({read:true}).eq("to_id",user.id).eq("from_id",c.id).eq("read",false);
+  setReadChats(p=>{const n=new Set([...p,c.id]);localStorage.setItem("oy_read_chats_"+user.id,JSON.stringify([...n]));return n;});
 }} glow={col}>
                 <div style={{display:"flex",gap:12,alignItems:"center"}}>
                   <Ava s={c.name.substring(0,2).toUpperCase()} size={44} color={col} />
