@@ -2947,7 +2947,6 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
   const [jobs,setJobs]=useState<JobRow[]>([]);
   const [chatPartners,setChatPartners]=useState<UserRow[]>([]);
 const [lastMsgByUser,setLastMsgByUser]=useState<Record<string,any>>({});
-const [unreadByUser,setUnreadByUser]=useState<Record<string,number>>({});
 const [chatUser,setChatUser]=useState<UserRow|null>(null);
   const [stats,setStats]=useState({visits:0,contacts:0,reviews:0});
   const [urgentLead,setUrgentLead]=useState<{msg:string;fromId:string;isPresupuesto?:boolean}|null>(null);
