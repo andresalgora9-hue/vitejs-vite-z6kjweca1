@@ -1789,6 +1789,7 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
   const [inAppNotif,setInAppNotif]=useState<{msg:string;from:string;fromId:string;isAdmin:boolean}|null>(null);
   const [unreadChats,setUnreadChats]=useState(0);
   const [unreadByWorker,setUnreadByWorker]=useState<Record<string,number>>({});
+  const [readChats,setReadChats]=useState<Set<string>>(new Set());
   const [lastMsgByWorker,setLastMsgByWorker]=useState<Record<string,any>>({});
   const [showMapa,setShowMapa]=useState(false);
   const [mapaZones,setMapaZones]=useState<string[]>([]);
@@ -1871,7 +1872,7 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
   setLastMsgByWorker(lastMsg);
   const counts:Record<string,number>={};
   (received||[]).forEach((m:any)=>{
-    if(!m.read&&m.from_id!=="system-lead"&&m.from_id!=="admin-001"){
+    if(!m.read&&m.from_id!=="system-lead"&&m.from_id!=="admin-001"&&!readChats.has(m.from_id)){
       counts[m.from_id]=(counts[m.from_id]||0)+1;
     }
   });
@@ -2180,6 +2181,7 @@ return <GCard key={w.id} onClick={()=>{
   setUnreadByWorker(p=>({...p,[w.id]:0}));
   setUnreadChats(prev=>Math.max(0,prev-unread));
   db.from("messages").update({read:true}).eq("to_id",user.id).eq("from_id",w.id).eq("read",false);
+  setReadChats(p=>new Set([...p,w.id]));
 }} glow={col}>
   <div style={{display:"flex",gap:12,alignItems:"center"}}>
     <Ava s={w.name.substring(0,2).toUpperCase()} size={46} color={col} online={w.available} />
@@ -3070,13 +3072,13 @@ const loadChats=useCallback(async()=>{
 
     // Contar no leídos
     const counts:Record<string,number>={};
-    (received||[]).forEach((m:any)=>{
-      if(!m.read&&m.from_id!=="system-lead"&&m.from_id!=="admin-001"){
-        counts[m.from_id]=(counts[m.from_id]||0)+1;
-      }
-    });
-    setUnreadByUser(counts);
-    setUnreadMsgs(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
+  (received||[]).forEach((m:any)=>{
+    if(!m.read&&m.from_id!=="system-lead"&&m.from_id!=="admin-001"&&!readChats.has(m.from_id)){
+      counts[m.from_id]=(counts[m.from_id]||0)+1;
+    }
+  });
+  setUnreadByWorker(counts);
+  setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
   },[user.id]);
 // ── REALTIME: listen for new messages + lead alerts ── 
 useEffect(()=>{ 
