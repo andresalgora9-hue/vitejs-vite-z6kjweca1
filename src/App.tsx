@@ -700,32 +700,54 @@ function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:User
       )}
 
       {/* Formulario anticipo cliente */}
-      {showAnticipoForm&&(
-        <div style={{padding:"14px 16px",background:"linear-gradient(135deg,#1a1a0a,#141208)",borderBottom:"1px solid #FFD70033",flexShrink:0}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-            <p style={{fontSize:13,fontWeight:800,color:"#FFD700"}}>💰 Pagar anticipo a {toUser.name}</p>
-            <button onClick={()=>setShowAnticipoForm(false)} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:16}}>✕</button>
-          </div>
-          <p style={{fontSize:12,color:C.muted,marginBottom:12}}>Elige el importe — se abre la página de pago seguro de Stripe</p>
-          <div style={{display:"flex",gap:8}}>
-            <button onClick={async()=>{
-              await db.from("messages").insert({from_id:currentUser.id,to_id:toUser.id,text:`💰 ANTICIPO_SOLICITADO:15€:anticipo`,read:false});
-              window.open("https://buy.stripe.com/28E9ASbGR1phbtreKu1B601","_blank");
-              setShowAnticipoForm(false);
-            }} style={{flex:1,padding:"14px",background:"linear-gradient(135deg,#FFD700,#FF8C00)",border:"none",borderRadius:10,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:800,fontSize:15,cursor:"pointer"}}>
-              💰 15€
-            </button>
-            <button onClick={async()=>{
-              await db.from("messages").insert({from_id:currentUser.id,to_id:toUser.id,text:`💰 ANTICIPO_SOLICITADO:50€:anticipo`,read:false});
-              window.open("https://buy.stripe.com/7sY5kC5it3xp1SR9qa1B602","_blank");
-              setShowAnticipoForm(false);
-            }} style={{flex:1,padding:"14px",background:"linear-gradient(135deg,#FFD700,#FF8C00)",border:"none",borderRadius:10,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:800,fontSize:15,cursor:"pointer"}}>
-              💰 50€
-            </button>
-          </div>
-          <p style={{fontSize:10,color:C.muted,textAlign:"center" as const,marginTop:8}}>🔒 Pago seguro con Stripe · El profesional recibirá confirmación</p>
-        </div>
-      )}
+{showAnticipoForm&&(
+  <div style={{padding:"14px 16px",background:"linear-gradient(135deg,#1a1a0a,#141208)",borderBottom:"1px solid #FFD70033",flexShrink:0}}>
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+      <p style={{fontSize:13,fontWeight:800,color:"#FFD700"}}>💰 Pagar anticipo a {toUser.name}</p>
+      <button onClick={()=>setShowAnticipoForm(false)} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:16}}>✕</button>
+    </div>
+    <p style={{fontSize:12,color:C.muted,marginBottom:12}}>Elige el importe — pago seguro procesado por Stripe</p>
+    <div style={{display:"flex",gap:8}}>
+      <button onClick={async()=>{
+        try{
+          const res=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/super-handler",{
+            method:"POST",
+            headers:{
+              "Content-Type":"application/json",
+              "apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo",
+              "Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo",
+            },
+            body:JSON.stringify({client_id:currentUser.id,pro_id:toUser.id,pro_name:toUser.name,client_name:currentUser.name,amount:15}),
+          });
+          const {url}=await res.json();
+          if(url) window.open(url,"_blank");
+        }catch{showToast("Error al generar el pago");}
+        setShowAnticipoForm(false);
+      }} style={{flex:1,padding:"14px",background:"linear-gradient(135deg,#FFD700,#FF8C00)",border:"none",borderRadius:10,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:800,fontSize:15,cursor:"pointer"}}>
+        💰 15€
+      </button>
+      <button onClick={async()=>{
+        try{
+          const res=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/super-handler",{
+            method:"POST",
+            headers:{
+              "Content-Type":"application/json",
+              "apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo",
+              "Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo",
+            },
+            body:JSON.stringify({client_id:currentUser.id,pro_id:toUser.id,pro_name:toUser.name,client_name:currentUser.name,amount:50}),
+          });
+          const {url}=await res.json();
+          if(url) window.open(url,"_blank");
+        }catch{showToast("Error al generar el pago");}
+        setShowAnticipoForm(false);
+      }} style={{flex:1,padding:"14px",background:"linear-gradient(135deg,#FFD700,#FF8C00)",border:"none",borderRadius:10,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:800,fontSize:15,cursor:"pointer"}}>
+        💰 50€
+      </button>
+    </div>
+    <p style={{fontSize:10,color:C.muted,textAlign:"center" as const,marginTop:8}}>🔒 Pago seguro con Stripe · El profesional recibirá confirmación automática</p>
+  </div>
+)}
 
      {/* Formulario solicitar anticipo profesional */}
       {showSolicitarAnticipo&&(
