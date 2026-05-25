@@ -2340,7 +2340,7 @@ const handleForgot=async()=>{
   if(!usr){setForgotMsg("No encontramos una cuenta con ese email y teléfono.");setForgotLoading(false);return;}
   const nueva_pass=Math.random().toString(36).slice(-8)+Math.floor(Math.random()*100);
   await db.from("users").update({password:nueva_pass}).eq("id",usr.id);
-  await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/send-email",{
+  await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{
     method:"POST",
     headers:{
       "Content-Type":"application/json",
