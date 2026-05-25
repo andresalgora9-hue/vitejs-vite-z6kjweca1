@@ -572,7 +572,7 @@ setInAppNotif({msg:txt,from:toUser.name,fromId:toUser.id,isAdmin:false});
 showPushNotification("💬 "+toUser.name,m.text.substring(0,80));
 }
 }).subscribe();
-const poll=setInterval(()=>loadMsgs(),3000);
+const poll=setInterval(()=>loadMsgs(),2000);
 return ()=>{db.removeChannel(channel);clearInterval(poll);};
 },[loadMsgs,currentUser.id,toUser.id,toUser.name]);
 
@@ -1826,6 +1826,12 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
 
   useEffect(()=>{loadWorkers();},[loadWorkers]);
 
+  useEffect(()=>{
+    if("Notification" in window && Notification.permission==="default"){
+      setTimeout(()=>{Notification.requestPermission();},3000);
+    }
+  },[]);
+
   const countUnread=useCallback(async()=>{
     const {count}=await db.from("messages").select("id",{count:"exact"} as any).eq("to_id",user.id).eq("read",false);
     setUnreadChats(count||0);
@@ -1843,6 +1849,7 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
           setInAppNotif({msg:m.text.substring(0,60)+(m.text.length>60?"...":""),from:senderName,fromId:m.from_id,isAdmin});
           setUnreadByWorker(p=>({...p,[m.from_id]:(p[m.from_id]||0)+1}));
           showPushNotification("💬 "+senderName, m.text.substring(0,80));
+          loadChats();
           setUnreadChats(c=>c+1);
         });
       }).subscribe();
@@ -1886,7 +1893,7 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
   useEffect(()=>{
     if(tab==="chats"){
       loadChats();
-      const poll=setInterval(()=>loadChats(),10000);
+     const poll=setInterval(()=>loadMsgs(),1000);
       return ()=>clearInterval(poll);
     }
   },[tab,loadChats]);
@@ -3135,7 +3142,7 @@ useEffect(()=>{
   useEffect(()=>{
     if(tab==="chats"){
       loadChats();
-      const poll=setInterval(()=>loadChats(),10000);
+      const poll=setInterval(()=>loadMsgs(),2000);
       return ()=>clearInterval(poll);
     }
   },[tab,loadChats]);
