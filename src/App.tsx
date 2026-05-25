@@ -567,8 +567,6 @@ return [...prev,m];
 });
 setIsTyping(false);
 db.from("messages").update({read:true}).eq("id",m.id);
-const txt=m.text.substring(0,60)+(m.text.length>60?"...":"");
-setInAppNotif({msg:txt,from:toUser.name,fromId:toUser.id,isAdmin:false});
 showPushNotification("💬 "+toUser.name,m.text.substring(0,80));
 }
 }).subscribe();
