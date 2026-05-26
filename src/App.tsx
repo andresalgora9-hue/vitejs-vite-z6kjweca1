@@ -4720,23 +4720,25 @@ if(window.location.pathname==="/cancelacion")return <Cancelacion />;
     <style>{`
       @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap');
       *{box-sizing:border-box;margin:0;padding:0;}
-      html, body {
-  overflow-x: hidden;
-  background: #0F1117;
-  height: 100%;
-  width: 100%;
-}
+      html {
+        background: #0F1117;
+        height: 100%;
+      }
       body {
+        background: #0F1117;
+        min-height: 100%;
+        width: 100%;
+        overflow-x: hidden;
         color: #E8EDF5;
         font-family: 'DM Sans', sans-serif;
         -webkit-font-smoothing: antialiased;
       }
       #root {
-        height: 100%;
+        min-height: 100vh;
+        min-height: 100dvh;
         background: #0F1117;
         overflow-y: auto;
-        /* Habilita scroll suave en iOS */
-        -webkit-overflow-scrolling: touch; 
+        -webkit-overflow-scrolling: touch;
       }
       input,textarea,select{box-sizing:border-box;}
       input::placeholder,textarea::placeholder{color:#44445A;}
