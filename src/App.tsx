@@ -264,11 +264,18 @@ return <div style={{position:"fixed",bottom:88,left:"50%",transform:"translateX(
 function InstallBanner(){
   const [show,setShow]=useState(false);
   const [deferredPrompt,setDeferredPrompt]=useState<any>(null);
+  const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isInStandalone=window.matchMedia("(display-mode: standalone)").matches||(navigator as any).standalone===true;
 
   useEffect(()=>{
-    // Ya instalada o ya cerrada → no mostrar
     if(localStorage.getItem("oy_install_dismissed"))return;
-    if(window.matchMedia("(display-mode: standalone)").matches)return;
+    if(isInStandalone)return;
+
+    if(isIOS){
+      // En iOS mostrar instrucciones manuales
+      setTimeout(()=>setShow(true),2000);
+      return;
+    }
 
     const handler=(e:any)=>{
       e.preventDefault();
@@ -278,7 +285,6 @@ function InstallBanner(){
     window.addEventListener("beforeinstallprompt",handler);
     return()=>window.removeEventListener("beforeinstallprompt",handler);
   },[]);
-
   const install=async()=>{
     if(!deferredPrompt)return;
     deferredPrompt.prompt();
@@ -315,15 +321,22 @@ function InstallBanner(){
         <p style={{fontWeight:800,color:"#F0F0FA",fontSize:13,margin:0,lineHeight:1.3}}>Instala OfficioYa</p>
         <p style={{fontSize:11,color:"#7777AA",margin:"2px 0 0"}}>Recibe alertas aunque el móvil esté bloqueado</p>
       </div>
-      <button onClick={install} style={{
-        background:"linear-gradient(135deg,#FFD700,#FF8C00)",
-        border:"none",borderRadius:8,padding:"8px 14px",
-        color:"#000",fontFamily:"'DM Sans',sans-serif",
-        fontWeight:800,fontSize:12,cursor:"pointer",
-        whiteSpace:"nowrap" as const,flexShrink:0,
-      }}>
-        Instalar
-      </button>
+      {isIOS?(
+        <div style={{flex:1}}>
+          <p style={{fontSize:11,color:"#FFD700",fontWeight:700,margin:"0 0 4px"}}>Instalar en iPhone:</p>
+          <p style={{fontSize:10,color:"#aaa",margin:0,lineHeight:1.4}}>Pulsa <strong style={{color:"#fff"}}>⬆ Compartir</strong> → <strong style={{color:"#fff"}}>"Añadir a pantalla de inicio"</strong></p>
+        </div>
+      ):(
+        <button onClick={install} style={{
+          background:"linear-gradient(135deg,#FFD700,#FF8C00)",
+          border:"none",borderRadius:8,padding:"8px 14px",
+          color:"#000",fontFamily:"'DM Sans',sans-serif",
+          fontWeight:800,fontSize:12,cursor:"pointer",
+          whiteSpace:"nowrap" as const,flexShrink:0,
+        }}>
+          Instalar
+        </button>
+      )}
       <button onClick={dismiss} style={{background:"none",border:"none",color:"#44445A",cursor:"pointer",fontSize:18,padding:"0 2px",flexShrink:0}}>✕</button>
       <style>{`@keyframes slideUp{from{transform:translateY(100px);opacity:0}to{transform:translateY(0);opacity:1}}`}</style>
     </div>
