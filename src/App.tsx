@@ -4062,6 +4062,7 @@ function Admin({onLogout}:{onLogout:()=>void}){
   const [sendingMsg,setSendingMsg]=useState(false);
   const [toastMsg,setToastMsg]=useState<string|null>(null);
   const [unreadAdminMsgs,setUnreadAdminMsgs]=useState(0); // NEW: badge for admin
+  const [filterMsgs,setFilterMsgs]=useState<"all"|"unread">("all");
   const [refreshKey,setRefreshKey]=useState(0);
   const reload=()=>{setLoading(true);setRefreshKey(k=>k+1);};
 
@@ -4398,10 +4399,16 @@ return()=>{db.removeChannel(ch);clearInterval(poll);};
           {tab==="mensajes"&&(<>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14,flexWrap:"wrap",gap:8}}>
               <h2 style={{fontWeight:800,fontSize:20,color:C.text}}>Mensajes · {msgs.length}</h2>
-              <span style={{fontSize:11,color:C.red,background:C.red+"18",padding:"4px 10px",borderRadius:99,fontWeight:700}}>{unreadAdminMsgs} no leídos</span>
+              <div style={{display:"flex",gap:8,alignItems:"center"}}>
+  <button onClick={()=>setFilterMsgs("all")} style={{padding:"4px 10px",borderRadius:99,border:"1px solid "+(filterMsgs==="all"?C.accent:C.border),background:filterMsgs==="all"?C.accent+"18":"transparent",color:filterMsgs==="all"?C.accent:C.muted,cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:700}}>Todos</button>
+  <button onClick={()=>setFilterMsgs("unread")} style={{padding:"4px 10px",borderRadius:99,border:"1px solid "+(filterMsgs==="unread"?C.red:C.border),background:filterMsgs==="unread"?C.red+"18":"transparent",color:filterMsgs==="unread"?C.red:C.muted,cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:700,display:"flex",alignItems:"center",gap:5}}>
+    <span style={{width:7,height:7,borderRadius:"50%",background:C.red,display:"inline-block"}} />
+    No leídos {unreadAdminMsgs>0&&`(${unreadAdminMsgs})`}
+  </button>
+</div>
             </div>
             <div style={{display:"flex",flexDirection:"column",gap:7}}>
-              {msgs.filter(m=>m.from_id!=="00000000-0000-0000-0000-000000000001").slice(0,50).map(m=>{
+              {msgs.filter(m=>m.from_id!=="00000000-0000-0000-0000-000000000001"&&(filterMsgs==="all"||!m.read)).slice(0,50).map(m=>{
   const fromUser=users.find(u=>u.id===m.from_id);
   const toUser=users.find(u=>u.id===m.to_id);
   const isAdminMsg=m.from_id==="00000000-0000-0000-0000-000000000002";
