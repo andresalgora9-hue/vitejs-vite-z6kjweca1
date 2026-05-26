@@ -1935,7 +1935,7 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
     const ch=db.channel("client-notif-"+user.id)
       .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"to_id=eq.00000000-0000-0000-0000-000000000002"},(p:any)=>{
         const m=p.new;
-        cconst isAdmin=m.from_id==="00000000-0000-0000-0000-000000000002"||m.from_id==="00000000-0000-0000-0000-000000000001";
+        const isAdmin=m.from_id==="00000000-0000-0000-0000-000000000002"||m.from_id==="00000000-0000-0000-0000-000000000001";
 if(isAdmin){
   setInAppNotif({msg:m.text.replace("[Soporte OfficioYa] ","").substring(0,60),from:"👑 OfficioYa Soporte",fromId:m.from_id,isAdmin:true});
   showPushNotification("👑 OfficioYa Soporte",m.text.replace("[Soporte OfficioYa] ","").substring(0,80));
