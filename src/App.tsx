@@ -3431,7 +3431,9 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
             accepted_pros:accepted,
             status:accepted.length>=3?"closed":"open",
           }).eq("id",urgentLead.requestId);
-          const {data:cliente}=await db.from("users").select("*").eq("id",req.client_id).single();
+          console.log("REQ client_id:", req.client_id, "req:", req);
+          const {data:cliente,error:clienteErr}=await db.from("users").select("*").eq("id",req.client_id).single();
+          console.log("CLIENTE:", cliente, "ERROR:", clienteErr);
           if(cliente){
             // Mensaje del pro al cliente (abre la conversación)
             await db.from("messages").insert({
@@ -3459,7 +3461,10 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
             setUrgentLead(null);
             await loadChats();
             setTab("chats");
+            console.log("ABRIENDO CHAT CON:", cliente);
             setChatUser(cliente as UserRow);
+          } else {
+            console.error("CLIENTE NO ENCONTRADO — client_id:", req.client_id);
           }
         }
       } else {
