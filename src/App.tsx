@@ -3937,7 +3937,17 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
               </div>;
             })}
          </div>
-          <div style={{height:40}} />
+          <div style={{height:20}} />
+          <div style={{textAlign:"center",padding:"0 20px 8px"}}>
+            <a href="/cancelacion" target="_blank" style={{
+              fontSize:11,color:C.muted,
+              textDecoration:"none",
+              borderBottom:"1px dashed "+C.border,
+              paddingBottom:2,
+              opacity:0.7,
+            }}>¿Cómo funciona la cancelación?</a>
+          </div>
+          <div style={{height:30}} />
         </>)}
       </div>
     <nav style={{
