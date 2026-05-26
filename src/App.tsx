@@ -391,12 +391,19 @@ function MultiSelect({label,options,selected,onChange}:{label:string;options:str
 }
 
 // ─── URGENT LEAD BANNER (aparece encima de todo, rojo pulsante) ───
-function UrgentLeadBanner({msg,onClose,onClick}:{msg:string;onClose:()=>void;onClick:()=>void;}){
+function UrgentLeadBanner({msg,desc,onClose,onClick}:{msg:string;desc?:string;onClose:()=>void;onClick:()=>void;}){
+  const [procesando,setProcesando]=useState(false);
   useEffect(()=>{
     if(navigator.vibrate) navigator.vibrate([200,100,200,100,400]);
-    const t=setTimeout(onClose,15000);
+    const t=setTimeout(onClose,20000);
     return()=>clearTimeout(t);
   },[onClose]);
+
+  const handleAceptar=async()=>{
+    setProcesando(true);
+    await onClick();
+    setProcesando(false);
+  };
 
   return(
     <div style={{
@@ -408,22 +415,29 @@ function UrgentLeadBanner({msg,onClose,onClick}:{msg:string;onClose:()=>void;onC
       animation:"pulse 1.5s ease-in-out infinite",
     }}>
       <style>{`@keyframes pulse{0%,100%{box-shadow:0 4px 24px #FF444466}50%{box-shadow:0 4px 40px #FF4444AA}}`}</style>
-      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
+      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
         <span style={{fontSize:22}}>🔔</span>
         <div style={{flex:1}}>
-          <p style={{fontWeight:900,color:"#FF4444",fontSize:11,textTransform:"uppercase" as const,letterSpacing:"0.1em",margin:0}}>Nuevo cliente</p>
+          <p style={{fontWeight:900,color:"#FF4444",fontSize:11,textTransform:"uppercase" as const,letterSpacing:"0.1em",margin:0}}>🔴 Nuevo cliente</p>
           <p style={{fontWeight:800,color:"#fff",fontSize:15,margin:"2px 0 0",lineHeight:1.3}}>{msg}</p>
         </div>
         <button onClick={onClose} style={{background:"none",border:"none",color:"#aaa",cursor:"pointer",fontSize:18,padding:4}}>✕</button>
       </div>
+      {desc&&(
+        <div style={{background:"rgba(255,255,255,0.06)",borderRadius:8,padding:"8px 10px",marginBottom:10,border:"1px solid #FF444433"}}>
+          <p style={{fontSize:11,color:"#FF9999",fontWeight:700,margin:"0 0 3px"}}>📋 Lo que necesita:</p>
+          <p style={{fontSize:13,color:"#fff",lineHeight:1.5,margin:0}}>{desc}</p>
+        </div>
+      )}
       <div style={{display:"flex",gap:8}}>
-        <button onClick={onClick} style={{
+        <button onClick={handleAceptar} disabled={procesando} style={{
           flex:2,padding:"10px",
-          background:"linear-gradient(135deg,#FF4444,#FF6B35)",
+          background:procesando?"#555":"linear-gradient(135deg,#FF4444,#FF6B35)",
           border:"none",borderRadius:10,color:"#fff",
           fontFamily:"'DM Sans',sans-serif",fontSize:14,fontWeight:800,
-          cursor:"pointer",boxShadow:"0 4px 12px #FF444444",
-        }}>✓ Aceptar y chatear</button>
+          cursor:procesando?"not-allowed":"pointer",boxShadow:"0 4px 12px #FF444444",
+          opacity:procesando?0.7:1,
+        }}>{procesando?"Conectando...":"✓ Aceptar y chatear"}</button>
         <button onClick={onClose} style={{
           flex:1,padding:"10px",
           background:"transparent",border:"1px solid #FF444444",
@@ -434,13 +448,6 @@ function UrgentLeadBanner({msg,onClose,onClick}:{msg:string;onClose:()=>void;onC
     </div>
   );
 }
-    // Leer estado actual del servidor para evitar colisiones
-    const {data:job}=await db.from("jobs").select("*").eq("id",jobId).single();
-    if(job){
-      const lista=job.profesionales_aceptados||[];
-      if(lista.length>=4){
-        alert("Este trabajo ya tiene 4 profesionales asignados.");
-        onClose(); setProcesando(false); return;
 
 // ─── IN-APP NOTIFICATION (normal, desde arriba) ───
 function InAppNotification({msg,from,onClose,onClick,isAdmin=false}:{msg:string;from:string;onClose:()=>void;onClick:()=>void;isAdmin?:boolean}){
@@ -3100,7 +3107,7 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
 const [lastMsgByUser,setLastMsgByUser]=useState<Record<string,any>>({});
 const [chatUser,setChatUser]=useState<UserRow|null>(null);
   const [stats,setStats]=useState({visits:0,contacts:0,reviews:0});
- const [urgentLead,setUrgentLead]=useState<{msg:string;fromId:string;isNuevoLead?:boolean;requestId?:string|null}|null>(null);
+ const [urgentLead,setUrgentLead]=useState<{msg:string;desc?:string;fromId:string;isNuevoLead?:boolean;requestId?:string|null}|null>(null);
   const [showPresupuestoForm,setShowPresupuestoForm]=useState<{requestId:string;clientName:string;oficio:string;desc:string}|null>(null);
   const [inAppNotif,setInAppNotif]=useState<{msg:string;from:string;fromId:string;isAdmin:boolean}|null>(null);
   const [unreadMsgs,setUnreadMsgs]=useState(0);
@@ -3206,9 +3213,12 @@ useEffect(()=>{
   const clientInfo=m.text.replace(/.*REQUEST_ID:[a-f0-9-]+\|/,"");
 const clientName=clientInfo.split(" necesita ")[0];
 const oficio=clientInfo.split(" necesita ")[1]?.split(" en ")[0]||"";
+const zona=clientInfo.split(" en ")[1]?.split(".")[0]||"";
+const descMatch=m.text.match(/Descripción: ([^\n|]+)/);
+const descText=descMatch?descMatch[1].trim():(oficio?(oficio+(zona?" en "+zona:"")):"");
 const budget=m.text.match(/Máx: (\d+)€/)?.[1];
 const msgClean=`👤 ${clientName}${budget?" · 💰 Máx "+budget+"€":""}`;
-  setUrgentLead({msg:msgClean,fromId:m.from_id,isNuevoLead,requestId});
+  setUrgentLead({msg:msgClean,desc:descText||undefined,fromId:m.from_id,isNuevoLead,requestId});
   setUnreadMsgs(c=>c+1);
   showPushNotification(
     "🔴 Nuevo trabajo — OfficioYa",
@@ -3276,11 +3286,14 @@ useEffect(()=>{
       const clientInfo=m.text.replace(/.*REQUEST_ID:[a-f0-9-]+\|/,"");
 const clientName=clientInfo.split(" necesita ")[0];
 const oficio=clientInfo.split(" necesita ")[1]?.split(" en ")[0]||"";
+const zona=clientInfo.split(" en ")[1]?.split(".")[0]||"";
+const descMatch=m.text.match(/Descripción: ([^\n|]+)/);
+const descText=descMatch?descMatch[1].trim():(oficio?(oficio+(zona?" en "+zona:"")):"");
 const budget=m.text.match(/Máx: (\d+)€/)?.[1];
 const msgClean=`👤 ${clientName}${budget?" · 💰 Máx "+budget+"€":""}`;
       setUrgentLead(prev=>{
         if(prev?.requestId===requestId)return prev;
-        return {msg:msgClean,fromId:m.from_id,isNuevoLead,requestId};
+        return {msg:msgClean,desc:descText||undefined,fromId:m.from_id,isNuevoLead,requestId};
       });
     }
   },3000);
@@ -3406,11 +3419,10 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
 {urgentLead&&(
   <UrgentLeadBanner
     msg={urgentLead.msg}
-    jobId={urgentLead.fromId}
-    proId={user.id}
-    requestId={urgentLead.requestId||null}
+    desc={urgentLead.desc}
     onClose={()=>setUrgentLead(null)}
-    onClick={async()=>{await db.from("messages").update({read:true}).eq("to_id",user.id).eq("is_lead_alert",true).eq("read",false);
+    onClick={async()=>{
+      await db.from("messages").update({read:true}).eq("to_id",user.id).eq("is_lead_alert",true).eq("read",false);
       if(urgentLead.isNuevoLead&&urgentLead.requestId){
         // Marcar como aceptado en budget_requests
         const {data:req}=await db.from("budget_requests")
@@ -3425,7 +3437,7 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
           // Abrir chat con el cliente automáticamente
           const {data:cliente}=await db.from("users").select("*").eq("id",req.client_id).single();
           if(cliente){
-            // Enviar mensaje inicial al cliente
+            // Enviar mensaje inicial al cliente con la descripción del trabajo
             await db.from("messages").insert({
               from_id:user.id,
               to_id:req.client_id,
@@ -3433,23 +3445,23 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
               read:false,
             });
             await db.from("jobs").insert({
-  worker_id:user.id,
-  client_id:req.client_id,
-  client_name:req.client_name,
-  title:req.oficio,
-  description:req.description,
-  status:"in_progress",
-});
-setUrgentLead(null);
-loadChats();
-setTab("chats");
-setChatUser(cliente as UserRow);
+              worker_id:user.id,
+              client_id:req.client_id,
+              client_name:req.client_name,
+              title:req.oficio,
+              description:req.description,
+              status:"in_progress",
+            });
+            setUrgentLead(null);
+            await loadChats();
+            setTab("chats");
+            setChatUser(cliente as UserRow);
           }
         }
       } else {
         setUrgentLead(null);
+        await loadChats();
         setTab("chats");
-        loadChats();
       }
     }}
   />
@@ -3632,7 +3644,7 @@ setChatUser(cliente as UserRow);
                   <div style={{display:"flex",gap:8}}>
                     <button onClick={async()=>{
                       await updateJobStatus(j.id,"in_progress");
-                      // Abrir chat con cliente
+                      // Abrir chat con cliente directamente
                       const {data:cliente}=await db.from("users").select("*").eq("id",j.client_id).single();
                       if(cliente){
                         await db.from("messages").insert({
@@ -3640,6 +3652,8 @@ setChatUser(cliente as UserRow);
                           text:`¡Hola ${j.client_name}! He visto tu solicitud de ${j.title}. Estoy disponible para ayudarte. ¿Cuándo te viene bien?`,
                           read:false,
                         });
+                        await loadChats();
+                        setTab("chats");
                         setChatUser(cliente as UserRow);
                       }
                     }} style={{flex:2,padding:"9px",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:8,color:"#000",fontFamily:"'DM Sans',sans-serif",fontSize:13,fontWeight:800,cursor:"pointer"}}>
