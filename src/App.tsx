@@ -3269,6 +3269,30 @@ useEffect(()=>{
   .subscribe((status:any)=>{console.log("PRO REALTIME STATUS:", status);});
     return ()=>{db.removeChannel(ch);};
 },[user.id,loadChats]);
+  // ── POLLING fallback para leads ──
+useEffect(()=>{
+  const poll=setInterval(async()=>{
+    const {data}=await db.from("messages")
+      .select("*")
+      .eq("to_id",user.id)
+      .eq("is_lead_alert",true)
+      .eq("read",false)
+      .order("created_at",{ascending:false})
+      .limit(5);
+    if(data&&data.length>0){
+      const m=data[0];
+      const isNuevoLead=m.text.includes("NUEVO LEAD|REQUEST_ID:");
+      const reqMatch=m.text.match(/REQUEST_ID:([a-f0-9-]+)/);
+      const requestId=reqMatch?reqMatch[1]:null;
+      const msgClean=m.text.replace(/🔴 \*NUEVO LEAD\|REQUEST_ID:[a-f0-9-]+\|/,"🔴 Nuevo trabajo disponible\n\n");
+      setUrgentLead(prev=>{
+        if(prev?.requestId===requestId)return prev;
+        return {msg:msgClean,fromId:m.from_id,isNuevoLead,requestId};
+      });
+    }
+  },3000);
+  return ()=>clearInterval(poll);
+},[user.id]);
   useEffect(()=>{
     if(tab==="chats"){
       loadChats();
