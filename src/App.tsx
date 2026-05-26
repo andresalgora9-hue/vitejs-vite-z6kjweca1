@@ -3208,7 +3208,8 @@ setUnreadMsgs(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
 useEffect(()=>{ 
   const ch=db.channel("pro-realtime-"+user.id) 
   .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},(p:any)=>{
-    const m=p.new; 
+    console.log("MENSAJE RECIBIDO REALTIME:", p.new);
+    const m=p.new;
     const isLeadAlert=m.from_id==="00000000-0000-0000-0000-000000000001"||m.text?.includes("NUEVO CLIENTE INTERESADO"); 
     const isAdmin=m.from_id==="00000000-0000-0000-0000-000000000002"; 
     if(isLeadAlert){
