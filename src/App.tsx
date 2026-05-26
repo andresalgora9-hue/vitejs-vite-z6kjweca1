@@ -1954,7 +1954,7 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
   const allMsgs=[...(received||[]),...(sent||[])];
   if(!allMsgs.length){setChatPartners([]);setUnreadByWorker({});return;}
   const ids=[...new Set(allMsgs.map((m:any)=>m.from_id===user.id?m.to_id:m.from_id))]
-    .filter((id:string)=>id!=="00000000-0000-0000-0000-000000000001"&&id!=="00000000-0000-0000-0000-000000000002");
+    .filter((id:string)=>id!=="00000000-0000-0000-0000-000000000001");
   if(!ids.length){setChatPartners([]);return;}
   const {data:ws}=await db.from("users").select("*").in("id",ids);
   if(!ws)return;
@@ -3183,7 +3183,7 @@ const loadChats=useCallback(async()=>{
 
     // Sacar IDs únicos del otro lado de la conversación
     const ids=[...new Set(allMsgs.map((m:any)=>m.from_id===user.id?m.to_id:m.from_id))]
-      .filter((id:string)=>id!=="00000000-0000-0000-0000-000000000001"&&id!=="00000000-0000-0000-0000-000000000002");
+      .filter((id:string)=>id!=="00000000-0000-0000-0000-000000000001");
     if(!ids.length){setChatPartners([]);return;}
 
     const {data:ws}=await db.from("users").select("*").in("id",ids);
