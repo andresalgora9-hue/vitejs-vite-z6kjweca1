@@ -3268,8 +3268,8 @@ useEffect(()=>{
         showPushNotification("🔴 Cliente urgente — OfficioYa","Un cliente necesita tus servicios ahora. Toca para responder.");
     }
   })
-  .subscribe( 
-  return ()=>{db.removeChannel(ch);};
+  .subscribe(); 
+    return ()=>{db.removeChannel(ch);};
 },[user.id,loadChats]);
   useEffect(()=>{
     if(tab==="chats"){
