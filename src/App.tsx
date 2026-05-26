@@ -3448,14 +3448,15 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
               read:false,
               is_lead_alert:false,
             });
-            await db.from("jobs").insert({
-              worker_id:user.id,
-              client_id:req.client_id,
-              client_name:req.client_name,
-              title:req.oficio,
-              description:req.description,
-              status:"in_progress",
-            });
+            const {data:newJob}=await db.from("jobs").insert({
+  worker_id:user.id,
+  client_id:req.client_id,
+  client_name:req.client_name,
+  title:req.oficio,
+  description:req.description,
+  status:"pending",
+}).select().single();
+if(newJob) setJobs(prev=>[newJob,...prev]);
             setUrgentLead(null);
             setTab("chats");
             await loadChats();
