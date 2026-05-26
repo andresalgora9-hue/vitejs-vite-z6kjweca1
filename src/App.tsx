@@ -555,12 +555,14 @@ function AnticipoCard({m,isMe,currentUser,toUser,showToast}:any){
                   headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo"},
                   body:JSON.stringify({client_id:currentUser.id,pro_id:m.from_id,pro_name:toUser.name,client_name:currentUser.name,amount:parseInt(amount)}),
                 });
-                const {url}=await res.json();
-                if(url){
-                  window.location.href=url;
-                  await db.from("messages").insert({from_id:currentUser.id,to_id:toUser.id,text:`💰 ANTICIPO_PAGADO:${amount}€:pagado por ${currentUser.name}`,read:false});
-                  setPagadoLocal(true);
-                }else{alert("⚠️ Error al generar el pago");}
+               const data=await res.json();
+console.log("RESPUESTA SUPER-HANDLER:",JSON.stringify(data));
+const url=data.url;
+if(url){
+  window.location.href=url;
+  await db.from("messages").insert({from_id:currentUser.id,to_id:toUser.id,text:`💰 ANTICIPO_PAGADO:${amount}€:pagado por ${currentUser.name}`,read:false});
+  setPagadoLocal(true);
+}else{alert("Error: "+JSON.stringify(data));}
               }catch{alert("⚠️ Error de conexión");}
               setPagando(false);
             }} style={{width:"100%",padding:"13px",background:pagando?"#222":"linear-gradient(135deg,#FFD700,#FF8C00)",border:"none",borderRadius:12,color:pagando?"#555":"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:800,fontSize:14,cursor:pagando?"not-allowed":"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,boxShadow:pagando?"none":"0 4px 16px rgba(255,215,0,0.25)",transition:"all 0.2s"}}>
