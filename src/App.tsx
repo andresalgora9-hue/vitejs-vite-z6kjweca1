@@ -441,45 +441,6 @@ function UrgentLeadBanner({msg,onClose,onClick}:{msg:string;onClose:()=>void;onC
       if(lista.length>=4){
         alert("Este trabajo ya tiene 4 profesionales asignados.");
         onClose(); setProcesando(false); return;
-      }
-      if(lista.includes(proId)){
-        onClick(); onClose(); return;
-      }
-      await db.from("jobs").update({profesionales_aceptados:[...lista,proId]}).eq("id",jobId);
-    }
-    setProcesando(false);
-    onClick();
-    onClose();
-  };
-
-  return(
-    <div style={{
-      position:"fixed",bottom:88,right:16,zIndex:20000,
-      background:"#111118",border:"2px solid #FF4455",
-      borderRadius:16,padding:"16px",maxWidth:320,
-      boxShadow:"0 10px 30px rgba(255,68,85,0.35)",
-      animation:"urgentPulse 2s ease-in-out infinite",
-    }}>
-      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
-        <div style={{width:32,height:32,borderRadius:"50%",background:"rgba(255,68,85,0.15)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,animation:"urgentBell 0.5s ease-in-out infinite"}}>🔔</div>
-        <div>
-          <p style={{fontWeight:900,color:"#FF4455",fontSize:13,margin:0}}>🔴 CLIENTE NUEVO</p>
-          {slots<4&&<p style={{fontSize:10,color:"#FF8C00",margin:0}}>⚡ Quedan {slots} de 4 plazas</p>}
-        </div>
-        <button onClick={e=>{e.stopPropagation();onClose();}} style={{marginLeft:"auto",background:"none",border:"none",color:"#44445A",cursor:"pointer",fontSize:16}}>✕</button>
-      </div>
-      <p style={{fontSize:12,color:"#F0F0FA",lineHeight:1.6,marginBottom:14,overflow:"hidden",textOverflow:"ellipsis",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical" as any}}>{msg.replace("🔴 *NUEVO CLIENTE INTERESADO*\n\n","")}</p>
-      <div style={{display:"flex",gap:8}}>
-        <button onClick={aceptar} disabled={procesando} style={{flex:1,background:"#00D68F",color:"#000",border:"none",borderRadius:8,padding:"9px",fontWeight:800,fontSize:13,cursor:procesando?"not-allowed":"pointer",opacity:procesando?0.6:1}}>
-          {procesando?"Conectando...":"✓ Aceptar y chatear"}
-        </button>
-        <button onClick={onClose} style={{background:"transparent",color:"#44445A",border:"1px solid #1E1E30",borderRadius:8,padding:"9px 12px",cursor:"pointer",fontSize:12}}>
-          Ignorar
-        </button>
-      </div>
-    </div>
-  );
-}
 
 // ─── IN-APP NOTIFICATION (normal, desde arriba) ───
 function InAppNotification({msg,from,onClose,onClick,isAdmin=false}:{msg:string;from:string;onClose:()=>void;onClick:()=>void;isAdmin?:boolean}){
