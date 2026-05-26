@@ -1950,17 +1950,9 @@ db.from("users").select("name").eq("id",m.from_id).single().then(({data}:any)=>{
   loadChats();
   setUnreadChats(c=>c+1);
 });}
-          setInAppNotif({msg:m.text.substring(0,60)+(m.text.length>60?"...":""),from:senderName,fromId:m.from_id,isAdmin});
-          setUnreadByWorker(p=>({...p,[m.from_id]:(p[m.from_id]||0)+1}));
-          showPushNotification("💬 "+senderName, m.text.substring(0,80));
-          loadChats();
-          setUnreadChats(c=>c+1);
-        });
       }).subscribe();
-    return ()=>{db.removeChannel(ch);};
-  },[user.id]);
-
-  const loadChats=useCallback(async()=>{
+      return ()=>{db.removeChannel(ch);};
+    },[user.id]);
   const {data:received}=await db.from("messages").select("from_id,to_id,text,read,created_at").eq("to_id",user.id);
   const {data:sent}=await db.from("messages").select("from_id,to_id,text,read,created_at").eq("from_id",user.id);
   const allMsgs=[...(received||[]),...(sent||[])];
