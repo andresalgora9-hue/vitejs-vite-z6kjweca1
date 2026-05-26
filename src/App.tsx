@@ -3221,7 +3221,7 @@ setUnreadMsgs(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
 // ── REALTIME: listen for new messages + lead alerts ── 
 useEffect(()=>{ 
   const ch=db.channel("pro-realtime-"+user.id) 
-  .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},(p:any)=>{
+  .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"to_id=eq."+user.id},(p:any)=>{
     console.log("MENSAJE RECIBIDO REALTIME:", p.new);
     const m=p.new;
     const isLeadAlert=m.from_id==="00000000-0000-0000-0000-000000000001"||m.text?.includes("NUEVO CLIENTE INTERESADO"); 
@@ -4096,7 +4096,7 @@ setCerts((ct.data||[]) as any[]);
   // Realtime: notify admin of new messages
   useEffect(()=>{
     const ch=db.channel("admin-realtime")
-      .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},(p:any)=>{
+      .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"to_id=eq."+user.id},(p:any)=>{
         const m=p.new as MessageRow;
         if(m.from_id!=="00000000-0000-0000-0000-000000000002"&&m.from_id!=="00000000-0000-0000-0000-000000000001"){
           setMsgs(prev=>[m,...prev]);
