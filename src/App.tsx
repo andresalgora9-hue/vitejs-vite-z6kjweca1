@@ -4720,6 +4720,11 @@ export default function App(){
     });
   };
  useEffect(()=>{
+    window.onerror=(msg,src,line)=>{
+      document.title="ERR:"+msg+"|L"+line;
+    };
+  },[]);
+  useEffect(()=>{
     const meta = document.createElement('meta');
     meta.name = "viewport";
     meta.content = "width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no";
