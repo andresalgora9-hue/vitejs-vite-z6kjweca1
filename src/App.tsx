@@ -7,12 +7,19 @@ import { db, STORAGE_URL } from "./supabase";
 import type { UserRow, MessageRow, JobRow, CertRow, Plan, PhotoRow } from "./supabase";
 import { MapaZonas, MapaProModal } from './MapaZonas';
 
+// ── DIM PREMIUM palette — slate/zinc, legible bajo el sol ──
 const C = {
-  bg:"#0A0A0F", surface:"#111118", card:"#16161F", cardHover:"#1C1C2A",
-  border:"#1E1E30", accent:"#FFD700", orange:"#FF8C00",
+  bg:"#0F1117",       // slate-950 oscuro pero no negro puro
+  surface:"#161B27",  // slate-900
+  card:"#1E2536",     // slate-850 aprox (tarjetas)
+  cardHover:"#263148",// slate-800 hover
+  border:"#2D3A52",   // slate-700/800 borde fino
+  accent:"#FFD700", orange:"#FF8C00",
   red:"#FF4455", green:"#00D68F", blue:"#3B82F6", purple:"#8B5CF6",
   cyan:"#06B6D4", pink:"#EC4899",
-  text:"#F0F0FA", muted:"#44445A", mutedL:"#7777AA",
+  text:"#E8EDF5",     // slate-100 — blanco suave, no cegador
+  muted:"#5A6A8A",    // slate-500
+  mutedL:"#8899BB",   // slate-400
 };
 
 const ZONAS = [
@@ -555,24 +562,38 @@ function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:User
 
   useEffect(()=>{
     loadMsgs();
-    db.from("messages").update({read:true}).eq("to_id",currentUser.id).eq("from_id",toUser.id).eq("read",false);
+    // ── Marcar TODOS los mensajes de esta conv como leídos al abrir ──
+    db.from("messages")
+      .update({read:true})
+      .eq("to_id",currentUser.id)
+      .eq("from_id",toUser.id)
+      .eq("read",false)
+      .then(()=>{});
 
-    const channel=db.channel("chat-"+[currentUser.id,toUser.id].sort().join("-"))
-.on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"to_id=eq."+currentUser.id},(payload:any)=>{
-const m=payload.new as MessageRow;
-if(m.from_id===toUser.id){
-setMsgs(prev=>{
-if(prev.find(x=>x.id===m.id))return prev;
-return [...prev,m];
-});
-setIsTyping(false);
-db.from("messages").update({read:true}).eq("id",m.id);
-showPushNotification("💬 "+toUser.name,m.text.substring(0,80));
-}
-}).subscribe();
-const poll=setInterval(()=>loadMsgs(),2000);
-return ()=>{db.removeChannel(channel);clearInterval(poll);};
-},[loadMsgs,currentUser.id,toUser.id,toUser.name]);
+    const channelName="chat-"+[currentUser.id,toUser.id].sort().join("-");
+    const channel=db.channel(channelName)
+      .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"to_id=eq."+currentUser.id},(payload:any)=>{
+        const m=payload.new as MessageRow;
+        if(m.from_id===toUser.id){
+          setMsgs(prev=>{
+            if(prev.find(x=>x.id===m.id))return prev;
+            return [...prev,m];
+          });
+          setIsTyping(false);
+          // Marcar como leído inmediatamente al recibir en chat abierto
+          db.from("messages").update({read:true}).eq("id",m.id).then(()=>{});
+          showPushNotification("💬 "+toUser.name,m.text.substring(0,80));
+        }
+      })
+      .on("postgres_changes",{event:"UPDATE",schema:"public",table:"messages",filter:"from_id=eq."+currentUser.id},(payload:any)=>{
+        const m=payload.new as MessageRow;
+        // Actualizar estado leído de mensajes propios (doble check)
+        setMsgs(prev=>prev.map(x=>x.id===m.id?{...x,read:m.read}:x));
+      })
+      .subscribe();
+    const poll=setInterval(()=>loadMsgs(),2000);
+    return ()=>{db.removeChannel(channel);clearInterval(poll);};
+  },[loadMsgs,currentUser.id,toUser.id,toUser.name]);
 
   useEffect(()=>{
     setTimeout(()=>bottomRef.current?.scrollIntoView({behavior:"smooth"}),80);
@@ -1891,7 +1912,7 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
   useEffect(()=>{
     if(tab==="chats"){
       loadChats();
-     const poll=setInterval(()=>loadMsgs(),1000);
+      const poll=setInterval(()=>loadChats(),2000);
       return ()=>clearInterval(poll);
     }
   },[tab,loadChats]);
@@ -1903,20 +1924,52 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
     setSelectedWorker(null);setChatWorker(w);
   };
 
-  const handleWizardResult=async(oficio:string,_zona:string,urgency:string)=>{
+  const handleWizardResult=async(oficio:string,zonaResult:string,urgency:string)=>{
     if(oficio)setOficio(oficio);
     setShowWizard(false);
+
+    // Insertar solicitud en tabla requests
+    await db.from("requests").insert({
+      client_id:user.id,
+      client_name:user.name,
+      oficio,
+      zona:zonaResult||zona,
+      urgency,
+      status:"open",
+    }).catch(()=>{});
+
     if(urgency==="urgente"&&oficio){
-      await db.from("jobs").insert({
+      // Insertar en jobs (sistema legacy)
+      const {data:newJob}=await db.from("jobs").insert({
         worker_id:null,
         client_id:user.id,
         client_name:user.name,
         title:"Busca "+oficio+" — urgente",
-        description:"Cliente busca "+oficio+" con urgencia en "+zona,
+        description:"Cliente busca "+oficio+" con urgencia en "+(zonaResult||zona),
         status:"pending",
         es_urgente:true,
         profesionales_aceptados:[],
-      });
+      }).select().single().catch(()=>({data:null}));
+
+      // Notificar via mensaje a todos los pros del oficio disponibles
+      const {data:pros}=await db.from("users")
+        .select("id")
+        .eq("type","profesional")
+        .eq("trade",oficio)
+        .eq("available",true)
+        .catch(()=>({data:[]}));
+
+      if(pros&&pros.length>0){
+        const alertTxt="🔴 *NUEVO CLIENTE INTERESADO*\n\n👤 "+user.name+" busca un "+oficio+" con urgencia en "+(zonaResult||zona)+".\n\n⚡ Responde cuanto antes para no perder este lead.";
+        const inserts=(pros as {id:string}[]).map((p:{id:string})=>({
+          from_id:"system-lead",
+          to_id:p.id,
+          text:alertTxt,
+          read:false,
+          is_lead_alert:true,
+        }));
+        await db.from("messages").insert(inserts).catch(()=>{});
+      }
     }
   };
 
@@ -2204,8 +2257,14 @@ return <GCard key={w.id} onClick={()=>{
     {lastMsgByWorker[w.id]?.created_at&&(
       <span style={{fontSize:10,color:C.muted,flexShrink:0,marginRight:4}}>{timeAgo(lastMsgByWorker[w.id].created_at)}</span>
     )}
-   {lastMsgByWorker[w.id]&&lastMsgByWorker[w.id].from_id!==user.id?(
-  <span style={{width:10,height:10,borderRadius:"50%",background:C.red,flexShrink:0}} />
+   {unreadByWorker[w.id]>0?(
+  <span style={{
+    minWidth:20,height:20,borderRadius:99,
+    background:"linear-gradient(135deg,"+C.green+",#00A870)",
+    color:"#000",display:"flex",alignItems:"center",justifyContent:"center",
+    fontSize:10,fontWeight:900,flexShrink:0,padding:"0 5px",
+    boxShadow:"0 2px 8px "+C.green+"55",
+  }}>{unreadByWorker[w.id]>9?"9+":unreadByWorker[w.id]}</span>
 ):(
   <span style={{fontSize:12,color:col}}>→</span>
 )}
@@ -3115,32 +3174,40 @@ useEffect(()=>{
         setInAppNotif({msg:m.text.substring(0,60)+(m.text.length>60?"...":""),from:senderName,fromId:m.from_id,isAdmin:false}); 
         setUnreadMsgs(c=>c+1); 
         showPushNotification("💬 "+senderName,m.text.substring(0,80)); 
-        loadChats(); // ← AÑADE ESTA LÍNEA 
-      }); 
-    } 
-  }) 
-  .on("postgres_changes",{event:"INSERT",schema:"public",table:"jobs"},(p:any)=>{ 
-    const job=p.new; 
-    // Si es urgente y es del oficio del profesional → mostrar alerta 
-    if(job.es_urgente&&job.worker_id===null){ 
-      const lista=job.profesionales_aceptados||[]; 
-      if(lista.length<4&&!lista.includes(user.id)){ 
-        setUrgentLead({msg:"⚡ "+job.client_name+" necesita un "+job.title.replace("Busca ","").replace(" — urgente","")+" ahora · "+job.description,fromId:job.id}); 
-      } 
-    } 
-    // Si es un trabajo asignado directamente a este pro 
-    if(job.worker_id===user.id){ 
-      setJobs(prev=>[job,...prev]); 
-      showToast("🔔 Nueva solicitud de trabajo de "+job.client_name); 
-    } 
-  }) 
+        loadChats();
+      });
+    }
+  })
+  .on("postgres_changes",{event:"INSERT",schema:"public",table:"jobs"},(p:any)=>{
+    const job=p.new;
+    // Si es urgente y es del oficio del profesional → mostrar alerta
+    if(job.es_urgente&&job.worker_id===null){
+      const lista=job.profesionales_aceptados||[];
+      if(lista.length<4&&!lista.includes(user.id)){
+        setUrgentLead({msg:"⚡ "+job.client_name+" necesita un "+job.title.replace("Busca ","").replace(" — urgente","")+" ahora · "+job.description,fromId:job.id});
+      }
+    }
+    // Si es un trabajo asignado directamente a este pro
+    if(job.worker_id===user.id){
+      setJobs(prev=>[job,...prev]);
+      showToast("🔔 Nueva solicitud de trabajo de "+job.client_name);
+    }
+  })
+  // Escuchar también inserciones en requests para alerta directa
+  .on("postgres_changes",{event:"INSERT",schema:"public",table:"requests"},(p:any)=>{
+    const req=p.new;
+    if(req.oficio===user.trade&&req.urgency==="urgente"){
+      setUrgentLead({msg:"🔴 "+req.client_name+" busca un "+req.oficio+" urgente en "+req.zona,fromId:req.id});
+      showPushNotification("🔴 Cliente urgente — OfficioYa","Un cliente necesita tus servicios ahora. Toca para responder.");
+    }
+  })
   .subscribe(); 
   return ()=>{db.removeChannel(ch);};
 },[user.id,loadChats]);
   useEffect(()=>{
     if(tab==="chats"){
       loadChats();
-      const poll=setInterval(()=>loadMsgs(),2000);
+      const poll=setInterval(()=>loadChats(),2000);
       return ()=>clearInterval(poll);
     }
   },[tab,loadChats]);
@@ -3404,8 +3471,14 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
 {lastMsgByUser[c.id]?.created_at&&(
   <span style={{fontSize:10,color:C.muted,flexShrink:0,marginRight:4}}>{timeAgo(lastMsgByUser[c.id].created_at)}</span>
 )}
-                  {lastMsgByUser[c.id]&&lastMsgByUser[c.id].from_id!==user.id?(
-  <span style={{width:10,height:10,borderRadius:"50%",background:C.red,flexShrink:0}} />
+                  {unreadByUser[c.id]>0?(
+  <span style={{
+    minWidth:20,height:20,borderRadius:99,
+    background:"linear-gradient(135deg,"+C.green+",#00A870)",
+    color:"#000",display:"flex",alignItems:"center",justifyContent:"center",
+    fontSize:10,fontWeight:900,flexShrink:0,padding:"0 5px",
+    boxShadow:"0 2px 8px "+C.green+"55",
+  }}>{unreadByUser[c.id]>9?"9+":unreadByUser[c.id]}</span>
 ):(
   <span style={{fontSize:12,color:col}}>→</span>
 )}
@@ -3428,22 +3501,81 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
           <div style={{display:"flex",flexDirection:"column",gap:10}}>
             {jobs.length===0&&<p style={{textAlign:"center",color:C.muted,fontSize:13,padding:32}}>No hay trabajos registrados aún</p>}
             {jobs.map(j=>(
-              <GCard key={j.id} style={{padding:14}}>
-                <div style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:10}}>
-                  <div style={{flex:1}}>
-                    <p style={{fontWeight:700,color:C.text,fontSize:14,marginBottom:3}}>{j.title}</p>
-                    <p style={{fontSize:12,color:C.muted}}>👤 {j.client_name} · {timeAgo(j.created_at)}</p>
-                    {j.description&&<p style={{fontSize:12,color:C.mutedL,marginTop:4}}>{j.description}</p>}
+              <GCard key={j.id} style={{padding:0,overflow:"hidden"}}>
+                {/* Barra lateral de color según estado */}
+                <div style={{display:"flex"}}>
+                  <div style={{width:4,flexShrink:0,background:
+                    j.status==="pending"?C.orange:
+                    j.status==="in_progress"?C.blue:
+                    j.status==="done"?C.green:C.muted,
+                    borderRadius:"4px 0 0 4px",
+                  }} />
+                  <div style={{flex:1,padding:14}}>
+                    <div style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:10}}>
+                      <div style={{flex:1}}>
+                        <p style={{fontWeight:700,color:C.text,fontSize:14,marginBottom:3}}>{j.title}</p>
+                        <p style={{fontSize:12,color:C.muted}}>👤 {j.client_name} · {timeAgo(j.created_at)}</p>
+                        {j.description&&<p style={{fontSize:12,color:C.mutedL,marginTop:4,lineHeight:1.4}}>{j.description}</p>}
+                      </div>
+                      <StatusDot status={j.status} />
+                    </div>
+
+                    {/* ── ACCIONES SEGÚN ESTADO ── */}
+                    {j.status==="pending"&&(
+                      <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                        <button onClick={()=>updateJobStatus(j.id,"in_progress")} style={{
+                          flex:1,padding:"9px 12px",
+                          background:"linear-gradient(135deg,"+C.blue+","+C.blue+"BB)",
+                          border:"none",borderRadius:8,color:"#fff",
+                          cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:700,
+                          boxShadow:"0 4px 12px "+C.blue+"33",
+                        }}>✓ Aceptar y añadir a agenda</button>
+                        <button onClick={()=>updateJobStatus(j.id,"cancelled")} style={{
+                          padding:"9px 12px",background:C.red+"15",
+                          border:"1px solid "+C.red+"33",borderRadius:8,color:C.red,
+                          cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:600,
+                        }}>Rechazar</button>
+                      </div>
+                    )}
+
+                    {j.status==="in_progress"&&(
+                      <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                        <button onClick={()=>updateJobStatus(j.id,"done")} style={{
+                          flex:1,padding:"9px 12px",
+                          background:"linear-gradient(135deg,"+C.green+","+C.green+"BB)",
+                          border:"none",borderRadius:8,color:"#000",
+                          cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:800,
+                          boxShadow:"0 4px 12px "+C.green+"33",
+                        }}>🏁 Marcar finalizado · Cobrar</button>
+                        <button onClick={()=>updateJobStatus(j.id,"cancelled")} style={{
+                          padding:"9px 12px",background:C.red+"15",
+                          border:"1px solid "+C.red+"33",borderRadius:8,color:C.red,
+                          cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:600,
+                        }}>Cancelar</button>
+                      </div>
+                    )}
+
+                    {j.status==="done"&&(
+                      <div style={{
+                        padding:"8px 12px",background:C.green+"12",
+                        border:"1px solid "+C.green+"33",borderRadius:8,
+                        display:"flex",alignItems:"center",gap:8,
+                      }}>
+                        <span style={{fontSize:14}}>✅</span>
+                        <span style={{fontSize:12,color:C.green,fontWeight:700}}>Trabajo completado · Pendiente de cobro / archivado</span>
+                      </div>
+                    )}
+
+                    {j.status==="cancelled"&&(
+                      <div style={{
+                        padding:"8px 12px",background:C.red+"10",
+                        border:"1px solid "+C.red+"22",borderRadius:8,
+                      }}>
+                        <span style={{fontSize:12,color:C.muted}}>Trabajo cancelado</span>
+                      </div>
+                    )}
                   </div>
-                  <StatusDot status={j.status} />
                 </div>
-                {j.status!=="done"&&j.status!=="cancelled"&&(
-                  <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-                    {j.status==="pending"&&<button onClick={()=>updateJobStatus(j.id,"in_progress")} style={{padding:"6px 12px",background:C.blue+"22",border:"1px solid "+C.blue+"44",borderRadius:8,color:C.blue,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:600}}>Aceptar trabajo</button>}
-                    {j.status==="in_progress"&&<button onClick={()=>updateJobStatus(j.id,"done")} style={{padding:"6px 12px",background:C.green+"22",border:"1px solid "+C.green+"44",borderRadius:8,color:C.green,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:600}}>Marcar completado</button>}
-                    <button onClick={()=>updateJobStatus(j.id,"cancelled")} style={{padding:"6px 12px",background:C.red+"15",border:"1px solid "+C.red+"33",borderRadius:8,color:C.red,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:600}}>Cancelar</button>
-                  </div>
-                )}
               </GCard>
             ))}
           </div>
@@ -4235,20 +4367,20 @@ if(window.location.pathname==="/cancelacion")return <Cancelacion />;
       *{box-sizing:border-box;margin:0;padding:0;}
       html, body {
         overflow-x: hidden;
-        background: #0A0A0F;
+        background: #0F1117;
         height: 100%;
         /* Evita rebotes raros en iPhone */
         position: fixed; 
         width: 100%;
       }
       body {
-        color: #F0F0FA;
+        color: #E8EDF5;
         font-family: 'DM Sans', sans-serif;
         -webkit-font-smoothing: antialiased;
       }
       #root {
         height: 100%;
-        background: #0A0A0F;
+        background: #0F1117;
         overflow-y: auto;
         /* Habilita scroll suave en iOS */
         -webkit-overflow-scrolling: touch; 
