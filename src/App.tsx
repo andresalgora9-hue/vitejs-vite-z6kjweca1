@@ -3218,7 +3218,11 @@ useEffect(()=>{
   const reqMatch=m.text.match(/REQUEST_ID:([a-f0-9-]+)/);
   const requestId=reqMatch?reqMatch[1]:null;
   // Extraer nombre del cliente y detalles
-  const msgClean=m.text.replace(/🔴 \*NUEVO LEAD\|REQUEST_ID:[a-f0-9-]+\|/,"🔴 Nuevo trabajo disponible\n\n");
+  const clientInfo=m.text.replace(/.*REQUEST_ID:[a-f0-9-]+\|/,"");
+const clientName=clientInfo.split(" necesita ")[0];
+const oficio=clientInfo.split(" necesita ")[1]?.split(" en ")[0]||"";
+const budget=m.text.match(/Máx: (\d+)€/)?.[1];
+const msgClean=`👤 ${clientName}${budget?" · 💰 Máx "+budget+"€":""}`;
   setUrgentLead({msg:msgClean,fromId:m.from_id,isNuevoLead,requestId});
   setUnreadMsgs(c=>c+1);
   showPushNotification(
@@ -3284,7 +3288,11 @@ useEffect(()=>{
       const isNuevoLead=m.text.includes("NUEVO LEAD|REQUEST_ID:");
       const reqMatch=m.text.match(/REQUEST_ID:([a-f0-9-]+)/);
       const requestId=reqMatch?reqMatch[1]:null;
-      const msgClean=m.text.replace(/🔴 \*NUEVO LEAD\|REQUEST_ID:[a-f0-9-]+\|/,"🔴 Nuevo trabajo disponible\n\n");
+      const clientInfo=m.text.replace(/.*REQUEST_ID:[a-f0-9-]+\|/,"");
+const clientName=clientInfo.split(" necesita ")[0];
+const oficio=clientInfo.split(" necesita ")[1]?.split(" en ")[0]||"";
+const budget=m.text.match(/Máx: (\d+)€/)?.[1];
+const msgClean=`👤 ${clientName}${budget?" · 💰 Máx "+budget+"€":""}`;
       setUrgentLead(prev=>{
         if(prev?.requestId===requestId)return prev;
         return {msg:msgClean,fromId:m.from_id,isNuevoLead,requestId};
