@@ -577,7 +577,13 @@ function AnticipoCard({m,isMe,currentUser,toUser,showToast}:any){
             </div>
           )}
           {!pagado&&<div style={{display:"flex",alignItems:"center",gap:6,marginTop:10}}><span style={{fontSize:11,color:"#5A6A8A"}}>🔒</span><p style={{fontSize:10,color:"#5A6A8A",margin:0}}>Pago seguro · Stripe · Garantía OfficioYa</p></div>}
-          // ─── ANTICIPO CARD ───
+          <p style={{fontSize:9,color:"#2D3A52",margin:"8px 0 0",textAlign:"right" as const}}>{formatTime(m.created_at)}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+// ─── ANTICIPO CARD ───
 function AnticipoCard({m,isMe,currentUser,toUser,showToast}:any){
   const isPagado=m.text.includes("ANTICIPO_PAGADO:");
   const isSolicitado=m.text.includes("ANTICIPO_SOLICITADO:");
