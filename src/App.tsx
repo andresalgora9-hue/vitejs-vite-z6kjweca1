@@ -1935,9 +1935,21 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
     const ch=db.channel("client-notif-"+user.id)
       .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"to_id=eq.00000000-0000-0000-0000-000000000002"},(p:any)=>{
         const m=p.new;
-        const isAdmin=m.from_id==="00000000-0000-0000-0000-000000000002"||m.from_id==="00000000-0000-0000-0000-000000000001";
-        db.from("users").select("name").eq("id",m.from_id).single().then(({data}:any)=>{
-          const senderName=isAdmin?"👑 OfficioYa Soporte":(data?.name||"Profesional");
+        cconst isAdmin=m.from_id==="00000000-0000-0000-0000-000000000002"||m.from_id==="00000000-0000-0000-0000-000000000001";
+if(isAdmin){
+  setInAppNotif({msg:m.text.replace("[Soporte OfficioYa] ","").substring(0,60),from:"👑 OfficioYa Soporte",fromId:m.from_id,isAdmin:true});
+  showPushNotification("👑 OfficioYa Soporte",m.text.replace("[Soporte OfficioYa] ","").substring(0,80));
+  loadChats();
+  setUnreadChats(c=>c+1);
+}else{
+db.from("users").select("name").eq("id",m.from_id).single().then(({data}:any)=>{
+  const senderName=data?.name||"Profesional";
+  setInAppNotif({msg:m.text.substring(0,60)+(m.text.length>60?"...":""),from:senderName,fromId:m.from_id,isAdmin:false});
+  setUnreadByWorker(p=>({...p,[m.from_id]:(p[m.from_id]||0)+1}));
+  showPushNotification("💬 "+senderName, m.text.substring(0,80));
+  loadChats();
+  setUnreadChats(c=>c+1);
+});}
           setInAppNotif({msg:m.text.substring(0,60)+(m.text.length>60?"...":""),from:senderName,fromId:m.from_id,isAdmin});
           setUnreadByWorker(p=>({...p,[m.from_id]:(p[m.from_id]||0)+1}));
           showPushNotification("💬 "+senderName, m.text.substring(0,80));
@@ -1976,7 +1988,7 @@ const allWs=ids.includes("00000000-0000-0000-0000-000000000002")?[...ws,adminUse
   setLastMsgByWorker(lastMsg);
 const counts:Record<string,number>={};
 (received||[]).forEach((m:any)=>{
-  if(!m.read&&m.from_id!=="00000000-0000-0000-0000-000000000001"&&m.from_id!=="00000000-0000-0000-0000-000000000002"){
+  if(!m.read&&m.from_id!=="00000000-0000-0000-0000-000000000001"){
     counts[m.from_id]=(counts[m.from_id]||0)+1;
   }
 });
@@ -3217,7 +3229,7 @@ const allWs=ids.includes("00000000-0000-0000-0000-000000000002")?[...ws,adminUse
     // Contar no leídos
    const counts:Record<string,number>={};
 (received||[]).forEach((m:any)=>{
-  if(!m.read&&m.from_id!=="00000000-0000-0000-0000-000000000001"&&m.from_id!=="00000000-0000-0000-0000-000000000002"){
+  if(!m.read&&m.from_id!=="00000000-0000-0000-0000-000000000001"){
     counts[m.from_id]=(counts[m.from_id]||0)+1;
   }
 });
@@ -4282,6 +4294,29 @@ return()=>{db.removeChannel(ch);clearInterval(poll);};
             <p style={{fontSize:10,color:C.mutedL,marginBottom:8}}>Le llegará como notificación urgente inmediata</p>
             <textarea value={supportMsg} onChange={e=>setSupportMsg(e.target.value)} placeholder="Mensaje al usuario..." style={{width:"100%",background:C.card,border:"1px solid "+C.border,borderRadius:8,color:C.text,fontFamily:"inherit",fontSize:12,padding:"8px 10px",resize:"vertical",minHeight:60,outline:"none",marginBottom:8}} />
             <Btn full small disabled={sendingMsg||!supportMsg.trim()} onClick={sendSupport} color={C.accent}>{sendingMsg?"Enviando...":"Enviar ahora →"}</Btn>
+            {selectedUser&&(
+  <div style={{marginTop:16}}>
+    <p style={{fontSize:11,color:C.muted,fontWeight:700,textTransform:"uppercase" as const,letterSpacing:"0.06em",marginBottom:8}}>💬 Conversación</p>
+    <div style={{maxHeight:300,overflowY:"auto",display:"flex",flexDirection:"column",gap:6}}>
+      {msgs.filter(m=>(m.from_id===selectedUser.id&&m.to_id==="00000000-0000-0000-0000-000000000002")||(m.from_id==="00000000-0000-0000-0000-000000000002"&&m.to_id===selectedUser.id)).sort((a,b)=>new Date(a.created_at).getTime()-new Date(b.created_at).getTime()).map(m=>{
+        const isAdminMsg=m.from_id==="00000000-0000-0000-0000-000000000002";
+        return(
+          <div key={m.id} style={{display:"flex",justifyContent:isAdminMsg?"flex-end":"flex-start"}}>
+            <div style={{
+              maxWidth:"85%",padding:"8px 12px",borderRadius:isAdminMsg?"12px 12px 2px 12px":"12px 12px 12px 2px",
+              background:isAdminMsg?"linear-gradient(135deg,"+C.accent+","+C.orange+")":"linear-gradient(135deg,"+C.card+","+C.surface+")",
+              border:isAdminMsg?"none":"1px solid "+C.border,
+              color:isAdminMsg?"#000":C.text,
+            }}>
+              <p style={{fontSize:12,margin:0,lineHeight:1.4}}>{m.text.replace("[Soporte OfficioYa] ","")}</p>
+              <p style={{fontSize:9,margin:"4px 0 0",opacity:0.6,textAlign:"right" as const}}>{formatTime(m.created_at)}</p>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  </div>
+)}
           </div>
         </div>
       )}
