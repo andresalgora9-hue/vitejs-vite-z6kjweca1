@@ -560,7 +560,6 @@ console.log("RESPUESTA SUPER-HANDLER:",JSON.stringify(data));
 const url=data.url;
 if(url){
   window.location.href=url;
-}
 }else{alert("Error: "+JSON.stringify(data));}
               }catch{alert("⚠️ Error de conexión");}
               setPagando(false);
