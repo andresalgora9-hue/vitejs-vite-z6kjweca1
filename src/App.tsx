@@ -3417,7 +3417,7 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
     proId={user.id}
     requestId={urgentLead.requestId||null}
     onClose={()=>setUrgentLead(null)}
-    onClick={async()=>{
+    onClick={async()=>{await db.from("messages").update({read:true}).eq("to_id",user.id).eq("is_lead_alert",true).eq("read",false);
       if(urgentLead.isNuevoLead&&urgentLead.requestId){
         // Marcar como aceptado en budget_requests
         const {data:req}=await db.from("budget_requests")
