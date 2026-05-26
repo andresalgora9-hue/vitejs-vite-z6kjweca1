@@ -2237,12 +2237,12 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
             {chatPartners.map(w=>{
               const col=wColor(w.id);
               const unread=unreadByWorker[w.id]||0;
-return <GCard key={w.id} onClick={()=>{
-  setChatWorker(w);
+return <GCard key={w.id} onClick={async()=>{
+  await db.from("messages").update({read:true}).eq("to_id",user.id).eq("from_id",w.id).eq("read",false);
   setUnreadByWorker(p=>({...p,[w.id]:0}));
   setUnreadChats(prev=>Math.max(0,prev-unread));
-  db.from("messages").update({read:true}).eq("to_id",user.id).eq("from_id",w.id).eq("read",false);
   setLastReadTime(p=>{const n={...p,[w.id]:new Date().toISOString()};localStorage.setItem("oy_last_read_"+user.id,JSON.stringify(n));return n;});
+  setChatWorker(w);
 }} glow={col}>
   <div style={{display:"flex",gap:12,alignItems:"center"}}>
     <Ava s={w.name.substring(0,2).toUpperCase()} size={46} color={col} online={w.available} />
@@ -3452,10 +3452,11 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
             {chatPartners.map(c=>{
               const col=wColor(c.id);
               const unread=unreadByUser[c.id]||0;
-              return <GCard key={c.id} onClick={()=>{
-  setChatUser(c);
+              return <GCard key={c.id} onClick={async()=>{
+  await db.from("messages").update({read:true}).eq("to_id",user.id).eq("from_id",c.id).eq("read",false);
   setUnreadByUser(p=>({...p,[c.id]:0}));
   setUnreadMsgs(prev=>Math.max(0,prev-(unreadByUser[c.id]||0)));
+  setChatUser(c);
   db.from("messages").update({read:true}).eq("to_id",user.id).eq("from_id",c.id).eq("read",false);
 }} glow={col}>
                 <div style={{display:"flex",gap:12,alignItems:"center"}}>
