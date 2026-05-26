@@ -3265,7 +3265,7 @@ useEffect(()=>{
         showPushNotification("🔴 Cliente urgente — OfficioYa","Un cliente necesita tus servicios ahora. Toca para responder.");
     }
   })
-  .subscribe(); 
+  .subscribe((status:any)=>{console.log("PRO REALTIME STATUS:", status);});
     return ()=>{db.removeChannel(ch);};
 },[user.id,loadChats]);
   useEffect(()=>{
