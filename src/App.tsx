@@ -812,53 +812,147 @@ function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:User
           const isLead=isLeadAlert(m.text);
 // Anticipo special rendering
           if(isAnticipoMsg(m.text)){
-            const isPagado=m.text.includes("ANTICIPO_PAGADO:");
-            const isSolicitado=m.text.includes("ANTICIPO_SOLICITADO:");
-            const parts=m.text.split(":");
-            const amount=parts[1]||"";
-            const motivo=isPagado?"":parts[2]||"";
-            return(
-              <div key={m.id} style={{display:"flex",justifyContent:isMe?"flex-end":"flex-start",marginBottom:6}}>
-                <div style={{maxWidth:"80%",background:"linear-gradient(135deg,#1a1a0a,#141208)",border:"2px solid #FFD70066",borderRadius:14,padding:"12px 14px"}}>
-                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
-                    <span style={{fontSize:20}}>💰</span>
-                    <div>
-                      <p style={{fontWeight:900,color:"#FFD700",fontSize:13,margin:0}}>{isPagado?"Anticipo pagado":"Solicitud de anticipo"}</p>
-                      <p style={{fontSize:12,color:"#aaa",margin:0}}>{amount}{motivo?" · "+motivo:""}</p>
-                    </div>
-                    {isPagado&&<span style={{marginLeft:"auto",fontSize:10,color:"#00D68F",background:"#00D68F22",padding:"2px 8px",borderRadius:4,fontWeight:700}}>✓ PAGADO</span>}
-                  </div>
-                  {isSolicitado&&!isMe&&currentUser.type==="cliente"&&(
-                    <div>
-                      <button onClick={async()=>{
-                        try{
-                          const res=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/super-handler",{
-                            method:"POST",
-                            headers:{
-                              "Content-Type":"application/json",
-                              "apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo",
-                              "Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo",
-                            },
-                            body:JSON.stringify({client_id:currentUser.id,pro_id:m.from_id,pro_name:toUser.name,client_name:currentUser.name,amount:parseInt(amount)}),
-                          });
-                          const {url}=await res.json();
-                          if(url) window.open(url,"_blank");
-                        }catch{showToast("Error al generar el pago");}
-                      }} disabled={procesandoAnticipo} style={{width:"100%",padding:"8px",background:"linear-gradient(135deg,#FFD700,#FF8C00)",border:"none",borderRadius:8,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:12,cursor:"pointer",marginTop:4}}>
-                        💳 Pagar ahora →
-                      </button>
-                      <div style={{marginTop:8,padding:"8px 10px",background:"rgba(0,214,143,0.08)",border:"1px solid rgba(0,214,143,0.2)",borderRadius:8,display:"flex",alignItems:"center",gap:6}}>
-                        <span style={{fontSize:14}}>🔒</span>
-                        <p style={{fontSize:10,color:"#00D68F",margin:0,lineHeight:1.4}}>Pago 100% seguro · OfficioYa garantiza el servicio</p>
-                      </div>
-                    </div>
-                  )}
-                  <p style={{fontSize:9,color:C.muted,marginTop:6,textAlign:isMe?"right":"left" as any}}>{formatTime(m.created_at)}</p>
-                </div>
-              </div>
-            );
-          }
+  const isPagado=m.text.includes("ANTICIPO_PAGADO:");
+  const isSolicitado=m.text.includes("ANTICIPO_SOLICITADO:");
+  const parts=m.text.split(":");
+  const amount=parts[1]?.replace("€","").trim()||"";
+  const [pagando,setPagando]=useState(false);
+  const [pagado,setPagadoLocal]=useState(isPagado);
+  return(
+    <div key={m.id} style={{display:"flex",justifyContent:"center",marginBottom:10,animation:"fadeSlideUp 0.4s ease"}}>
+      <div style={{
+        width:"92%",maxWidth:340,
+        background:pagado?"linear-gradient(135deg,#0a1f14,#0d2318)":"linear-gradient(135deg,#12100a,#1a1508)",
+        border:"1px solid "+(pagado?"#00D68F44":"#FFD70033"),
+        borderRadius:18,overflow:"hidden",
+        boxShadow:pagado?"0 4px 24px rgba(0,214,143,0.12)":"0 4px 24px rgba(255,215,0,0.08)",
+        transition:"all 0.5s ease",
+      }}>
+        {/* Top strip */}
+        <div style={{
+          height:3,
+          background:pagado
+            ?"linear-gradient(90deg,#00D68F,#00A870)"
+            :"linear-gradient(90deg,#FFD700,#FF8C00,#FFD700)",
+          backgroundSize:"200% auto",
+          animation:pagado?"none":"shimmer 2.5s linear infinite",
+        }} />
+        <div style={{padding:"16px 18px"}}>
+          {/* Header */}
+          <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
+            <div style={{
+              width:40,height:40,borderRadius:12,flexShrink:0,
+              background:pagado?"linear-gradient(135deg,#00D68F22,#00D68F11)":"linear-gradient(135deg,#FFD70022,#FF8C0011)",
+              border:"1px solid "+(pagado?"#00D68F33":"#FFD70033"),
+              display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,
+              animation:pagado?"checkPop 0.5s ease":"none",
+            }}>{pagado?"✅":"💳"}</div>
+            <div style={{flex:1}}>
+              <p style={{fontWeight:800,fontSize:13,color:pagado?"#00D68F":"#FFD700",margin:0,letterSpacing:"-0.01em"}}>
+                {pagado?"Anticipo confirmado":"Solicitud de anticipo"}
+              </p>
+              <p style={{fontSize:11,color:C.muted,margin:"2px 0 0"}}>
+                {pagado
+                  ?(isMe?"Has recibido el anticipo":"Has pagado el anticipo")
+                  :(isMe?"Esperando pago del cliente":"El profesional solicita un anticipo")}
+              </p>
+            </div>
+            <div style={{
+              padding:"6px 12px",borderRadius:99,
+              background:pagado?"#00D68F18":"#FFD70015",
+              border:"1px solid "+(pagado?"#00D68F33":"#FFD70022"),
+            }}>
+              <p style={{fontWeight:900,fontSize:16,color:pagado?"#00D68F":"#FFD700",margin:0}}>{amount}€</p>
+            </div>
+          </div>
 
+          {/* Botón pagar — solo cliente, solo si no pagado */}
+          {isSolicitado&&!isMe&&currentUser.type==="cliente"&&!pagado&&(
+            <button
+              disabled={pagando}
+              onClick={async()=>{
+                setPagando(true);
+                try{
+                  const res=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/super-handler",{
+                    method:"POST",
+                    headers:{
+                      "Content-Type":"application/json",
+                      "apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo",
+                      "Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo",
+                    },
+                    body:JSON.stringify({client_id:currentUser.id,pro_id:m.from_id,pro_name:toUser.name,client_name:currentUser.name,amount:parseInt(amount)}),
+                  });
+                  const {url}=await res.json();
+                  if(url){
+                    // Abrir en la misma pestaña para evitar bloqueo móvil
+                    window.location.href=url;
+                    // Marcar como pagado optimistamente
+                    await db.from("messages").insert({
+                      from_id:currentUser.id,
+                      to_id:toUser.id,
+                      text:`💰 ANTICIPO_PAGADO:${amount}€:pagado por ${currentUser.name}`,
+                      read:false,
+                    });
+                    setPagadoLocal(true);
+                  } else {
+                    showToast("⚠️ Error al generar el pago");
+                  }
+                  }catch{showToast("⚠️ Error de conexión");}
+                setPagando(false);
+              }}
+              style={{
+                width:"100%",padding:"13px",
+                background:pagando
+                  ?"#333"
+                  :"linear-gradient(135deg,#FFD700,#FF8C00)",
+                border:"none",borderRadius:12,
+                color:pagando?"#888":"#000",
+                fontFamily:"'DM Sans',sans-serif",
+                fontWeight:800,fontSize:14,
+                cursor:pagando?"not-allowed":"pointer",
+                display:"flex",alignItems:"center",justifyContent:"center",gap:8,
+                transition:"all 0.2s",
+                boxShadow:pagando?"none":"0 4px 16px rgba(255,215,0,0.3)",
+              }}
+            >
+              {pagando
+                ?<><div style={{width:14,height:14,border:"2px solid #555",borderTop:"2px solid #FFD700",borderRadius:"50%",animation:"spin 0.8s linear infinite"}} />Procesando...</>
+                :<>💳 Pagar {amount}€ ahora</>
+              }
+            </button>
+          )}
+
+          {/* Estado pagado para ambos */}
+          {pagado&&(
+            <div style={{
+              display:"flex",alignItems:"center",gap:8,
+              padding:"10px 14px",
+              background:"rgba(0,214,143,0.08)",
+              border:"1px solid rgba(0,214,143,0.15)",
+              borderRadius:10,
+              animation:"fadeSlideUp 0.4s ease",
+            }}>
+              <span style={{fontSize:16,animation:"checkPop 0.5s ease"}}>✅</span>
+              <div>
+                <p style={{fontSize:12,fontWeight:700,color:"#00D68F",margin:0}}>Pago confirmado</p>
+                <p style={{fontSize:10,color:C.muted,margin:0}}>OfficioYa garantiza este servicio</p>
+              </div>
+            </div>
+          )}
+
+          {/* Sello seguridad */}
+          {!pagado&&(
+            <div style={{display:"flex",alignItems:"center",gap:6,marginTop:10}}>
+              <span style={{fontSize:11,color:C.muted}}>🔒</span>
+              <p style={{fontSize:10,color:C.muted,margin:0}}>Pago seguro · Stripe · Garantía OfficioYa</p>
+            </div>
+          )}
+          <p style={{fontSize:9,color:C.border,margin:"8px 0 0",textAlign:"right" as const}}>{formatTime(m.created_at)}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
           // Lead alert special rendering
           if(isLead&&!isMe){
             return(
@@ -4581,6 +4675,9 @@ if(window.location.pathname==="/cancelacion")return <Cancelacion />;
       @keyframes popIn{from{transform:scale(0.85);opacity:0;}to{transform:scale(1);opacity:1;}}
       @keyframes expandDown{from{max-height:0;opacity:0;}to{max-height:300px;opacity:1;}}
       @keyframes typingDot{0%,80%,100%{transform:translateY(0);opacity:0.3;}40%{transform:translateY(-6px);opacity:1;}}
+@keyframes checkPop{0%{transform:scale(0) rotate(-10deg);opacity:0;}60%{transform:scale(1.3) rotate(5deg);opacity:1;}100%{transform:scale(1) rotate(0deg);opacity:1;}}
+@keyframes shimmer{0%{background-position:-200% center;}100%{background-position:200% center;}}
+@keyframes fadeSlideUp{from{transform:translateY(12px);opacity:0;}to{transform:translateY(0);opacity:1;}}
     `}</style>
     {!user&&<Auth onLogin={login} />}
     {user&&user.type==="admin"&&<Admin onLogout={logout} />}
