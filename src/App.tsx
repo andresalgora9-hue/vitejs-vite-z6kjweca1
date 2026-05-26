@@ -1891,6 +1891,7 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
   const [soloDisp,setSoloDisp]=useState(false);
   const [showWizard,setShowWizard]=useState(false);
   const [workers,setWorkers]=useState<UserRow[]>([]);
+  const [loading,setLoading]=useState(false);
   
   const [selectedWorker,setSelectedWorker]=useState<UserRow|null>(null);
   const [chatWorker,setChatWorker]=useState<UserRow|null>(null);
