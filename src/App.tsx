@@ -4698,6 +4698,27 @@ async function subscribeToPush(userId: string): Promise<void> {
 export default function App(){
   const [user,setUser]=useState<UserRow|null>(null);
   const [ready,setReady]=useState(false);
+  const [installPrompt,setInstallPrompt]=useState<any>(null);
+  const [showInstall,setShowInstall]=useState(false);
+
+  useEffect(()=>{
+    const handler=(e:any)=>{
+      e.preventDefault();
+      setInstallPrompt(e);
+      setShowInstall(true);
+    };
+    window.addEventListener('beforeinstallprompt',handler);
+    return ()=>window.removeEventListener('beforeinstallprompt',handler);
+  },[]);
+
+  const doInstall=()=>{
+    if(!installPrompt)return;
+    installPrompt.prompt();
+    installPrompt.userChoice.then(()=>{
+      setInstallPrompt(null);
+      setShowInstall(false);
+    });
+  };
  useEffect(()=>{
     const meta = document.createElement('meta');
     meta.name = "viewport";
@@ -4729,9 +4750,19 @@ export default function App(){
   if(window.location.pathname==="/terminos")return <Terminos />;
 if(window.location.pathname==="/privacidad")return <Privacidad />;
 if(window.location.pathname==="/cancelacion")return <Cancelacion />;
+  if(!ready)return <div style={{minHeight:"100dvh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center"}}><Spin /></div>;
+  if(window.location.pathname==="/elite-gratis")return <EliteLanding />;
+  if(window.location.pathname==="/terminos")return <Terminos />;
+if(window.location.pathname==="/privacidad")return <Privacidad />;
+if(window.location.pathname==="/cancelacion")return <Cancelacion />;
   return (<>
     <style>{`
       @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap');
+      *{box-sizing:border-box;margin:0;padding:0;}
+      html {
+        background: #0F1117;
+        height: 100%;
+      }
       *{box-sizing:border-box;margin:0;padding:0;}
       html {
         background: #0F1117;
