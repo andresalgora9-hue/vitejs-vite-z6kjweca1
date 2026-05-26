@@ -176,7 +176,7 @@ async function uploadImage(file:File, path:string):Promise<string|null>{
 async function notifyProOfNewLead(proId:string, clientName:string, oficio:string):Promise<void>{
   const txt=`🔴 *NUEVO CLIENTE INTERESADO*\n\n👤 ${clientName} quiere contactarte para tu servicio de ${oficio}.\n\n⚡ Responde cuanto antes para no perder este lead.`;
   await db.from("messages").insert({
-    from_id:"system-lead",
+    from_id:"00000000-0000-0000-0000-000000000001",
     to_id:proId,
     text:txt,
     read:false,
@@ -547,7 +547,7 @@ function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:User
   const startX=useRef(0);
   const typingTimer=useRef<any>(null);
 
-  const isSystem=toUser.id==="system-lead"||toUser.id==="admin-001";
+  const isSystem=toUser.id==="00000000-0000-0000-0000-000000000001"||toUser.id==="00000000-0000-0000-0000-000000000002";
   const displayColor=isSystem?C.orange:col;
 
   const loadMsgs=useCallback(async()=>{
@@ -815,7 +815,7 @@ function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:User
           }
           const m=item as MessageRow;
           const isMe=m.from_id===currentUser.id;
-          const isAdmin=m.from_id==="admin-001"||m.from_id==="system-lead";
+          const isAdmin=m.from_id==="00000000-0000-0000-0000-000000000002"||m.from_id==="00000000-0000-0000-0000-000000000001";
           const isLead=isLeadAlert(m.text);
 // Anticipo special rendering
           if(isAnticipoMsg(m.text)){
@@ -1660,7 +1660,7 @@ function SolicitudesTab({user,workers,onWorkerSelect,onChat}:{user:UserRow;worke
     const notifiedIds:string[]=[];
     for(const pro of toNotify){
       await db.from("messages").insert({
-        from_id:"system-lead",
+        from_id:"00000000-0000-0000-0000-000000000001",
         to_id:pro.id,
         text:`🔴 *NUEVO LEAD*|REQUEST_ID:${req.id}|${user.name} necesita ${oficio} en ${zona}.\n📝 ${desc}${maxBudget?"\n💰 Máx: "+maxBudget+"€":""}`,
         read:false,
@@ -1681,7 +1681,7 @@ function SolicitudesTab({user,workers,onWorkerSelect,onChat}:{user:UserRow;worke
       if(check?.status==="open"){
         // Notificar admin
         await db.from("messages").insert({
-          from_id:"system-lead",to_id:"admin-001",
+          from_id:"00000000-0000-0000-0000-000000000001",to_id:"00000000-0000-0000-0000-000000000002",
           text:`⚠️ Solicitud sin aceptar tras 2h: ${oficio} en ${zona} de ${user.name}. Request ID: ${req.id}`,
           read:false,is_lead_alert:false,
         });
@@ -1691,7 +1691,7 @@ function SolicitudesTab({user,workers,onWorkerSelect,onChat}:{user:UserRow;worke
         const nextBatch=[...nextElites,...nextPros];
         for(const pro of nextBatch){
           await db.from("messages").insert({
-            from_id:"system-lead",
+            from_id:"00000000-0000-0000-0000-000000000001",
             to_id:pro.id,
             text:`🔴 *NUEVO LEAD*|REQUEST_ID:${req.id}|${user.name} necesita ${oficio} en ${zona}.\n📝 ${desc}${maxBudget?"\n💰 Máx: "+maxBudget+"€":""}`,
             read:false,is_lead_alert:true,
@@ -1822,7 +1822,7 @@ function SolicitudesTab({user,workers,onWorkerSelect,onChat}:{user:UserRow;worke
                         await db.from("budget_offers").update({status:"chosen"}).eq("id",o.id);
                         await db.from("budget_requests").update({status:"closed"}).eq("id",sol.id);
                         ofs.filter((x:any)=>x.id!==o.id).forEach(async(x:any)=>{
-                          await db.from("messages").insert({from_id:"system-lead",to_id:x.pro_id,text:"Lo sentimos, el cliente eligió otro profesional para este trabajo. ¡Sigue respondiendo rápido!",read:false});
+                          await db.from("messages").insert({from_id:"00000000-0000-0000-0000-000000000001",to_id:x.pro_id,text:"Lo sentimos, el cliente eligió otro profesional para este trabajo. ¡Sigue respondiendo rápido!",read:false});
                         });
                         if(pro)onChat(pro);
                         loadSolicitudes();
@@ -1924,7 +1924,7 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
     const ch=db.channel("client-notif-"+user.id)
       .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"to_id=eq."+user.id},(p:any)=>{
         const m=p.new;
-        const isAdmin=m.from_id==="admin-001"||m.from_id==="system-lead";
+        const isAdmin=m.from_id==="00000000-0000-0000-0000-000000000002"||m.from_id==="00000000-0000-0000-0000-000000000001";
         db.from("users").select("name").eq("id",m.from_id).single().then(({data}:any)=>{
           const senderName=isAdmin?"👑 OfficioYa Soporte":(data?.name||"Profesional");
           setInAppNotif({msg:m.text.substring(0,60)+(m.text.length>60?"...":""),from:senderName,fromId:m.from_id,isAdmin});
@@ -1943,7 +1943,7 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
   const allMsgs=[...(received||[]),...(sent||[])];
   if(!allMsgs.length){setChatPartners([]);setUnreadByWorker({});return;}
   const ids=[...new Set(allMsgs.map((m:any)=>m.from_id===user.id?m.to_id:m.from_id))]
-    .filter((id:string)=>id!=="system-lead"&&id!=="admin-001");
+    .filter((id:string)=>id!=="00000000-0000-0000-0000-000000000001"&&id!=="00000000-0000-0000-0000-000000000002");
   if(!ids.length){setChatPartners([]);return;}
   const {data:ws}=await db.from("users").select("*").in("id",ids);
   if(!ws)return;
@@ -1963,7 +1963,7 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
   setLastMsgByWorker(lastMsg);
 const counts:Record<string,number>={};
 (received||[]).forEach((m:any)=>{
-  if(!m.read&&m.from_id!=="system-lead"&&m.from_id!=="admin-001"){
+  if(!m.read&&m.from_id!=="00000000-0000-0000-0000-000000000001"&&m.from_id!=="00000000-0000-0000-0000-000000000002"){
     counts[m.from_id]=(counts[m.from_id]||0)+1;
   }
 });
@@ -2024,7 +2024,7 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
       if(pros&&pros.length>0){
         const alertTxt="🔴 *NUEVO CLIENTE INTERESADO*\n\n👤 "+user.name+" busca un "+oficio+" con urgencia en "+(zonaResult||zona)+".\n\n⚡ Responde cuanto antes para no perder este lead.";
         const inserts=(pros as {id:string}[]).map((p:{id:string})=>({
-          from_id:"system-lead",
+          from_id:"00000000-0000-0000-0000-000000000001",
           to_id:p.id,
           text:alertTxt,
           read:false,
@@ -2354,8 +2354,8 @@ return <GCard key={w.id} onClick={async()=>{
               <p style={{fontWeight:700,color:C.text,fontSize:13,marginBottom:6}}>⚠️ Cancelar suscripción</p>
               <p style={{fontSize:12,color:C.muted,marginBottom:10}}>Si quieres darte de baja escríbenos directamente. Gestionaremos tu baja en menos de 24h.</p>
               <button onClick={async()=>{
-                const adminUser={id:"admin-001",name:"OfficioYa Soporte",email:"admin@oficioya.com",password:"",phone:"",type:"admin",plan:"elite",bio:"",price:0,trade:"",zone:"",rating:0,reviews:0,jobs:0,verified:true,available:true,whatsapp:"",service_zones:[],schedule:"",response_time:"",free_quote:false,experience_years:0,specialties:[],trial_end:"",joined_at:""};
-                await db.from("messages").insert({from_id:user.id,to_id:"admin-001",text:"Hola, quiero darme de baja de mi suscripción "+user.plan.toUpperCase()+". Por favor, gestiona mi cancelación. Gracias.",read:false});
+                const adminUser={id:"00000000-0000-0000-0000-000000000002",name:"OfficioYa Soporte",email:"admin@oficioya.com",password:"",phone:"",type:"admin",plan:"elite",bio:"",price:0,trade:"",zone:"",rating:0,reviews:0,jobs:0,verified:true,available:true,whatsapp:"",service_zones:[],schedule:"",response_time:"",free_quote:false,experience_years:0,specialties:[],trial_end:"",joined_at:""};
+                await db.from("messages").insert({from_id:user.id,to_id:"00000000-0000-0000-0000-000000000002",text:"Hola, quiero darme de baja de mi suscripción "+user.plan.toUpperCase()+". Por favor, gestiona mi cancelación. Gracias.",read:false});
                 setTab("chats");
               }} style={{width:"100%",padding:"10px",background:C.red+"18",border:"1px solid "+C.red+"44",borderRadius:8,color:C.red,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,cursor:"pointer"}}>
                 Solicitar baja de suscripción →
@@ -2561,7 +2561,7 @@ const handleForgot=async()=>{
 ];
 const hardAdmin=ADMIN_ACCOUNTS.find(a=>a.email===email.toLowerCase()&&a.pass===pass);
 if(hardAdmin){
-  const adminUser:UserRow={id:"admin-001",name:hardAdmin.name,email:hardAdmin.email,password:"",phone:"",type:"admin",plan:"elite",bio:"",price:0,trade:"",zone:"Sevilla",rating:0,reviews:0,jobs:0,verified:true,available:true,whatsapp:"",service_zones:[],schedule:"",response_time:"",free_quote:false,experience_years:0,specialties:[],trial_end:"2099-12-31",joined_at:new Date().toISOString()};
+  const adminUser:UserRow={id:"00000000-0000-0000-0000-000000000002",name:hardAdmin.name,email:hardAdmin.email,password:"",phone:"",type:"admin",plan:"elite",bio:"",price:0,trade:"",zone:"Sevilla",rating:0,reviews:0,jobs:0,verified:true,available:true,whatsapp:"",service_zones:[],schedule:"",response_time:"",free_quote:false,experience_years:0,specialties:[],trial_end:"2099-12-31",joined_at:new Date().toISOString()};
   setLoading(false);localStorage.setItem("oy_user",JSON.stringify(adminUser));onLogin(adminUser);return;
 }
     const {data,error}=await db.from("users").select("*").eq("email",email.toLowerCase()).eq("password",pass).single();
@@ -3172,7 +3172,7 @@ const loadChats=useCallback(async()=>{
 
     // Sacar IDs únicos del otro lado de la conversación
     const ids=[...new Set(allMsgs.map((m:any)=>m.from_id===user.id?m.to_id:m.from_id))]
-      .filter((id:string)=>id!=="system-lead"&&id!=="admin-001");
+      .filter((id:string)=>id!=="00000000-0000-0000-0000-000000000001"&&id!=="00000000-0000-0000-0000-000000000002");
     if(!ids.length){setChatPartners([]);return;}
 
     const {data:ws}=await db.from("users").select("*").in("id",ids);
@@ -3200,7 +3200,7 @@ const loadChats=useCallback(async()=>{
     // Contar no leídos
    const counts:Record<string,number>={};
 (received||[]).forEach((m:any)=>{
-  if(!m.read&&m.from_id!=="system-lead"&&m.from_id!=="admin-001"){
+  if(!m.read&&m.from_id!=="00000000-0000-0000-0000-000000000001"&&m.from_id!=="00000000-0000-0000-0000-000000000002"){
     counts[m.from_id]=(counts[m.from_id]||0)+1;
   }
 });
@@ -3212,8 +3212,8 @@ useEffect(()=>{
   const ch=db.channel("pro-realtime-"+user.id) 
   .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"to_id=eq."+user.id},(p:any)=>{ 
     const m=p.new; 
-    const isLeadAlert=m.from_id==="system-lead"||m.text?.includes("NUEVO CLIENTE INTERESADO"); 
-    const isAdmin=m.from_id==="admin-001"; 
+    const isLeadAlert=m.from_id==="00000000-0000-0000-0000-000000000001"||m.text?.includes("NUEVO CLIENTE INTERESADO"); 
+    const isAdmin=m.from_id==="00000000-0000-0000-0000-000000000002"; 
     if(isLeadAlert){
   const isNuevoLead=m.text.includes("NUEVO LEAD|REQUEST_ID:");
   // Extraer request_id del texto
@@ -3382,7 +3382,7 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
   const availableSpecialties=SPECIALTIES_BY_TRADE[user.trade||""]||["Especialidad 1","Especialidad 2","Especialidad 3"];
 
   // Build a fake "system" user object for lead alert chats
-  const systemUser:UserRow={id:"system-lead",name:"Clientes OfficioYa",email:"",password:"",phone:"",type:"cliente",plan:"gratis",bio:"",price:0,trade:"",zone:"",rating:0,reviews:0,jobs:0,verified:true,available:true,whatsapp:"",service_zones:[],schedule:"",response_time:"",free_quote:false,experience_years:0,specialties:[],trial_end:"",joined_at:""};
+  const systemUser:UserRow={id:"00000000-0000-0000-0000-000000000001",name:"Clientes OfficioYa",email:"",password:"",phone:"",type:"cliente",plan:"gratis",bio:"",price:0,trade:"",zone:"",rating:0,reviews:0,jobs:0,verified:true,available:true,whatsapp:"",service_zones:[],schedule:"",response_time:"",free_quote:false,experience_years:0,specialties:[],trial_end:"",joined_at:""};
 
   return(
     <div style={{minHeight:"100dvh",background:C.bg,backgroundImage:"radial-gradient(ellipse at 70% 0%,#2a0a3a18,transparent 50%)",paddingBottom:72}}>
@@ -3943,7 +3943,7 @@ function Admin({onLogout}:{onLogout:()=>void}){
         db.from("certifications").select("*").order("created_at",{ascending:false}),
         db.from("reports").select("*").order("created_at",{ascending:false}),
       ]);
-      const allUsers=(u.data||[]).filter((x:any)=>x.type!=="admin"&&x.id!=="admin-001");
+      const allUsers=(u.data||[]).filter((x:any)=>x.type!=="admin"&&x.id!=="00000000-0000-0000-0000-000000000002");
       setUsers(allUsers as UserRow[]);
       setJobs((j.data||[]) as JobRow[]);
       const allMsgs=(m.data||[]) as MessageRow[];
@@ -3953,7 +3953,7 @@ function Admin({onLogout}:{onLogout:()=>void}){
       setReports((rp.data||[]) as any[]);
 setCerts((ct.data||[]) as any[]);
       // Count unread for admin (messages sent TO any user, admin can see all)
-      const unread=allMsgs.filter((msg:any)=>!msg.read&&msg.from_id!=="admin-001").length;
+      const unread=allMsgs.filter((msg:any)=>!msg.read&&msg.from_id!=="00000000-0000-0000-0000-000000000002").length;
       setUnreadAdminMsgs(unread);
       setLoading(false);
     };
@@ -3965,7 +3965,7 @@ setCerts((ct.data||[]) as any[]);
     const ch=db.channel("admin-realtime")
       .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},(p:any)=>{
         const m=p.new as MessageRow;
-        if(m.from_id!=="admin-001"&&m.from_id!=="system-lead"){
+        if(m.from_id!=="00000000-0000-0000-0000-000000000002"&&m.from_id!=="00000000-0000-0000-0000-000000000001"){
           setMsgs(prev=>[m,...prev]);
           setUnreadAdminMsgs(c=>c+1);
           setToastMsg("💬 Nuevo mensaje en la plataforma");
@@ -4029,7 +4029,7 @@ setCerts((ct.data||[]) as any[]);
   const sendSupport=async()=>{
     if(!selectedUser||!supportMsg.trim())return;
     setSendingMsg(true);
-    await db.from("messages").insert({from_id:"admin-001",to_id:selectedUser.id,text:"[Soporte OfficioYa] "+supportMsg,read:false});
+    await db.from("messages").insert({from_id:"00000000-0000-0000-0000-000000000002",to_id:selectedUser.id,text:"[Soporte OfficioYa] "+supportMsg,read:false});
     setSupportMsg(""); setSendingMsg(false);
     setToastMsg("✓ Mensaje enviado a "+selectedUser.name);
     setTimeout(()=>setToastMsg(null),3000);
@@ -4261,10 +4261,10 @@ setCerts((ct.data||[]) as any[]);
               <span style={{fontSize:11,color:C.red,background:C.red+"18",padding:"4px 10px",borderRadius:99,fontWeight:700}}>{unreadAdminMsgs} no leídos</span>
             </div>
             <div style={{display:"flex",flexDirection:"column",gap:7}}>
-              {msgs.filter(m=>m.from_id!=="system-lead").slice(0,50).map(m=>{
+              {msgs.filter(m=>m.from_id!=="00000000-0000-0000-0000-000000000001").slice(0,50).map(m=>{
                 const fromUser=users.find(u=>u.id===m.from_id);
                 const toUser=users.find(u=>u.id===m.to_id);
-                const isAdminMsg=m.from_id==="admin-001";
+                const isAdminMsg=m.from_id==="00000000-0000-0000-0000-000000000002";
                 return <GCard key={m.id} style={{padding:"10px 12px",border:!m.read&&!isAdminMsg?"1px solid "+C.orange+"44":undefined}}>
                   <div style={{display:"flex",gap:8,alignItems:"flex-start"}}>
                     <div style={{flex:1}}>
