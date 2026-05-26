@@ -1633,38 +1633,77 @@ function SolicitudesTab({user,workers,onWorkerSelect,onChat}:{user:UserRow;worke
   useEffect(()=>{loadSolicitudes();},[loadSolicitudes]);
 
   const enviarSolicitud=async()=>{
-    if(!desc.trim()){return;}
-    setSending(true);
-    const {data}=await db.from("budget_requests").insert({
-      client_id:user.id,client_name:user.name,
-      oficio,zona,description:desc,
-      max_budget:maxBudget?parseInt(maxBudget):null,
-      status:"open",
-    }).select().single();
-    if(data){
-      // Notificar a profesionales por plan (Elite primero)
-      const prosElite=workers.filter(w=>w.trade===oficio&&w.plan==="elite");
-      const prosPro=workers.filter(w=>w.trade===oficio&&w.plan==="pro");
-      const prosBasico=workers.filter(w=>w.trade===oficio&&w.plan==="basico");
-      const notifyPros=async(pros:UserRow[],delay:number)=>{
-        setTimeout(async()=>{
-          for(const pro of pros){
-            await db.from("messages").insert({
-              from_id:"system-lead",to_id:pro.id,
-              text:`🔴 *NUEVO PRESUPUESTO SOLICITADO*\n\n👤 ${user.name} necesita un ${oficio} en ${zona}.\n\n📝 ${desc}${maxBudget?"\n💰 Presupuesto máximo: "+maxBudget+"€":""}\n\n⚡ Sé de los primeros 3 en responder.`,
-              read:false,is_lead_alert:true,
-            });
-          }
-        },delay);
-      };
-      await notifyPros(prosElite,0);
-      await notifyPros(prosPro,120000);
-      await notifyPros(prosBasico,300000);
-      setDesc("");setMaxBudget("");setShowForm(false);
-      loadSolicitudes();
+  if(!desc.trim())return;
+  setSending(true);
+  const {data:req}=await db.from("budget_requests").insert({
+    client_id:user.id,client_name:user.name,
+    oficio,zona,description:desc,
+    max_budget:maxBudget?parseInt(maxBudget):null,
+    status:"open",
+    notified_pros:[],
+  }).select().single();
+
+  if(req){
+    // Solo elite y pro, filtrados por oficio y zona
+    const eligibles=workers.filter(w=>
+      w.trade===oficio&&
+      (w.plan==="elite"||w.plan==="pro")&&
+      w.available
+    );
+    // Separar y barajar aleatoriamente
+    const shuffle=(arr:UserRow[])=>[...arr].sort(()=>Math.random()-0.5);
+    const elites=shuffle(eligibles.filter(w=>w.plan==="elite"));
+    const pros=shuffle(eligibles.filter(w=>w.plan==="pro"));
+    // 2 elite + 1 pro
+    const toNotify=[...elites.slice(0,2),...pros.slice(0,1)];
+
+    const notifiedIds:string[]=[];
+    for(const pro of toNotify){
+      await db.from("messages").insert({
+        from_id:"system-lead",
+        to_id:pro.id,
+        text:`🔴 *NUEVO LEAD*|REQUEST_ID:${req.id}|${user.name} necesita ${oficio} en ${zona}.\n📝 ${desc}${maxBudget?"\n💰 Máx: "+maxBudget+"€":""}`,
+        read:false,
+        is_lead_alert:true,
+      });
+      notifiedIds.push(pro.id);
     }
-    setSending(false);
-  };
+    // Guardar quién fue notificado para la rotación
+    await db.from("budget_requests").update({
+      notified_pros:notifiedIds,
+      last_notified_at:new Date().toISOString(),
+    }).eq("id",req.id);
+
+    // Si nadie acepta en 2h → notificar a admin y rotar
+    setTimeout(async()=>{
+      const {data:check}=await db.from("budget_requests")
+        .select("status").eq("id",req.id).single();
+      if(check?.status==="open"){
+        // Notificar admin
+        await db.from("messages").insert({
+          from_id:"system-lead",to_id:"admin-001",
+          text:`⚠️ Solicitud sin aceptar tras 2h: ${oficio} en ${zona} de ${user.name}. Request ID: ${req.id}`,
+          read:false,is_lead_alert:false,
+        });
+        // Rotar a otros 2 elite + 1 pro distintos
+        const nextElites=shuffle(elites.filter(w=>!notifiedIds.includes(w.id))).slice(0,2);
+        const nextPros=shuffle(pros.filter(w=>!notifiedIds.includes(w.id))).slice(0,1);
+        const nextBatch=[...nextElites,...nextPros];
+        for(const pro of nextBatch){
+          await db.from("messages").insert({
+            from_id:"system-lead",
+            to_id:pro.id,
+            text:`🔴 *NUEVO LEAD*|REQUEST_ID:${req.id}|${user.name} necesita ${oficio} en ${zona}.\n📝 ${desc}${maxBudget?"\n💰 Máx: "+maxBudget+"€":""}`,
+            read:false,is_lead_alert:true,
+          });
+        }
+      }
+    },7200000); // 2 horas
+  }
+  setDesc("");setMaxBudget("");setShowForm(false);
+  loadSolicitudes();
+  setSending(false);
+};
 
   return(
     <div style={{padding:"16px 0"}}>
