@@ -3441,58 +3441,56 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
     msg={urgentLead.msg}
     desc={urgentLead.desc}
     onClose={()=>setUrgentLead(null)}
-    onClick={async()=>{
-      const requestId=urgentLead.requestId;
-      const isNuevoLead=urgentLead.isNuevoLead;
-      await db.from("messages").update({read:true}).eq("to_id",user.id).eq("is_lead_alert",true).eq("read",false);
-      if(isNuevoLead&&requestId){
-        const {data:req}=await db.from("budget_requests")
-          .select("*").eq("id",requestId).single();
-        if(req){
-          const accepted=[...(req.accepted_pros||[]),user.id];
-          await db.from("budget_requests").update({
-            accepted_pros:accepted,
-            status:accepted.length>=3?"closed":"open",
-          }).eq("id",requestId);
-          const {data:cliente}=await db.from("users").select("*").eq("id",req.client_id).single();
-          if(cliente){
-            await db.from("messages").insert({
-              from_id:user.id,
-              to_id:req.client_id,
-              text:`¡Hola ${req.client_name}! He visto tu solicitud de ${req.oficio} en ${req.zona}. Estoy disponible para ayudarte. ¿Cuándo te viene bien?`,
-              read:false,
-            });
-            await db.from("messages").insert({
-              from_id:"00000000-0000-0000-0000-000000000001",
-              to_id:req.client_id,
-              text:`PRO_ACEPTO|REQUEST_ID:${requestId}|${accepted.length}`,
-              read:false,
-              is_lead_alert:false,
-            });
-            const {data:newJob}=await db.from("jobs").insert({
-  worker_id:user.id,
-  client_id:req.client_id,
-  client_name:req.client_name,
-  title:req.oficio,
-  description:req.description,
-  status:"pending",
-}).select().single();
-if(newJob) setJobs(prev=>[newJob,...prev]);
-            setUrgentLead(null);
-            setTab("chats");
-            await loadChats();
-            await new Promise(r=>setTimeout(r,200));
-            setChatUser(cliente as UserRow);
-          } else {
-            console.error("CLIENTE NO ENCONTRADO — client_id:",req.client_id);
-          }
-        }
-      } else {
+   onClick={async()=>{
+  const requestId=urgentLead.requestId;
+  const isNuevoLead=urgentLead.isNuevoLead;
+  await db.from("messages").update({read:true}).eq("to_id",user.id).eq("is_lead_alert",true).eq("read",false);
+  if(isNuevoLead&&requestId){
+    const {data:req}=await db.from("budget_requests")
+      .select("*").eq("id",requestId).single();
+    if(req){
+      const accepted=[...(req.accepted_pros||[]),user.id];
+      await db.from("budget_requests").update({
+        accepted_pros:accepted,
+        status:accepted.length>=3?"closed":"open",
+      }).eq("id",requestId);
+      const {data:cliente}=await db.from("users").select("*").eq("id",req.client_id).single();
+      if(cliente){
+        await db.from("messages").insert({
+          from_id:user.id,
+          to_id:req.client_id,
+          text:`¡Hola ${req.client_name}! He visto tu solicitud de ${req.oficio} en ${req.zona}. Estoy disponible para ayudarte. ¿Cuándo te viene bien?`,
+          read:false,
+        });
+        await db.from("messages").insert({
+          from_id:"00000000-0000-0000-0000-000000000001",
+          to_id:req.client_id,
+          text:`PRO_ACEPTO|REQUEST_ID:${requestId}|${accepted.length}`,
+          read:false,
+          is_lead_alert:false,
+        });
+        const {data:newJob}=await db.from("jobs").insert({
+          worker_id:user.id,
+          client_id:req.client_id,
+          client_name:req.client_name,
+          title:req.oficio,
+          description:req.description,
+          status:"pending",
+        }).select().single();
+        if(newJob) setJobs(prev=>[newJob,...prev]);
         setUrgentLead(null);
         setTab("chats");
         await loadChats();
+        await new Promise(r=>setTimeout(r,200));
+        setChatUser(cliente as UserRow);
       }
-    }}
+    }
+  } else {
+    setUrgentLead(null);
+    setTab("chats");
+    await loadChats();
+  }
+}}
   />
 )}
       {urgentLead&&urgentLead.isPresupuesto&&(
