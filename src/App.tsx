@@ -3414,10 +3414,18 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
               text:`¡Hola ${req.client_name}! He visto tu solicitud de ${req.oficio} en ${req.zona}. Estoy disponible para ayudarte. ¿Cuándo te viene bien?`,
               read:false,
             });
-            setUrgentLead(null);
-            loadChats();
-            setTab("chats");
-            setChatUser(cliente as UserRow);
+            await db.from("jobs").insert({
+  worker_id:user.id,
+  client_id:req.client_id,
+  client_name:req.client_name,
+  title:req.oficio,
+  description:req.description,
+  status:"in_progress",
+});
+setUrgentLead(null);
+loadChats();
+setTab("chats");
+setChatUser(cliente as UserRow);
           }
         }
       } else {
@@ -3589,6 +3597,44 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
 
         {tab==="trabajos"&&(<>
           <div style={{padding:"22px 0 16px"}}><h2 style={{fontWeight:800,fontSize:22,color:C.text}}>Mis trabajos</h2></div>
+          {/* ── LEADS PENDIENTES ── */}
+          {jobs.filter((j:any)=>j.status==="lead").length>0&&(
+            <div style={{marginBottom:16}}>
+              <p style={{fontSize:11,color:C.orange,fontWeight:700,textTransform:"uppercase" as const,letterSpacing:"0.08em",marginBottom:8}}>🔴 Solicitudes nuevas</p>
+              {jobs.filter((j:any)=>j.status==="lead").map((j:any)=>(
+                <GCard key={j.id} style={{marginBottom:8,border:"1px solid "+C.orange+"44",background:"#1a1500"}}>
+                  <div style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:10}}>
+                    <div style={{flex:1}}>
+                      <p style={{fontWeight:700,color:C.text,fontSize:14,marginBottom:3}}>{j.title}</p>
+                      <p style={{fontSize:12,color:C.muted}}>👤 {j.client_name} · {timeAgo(j.created_at)}</p>
+                      {j.description&&<p style={{fontSize:12,color:C.mutedL,marginTop:4,lineHeight:1.4}}>{j.description}</p>}
+                    </div>
+                    <span style={{fontSize:9,color:C.orange,background:C.orange+"22",padding:"2px 7px",borderRadius:3,fontWeight:700,flexShrink:0}}>NUEVO</span>
+                  </div>
+                  <div style={{display:"flex",gap:8}}>
+                    <button onClick={async()=>{
+                      await updateJobStatus(j.id,"in_progress");
+                      // Abrir chat con cliente
+                      const {data:cliente}=await db.from("users").select("*").eq("id",j.client_id).single();
+                      if(cliente){
+                        await db.from("messages").insert({
+                          from_id:user.id,to_id:j.client_id,
+                          text:`¡Hola ${j.client_name}! He visto tu solicitud de ${j.title}. Estoy disponible para ayudarte. ¿Cuándo te viene bien?`,
+                          read:false,
+                        });
+                        setChatUser(cliente as UserRow);
+                      }
+                    }} style={{flex:2,padding:"9px",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:8,color:"#000",fontFamily:"'DM Sans',sans-serif",fontSize:13,fontWeight:800,cursor:"pointer"}}>
+                      ✓ Aceptar y chatear →
+                    </button>
+                    <button onClick={()=>updateJobStatus(j.id,"cancelled")} style={{padding:"9px 12px",background:C.red+"15",border:"1px solid "+C.red+"33",borderRadius:8,color:C.red,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:600}}>
+                      Rechazar
+                    </button>
+                  </div>
+                </GCard>
+              ))}
+            </div>
+          )}
           <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10,marginBottom:16}}>
             {[{l:"Pendientes",v:jobs.filter(j=>j.status==="pending").length,c:C.orange},{l:"En progreso",v:jobs.filter(j=>j.status==="in_progress").length,c:C.blue},{l:"Completados",v:jobs.filter(j=>j.status==="done").length,c:C.green},{l:"Total",v:jobs.length,c:C.accent}].map(s=>(
               <GCard key={s.l} style={{textAlign:"center",padding:"12px 8px"}}>
