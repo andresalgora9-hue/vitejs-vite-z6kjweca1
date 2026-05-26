@@ -4699,18 +4699,13 @@ export default function App(){
   const [user,setUser]=useState<UserRow|null>(null);
   const [ready,setReady]=useState(false);
  useEffect(()=>{
-    // Fix para iPhone: Forzar el viewport para que respete safe-areas
     const meta = document.createElement('meta');
     meta.name = "viewport";
     meta.content = "width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no";
     document.getElementsByTagName('head')[0].appendChild(meta);
-// Registrar Service Worker para push notifications
     if('serviceWorker' in navigator){
-   if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('/sw.js').then(()=>{
-    // SW registrado OK
-  }).catch(()=>{});
-}
+      navigator.serviceWorker.register('/sw.js').then(()=>{}).catch(()=>{});
+    }
     const s=localStorage.getItem("oy_user");
     if(s){try{setUser(JSON.parse(s));}catch{localStorage.removeItem("oy_user");}}
     setReady(true);
