@@ -264,8 +264,8 @@ return <div style={{position:"fixed",bottom:88,left:"50%",transform:"translateX(
 function InstallBanner(){
   const [show,setShow]=useState(false);
   const [deferredPrompt,setDeferredPrompt]=useState<any>(null);
-  const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
-  const isInStandalone=window.matchMedia("(display-mode: standalone)").matches||(navigator as any).standalone===true;
+  const isIOS=typeof navigator!=="undefined"&&/iphone|ipad|ipod/i.test(navigator.userAgent);
+const isInStandalone=typeof window!=="undefined"&&(window.matchMedia("(display-mode: standalone)").matches||(navigator as any).standalone===true);
 
   useEffect(()=>{
     if(localStorage.getItem("oy_install_dismissed"))return;
@@ -4706,8 +4706,11 @@ export default function App(){
     document.getElementsByTagName('head')[0].appendChild(meta);
 // Registrar Service Worker para push notifications
     if('serviceWorker' in navigator){
-      navigator.serviceWorker.register('/sw.js').catch(()=>{});
-    }
+   if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/sw.js').then(()=>{
+    // SW registrado OK
+  }).catch(()=>{});
+}
     const s=localStorage.getItem("oy_user");
     if(s){try{setUser(JSON.parse(s));}catch{localStorage.removeItem("oy_user");}}
     setReady(true);
@@ -4716,11 +4719,13 @@ export default function App(){
   const login=(u:UserRow)=>{
   setUser(u);
   localStorage.setItem("oy_user",JSON.stringify(u));
-  if("Notification" in window){
-    Notification.requestPermission().then(perm=>{
-      if(perm==="granted") subscribeToPush(u.id);
-    });
-  }
+  try{
+    if("Notification" in window){
+      Notification.requestPermission().then(perm=>{
+        if(perm==="granted") subscribeToPush(u.id);
+      }).catch(()=>{});
+    }
+  }catch(e){}
 };
   const logout=()=>{setUser(null);localStorage.removeItem("oy_user");};
   const update=(u:UserRow)=>{setUser(u);localStorage.setItem("oy_user",JSON.stringify(u));};
