@@ -583,66 +583,6 @@ function AnticipoCard({m,isMe,currentUser,toUser,showToast}:any){
     </div>
   );
 }
-// ─── ANTICIPO CARD ───
-function AnticipoCard({m,isMe,currentUser,toUser,showToast}:any){
-  const isPagado=m.text.includes("ANTICIPO_PAGADO:");
-  const isSolicitado=m.text.includes("ANTICIPO_SOLICITADO:");
-  const parts=m.text.split(":");
-  const amount=parts[1]?.replace("€","").trim()||"";
-  const [pagando,setPagando]=useState(false);
-  const [pagado,setPagadoLocal]=useState(isPagado);
-  return(
-    <div style={{display:"flex",justifyContent:"center",marginBottom:10,animation:"fadeSlideUp 0.4s ease"}}>
-      <div style={{width:"92%",maxWidth:340,background:pagado?"linear-gradient(135deg,#0a1f14,#0d2318)":"linear-gradient(135deg,#12100a,#1a1508)",border:"1px solid "+(pagado?"#00D68F44":"#FFD70033"),borderRadius:18,overflow:"hidden",boxShadow:pagado?"0 4px 24px rgba(0,214,143,0.12)":"0 4px 24px rgba(255,215,0,0.08)",transition:"all 0.5s ease"}}>
-        <div style={{height:3,background:pagado?"linear-gradient(90deg,#00D68F,#00A870)":"linear-gradient(90deg,#FFD700,#FF8C00,#FFD700)",backgroundSize:"200% auto",animation:pagado?"none":"shimmer 2.5s linear infinite"}} />
-        <div style={{padding:"16px 18px"}}>
-          <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
-            <div style={{width:40,height:40,borderRadius:12,flexShrink:0,background:pagado?"linear-gradient(135deg,#00D68F22,#00D68F11)":"linear-gradient(135deg,#FFD70022,#FF8C0011)",border:"1px solid "+(pagado?"#00D68F33":"#FFD70033"),display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>{pagado?"✅":"💳"}</div>
-            <div style={{flex:1}}>
-              <p style={{fontWeight:800,fontSize:13,color:pagado?"#00D68F":"#FFD700",margin:0}}>{pagado?"Anticipo confirmado":"Solicitud de anticipo"}</p>
-              <p style={{fontSize:11,color:"#5A6A8A",margin:"2px 0 0"}}>{pagado?(isMe?"Has recibido el anticipo":"Has pagado el anticipo"):(isMe?"Esperando pago del cliente":"El profesional solicita un anticipo")}</p>
-            </div>
-            <div style={{padding:"6px 12px",borderRadius:99,background:pagado?"#00D68F18":"#FFD70015",border:"1px solid "+(pagado?"#00D68F33":"#FFD70022")}}>
-              <p style={{fontWeight:900,fontSize:16,color:pagado?"#00D68F":"#FFD700",margin:0}}>{amount}€</p>
-            </div>
-          </div>
-          {isSolicitado&&!isMe&&currentUser.type==="cliente"&&!pagado&&(
-            <button disabled={pagando} onClick={async()=>{
-              setPagando(true);
-              try{
-                const res=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/super-handler",{
-                  method:"POST",
-                  headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo"},
-                  body:JSON.stringify({client_id:currentUser.id,pro_id:m.from_id,pro_name:toUser.name,client_name:currentUser.name,amount:parseInt(amount)}),
-                });
-                const {url}=await res.json();
-                if(url){
-                  window.location.href=url;
-                  await db.from("messages").insert({from_id:currentUser.id,to_id:toUser.id,text:`💰 ANTICIPO_PAGADO:${amount}€:pagado por ${currentUser.name}`,read:false});
-                  setPagadoLocal(true);
-                }else{showToast("⚠️ Error al generar el pago");}
-              }catch{showToast("⚠️ Error de conexión");}
-              setPagando(false);
-            }} style={{width:"100%",padding:"13px",background:pagando?"#222":"linear-gradient(135deg,#FFD700,#FF8C00)",border:"none",borderRadius:12,color:pagando?"#555":"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:800,fontSize:14,cursor:pagando?"not-allowed":"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,boxShadow:pagando?"none":"0 4px 16px rgba(255,215,0,0.25)",transition:"all 0.2s"}}>
-              {pagando?<><div style={{width:14,height:14,border:"2px solid #444",borderTop:"2px solid #FFD700",borderRadius:"50%",animation:"spin 0.8s linear infinite"}} />Procesando...</>:<>💳 Pagar {amount}€ ahora</>}
-            </button>
-          )}
-          {pagado&&(
-            <div style={{display:"flex",alignItems:"center",gap:8,padding:"10px 14px",background:"rgba(0,214,143,0.08)",border:"1px solid rgba(0,214,143,0.15)",borderRadius:10,animation:"fadeSlideUp 0.4s ease"}}>
-              <span style={{fontSize:16}}>✅</span>
-              <div>
-                <p style={{fontSize:12,fontWeight:700,color:"#00D68F",margin:0}}>Pago confirmado</p>
-                <p style={{fontSize:10,color:"#5A6A8A",margin:0}}>OfficioYa garantiza este servicio</p>
-              </div>
-            </div>
-          )}
-          {!pagado&&<div style={{display:"flex",alignItems:"center",gap:6,marginTop:10}}><span style={{fontSize:11,color:"#5A6A8A"}}>🔒</span><p style={{fontSize:10,color:"#5A6A8A",margin:0}}>Pago seguro · Stripe · Garantía OfficioYa</p></div>}
-          <p style={{fontSize:9,color:"#2D3A52",margin:"8px 0 0",textAlign:"right" as const}}>{formatTime(m.created_at)}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
 // ─── CHAT FULL-SCREEN — iPhone style ───
 function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:UserRow;onClose:()=>void}){
   const [msgs,setMsgs]=useState<MessageRow[]>([]);
