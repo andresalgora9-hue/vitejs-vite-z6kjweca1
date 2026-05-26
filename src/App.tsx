@@ -3255,9 +3255,9 @@ useEffect(()=>{
       }
     }
     // Si es un trabajo asignado directamente a este pro
-    if(job.worker_id===user.id){
-      setJobs(prev=>[job,...prev]
-      showToast("🔔 Nueva solicitud de trabajo de "+job.client_name
+   if(job.worker_id===user.id){
+      setJobs(prev=>[job,...prev]);
+      showToast("🔔 Nueva solicitud de trabajo de "+job.client_name);
     }
   })
   // Escuchar también inserciones en requests para alerta directa
