@@ -1748,83 +1748,103 @@ function SolicitudesTab({user,workers,onWorkerSelect,onChat}:{user:UserRow;worke
       )}
 
       <div style={{display:"flex",flexDirection:"column" as const,gap:12}}>
-        {solicitudes.map((sol:any)=>{
-          const ofs=ofertas[sol.id]||[];
-          return(
-            <GCard key={sol.id} style={{border:"1px solid "+(ofs.length>0?C.green+"33":C.border)}}>
-              <div style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:10}}>
-                <div style={{flex:1}}>
-                  <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap" as const,marginBottom:4}}>
-                    <span style={{fontSize:14}}>{OFICIO_ICONS[sol.oficio]||"🔧"}</span>
-                    <p style={{fontWeight:700,color:C.text,fontSize:14}}>{sol.oficio}</p>
-                    <span style={{fontSize:10,color:C.muted}}>· {sol.zona}</span>
-                    <span style={{fontSize:9,padding:"1px 6px",borderRadius:3,fontWeight:700,
-                      background:ofs.length>=3?C.green+"22":ofs.length>0?C.orange+"22":C.border,
-                      color:ofs.length>=3?C.green:ofs.length>0?C.orange:C.muted,
-                    }}>{ofs.length>=3?"3/3 completo":ofs.length+"/3 ofertas"}</span>
-                  </div>
-                  <p style={{fontSize:12,color:C.mutedL,marginBottom:4}}>{sol.description}</p>
-                  {sol.max_budget&&<p style={{fontSize:11,color:C.accent}}>💰 Máximo: {sol.max_budget}€</p>}
-                </div>
-              </div>
-
-              {ofs.length===0&&(
-                <p style={{fontSize:12,color:C.muted,textAlign:"center" as const,padding:"8px 0"}}>⏳ Esperando ofertas de profesionales...</p>
-              )}
-
-              {ofs.length>0&&(
-                <div style={{display:"flex",flexDirection:"column" as const,gap:8}}>
-                  {ofs.map((o:any,i:number)=>{
-                    const pro=workers.find(w=>w.id===o.pro_id);
-                    const col=PLAN_COLORS[o.pro_plan as Plan]||C.muted;
-                    return(
-                      <div key={o.id} style={{background:C.surface,borderRadius:10,padding:"12px",border:"1px solid "+C.border}}>
-                        <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:8}}>
-                          <div style={{width:32,height:32,borderRadius:"50%",background:col+"33",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:800,color:col,flexShrink:0}}>
-                            {o.pro_name?.[0]||"P"}
-                          </div>
-                          <div style={{flex:1}}>
-                            <div style={{display:"flex",gap:6,alignItems:"center"}}>
-                              <p style={{fontWeight:700,fontSize:13,color:C.text}}>{o.pro_name}</p>
-                              <span style={{fontSize:9,color:col,background:col+"22",padding:"1px 5px",borderRadius:3,fontWeight:700}}>{(o.pro_plan||"").toUpperCase()}</span>
-                              {o.pro_rating>0&&<span style={{fontSize:10,color:C.accent}}>⭐{o.pro_rating.toFixed(1)}</span>}
-                            </div>
-                          </div>
-                          <div style={{textAlign:"right" as const}}>
-                            <p style={{fontWeight:900,fontSize:18,color:C.accent}}>{o.price}€</p>
-                            {o.time_estimate&&<p style={{fontSize:10,color:C.muted}}>⏱ {o.time_estimate}</p>}
-                          </div>
-                        </div>
-                        <p style={{fontSize:12,color:C.mutedL,marginBottom:10}}>{o.description}</p>
-                        <div style={{display:"flex",gap:8}}>
-                          {pro&&<button onClick={()=>onWorkerSelect(pro)} style={{flex:1,padding:"8px",background:"transparent",border:"1px solid "+C.border,borderRadius:8,color:C.mutedL,fontFamily:"'DM Sans',sans-serif",fontSize:12,cursor:"pointer",fontWeight:600}}>Ver perfil</button>}
-                          <button onClick={async()=>{
-                            // Marcar oferta como elegida
-                            await db.from("budget_offers").update({status:"chosen"}).eq("id",o.id);
-                            await db.from("budget_requests").update({status:"closed"}).eq("id",sol.id);
-                            // Notificar a los no elegidos
-                            ofs.filter((x:any)=>x.id!==o.id).forEach(async(x:any)=>{
-                              await db.from("messages").insert({from_id:"system-lead",to_id:x.pro_id,text:"Lo sentimos, el cliente eligió otro profesional para este trabajo. ¡Sigue respondiendo rápido!",read:false});
-                            });
-                            // Abrir chat con el elegido
-                            if(pro)onChat(pro);
-                            loadSolicitudes();
-                          }} style={{flex:2,padding:"8px",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:8,color:"#000",fontFamily:"'DM Sans',sans-serif",fontSize:12,fontWeight:800,cursor:"pointer"}}>
-                            ✓ Elegir y chatear →
-                          </button>
-                        </div>
+  {solicitudes.map((sol:any)=>{
+    const ofs=ofertas[sol.id]||[];
+    const acceptedCount=(sol.accepted_pros||[]).length;
+    const statusColor=sol.status==="closed"?C.green:acceptedCount>0?C.orange:C.muted;
+    const statusLabel=sol.status==="closed"?"✅ Cerrada":acceptedCount>0?`${acceptedCount} profesional${acceptedCount>1?"es":""} interesado${acceptedCount>1?"s":""}`:"⏳ Esperando...";
+    return(
+      <GCard key={sol.id} style={{background:"#1e2035",border:"1px solid "+(acceptedCount>0?statusColor+"44":C.border)}}>
+        {/* Cabecera */}
+        <div style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:12}}>
+          <div style={{width:42,height:42,borderRadius:12,background:C.accent+"22",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>
+            {OFICIO_ICONS[sol.oficio]||"🔧"}
+          </div>
+          <div style={{flex:1}}>
+            <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap" as const,marginBottom:2}}>
+              <p style={{fontWeight:800,color:C.text,fontSize:15}}>{sol.oficio}</p>
+              <span style={{fontSize:10,color:C.muted}}>· {sol.zona}</span>
+            </div>
+            <p style={{fontSize:12,color:C.mutedL,marginBottom:4,lineHeight:1.4}}>{sol.description}</p>
+            {sol.max_budget&&<p style={{fontSize:11,color:C.accent,fontWeight:700}}>💰 Máximo: {sol.max_budget}€</p>}
+          </div>
+        </div>
+        {/* Estado */}
+        <div style={{display:"flex",alignItems:"center",gap:8,padding:"8px 12px",background:statusColor+"15",borderRadius:8,marginBottom:12}}>
+          <div style={{width:8,height:8,borderRadius:"50%",background:statusColor,flexShrink:0}}/>
+          <p style={{fontSize:12,color:statusColor,fontWeight:700,flex:1}}>{statusLabel}</p>
+          <p style={{fontSize:10,color:C.muted}}>{new Date(sol.created_at).toLocaleDateString("es-ES")}</p>
+        </div>
+        {/* Sin ofertas */}
+        {ofs.length===0&&acceptedCount===0&&(
+          <p style={{fontSize:12,color:C.muted,textAlign:"center" as const,padding:"8px 0"}}>
+            Los profesionales recibirán tu solicitud en breve
+          </p>
+        )}
+        {/* Profesionales aceptaron pero sin oferta formal aún */}
+        {ofs.length===0&&acceptedCount>0&&(
+          <p style={{fontSize:12,color:C.orange,textAlign:"center" as const,padding:"8px 0",fontWeight:600}}>
+            🔔 {acceptedCount} profesional{acceptedCount>1?"es están":"está"} preparando su oferta...
+          </p>
+        )}
+        {/* Ofertas recibidas */}
+        {ofs.length>0&&(
+          <div style={{display:"flex",flexDirection:"column" as const,gap:8}}>
+            <p style={{fontSize:11,color:C.muted,fontWeight:700,textTransform:"uppercase" as const,letterSpacing:"0.08em",marginBottom:4}}>Ofertas recibidas</p>
+            {ofs.map((o:any)=>{
+              const pro=workers.find(w=>w.id===o.pro_id);
+              const col=PLAN_COLORS[o.pro_plan as Plan]||C.muted;
+              const isChosen=o.status==="chosen";
+              return(
+                <div key={o.id} style={{background:isChosen?"#1a2e1a":C.surface,borderRadius:10,padding:"12px",border:"1px solid "+(isChosen?C.green+"66":C.border)}}>
+                  <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:8}}>
+                    <div style={{width:36,height:36,borderRadius:"50%",background:col+"33",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:800,color:col,flexShrink:0}}>
+                      {o.pro_name?.[0]||"P"}
+                    </div>
+                    <div style={{flex:1}}>
+                      <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap" as const}}>
+                        <p style={{fontWeight:700,fontSize:13,color:C.text}}>{o.pro_name}</p>
+                        <span style={{fontSize:9,color:col,background:col+"22",padding:"1px 5px",borderRadius:3,fontWeight:700}}>{(o.pro_plan||"").toUpperCase()}</span>
+                        {o.pro_rating>0&&<span style={{fontSize:10,color:C.accent}}>⭐{o.pro_rating.toFixed(1)}</span>}
+                        {isChosen&&<span style={{fontSize:9,color:C.green,background:C.green+"22",padding:"1px 6px",borderRadius:3,fontWeight:700}}>✓ ELEGIDO</span>}
                       </div>
-                    );
-                  })}
+                    </div>
+                    <div style={{textAlign:"right" as const}}>
+                      <p style={{fontWeight:900,fontSize:20,color:C.accent}}>{o.price}€</p>
+                      {o.time_estimate&&<p style={{fontSize:10,color:C.muted}}>⏱ {o.time_estimate}</p>}
+                    </div>
+                  </div>
+                  <p style={{fontSize:12,color:C.mutedL,marginBottom:10,lineHeight:1.5}}>{o.description}</p>
+                  {!isChosen&&sol.status!=="closed"&&(
+                    <div style={{display:"flex",gap:8}}>
+                      {pro&&<button onClick={()=>onWorkerSelect(pro)} style={{flex:1,padding:"9px",background:"transparent",border:"1px solid "+C.border,borderRadius:8,color:C.mutedL,fontFamily:"'DM Sans',sans-serif",fontSize:12,cursor:"pointer",fontWeight:600}}>Ver perfil</button>}
+                      <button onClick={async()=>{
+                        await db.from("budget_offers").update({status:"chosen"}).eq("id",o.id);
+                        await db.from("budget_requests").update({status:"closed"}).eq("id",sol.id);
+                        ofs.filter((x:any)=>x.id!==o.id).forEach(async(x:any)=>{
+                          await db.from("messages").insert({from_id:"system-lead",to_id:x.pro_id,text:"Lo sentimos, el cliente eligió otro profesional para este trabajo. ¡Sigue respondiendo rápido!",read:false});
+                        });
+                        if(pro)onChat(pro);
+                        loadSolicitudes();
+                      }} style={{flex:2,padding:"9px",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:8,color:"#000",fontFamily:"'DM Sans',sans-serif",fontSize:13,fontWeight:800,cursor:"pointer"}}>
+                        ✓ Elegir y chatear →
+                      </button>
+                    </div>
+                  )}
+                  {isChosen&&(
+                    <button onClick={()=>{if(pro)onChat(pro);}} style={{width:"100%",padding:"9px",background:C.green+"22",border:"1px solid "+C.green+"44",borderRadius:8,color:C.green,fontFamily:"'DM Sans',sans-serif",fontSize:13,fontWeight:700,cursor:"pointer"}}>
+                      💬 Abrir chat →
+                    </button>
+                  )}
                 </div>
-              )}
-            </GCard>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
+              );
+            })}
+          </div>
+        )}
+      </GCard>
+    );
+  })}
+</div>
 // ─── CLIENT HOME ───
 // ════════════════════════════════════════════════════════════════
 // REEMPLAZA el ClientHome completo en tu App.tsx
