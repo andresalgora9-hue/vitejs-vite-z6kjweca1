@@ -3946,6 +3946,29 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
               paddingBottom:2,
               opacity:0.7,
             }}>¿Cómo funciona la cancelación?</a>
+            {user.plan!=="gratis"&&(
+              <div style={{marginTop:12}}>
+                <button onClick={async()=>{
+                  await db.from("messages").insert({
+                    from_id:user.id,
+                    to_id:"00000000-0000-0000-0000-000000000002",
+                    text:`Solicitud de cancelación de plan ${user.plan.toUpperCase()} de ${user.name} (${user.email}). Por favor, gestiona la baja.`,
+                    read:false,
+                  });
+                  showToast("✓ Solicitud enviada al equipo");
+                }} style={{
+                  background:"none",
+                  border:"1px solid "+C.border,
+                  borderRadius:8,
+                  color:C.muted,
+                  fontSize:11,
+                  padding:"6px 14px",
+                  cursor:"pointer",
+                  fontFamily:"'DM Sans',sans-serif",
+                  opacity:0.6,
+                }}>Solicitar cancelación de suscripción</button>
+              </div>
+            )}
           </div>
           <div style={{height:30}} />
         </>)}
