@@ -4721,13 +4721,11 @@ if(window.location.pathname==="/cancelacion")return <Cancelacion />;
       @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap');
       *{box-sizing:border-box;margin:0;padding:0;}
       html, body {
-        overflow-x: hidden;
-        background: #0F1117;
-        height: 100%;
-        /* Evita rebotes raros en iPhone */
-        position: fixed; 
-        width: 100%;
-      }
+  overflow-x: hidden;
+  background: #0F1117;
+  height: 100%;
+  width: 100%;
+}
       body {
         color: #E8EDF5;
         font-family: 'DM Sans', sans-serif;
