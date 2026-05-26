@@ -560,8 +560,7 @@ console.log("RESPUESTA SUPER-HANDLER:",JSON.stringify(data));
 const url=data.url;
 if(url){
   window.location.href=url;
-  await db.from("messages").insert({from_id:currentUser.id,to_id:toUser.id,text:`💰 ANTICIPO_PAGADO:${amount}€:pagado por ${currentUser.name}`,read:false});
-  setPagadoLocal(true);
+}
 }else{alert("Error: "+JSON.stringify(data));}
               }catch{alert("⚠️ Error de conexión");}
               setPagando(false);
