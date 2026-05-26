@@ -1964,7 +1964,8 @@ db.from("users").select("name").eq("id",m.from_id).single().then(({data}:any)=>{
   const {data:ws}=await db.from("users").select("*").in("id",ids);
 if(!ws)return;
 const adminUser={id:"00000000-0000-0000-0000-000000000002",name:"OfficioYa Soporte",email:"",password:"",phone:"",type:"admin",plan:"elite",bio:"",price:0,trade:"",zone:"",rating:0,reviews:0,jobs:0,verified:true,available:true,whatsapp:"",service_zones:[],schedule:"",response_time:"",free_quote:false,experience_years:0,specialties:[],trial_end:"",joined_at:""};
-const allWs=ids.includes("00000000-0000-0000-0000-000000000002")?[...ws,adminUser]:ws;
+const wsFiltered=ws.filter((u:any)=>u.id!=="00000000-0000-0000-0000-000000000002");
+const allWs=ids.includes("00000000-0000-0000-0000-000000000002")?[...wsFiltered,adminUser]:wsFiltered;
   const lastMsg:Record<string,any>={};
   allMsgs.forEach((m:any)=>{
     const partnerId=m.from_id===user.id?m.to_id:m.from_id;
@@ -3196,8 +3197,8 @@ const loadChats=useCallback(async()=>{
     const {data:ws}=await db.from("users").select("*").in("id",ids);
 if(!ws)return;
 const adminUser={id:"00000000-0000-0000-0000-000000000002",name:"OfficioYa Soporte",email:"",password:"",phone:"",type:"admin",plan:"elite",bio:"",price:0,trade:"",zone:"",rating:0,reviews:0,jobs:0,verified:true,available:true,whatsapp:"",service_zones:[],schedule:"",response_time:"",free_quote:false,experience_years:0,specialties:[],trial_end:"",joined_at:""};
-  const allWs=ids.includes("00000000-0000-0000-0000-000000000002")?[...ws,adminUser]:ws;
-
+const wsFiltered=ws.filter((u:any)=>u.id!=="00000000-0000-0000-0000-000000000002");
+const allWs=ids.includes("00000000-0000-0000-0000-000000000002")?[...wsFiltered,adminUser]:wsFiltered;
     // Último mensaje y timestamp por usuario
     const lastMsg:Record<string,any>={};
     allMsgs.forEach((m:any)=>{
