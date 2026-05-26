@@ -4096,13 +4096,16 @@ setCerts((ct.data||[]) as any[]);
   // Realtime: notify admin of new messages
   useEffect(()=>{
     const ch=db.channel("admin-realtime")
-      .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"to_id=eq.00000000-0000-0000-0000-000000000002"},(p:any)=>{
+  .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},(p:any)=>{
         const m=p.new as MessageRow;
         if(m.from_id!=="00000000-0000-0000-0000-000000000002"&&m.from_id!=="00000000-0000-0000-0000-000000000001"){
-          setMsgs(prev=>[m,...prev]);
-          setUnreadAdminMsgs(c=>c+1);
-          setToastMsg("💬 Nuevo mensaje en la plataforma");
-          setTimeout(()=>setToastMsg(null),4000);
+          ssetMsgs(prev=>{
+  if(prev.find((x:any)=>x.id===m.id))return prev;
+  return [m,...prev];
+});
+setUnreadAdminMsgs(c=>c+1);
+setToastMsg("💬 "+m.from_id+" → nuevo mensaje");
+setTimeout(()=>setToastMsg(null),4000);
         }
       })
       .on("postgres_changes",{event:"INSERT",schema:"public",table:"users"},(p:any)=>{
@@ -4114,7 +4117,16 @@ setCerts((ct.data||[]) as any[]);
         }
       })
       .subscribe();
-    return ()=>{db.removeChannel(ch);};
+    const poll=setInterval(async()=>{
+  const {data}=await db.from("messages").select("*").order("created_at",{ascending:false});
+  if(data) setMsgs(data as MessageRow[]);
+},5000);
+return()=>{db.removeChannel(ch);clearInterval(poll);};
+    const poll=setInterval(async()=>{
+  const {data}=await db.from("messages").select("*").order("created_at",{ascending:false});
+  if(data) setMsgs(data as MessageRow[]);
+},5000);
+return()=>{db.removeChannel(ch);clearInterval(poll);};
   },[]);
 
   const now=new Date();
