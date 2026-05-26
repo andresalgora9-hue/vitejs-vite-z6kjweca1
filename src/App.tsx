@@ -1929,7 +1929,7 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
 
   const loadChats=useCallback(async()=>{
   const {data:received}=await db.from("messages").select("from_id,to_id,text,read,created_at").eq("to_id",user.id);
-  const {data:sent}=.select("from_id,to_id,text,read,created_at").eq("from_id",user.id);
+  const {data:sent}=await db.from("messages").select("from_id,to_id,text,read,created_at").eq("from_id",user.id);
   const allMsgs=[...(received||[]),...(sent||[])];
   if(!allMsgs.length){setChatPartners([]);setUnreadByWorker({});return;}
   const ids=[...new Set(allMsgs.map((m:any)=>m.from_id===user.id?m.to_id:m.from_id))]
