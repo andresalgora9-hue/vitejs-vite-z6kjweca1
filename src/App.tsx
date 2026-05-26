@@ -3095,7 +3095,7 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
 const [lastMsgByUser,setLastMsgByUser]=useState<Record<string,any>>({});
 const [chatUser,setChatUser]=useState<UserRow|null>(null);
   const [stats,setStats]=useState({visits:0,contacts:0,reviews:0});
-  const [urgentLead,setUrgentLead]=useState<{msg:string;fromId:string;isPresupuesto?:boolean}|null>(null);
+ const [urgentLead,setUrgentLead]=useState<{msg:string;fromId:string;isNuevoLead?:boolean;requestId?:string|null}|null>(null);
   const [showPresupuestoForm,setShowPresupuestoForm]=useState<{requestId:string;clientName:string;oficio:string;desc:string}|null>(null);
   const [inAppNotif,setInAppNotif]=useState<{msg:string;from:string;fromId:string;isAdmin:boolean}|null>(null);
   const [unreadMsgs,setUnreadMsgs]=useState(0);
@@ -3191,15 +3191,20 @@ useEffect(()=>{
     const m=p.new; 
     const isLeadAlert=m.from_id==="system-lead"||m.text?.includes("NUEVO CLIENTE INTERESADO"); 
     const isAdmin=m.from_id==="admin-001"; 
-    if(isLeadAlert){ 
-      const isPresupuesto=m.text.includes("NUEVO PRESUPUESTO SOLICITADO"); 
-      setUrgentLead({msg:m.text,fromId:m.from_id,isPresupuesto}); 
-      setUnreadMsgs(c=>c+1); 
-      showPushNotification( 
-        isPresupuesto?"📋 Nueva solicitud de presupuesto":"🔴 Cliente nuevo — OfficioYa", 
-        isPresupuesto?"Un cliente solicita presupuesto para tu servicio. Sé de los 3 primeros.":"Un cliente necesita tus servicios ahora. Toca para responder." 
-      ); 
-    } 
+    if(isLeadAlert){
+  const isNuevoLead=m.text.includes("NUEVO LEAD|REQUEST_ID:");
+  // Extraer request_id del texto
+  const reqMatch=m.text.match(/REQUEST_ID:([a-f0-9-]+)/);
+  const requestId=reqMatch?reqMatch[1]:null;
+  // Extraer nombre del cliente y detalles
+  const msgClean=m.text.replace(/🔴 \*NUEVO LEAD\|REQUEST_ID:[a-f0-9-]+\|/,"🔴 Nuevo trabajo disponible\n\n");
+  setUrgentLead({msg:msgClean,fromId:m.from_id,isNuevoLead,requestId});
+  setUnreadMsgs(c=>c+1);
+  showPushNotification(
+    "🔴 Nuevo trabajo — OfficioYa",
+    "Un cliente necesita tus servicios ahora. Toca para aceptar."
+  );
+}
     else if(isAdmin){ 
       // ── Admin notification ── 
       setInAppNotif({msg:m.text.replace("[Soporte OfficioYa] ",""),from:"👑 OfficioYa Soporte",fromId:m.from_id,isAdmin:true}); 
