@@ -560,8 +560,8 @@ function AnticipoCard({m,isMe,currentUser,toUser,showToast}:any){
                   window.location.href=url;
                   await db.from("messages").insert({from_id:currentUser.id,to_id:toUser.id,text:`💰 ANTICIPO_PAGADO:${amount}€:pagado por ${currentUser.name}`,read:false});
                   setPagadoLocal(true);
-                }else{showToast("⚠️ Error al generar el pago");}
-              }catch{showToast("⚠️ Error de conexión");}
+                }else{alert("⚠️ Error al generar el pago");}
+              }catch{alert("⚠️ Error de conexión");}
               setPagando(false);
             }} style={{width:"100%",padding:"13px",background:pagando?"#222":"linear-gradient(135deg,#FFD700,#FF8C00)",border:"none",borderRadius:12,color:pagando?"#555":"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:800,fontSize:14,cursor:pagando?"not-allowed":"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,boxShadow:pagando?"none":"0 4px 16px rgba(255,215,0,0.25)",transition:"all 0.2s"}}>
               {pagando?<><div style={{width:14,height:14,border:"2px solid #444",borderTop:"2px solid #FFD700",borderRadius:"50%",animation:"spin 0.8s linear infinite"}} />Procesando...</>:<>💳 Pagar {amount}€ ahora</>}
@@ -878,7 +878,7 @@ function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:User
           const isLead=isLeadAlert(m.text);
 // Anticipo special rendering
           if(isAnticipoMsg(m.text)){
-  return <AnticipoCard key={m.id} m={m} isMe={isMe} currentUser={currentUser} toUser={toUser} showToast={showToast} />;
+  return <AnticipoCard key={m.id} m={m} isMe={isMe} currentUser={currentUser} toUser={toUser} showToast={(msg:string)=>{alert(msg);}} />;
 }
           // Lead alert special rendering
           if(isLead&&!isMe){
