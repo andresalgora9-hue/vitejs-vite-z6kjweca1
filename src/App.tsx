@@ -3108,7 +3108,7 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
 const [lastMsgByUser,setLastMsgByUser]=useState<Record<string,any>>({});
 const [chatUser,setChatUser]=useState<UserRow|null>(null);
   const [stats,setStats]=useState({visits:0,contacts:0,reviews:0});
- const [urgentLead,setUrgentLead]=useState<{msg:string;fromId:string;isNuevoLead?:boolean;requestId?:string|null}|null>(null);
+ const [urgentLead,setUrgentLead]=useState<{msg:string;desc?:string;fromId:string;isNuevoLead?:boolean;requestId?:string|null}|null>(null);
   const [showPresupuestoForm,setShowPresupuestoForm]=useState<{requestId:string;clientName:string;oficio:string;desc:string}|null>(null);
   const [inAppNotif,setInAppNotif]=useState<{msg:string;from:string;fromId:string;isAdmin:boolean}|null>(null);
   const [unreadMsgs,setUnreadMsgs]=useState(0);
@@ -3207,16 +3207,17 @@ useEffect(()=>{
     const isAdmin=m.from_id==="00000000-0000-0000-0000-000000000002"; 
     if(isLeadAlert){
   const isNuevoLead=m.text.includes("NUEVO LEAD|REQUEST_ID:");
-  // Extraer request_id del texto
   const reqMatch=m.text.match(/REQUEST_ID:([a-f0-9-]+)/);
   const requestId=reqMatch?reqMatch[1]:null;
-  // Extraer nombre del cliente y detalles
   const clientInfo=m.text.replace(/.*REQUEST_ID:[a-f0-9-]+\|/,"");
-const clientName=clientInfo.split(" necesita ")[0];
-const oficio=clientInfo.split(" necesita ")[1]?.split(" en ")[0]||"";
-const budget=m.text.match(/Máx: (\d+)€/)?.[1];
-const msgClean=`👤 ${clientName}${budget?" · 💰 Máx "+budget+"€":""}`;
-  setUrgentLead({msg:msgClean,fromId:m.from_id,isNuevoLead,requestId});
+  const clientName=clientInfo.split(" necesita ")[0];
+  const oficio=clientInfo.split(" necesita ")[1]?.split(" en ")[0]||"";
+  const zona=clientInfo.split(" en ")[1]?.split("\n")[0]||"";
+  const descMatch=m.text.match(/📝 ([^\n]+)/);
+  const desc=descMatch?descMatch[1].trim():(oficio?(oficio+(zona?" en "+zona:"")):"");
+  const budget=m.text.match(/Máx: (\d+)€/)?.[1];
+  const msgClean=`👤 ${clientName}${budget?" · 💰 Máx "+budget+"€":""}`;
+  setUrgentLead({msg:msgClean,desc:desc||undefined,fromId:m.from_id,isNuevoLead,requestId});
   setUnreadMsgs(c=>c+1);
   showPushNotification(
     "🔴 Nuevo trabajo — OfficioYa",
@@ -3282,13 +3283,16 @@ useEffect(()=>{
       const reqMatch=m.text.match(/REQUEST_ID:([a-f0-9-]+)/);
       const requestId=reqMatch?reqMatch[1]:null;
       const clientInfo=m.text.replace(/.*REQUEST_ID:[a-f0-9-]+\|/,"");
-const clientName=clientInfo.split(" necesita ")[0];
-const oficio=clientInfo.split(" necesita ")[1]?.split(" en ")[0]||"";
-const budget=m.text.match(/Máx: (\d+)€/)?.[1];
-const msgClean=`👤 ${clientName}${budget?" · 💰 Máx "+budget+"€":""}`;
+      const clientName=clientInfo.split(" necesita ")[0];
+      const oficio=clientInfo.split(" necesita ")[1]?.split(" en ")[0]||"";
+      const zona=clientInfo.split(" en ")[1]?.split("\n")[0]||"";
+      const descMatch=m.text.match(/📝 ([^\n]+)/);
+      const desc=descMatch?descMatch[1].trim():(oficio?(oficio+(zona?" en "+zona:"")):"");
+      const budget=m.text.match(/Máx: (\d+)€/)?.[1];
+      const msgClean=`👤 ${clientName}${budget?" · 💰 Máx "+budget+"€":""}`;
       setUrgentLead(prev=>{
         if(prev?.requestId===requestId)return prev;
-        return {msg:msgClean,fromId:m.from_id,isNuevoLead,requestId};
+        return {msg:msgClean,desc:desc||undefined,fromId:m.from_id,isNuevoLead,requestId};
       });
     }
   },3000);
@@ -3414,7 +3418,7 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
 {urgentLead&&(
   <UrgentLeadBanner
     msg={urgentLead.msg}
-    desc={(urgentLead as any).desc}
+    desc={urgentLead.desc}
     onClose={()=>setUrgentLead(null)}
     onClick={async()=>{
       await db.from("messages").update({read:true}).eq("to_id",user.id).eq("is_lead_alert",true).eq("read",false);
@@ -3429,11 +3433,20 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
           }).eq("id",urgentLead.requestId);
           const {data:cliente}=await db.from("users").select("*").eq("id",req.client_id).single();
           if(cliente){
+            // Mensaje del pro al cliente (abre la conversación)
             await db.from("messages").insert({
               from_id:user.id,
               to_id:req.client_id,
               text:`¡Hola ${req.client_name}! He visto tu solicitud de ${req.oficio} en ${req.zona}. Estoy disponible para ayudarte. ¿Cuándo te viene bien?`,
               read:false,
+            });
+            // Notificación al cliente para refrescar su solicitud en tiempo real
+            await db.from("messages").insert({
+              from_id:"00000000-0000-0000-0000-000000000001",
+              to_id:req.client_id,
+              text:`PRO_ACEPTO|REQUEST_ID:${urgentLead.requestId}|${accepted.length}`,
+              read:false,
+              is_lead_alert:false,
             });
             await db.from("jobs").insert({
               worker_id:user.id,
