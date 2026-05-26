@@ -3365,13 +3365,47 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
     <div style={{minHeight:"100dvh",background:C.bg,backgroundImage:"radial-gradient(ellipse at 70% 0%,#2a0a3a18,transparent 50%)",paddingBottom:72}}>
 
       {/* ── URGENT LEAD BANNER ── */}
-      {urgentLead&&!urgentLead.isPresupuesto&&(
+{urgentLead&&(
   <UrgentLeadBanner
     msg={urgentLead.msg}
     jobId={urgentLead.fromId}
     proId={user.id}
+    requestId={urgentLead.requestId||null}
     onClose={()=>setUrgentLead(null)}
-    onClick={()=>{setUrgentLead(null);setTab("chats");loadChats();}}
+    onClick={async()=>{
+      if(urgentLead.isNuevoLead&&urgentLead.requestId){
+        // Marcar como aceptado en budget_requests
+        const {data:req}=await db.from("budget_requests")
+          .select("*").eq("id",urgentLead.requestId).single();
+        if(req){
+          // Añadir pro a la lista de aceptados
+          const accepted=[...(req.accepted_pros||[]),user.id];
+          await db.from("budget_requests").update({
+            accepted_pros:accepted,
+            status:accepted.length>=3?"closed":"open",
+          }).eq("id",urgentLead.requestId);
+          // Abrir chat con el cliente automáticamente
+          const {data:cliente}=await db.from("users").select("*").eq("id",req.client_id).single();
+          if(cliente){
+            // Enviar mensaje inicial al cliente
+            await db.from("messages").insert({
+              from_id:user.id,
+              to_id:req.client_id,
+              text:`¡Hola ${req.client_name}! He visto tu solicitud de ${req.oficio} en ${req.zona}. Estoy disponible para ayudarte. ¿Cuándo te viene bien?`,
+              read:false,
+            });
+            setUrgentLead(null);
+            loadChats();
+            setTab("chats");
+            setChatUser(cliente as UserRow);
+          }
+        }
+      } else {
+        setUrgentLead(null);
+        setTab("chats");
+        loadChats();
+      }
+    }}
   />
 )}
       {urgentLead&&urgentLead.isPresupuesto&&(
