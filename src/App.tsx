@@ -1845,6 +1845,9 @@ function SolicitudesTab({user,workers,onWorkerSelect,onChat}:{user:UserRow;worke
     );
   })}
 </div>
+      </div>
+  );
+}
 // ─── CLIENT HOME ───
 // ════════════════════════════════════════════════════════════════
 // REEMPLAZA el ClientHome completo en tu App.tsx
@@ -3248,24 +3251,24 @@ useEffect(()=>{
     if(job.es_urgente&&job.worker_id===null){
       const lista=job.profesionales_aceptados||[];
       if(lista.length<4&&!lista.includes(user.id)){
-        setUrgentLead({msg:"⚡ "+job.client_name+" necesita un "+job.title.replace("Busca ","").replace(" — urgente","")+" ahora · "+job.description,fromId:job.id});
+        setUrgentLead({msg:"⚡ "+job.client_name+" necesita un "+job.title.replace("Busca ","").replace(" — urgente","")+" ahora · "+job.description,fromId:job.id}
       }
     }
     // Si es un trabajo asignado directamente a este pro
     if(job.worker_id===user.id){
-      setJobs(prev=>[job,...prev]);
-      showToast("🔔 Nueva solicitud de trabajo de "+job.client_name);
+      setJobs(prev=>[job,...prev]
+      showToast("🔔 Nueva solicitud de trabajo de "+job.client_name
     }
   })
   // Escuchar también inserciones en requests para alerta directa
   .on("postgres_changes",{event:"INSERT",schema:"public",table:"requests"},(p:any)=>{
     const req=p.new;
     if(req.oficio===user.trade&&req.urgency==="urgente"){
-      setUrgentLead({msg:"🔴 "+req.client_name+" busca un "+req.oficio+" urgente en "+req.zona,fromId:req.id});
-      showPushNotification("🔴 Cliente urgente — OfficioYa","Un cliente necesita tus servicios ahora. Toca para responder.");
+      setUrgentLead({msg:"🔴 "+req.client_name+" busca un "+req.oficio+" urgente en "+req.zona,fromId:req.id}
+      showPushNotification("🔴 Cliente urgente — OfficioYa","Un cliente necesita tus servicios ahora. Toca para responder."
     }
   })
-  .subscribe(); 
+  .subscribe( 
   return ()=>{db.removeChannel(ch);};
 },[user.id,loadChats]);
   useEffect(()=>{
