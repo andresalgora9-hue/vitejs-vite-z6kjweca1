@@ -673,6 +673,11 @@ function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:User
     const tempMsg:MessageRow={id:tempId,from_id:currentUser.id,to_id:toUser.id,text:txt,read:false,created_at:new Date().toISOString()} as any;
     setMsgs(prev=>[...prev,tempMsg]);
     await db.from("messages").insert({from_id:currentUser.id,to_id:toUser.id,text:txt,read:false});
+    fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/send-push",{
+  method:"POST",
+  headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE"},
+  body:JSON.stringify({user_id:toUser.id,title:"💬 "+currentUser.name,body:txt.substring(0,80),url:"/"}),
+}).catch(()=>{});
     setSending(false);
     inputRef.current?.focus();
   };
@@ -4181,6 +4186,12 @@ return()=>{db.removeChannel(ch);clearInterval(poll);};
     if(!selectedUser||!supportMsg.trim())return;
     setSendingMsg(true);
     await db.from("messages").insert({from_id:"00000000-0000-0000-0000-000000000002",to_id:selectedUser.id,text:"[Soporte OfficioYa] "+supportMsg,read:false});
+    // Enviar push real
+    await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/send-push",{
+      method:"POST",
+      headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE"},
+      body:JSON.stringify({user_id:selectedUser.id,title:"👑 OfficioYa Soporte",body:supportMsg.substring(0,80),url:"/"}),
+    }).catch(()=>{});
     setSupportMsg(""); setSendingMsg(false);
     setToastMsg("✓ Mensaje enviado a "+selectedUser.name);
     setTimeout(()=>setToastMsg(null),3000);
@@ -4653,6 +4664,23 @@ return()=>{db.removeChannel(ch);clearInterval(poll);};
     </div>
   );
 }
+async function subscribeToPush(userId: string): Promise<void> {
+  try {
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+    const reg = await navigator.serviceWorker.ready;
+    const VAPID_PUBLIC_KEY = "BMrAW5LQ8VwjrILPDpsnq98IodkFOoA0p7eUJV0uXN6UdXX83MNVlb9fXpXbZR30rIv5IFKYqs_QjFoKh9KlpvQ";
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: VAPID_PUBLIC_KEY,
+    });
+    await db.from("push_subscriptions").upsert({
+      user_id: userId,
+      subscription: sub.toJSON(),
+    }, { onConflict: "user_id" });
+  } catch (e) {
+    console.error("Push subscribe error:", e);
+  }
+}
 // ─── ROOT ───
 export default function App(){
   const [user,setUser]=useState<UserRow|null>(null);
@@ -4672,7 +4700,15 @@ export default function App(){
     setReady(true);
     db.from("visits").insert({page:"home",user_id:null}).then(()=>{});
   },[]);
-  const login=(u:UserRow)=>{setUser(u);localStorage.setItem("oy_user",JSON.stringify(u));};
+  const login=(u:UserRow)=>{
+  setUser(u);
+  localStorage.setItem("oy_user",JSON.stringify(u));
+  if("Notification" in window){
+    Notification.requestPermission().then(perm=>{
+      if(perm==="granted") subscribeToPush(u.id);
+    });
+  }
+};
   const logout=()=>{setUser(null);localStorage.removeItem("oy_user");};
   const update=(u:UserRow)=>{setUser(u);localStorage.setItem("oy_user",JSON.stringify(u));};
   if(!ready)return <div style={{minHeight:"100dvh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center"}}><Spin /></div>;
