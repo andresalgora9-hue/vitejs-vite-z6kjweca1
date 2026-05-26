@@ -3458,11 +3458,12 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
               description:req.description,
               status:"in_progress",
             });
-            setUrgentLead(null);
-            await loadChats();
-            setTab("chats");
-            console.log("ABRIENDO CHAT CON:", cliente);
-            setChatUser(cliente as UserRow);
+            // ✅ DESPUÉS
+setUrgentLead(null);
+setTab("chats");
+await loadChats();
+await new Promise(r => setTimeout(r, 120));
+setChatUser(cliente as UserRow);
           } else {
             console.error("CLIENTE NO ENCONTRADO — client_id:", req.client_id);
           }
