@@ -1764,17 +1764,47 @@ const eligibles=(allPros||[]) as UserRow[];
           <p style={{fontSize:12,color:statusColor,fontWeight:700,flex:1}}>{statusLabel}</p>
           <p style={{fontSize:10,color:C.muted}}>{new Date(sol.created_at).toLocaleDateString("es-ES")}</p>
         </div>
-        {/* Sin ofertas */}
+         {/* Sin ofertas */}
         {ofs.length===0&&acceptedCount===0&&(
           <p style={{fontSize:12,color:C.muted,textAlign:"center" as const,padding:"8px 0"}}>
             Los profesionales recibirán tu solicitud en breve
           </p>
         )}
-        {/* Profesionales aceptaron pero sin oferta formal aún */}
+        {/* Profesionales aceptaron — contador visual */}
         {ofs.length===0&&acceptedCount>0&&(
-          <p style={{fontSize:12,color:C.orange,textAlign:"center" as const,padding:"8px 0",fontWeight:600}}>
-            🔔 {acceptedCount} profesional{acceptedCount>1?"es están":"está"} preparando su oferta...
-          </p>
+          <div style={{background:"linear-gradient(135deg,#1a1200,#1a0f00)",border:"1px solid "+C.orange+"55",borderRadius:10,padding:"12px 14px"}}>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+              <span style={{fontSize:18,animation:"urgentBell 1s ease-in-out infinite"}}>🔔</span>
+              <div style={{flex:1}}>
+                <p style={{fontWeight:800,color:C.orange,fontSize:13,margin:0}}>
+                  {acceptedCount===1?"¡Un profesional ha aceptado!":acceptedCount===2?"¡2 profesionales han aceptado!":"¡3 profesionales han aceptado!"}
+                </p>
+                <p style={{fontSize:11,color:C.mutedL,margin:"2px 0 0"}}>Están preparando su oferta para ti</p>
+              </div>
+            </div>
+            {/* Barra de plazas */}
+            <div style={{marginBottom:8}}>
+              <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}>
+                <span style={{fontSize:10,color:C.muted}}>Plazas ocupadas</span>
+                <span style={{fontSize:10,color:C.orange,fontWeight:700}}>{acceptedCount}/3</span>
+              </div>
+              <div style={{display:"flex",gap:4}}>
+                {[1,2,3].map(n=>(
+                  <div key={n} style={{
+                    flex:1,height:8,borderRadius:99,
+                    background:n<=acceptedCount
+                      ?"linear-gradient(90deg,"+C.orange+","+C.accent+")"
+                      :C.border,
+                    transition:"background 0.4s",
+                    boxShadow:n<=acceptedCount?"0 0 8px "+C.orange+"66":"none",
+                  }}/>
+                ))}
+              </div>
+            </div>
+            <p style={{fontSize:11,color:C.muted,margin:0}}>
+              {acceptedCount<3?"Esperando más respuestas — el mejor llegará pronto":"✅ Ya tenemos 3 — ¡recibirás ofertas en breve!"}
+            </p>
+          </div>
         )}
         {/* Ofertas recibidas */}
         {ofs.length>0&&(
@@ -3437,12 +3467,20 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
           // Abrir chat con el cliente automáticamente
           const {data:cliente}=await db.from("users").select("*").eq("id",req.client_id).single();
           if(cliente){
-            // Enviar mensaje inicial al cliente con la descripción del trabajo
+            // Mensaje del pro al cliente (abre la conversación)
             await db.from("messages").insert({
               from_id:user.id,
               to_id:req.client_id,
               text:`¡Hola ${req.client_name}! He visto tu solicitud de ${req.oficio} en ${req.zona}. Estoy disponible para ayudarte. ¿Cuándo te viene bien?`,
               read:false,
+            });
+            // Notificación al cliente de que un pro aceptó (para refrescar su solicitud)
+            await db.from("messages").insert({
+              from_id:"00000000-0000-0000-0000-000000000001",
+              to_id:req.client_id,
+              text:`PRO_ACEPTO|REQUEST_ID:${urgentLead.requestId}|${accepted.length}`,
+              read:false,
+              is_lead_alert:false,
             });
             await db.from("jobs").insert({
               worker_id:user.id,
