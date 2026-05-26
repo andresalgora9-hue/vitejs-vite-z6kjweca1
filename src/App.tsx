@@ -1645,11 +1645,8 @@ function SolicitudesTab({user,workers,onWorkerSelect,onChat}:{user:UserRow;worke
 
   if(req){
     // Solo elite y pro, filtrados por oficio y zona
-    const eligibles=workers.filter(w=>
-      w.trade===oficio&&
-      (w.plan==="elite"||w.plan==="pro")&&
-      w.available
-    );
+    const {data:allPros}=await db.from("users").select("*").eq("type","profesional").eq("available",true).in("plan",["elite","pro"]).eq("trade",oficio);
+const eligibles=(allPros||[]) as UserRow[];
     // Separar y barajar aleatoriamente
     const shuffle=(arr:UserRow[])=>[...arr].sort(()=>Math.random()-0.5);
     const elites=shuffle(eligibles.filter(w=>w.plan==="elite"));
