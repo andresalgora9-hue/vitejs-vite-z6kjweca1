@@ -3712,7 +3712,7 @@ if(newJob) setJobs(prev=>[newJob,...prev]);
                           border:"none",borderRadius:8,color:"#fff",
                           cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:700,
                           boxShadow:"0 4px 12px "+C.blue+"33",
-                        }}>✓ Aceptar y añadir a agenda</button>
+                        }}>✓ Precio acordado — Iniciar trabajo</button>
                         <button onClick={()=>updateJobStatus(j.id,"cancelled")} style={{
                           padding:"9px 12px",background:C.red+"15",
                           border:"1px solid "+C.red+"33",borderRadius:8,color:C.red,
