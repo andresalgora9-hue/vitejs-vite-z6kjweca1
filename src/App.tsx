@@ -391,7 +391,7 @@ function MultiSelect({label,options,selected,onChange}:{label:string;options:str
 }
 
 // ─── URGENT LEAD BANNER (aparece encima de todo, rojo pulsante) ───
-function UrgentLeadBanner({msg,desc,onClose,onClick}:{msg:string;desc?:string;onClose:()=>void;onClick:()=>void;}){
+function UrgentLeadBanner({msg,desc,onClose,onClick}:{msg:string;desc?:string;onClose:()=>void;onClick:()=>Promise<void>;}){
   const [procesando,setProcesando]=useState(false);
   useEffect(()=>{
     if(navigator.vibrate) navigator.vibrate([200,100,200,100,400]);
@@ -400,9 +400,9 @@ function UrgentLeadBanner({msg,desc,onClose,onClick}:{msg:string;desc?:string;on
   },[onClose]);
 
   const handleAceptar=async()=>{
+    if(procesando)return;
     setProcesando(true);
-    await onClick();
-    setProcesando(false);
+    try{ await onClick(); }finally{ setProcesando(false); }
   };
 
   return(
@@ -432,10 +432,11 @@ function UrgentLeadBanner({msg,desc,onClose,onClick}:{msg:string;desc?:string;on
       <div style={{display:"flex",gap:8}}>
         <button onClick={handleAceptar} disabled={procesando} style={{
           flex:2,padding:"10px",
-          background:procesando?"#555":"linear-gradient(135deg,#FF4444,#FF6B35)",
+          background:procesando?"#444":"linear-gradient(135deg,#FF4444,#FF6B35)",
           border:"none",borderRadius:10,color:"#fff",
           fontFamily:"'DM Sans',sans-serif",fontSize:14,fontWeight:800,
-          cursor:procesando?"not-allowed":"pointer",boxShadow:"0 4px 12px #FF444444",
+          cursor:procesando?"not-allowed":"pointer",
+          boxShadow:"0 4px 12px #FF444444",
           opacity:procesando?0.7:1,
         }}>{procesando?"Conectando...":"✓ Aceptar y chatear"}</button>
         <button onClick={onClose} style={{
@@ -1764,47 +1765,17 @@ const eligibles=(allPros||[]) as UserRow[];
           <p style={{fontSize:12,color:statusColor,fontWeight:700,flex:1}}>{statusLabel}</p>
           <p style={{fontSize:10,color:C.muted}}>{new Date(sol.created_at).toLocaleDateString("es-ES")}</p>
         </div>
-         {/* Sin ofertas */}
+        {/* Sin ofertas */}
         {ofs.length===0&&acceptedCount===0&&(
           <p style={{fontSize:12,color:C.muted,textAlign:"center" as const,padding:"8px 0"}}>
             Los profesionales recibirán tu solicitud en breve
           </p>
         )}
-        {/* Profesionales aceptaron — contador visual */}
+        {/* Profesionales aceptaron pero sin oferta formal aún */}
         {ofs.length===0&&acceptedCount>0&&(
-          <div style={{background:"linear-gradient(135deg,#1a1200,#1a0f00)",border:"1px solid "+C.orange+"55",borderRadius:10,padding:"12px 14px"}}>
-            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
-              <span style={{fontSize:18,animation:"urgentBell 1s ease-in-out infinite"}}>🔔</span>
-              <div style={{flex:1}}>
-                <p style={{fontWeight:800,color:C.orange,fontSize:13,margin:0}}>
-                  {acceptedCount===1?"¡Un profesional ha aceptado!":acceptedCount===2?"¡2 profesionales han aceptado!":"¡3 profesionales han aceptado!"}
-                </p>
-                <p style={{fontSize:11,color:C.mutedL,margin:"2px 0 0"}}>Están preparando su oferta para ti</p>
-              </div>
-            </div>
-            {/* Barra de plazas */}
-            <div style={{marginBottom:8}}>
-              <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}>
-                <span style={{fontSize:10,color:C.muted}}>Plazas ocupadas</span>
-                <span style={{fontSize:10,color:C.orange,fontWeight:700}}>{acceptedCount}/3</span>
-              </div>
-              <div style={{display:"flex",gap:4}}>
-                {[1,2,3].map(n=>(
-                  <div key={n} style={{
-                    flex:1,height:8,borderRadius:99,
-                    background:n<=acceptedCount
-                      ?"linear-gradient(90deg,"+C.orange+","+C.accent+")"
-                      :C.border,
-                    transition:"background 0.4s",
-                    boxShadow:n<=acceptedCount?"0 0 8px "+C.orange+"66":"none",
-                  }}/>
-                ))}
-              </div>
-            </div>
-            <p style={{fontSize:11,color:C.muted,margin:0}}>
-              {acceptedCount<3?"Esperando más respuestas — el mejor llegará pronto":"✅ Ya tenemos 3 — ¡recibirás ofertas en breve!"}
-            </p>
-          </div>
+          <p style={{fontSize:12,color:C.orange,textAlign:"center" as const,padding:"8px 0",fontWeight:600}}>
+            🔔 {acceptedCount} profesional{acceptedCount>1?"es están":"está"} preparando su oferta...
+          </p>
         )}
         {/* Ofertas recibidas */}
         {ofs.length>0&&(
@@ -3137,7 +3108,7 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
 const [lastMsgByUser,setLastMsgByUser]=useState<Record<string,any>>({});
 const [chatUser,setChatUser]=useState<UserRow|null>(null);
   const [stats,setStats]=useState({visits:0,contacts:0,reviews:0});
- const [urgentLead,setUrgentLead]=useState<{msg:string;desc?:string;fromId:string;isNuevoLead?:boolean;requestId?:string|null}|null>(null);
+ const [urgentLead,setUrgentLead]=useState<{msg:string;fromId:string;isNuevoLead?:boolean;requestId?:string|null}|null>(null);
   const [showPresupuestoForm,setShowPresupuestoForm]=useState<{requestId:string;clientName:string;oficio:string;desc:string}|null>(null);
   const [inAppNotif,setInAppNotif]=useState<{msg:string;from:string;fromId:string;isAdmin:boolean}|null>(null);
   const [unreadMsgs,setUnreadMsgs]=useState(0);
@@ -3243,12 +3214,9 @@ useEffect(()=>{
   const clientInfo=m.text.replace(/.*REQUEST_ID:[a-f0-9-]+\|/,"");
 const clientName=clientInfo.split(" necesita ")[0];
 const oficio=clientInfo.split(" necesita ")[1]?.split(" en ")[0]||"";
-const zona=clientInfo.split(" en ")[1]?.split(".")[0]||"";
-const descMatch=m.text.match(/Descripción: ([^\n|]+)/);
-const descText=descMatch?descMatch[1].trim():(oficio?(oficio+(zona?" en "+zona:"")):"");
 const budget=m.text.match(/Máx: (\d+)€/)?.[1];
 const msgClean=`👤 ${clientName}${budget?" · 💰 Máx "+budget+"€":""}`;
-  setUrgentLead({msg:msgClean,desc:descText||undefined,fromId:m.from_id,isNuevoLead,requestId});
+  setUrgentLead({msg:msgClean,fromId:m.from_id,isNuevoLead,requestId});
   setUnreadMsgs(c=>c+1);
   showPushNotification(
     "🔴 Nuevo trabajo — OfficioYa",
@@ -3316,14 +3284,11 @@ useEffect(()=>{
       const clientInfo=m.text.replace(/.*REQUEST_ID:[a-f0-9-]+\|/,"");
 const clientName=clientInfo.split(" necesita ")[0];
 const oficio=clientInfo.split(" necesita ")[1]?.split(" en ")[0]||"";
-const zona=clientInfo.split(" en ")[1]?.split(".")[0]||"";
-const descMatch=m.text.match(/Descripción: ([^\n|]+)/);
-const descText=descMatch?descMatch[1].trim():(oficio?(oficio+(zona?" en "+zona:"")):"");
 const budget=m.text.match(/Máx: (\d+)€/)?.[1];
 const msgClean=`👤 ${clientName}${budget?" · 💰 Máx "+budget+"€":""}`;
       setUrgentLead(prev=>{
         if(prev?.requestId===requestId)return prev;
-        return {msg:msgClean,desc:descText||undefined,fromId:m.from_id,isNuevoLead,requestId};
+        return {msg:msgClean,fromId:m.from_id,isNuevoLead,requestId};
       });
     }
   },3000);
@@ -3449,38 +3414,26 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
 {urgentLead&&(
   <UrgentLeadBanner
     msg={urgentLead.msg}
-    desc={urgentLead.desc}
+    desc={(urgentLead as any).desc}
     onClose={()=>setUrgentLead(null)}
     onClick={async()=>{
       await db.from("messages").update({read:true}).eq("to_id",user.id).eq("is_lead_alert",true).eq("read",false);
       if(urgentLead.isNuevoLead&&urgentLead.requestId){
-        // Marcar como aceptado en budget_requests
         const {data:req}=await db.from("budget_requests")
           .select("*").eq("id",urgentLead.requestId).single();
         if(req){
-          // Añadir pro a la lista de aceptados
           const accepted=[...(req.accepted_pros||[]),user.id];
           await db.from("budget_requests").update({
             accepted_pros:accepted,
             status:accepted.length>=3?"closed":"open",
           }).eq("id",urgentLead.requestId);
-          // Abrir chat con el cliente automáticamente
           const {data:cliente}=await db.from("users").select("*").eq("id",req.client_id).single();
           if(cliente){
-            // Mensaje del pro al cliente (abre la conversación)
             await db.from("messages").insert({
               from_id:user.id,
               to_id:req.client_id,
               text:`¡Hola ${req.client_name}! He visto tu solicitud de ${req.oficio} en ${req.zona}. Estoy disponible para ayudarte. ¿Cuándo te viene bien?`,
               read:false,
-            });
-            // Notificación al cliente de que un pro aceptó (para refrescar su solicitud)
-            await db.from("messages").insert({
-              from_id:"00000000-0000-0000-0000-000000000001",
-              to_id:req.client_id,
-              text:`PRO_ACEPTO|REQUEST_ID:${urgentLead.requestId}|${accepted.length}`,
-              read:false,
-              is_lead_alert:false,
             });
             await db.from("jobs").insert({
               worker_id:user.id,
@@ -3682,7 +3635,7 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
                   <div style={{display:"flex",gap:8}}>
                     <button onClick={async()=>{
                       await updateJobStatus(j.id,"in_progress");
-                      // Abrir chat con cliente directamente
+                      // Abrir chat con cliente
                       const {data:cliente}=await db.from("users").select("*").eq("id",j.client_id).single();
                       if(cliente){
                         await db.from("messages").insert({
@@ -3690,8 +3643,6 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
                           text:`¡Hola ${j.client_name}! He visto tu solicitud de ${j.title}. Estoy disponible para ayudarte. ¿Cuándo te viene bien?`,
                           read:false,
                         });
-                        await loadChats();
-                        setTab("chats");
                         setChatUser(cliente as UserRow);
                       }
                     }} style={{flex:2,padding:"9px",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:8,color:"#000",fontFamily:"'DM Sans',sans-serif",fontSize:13,fontWeight:800,cursor:"pointer"}}>
