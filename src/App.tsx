@@ -3251,7 +3251,7 @@ useEffect(()=>{
     if(job.es_urgente&&job.worker_id===null){
       const lista=job.profesionales_aceptados||[];
       if(lista.length<4&&!lista.includes(user.id)){
-        setUrgentLead({msg:"⚡ "+job.client_name+" necesita un "+job.title.replace("Busca ","").replace(" — urgente","")+" ahora · "+job.description,fromId:job.id}
+      setUrgentLead({msg:"⚡ "+job.client_name+" necesita un "+job.title.replace("Busca ","").replace(" — urgente","")+" ahora · "+job.description,fromId:job.id});  
       }
     }
     // Si es un trabajo asignado directamente a este pro
