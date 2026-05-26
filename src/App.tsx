@@ -4122,11 +4122,6 @@ setTimeout(()=>setToastMsg(null),4000);
   if(data) setMsgs(data as MessageRow[]);
 },5000);
 return()=>{db.removeChannel(ch);clearInterval(poll);};
-    const poll=setInterval(async()=>{
-  const {data}=await db.from("messages").select("*").order("created_at",{ascending:false});
-  if(data) setMsgs(data as MessageRow[]);
-},5000);
-return()=>{db.removeChannel(ch);clearInterval(poll);};
   },[]);
 
   const now=new Date();
