@@ -1873,7 +1873,7 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
   const [soloDisp,setSoloDisp]=useState(false);
   const [showWizard,setShowWizard]=useState(false);
   const [workers,setWorkers]=useState<UserRow[]>([]);
-  const [loading,setLoading]=useState(true);
+  
   const [selectedWorker,setSelectedWorker]=useState<UserRow|null>(null);
   const [chatWorker,setChatWorker]=useState<UserRow|null>(null);
   const [chatPartners,setChatPartners]=useState<UserRow[]>([]);
@@ -1933,7 +1933,7 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
 
   useEffect(()=>{
     const ch=db.channel("client-notif-"+user.id)
-      .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"to_id=eq."+user.id},(p:any)=>{
+      .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"to_id=eq.00000000-0000-0000-0000-000000000002"},(p:any)=>{
         const m=p.new;
         const isAdmin=m.from_id==="00000000-0000-0000-0000-000000000002"||m.from_id==="00000000-0000-0000-0000-000000000001";
         db.from("users").select("name").eq("id",m.from_id).single().then(({data}:any)=>{
@@ -3221,7 +3221,7 @@ setUnreadMsgs(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
 // ── REALTIME: listen for new messages + lead alerts ── 
 useEffect(()=>{ 
   const ch=db.channel("pro-realtime-"+user.id) 
-  .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"to_id=eq."+user.id},(p:any)=>{
+  .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"to_id=eq.00000000-0000-0000-0000-000000000002"},(p:any)=>{
     console.log("MENSAJE RECIBIDO REALTIME:", p.new);
     const m=p.new;
     const isLeadAlert=m.from_id==="00000000-0000-0000-0000-000000000001"||m.text?.includes("NUEVO CLIENTE INTERESADO"); 
@@ -4096,7 +4096,7 @@ setCerts((ct.data||[]) as any[]);
   // Realtime: notify admin of new messages
   useEffect(()=>{
     const ch=db.channel("admin-realtime")
-      .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"to_id=eq."+user.id},(p:any)=>{
+      .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"to_id=eq.00000000-0000-0000-0000-000000000002"},(p:any)=>{
         const m=p.new as MessageRow;
         if(m.from_id!=="00000000-0000-0000-0000-000000000002"&&m.from_id!=="00000000-0000-0000-0000-000000000001"){
           setMsgs(prev=>[m,...prev]);
