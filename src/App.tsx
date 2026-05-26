@@ -1929,7 +1929,7 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
 
   const loadChats=useCallback(async()=>{
   const {data:received}=await db.from("messages").select("from_id,to_id,text,read,created_at").eq("to_id",user.id);
-  const {data:sent}=await db.from("messages").select("from_id,to_id,text,read,created_at").eq("from_id",user.id);
+  const {data:sent}=.select("from_id,to_id,text,read,created_at").eq("from_id",user.id);
   const allMsgs=[...(received||[]),...(sent||[])];
   if(!allMsgs.length){setChatPartners([]);setUnreadByWorker({});return;}
   const ids=[...new Set(allMsgs.map((m:any)=>m.from_id===user.id?m.to_id:m.from_id))]
@@ -3421,32 +3421,30 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
     desc={urgentLead.desc}
     onClose={()=>setUrgentLead(null)}
     onClick={async()=>{
+      const requestId=urgentLead.requestId;
+      const isNuevoLead=urgentLead.isNuevoLead;
       await db.from("messages").update({read:true}).eq("to_id",user.id).eq("is_lead_alert",true).eq("read",false);
-      if(urgentLead.isNuevoLead&&urgentLead.requestId){
+      if(isNuevoLead&&requestId){
         const {data:req}=await db.from("budget_requests")
-          .select("*").eq("id",urgentLead.requestId).single();
+          .select("*").eq("id",requestId).single();
         if(req){
           const accepted=[...(req.accepted_pros||[]),user.id];
           await db.from("budget_requests").update({
             accepted_pros:accepted,
             status:accepted.length>=3?"closed":"open",
-          }).eq("id",urgentLead.requestId);
-          console.log("REQ client_id:", req.client_id, "req:", req);
-          const {data:cliente,error:clienteErr}=await db.from("users").select("*").eq("id",req.client_id).single();
-          console.log("CLIENTE:", cliente, "ERROR:", clienteErr);
+          }).eq("id",requestId);
+          const {data:cliente}=await db.from("users").select("*").eq("id",req.client_id).single();
           if(cliente){
-            // Mensaje del pro al cliente (abre la conversación)
             await db.from("messages").insert({
               from_id:user.id,
               to_id:req.client_id,
               text:`¡Hola ${req.client_name}! He visto tu solicitud de ${req.oficio} en ${req.zona}. Estoy disponible para ayudarte. ¿Cuándo te viene bien?`,
               read:false,
             });
-            // Notificación al cliente para refrescar su solicitud en tiempo real
             await db.from("messages").insert({
               from_id:"00000000-0000-0000-0000-000000000001",
               to_id:req.client_id,
-              text:`PRO_ACEPTO|REQUEST_ID:${urgentLead.requestId}|${accepted.length}`,
+              text:`PRO_ACEPTO|REQUEST_ID:${requestId}|${accepted.length}`,
               read:false,
               is_lead_alert:false,
             });
@@ -3458,20 +3456,19 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
               description:req.description,
               status:"in_progress",
             });
-            // ✅ DESPUÉS
-setUrgentLead(null);
-setTab("chats");
-await loadChats();
-await new Promise(r => setTimeout(r, 120));
-setChatUser(cliente as UserRow);
+            setUrgentLead(null);
+            setTab("chats");
+            await loadChats();
+            await new Promise(r=>setTimeout(r,200));
+            setChatUser(cliente as UserRow);
           } else {
-            console.error("CLIENTE NO ENCONTRADO — client_id:", req.client_id);
+            console.error("CLIENTE NO ENCONTRADO — client_id:",req.client_id);
           }
         }
       } else {
         setUrgentLead(null);
-        await loadChats();
         setTab("chats");
+        await loadChats();
       }
     }}
   />
