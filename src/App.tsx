@@ -391,25 +391,49 @@ function MultiSelect({label,options,selected,onChange}:{label:string;options:str
 }
 
 // ─── URGENT LEAD BANNER (aparece encima de todo, rojo pulsante) ───
-function UrgentLeadBanner({msg,onClose,onClick,jobId,proId}:{msg:string;onClose:()=>void;onClick:()=>void;jobId?:string;proId?:string}){
-  const [procesando,setProcesando]=useState(false);
-  const [slots,setSlots]=useState<number>(4);
-
+function UrgentLeadBanner({msg,onClose,onClick}:{msg:string;onClose:()=>void;onClick:()=>void;}){
   useEffect(()=>{
     if(navigator.vibrate) navigator.vibrate([200,100,200,100,400]);
     const t=setTimeout(onClose,15000);
-    // Leer cuántos slots quedan en tiempo real
-    if(jobId){
-      db.from("jobs").select("profesionales_aceptados").eq("id",jobId).single().then(({data}:any)=>{
-        if(data) setSlots(4-(data.profesionales_aceptados||[]).length);
-      });
-    }
     return()=>clearTimeout(t);
-  },[onClose,jobId]);
+  },[onClose]);
 
-  const aceptar=async()=>{
-    if(!jobId||!proId||procesando) return;
-    setProcesando(true);
+  return(
+    <div style={{
+      position:"fixed",top:0,left:0,right:0,zIndex:99999,
+      background:"linear-gradient(135deg,#1a0000,#2d0000)",
+      borderBottom:"2px solid #FF4444",
+      padding:"14px 16px",
+      boxShadow:"0 4px 24px #FF444466",
+      animation:"pulse 1.5s ease-in-out infinite",
+    }}>
+      <style>{`@keyframes pulse{0%,100%{box-shadow:0 4px 24px #FF444466}50%{box-shadow:0 4px 40px #FF4444AA}}`}</style>
+      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
+        <span style={{fontSize:22}}>🔔</span>
+        <div style={{flex:1}}>
+          <p style={{fontWeight:900,color:"#FF4444",fontSize:11,textTransform:"uppercase" as const,letterSpacing:"0.1em",margin:0}}>Nuevo cliente</p>
+          <p style={{fontWeight:800,color:"#fff",fontSize:15,margin:"2px 0 0",lineHeight:1.3}}>{msg}</p>
+        </div>
+        <button onClick={onClose} style={{background:"none",border:"none",color:"#aaa",cursor:"pointer",fontSize:18,padding:4}}>✕</button>
+      </div>
+      <div style={{display:"flex",gap:8}}>
+        <button onClick={onClick} style={{
+          flex:2,padding:"10px",
+          background:"linear-gradient(135deg,#FF4444,#FF6B35)",
+          border:"none",borderRadius:10,color:"#fff",
+          fontFamily:"'DM Sans',sans-serif",fontSize:14,fontWeight:800,
+          cursor:"pointer",boxShadow:"0 4px 12px #FF444444",
+        }}>✓ Aceptar y chatear</button>
+        <button onClick={onClose} style={{
+          flex:1,padding:"10px",
+          background:"transparent",border:"1px solid #FF444444",
+          borderRadius:10,color:"#FF4444",
+          fontFamily:"'DM Sans',sans-serif",fontSize:13,fontWeight:600,cursor:"pointer",
+        }}>Ignorar</button>
+      </div>
+    </div>
+  );
+}
     // Leer estado actual del servidor para evitar colisiones
     const {data:job}=await db.from("jobs").select("*").eq("id",jobId).single();
     if(job){
