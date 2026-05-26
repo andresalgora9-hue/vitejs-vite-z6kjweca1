@@ -1972,7 +1972,7 @@ const allWs=ids.includes("00000000-0000-0000-0000-000000000002")?[...ws,adminUse
       lastMsg[partnerId]=m;
     }
   });
-  const sorted=[...allWs].sort((a:any,b:any)=>{.sort((a:any,b:any)=>{
+  const sorted=[...allWs].sort((a:any,b:any)=>{
     const ta=lastMsg[a.id]?.created_at||"";
     const tb=lastMsg[b.id]?.created_at||"";
     return new Date(tb).getTime()-new Date(ta).getTime();
