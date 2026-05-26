@@ -3264,8 +3264,8 @@ useEffect(()=>{
   .on("postgres_changes",{event:"INSERT",schema:"public",table:"requests"},(p:any)=>{
     const req=p.new;
     if(req.oficio===user.trade&&req.urgency==="urgente"){
-      setUrgentLead({msg:"🔴 "+req.client_name+" busca un "+req.oficio+" urgente en "+req.zona,fromId:req.id}
-      showPushNotification("🔴 Cliente urgente — OfficioYa","Un cliente necesita tus servicios ahora. Toca para responder."
+      setUrgentLead({msg:"🔴 "+req.client_name+" busca un "+req.oficio+" urgente en "+req.zona,fromId:req.id});
+        showPushNotification("🔴 Cliente urgente — OfficioYa","Un cliente necesita tus servicios ahora. Toca para responder.");
     }
   })
   .subscribe( 
