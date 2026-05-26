@@ -3206,7 +3206,7 @@ useEffect(()=>{
     const isLeadAlert=m.from_id==="00000000-0000-0000-0000-000000000001"||m.text?.includes("NUEVO CLIENTE INTERESADO"); 
     const isAdmin=m.from_id==="00000000-0000-0000-0000-000000000002"; 
     if(isLeadAlert){
-  const isNuevoLead=m.text.includes("NUEVO LEAD|REQUEST_ID:");
+  const isNuevoLead=m.text.includes("NUEVO LEAD") && m.text.includes("REQUEST_ID:");
   const reqMatch=m.text.match(/REQUEST_ID:([a-f0-9-]+)/);
   const requestId=reqMatch?reqMatch[1]:null;
   const clientInfo=m.text.replace(/.*REQUEST_ID:[a-f0-9-]+\|/,"");
@@ -3279,7 +3279,7 @@ useEffect(()=>{
       .limit(5);
     if(data&&data.length>0){
       const m=data[0];
-      const isNuevoLead=m.text.includes("NUEVO LEAD|REQUEST_ID:");
+      const isNuevoLead=m.text.includes("NUEVO LEAD") && m.text.includes("REQUEST_ID:");
       const reqMatch=m.text.match(/REQUEST_ID:([a-f0-9-]+)/);
       const requestId=reqMatch?reqMatch[1]:null;
       const clientInfo=m.text.replace(/.*REQUEST_ID:[a-f0-9-]+\|/,"");
