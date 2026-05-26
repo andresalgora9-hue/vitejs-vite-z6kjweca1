@@ -1957,7 +1957,9 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
     .filter((id:string)=>id!=="00000000-0000-0000-0000-000000000001");
   if(!ids.length){setChatPartners([]);return;}
   const {data:ws}=await db.from("users").select("*").in("id",ids);
-  if(!ws)return;
+if(!ws)return;
+const adminUser={id:"00000000-0000-0000-0000-000000000002",name:"OfficioYa Soporte",email:"",password:"",phone:"",type:"admin",plan:"elite",bio:"",price:0,trade:"",zone:"",rating:0,reviews:0,jobs:0,verified:true,available:true,whatsapp:"",service_zones:[],schedule:"",response_time:"",free_quote:false,experience_years:0,specialties:[],trial_end:"",joined_at:""};
+const allWs=ids.includes("00000000-0000-0000-0000-000000000002")?[...ws,adminUser]:ws;
   const lastMsg:Record<string,any>={};
   allMsgs.forEach((m:any)=>{
     const partnerId=m.from_id===user.id?m.to_id:m.from_id;
@@ -1965,7 +1967,7 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
       lastMsg[partnerId]=m;
     }
   });
-  const sorted=[...ws].sort((a:any,b:any)=>{
+  const sorted=[...allWs].sort((a:any,b:any)=>{.sort((a:any,b:any)=>{
     const ta=lastMsg[a.id]?.created_at||"";
     const tb=lastMsg[b.id]?.created_at||"";
     return new Date(tb).getTime()-new Date(ta).getTime();
@@ -3187,7 +3189,11 @@ const loadChats=useCallback(async()=>{
     if(!ids.length){setChatPartners([]);return;}
 
     const {data:ws}=await db.from("users").select("*").in("id",ids);
-    if(!ws)return;
+if(!ws)return;
+const adminUser={id:"00000000-0000-0000-0000-000000000002",name:"OfficioYa Soporte",email:"",password:"",phone:"",type:"admin",plan:"elite",bio:"",price:0,trade:"",zone:"",rating:0,reviews:0,jobs:0,verified:true,available:true,whatsapp:"",service_zones:[],schedule:"",response_time:"",free_quote:false,experience_years:0,specialties:[],trial_end:"",joined_at:""};
+const allWs=ids.includes("00000000-0000-0000-0000-000000000002")?[...ws,adminUser]:ws;
+const adminUser={id:"00000000-0000-0000-0000-000000000002",name:"OfficioYa Soporte",email:"",password:"",phone:"",type:"admin",plan:"elite",bio:"",price:0,trade:"",zone:"",rating:0,reviews:0,jobs:0,verified:true,available:true,whatsapp:"",service_zones:[],schedule:"",response_time:"",free_quote:false,experience_years:0,specialties:[],trial_end:"",joined_at:""};
+const allWs=ids.includes("00000000-0000-0000-0000-000000000002")?[...ws,adminUser]:ws;
 
     // Último mensaje y timestamp por usuario
     const lastMsg:Record<string,any>={};
@@ -3199,7 +3205,7 @@ const loadChats=useCallback(async()=>{
     });
 
     // Ordenar por último mensaje más reciente
-    const sorted=[...ws].sort((a:any,b:any)=>{
+    const sorted=[...allWs].sort((a:any,b:any)=>{.sort((a:any,b:any)=>{
       const ta=lastMsg[a.id]?.created_at||"";
       const tb=lastMsg[b.id]?.created_at||"";
       return new Date(tb).getTime()-new Date(ta).getTime();
