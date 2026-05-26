@@ -1953,7 +1953,8 @@ db.from("users").select("name").eq("id",m.from_id).single().then(({data}:any)=>{
       }).subscribe();
       return ()=>{db.removeChannel(ch);};
     },[user.id]);
-  const {data:received}=await db.from("messages").select("from_id,to_id,text,read,created_at").eq("to_id",user.id);
+  const loadChats=useCallback(async()=>{
+    const {data:received}=await db.from("messages").select("from_id,to_id,text,read,created_at").eq("to_id",user.id);
   const {data:sent}=await db.from("messages").select("from_id,to_id,text,read,created_at").eq("from_id",user.id);
   const allMsgs=[...(received||[]),...(sent||[])];
   if(!allMsgs.length){setChatPartners([]);setUnreadByWorker({});return;}
