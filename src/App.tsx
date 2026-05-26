@@ -4407,27 +4407,65 @@ return()=>{db.removeChannel(ch);clearInterval(poll);};
             </div>
             <div style={{display:"flex",flexDirection:"column",gap:7}}>
               {msgs.filter(m=>m.from_id!=="00000000-0000-0000-0000-000000000001").slice(0,50).map(m=>{
-                const fromUser=users.find(u=>u.id===m.from_id);
-                const toUser=users.find(u=>u.id===m.to_id);
-                const isAdminMsg=m.from_id==="00000000-0000-0000-0000-000000000002";
-                return <GCard key={m.id} style={{padding:"10px 12px",border:!m.read&&!isAdminMsg?"1px solid "+C.orange+"44":undefined}}>
-                  <div style={{display:"flex",gap:8,alignItems:"flex-start"}}>
-                    <div style={{flex:1}}>
-                      <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:3,flexWrap:"wrap"}}>
-                        <span style={{fontSize:11,color:isAdminMsg?C.orange:C.accent,fontWeight:700}}>{isAdminMsg?"👑 Soporte":(fromUser?.name||"Sistema")}</span>
-                        <span style={{fontSize:10,color:C.muted}}>→</span>
-                        <span style={{fontSize:11,color:C.blue,fontWeight:700}}>{toUser?.name||"Usuario"}</span>
-                        {!m.read&&!isAdminMsg&&<span style={{fontSize:8,color:C.orange,background:C.orange+"22",padding:"1px 5px",borderRadius:3,fontWeight:700}}>NO LEÍDO</span>}
-                      </div>
-                      <p style={{fontSize:12,color:C.mutedL,lineHeight:1.5}}>{m.text}</p>
-                    </div>
-                    <div style={{flexShrink:0,textAlign:"right"}}>
-                      <span style={{fontSize:9,color:C.muted}}>{timeAgo(m.created_at)}</span>
-                      {!isAdminMsg&&<button onClick={()=>setSelectedUser(toUser||fromUser||null)} style={{display:"block",marginTop:4,fontSize:9,color:C.accent,background:"none",border:"none",cursor:"pointer",fontWeight:700,padding:0}}>Responder →</button>}
-                    </div>
-                  </div>
-                </GCard>;
-              })}
+  const fromUser=users.find(u=>u.id===m.from_id);
+  const toUser=users.find(u=>u.id===m.to_id);
+  const isAdminMsg=m.from_id==="00000000-0000-0000-0000-000000000002";
+  const isUnread=!m.read&&!isAdminMsg;
+  return(
+    <div key={m.id} style={{
+      background:isUnread?"linear-gradient(135deg,#1a1200,#1a0e00)":C.card,
+      borderRadius:14,
+      border:isUnread?"1px solid "+C.orange+"88":"1px solid "+C.border,
+      padding:"14px 16px",
+      boxShadow:isUnread?"0 4px 20px rgba(255,140,0,0.15)":"0 2px 8px rgba(0,0,0,0.2)",
+      animation:isUnread?"fadeSlideUp 0.3s ease":"none",
+      position:"relative" as const,
+      overflow:"hidden",
+    }}>
+      {isUnread&&<div style={{position:"absolute",top:0,left:0,right:0,height:2,background:"linear-gradient(90deg,"+C.orange+","+C.accent+")"}} />}
+      <div style={{display:"flex",gap:12,alignItems:"flex-start"}}>
+        <div style={{
+          width:38,height:38,borderRadius:10,flexShrink:0,
+          background:isAdminMsg?"linear-gradient(135deg,"+C.orange+"33,"+C.orange+"18)":"linear-gradient(135deg,"+C.accent+"22,"+C.blue+"18)",
+          border:"1px solid "+(isAdminMsg?C.orange+"44":C.accent+"33"),
+          display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,
+        }}>{isAdminMsg?"👑":isUnread?"🔴":"💬"}</div>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:4,flexWrap:"wrap"}}>
+            <span style={{fontSize:12,color:isAdminMsg?C.orange:isUnread?C.accent:C.text,fontWeight:800}}>
+              {isAdminMsg?"👑 OfficioYa Soporte":(fromUser?.name||"Usuario")}
+            </span>
+            <span style={{fontSize:11,color:C.muted}}>→</span>
+            <span style={{fontSize:12,color:C.blue,fontWeight:700}}>{toUser?.name||"Usuario"}</span>
+            {isUnread&&(
+              <span style={{
+                fontSize:9,fontWeight:900,
+                color:"#000",
+                background:"linear-gradient(135deg,"+C.orange+","+C.accent+")",
+                padding:"2px 7px",borderRadius:99,
+                animation:"pulse 1.5s ease infinite",
+              }}>● NUEVO</span>
+            )}
+          </div>
+          <p style={{fontSize:12,color:isUnread?C.text:C.mutedL,lineHeight:1.5,fontWeight:isUnread?500:400}}>{m.text.substring(0,120)}{m.text.length>120?"...":""}</p>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:6}}>
+            <span style={{fontSize:10,color:C.muted}}>{timeAgo(m.created_at)}</span>
+            {!isAdminMsg&&(
+              <button onClick={()=>setSelectedUser(toUser||fromUser||null)} style={{
+                fontSize:10,color:"#000",
+                background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",
+                border:"none",borderRadius:6,
+                cursor:"pointer",fontWeight:800,
+                padding:"4px 10px",
+                fontFamily:"'DM Sans',sans-serif",
+              }}>Responder →</button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+})}
             </div>
           </>)}
 
