@@ -3201,6 +3201,55 @@ function PresupuestoForm({msg,proId,proName,proPlan,proRating,onClose,onSent}:{m
       </div>
     </div>
   );
+  function ProDeleteAccountButton({user,onLogout}:{user:UserRow;onLogout:()=>void}){
+  const [show,setShow]=useState(false);
+  const [loading,setLoading]=useState(false);
+  const [sent,setSent]=useState(false);
+
+  if(!show) return(
+    <button onClick={()=>setShow(true)} style={{marginTop:16,background:"transparent",border:"none",color:"#44445A",fontSize:11,cursor:"pointer",textDecoration:"underline",width:"100%",textAlign:"center" as const}}>
+      Eliminar mi cuenta
+    </button>
+  );
+
+  return(
+    <div style={{marginTop:16,padding:16,background:"rgba(255,68,85,0.04)",border:"1px solid rgba(255,68,85,0.15)",borderRadius:12}}>
+      {!sent?(
+        <>
+          <p style={{fontSize:11,color:"#5A6A8A",lineHeight:1.7,margin:"0 0 12px 0",textAlign:"center" as const}}>
+            ⚠️ Si eliminas tu cuenta perderás acceso a todos tus datos y conversaciones.
+            {user.plan!=="gratis"&&<> Recuerda gestionar primero la <strong style={{color:"#FF8888"}}>baja de tu suscripción</strong> contactando con <a href="mailto:admin@algoracompound.com" style={{color:"#FFD700"}}>admin@algoracompound.com</a> para evitar cargos.</>}
+          </p>
+          <div style={{display:"flex",gap:8}}>
+            <button onClick={()=>setShow(false)} style={{flex:1,padding:"9px",background:"transparent",border:"1px solid #2D3A52",borderRadius:8,color:"#8899BB",fontSize:13,cursor:"pointer"}}>
+              Cancelar
+            </button>
+            <button onClick={async()=>{
+              setLoading(true);
+              const token=Math.random().toString(36).substring(2)+Date.now().toString(36);
+              await db.from("users").update({delete_token:token,delete_requested_at:new Date().toISOString()}).eq("id",user.id);
+              await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/send-delete-email",{
+                method:"POST",
+                headers:{"Content-Type":"application/json"},
+                body:JSON.stringify({email:user.email,name:user.name,token}),
+              });
+              setSent(true);
+              setLoading(false);
+              setTimeout(()=>{localStorage.removeItem("oy_user");onLogout();},4000);
+            }} disabled={loading} style={{flex:1,padding:"9px",background:"#FF4455",border:"none",borderRadius:8,color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer"}}>
+              {loading?"Enviando...":"Confirmar →"}
+            </button>
+          </div>
+        </>
+      ):(
+        <>
+          <p style={{fontSize:24,textAlign:"center" as const}}>📧</p>
+          <p style={{fontWeight:800,color:"#E8EDF5",fontSize:14,textAlign:"center" as const,marginBottom:6}}>Email enviado</p>
+          <p style={{fontSize:12,color:"#8899BB",textAlign:"center" as const}}>Revisa tu correo y confirma. Cerrando sesión...</p>
+        </>
+      )}
+    </div>
+  );
 }
 // ─── PRO DASHBOARD ───
 function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;onUpdate:(u:UserRow)=>void}){
@@ -3996,8 +4045,8 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
               </div>
             ))}
           </GCard>
-         <Btn full outline danger onClick={onLogout} color={C.red}>Cerrar sesión</Btn>
-          <div style={{marginTop:32,padding:16,background:"rgba(255,68,85,0.04)",border:"1px solid rgba(255,68,85,0.15)",borderRadius:12}}>
+        <Btn full outline danger onClick={onLogout} color={C.red}>Cerrar sesión</Btn>
+          <ProDeleteAccountButton user={user} onLogout={onLogout}/>
             <p style={{fontSize:11,color:"#5A6A8A",lineHeight:1.7,margin:"0 0 10px 0",textAlign:"center" as const}}>
               ⚠️ Si eliminas tu cuenta perderás acceso a todos tus datos y conversaciones.{user.plan!=="gratis"&&<> Recuerda gestionar primero la <strong style={{color:"#FF8888"}}>baja de tu suscripción</strong> contactando con <a href="mailto:admin@algoracompound.com" style={{color:"#FFD700"}}>admin@algoracompound.com</a> para evitar cargos.</>}
             </p>
