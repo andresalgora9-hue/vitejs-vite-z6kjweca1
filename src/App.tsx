@@ -163,7 +163,36 @@ async function compressImage(file:File, maxWidth=1200, quality=0.82):Promise<Fil
     img.src=url;
   });
 }
+function AvatarUpload({user,onUpdate}:{user:UserRow;onUpdate:(u:UserRow)=>void}){
+  const inputRef=useRef<HTMLInputElement>(null);
+  const [uploading,setUploading]=useState(false);
 
+  const handleFile=async(e:React.ChangeEvent<HTMLInputElement>)=>{
+    const file=e.target.files?.[0];
+    if(!file)return;
+    if(file.size>5*1024*1024){alert("Imagen demasiado grande (máx. 5MB)");return;}
+    setUploading(true);
+    const url=await uploadImage(file,"avatars/"+user.id);
+    if(url){
+      await db.from("users").update({avatar_url:url}).eq("id",user.id);
+      onUpdate({...user,avatar_url:url});
+    }
+    setUploading(false);
+  };
+
+  return(
+    <div style={{position:"relative",display:"inline-block",cursor:"pointer"}} onClick={()=>inputRef.current?.click()}>
+      {user.avatar_url
+        ?<img src={user.avatar_url} style={{width:64,height:64,borderRadius:"50%",objectFit:"cover",border:"2px solid "+C.accent}} />
+        :<Ava s={user.name.substring(0,2).toUpperCase()} size={64} color={C.blue} />
+      }
+      <div style={{position:"absolute",bottom:0,right:0,width:20,height:20,borderRadius:"50%",background:C.accent,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11}}>
+        {uploading?"⟳":"📷"}
+      </div>
+      <input ref={inputRef} type="file" accept="image/*" style={{display:"none"}} onChange={handleFile} />
+    </div>
+  );
+}
 async function uploadImage(file:File, path:string):Promise<string|null>{
   const compressed=await compressImage(file);
   const fileName=path+"/"+Date.now()+".jpg";
@@ -2486,7 +2515,7 @@ return <GCard key={w.id} onClick={async()=>{
           <div style={{padding:"22px 0 16px"}}><h2 style={{fontWeight:800,fontSize:22,color:C.text}}>Mi perfil</h2></div>
           <GCard style={{marginBottom:14}}>
             <div style={{display:"flex",gap:14,alignItems:"center",marginBottom:14}}>
-              <Ava s={user.name.substring(0,2).toUpperCase()} size={52} color={C.blue} />
+              <AvatarUpload user={user} onUpdate={(u)=>{localStorage.setItem("oy_user",JSON.stringify(u));}} />
               <div>
                 <p style={{fontWeight:800,fontSize:18,color:C.text}}>{user.name}</p>
                 <p style={{fontSize:13,color:C.muted}}>{user.email}</p>
@@ -3977,6 +4006,14 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
             <Btn small onClick={saveProfile} disabled={saving}>{saving?"Guardando...":"Guardar"}</Btn>
           </div>
           <GCard style={{marginBottom:14}}>
+            <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:16}}>
+              <AvatarUpload user={user} onUpdate={(u)=>{onUpdate(u);localStorage.setItem("oy_user",JSON.stringify(u));}} />
+              <div>
+                <p style={{fontWeight:800,fontSize:16,color:C.text}}>{user.name}</p>
+                <p style={{fontSize:12,color:C.muted}}>{user.email}</p>
+                <p style={{fontSize:11,color:C.accent,marginTop:2}}>Pulsa la foto para cambiarla</p>
+              </div>
+            </div>
             <p style={{fontWeight:700,color:C.text,fontSize:13,marginBottom:12}}>Información básica</p>
             <Inp label="Descripción profesional" value={bio} onChange={setBio} placeholder="Describe tu experiencia, especialidades y servicios..." multiline />
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
