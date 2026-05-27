@@ -4013,7 +4013,13 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
               alert("Te hemos enviado un email de confirmación. Revisa tu correo.");
               localStorage.removeItem("oy_user");
               onLogout();
-            }} style={{background:"transparent",border:"none",color:"#44445A",fontSize:11,cursor:"pointer",textDecoration:"underline",width:"100%",textAlign:"center" as const}}>  
+            }} style={{background:"transparent",border:"none",color:"#44445A",fontSize:11,cursor:"pointer",textDecoration:"underline",width:"100%",textAlign:"center" as const}}>
+              Eliminar mi cuenta
+            </button>
+          </div>
+        </>)}
+
+        {tab==="planes"&&(<>
           <div style={{padding:"22px 0 16px",textAlign:"center"}}>
             <h2 style={{fontWeight:900,fontSize:26,letterSpacing:"-0.03em",color:C.text,marginBottom:4}}>Elige tu <span style={{color:C.accent}}>plan</span></h2>
             <p style={{fontSize:13,color:C.muted}}>30 días gratis · Sin tarjeta · Cancela cuando quieras</p>
