@@ -1877,6 +1877,75 @@ const eligibles=(allPros||[]) as UserRow[];
       </div>
   );
 }
+function DeleteAccountButton({user,onLogout}:{user:UserRow;onLogout:()=>void}){
+  const [show,setShow]=useState(false);
+  const [loading,setLoading]=useState(false);
+  const [sent,setSent]=useState(false);
+  const [err,setErr]=useState("");
+
+  const requestDelete=async()=>{
+    setLoading(true);setErr("");
+    try{
+      // Generar token único
+      const token=Math.random().toString(36).substring(2)+Date.now().toString(36);
+      // Guardar token en Supabase
+      await db.from("users").update({
+        delete_token:token,
+        delete_requested_at:new Date().toISOString(),
+      }).eq("id",user.id);
+      // Enviar email via Edge Function
+      await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/send-delete-email",{
+        method:"POST",
+        headers:{"Content-Type":"application/json","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo"},
+        body:JSON.stringify({email:user.email,name:user.name,token}),
+      });
+      setSent(true);
+      // Desloguear
+      setTimeout(()=>{
+        localStorage.removeItem("oy_user");
+        onLogout();
+      },4000);
+    }catch(e){setErr("Error al enviar. Inténtalo de nuevo.");}
+    setLoading(false);
+  };
+
+  if(!show) return(
+    <button onClick={()=>setShow(true)} style={{marginTop:32,background:"transparent",border:"none",color:"#44445A",fontSize:12,cursor:"pointer",textDecoration:"underline",width:"100%",textAlign:"center" as const}}>
+      Eliminar mi cuenta
+    </button>
+  );
+
+  return(
+    <div style={{marginTop:24,padding:20,background:"rgba(255,68,85,0.06)",border:"1px solid rgba(255,68,85,0.2)",borderRadius:14}}>
+      {!sent?(
+        <>
+          <p style={{fontWeight:800,color:"#FF4455",fontSize:14,marginBottom:8}}>⚠ Eliminar cuenta</p>
+          <p style={{fontSize:12,color:"#AA8888",lineHeight:1.6,marginBottom:16}}>
+            Se te enviará un email de confirmación a <strong style={{color:"#E8EDF5"}}>{user.email}</strong>. 
+            Cuando confirmes, perderás el acceso a tu cuenta permanentemente.
+          </p>
+          {err&&<p style={{color:"#FF4455",fontSize:12,marginBottom:8}}>⚠ {err}</p>}
+          <div style={{display:"flex",gap:8}}>
+            <button onClick={()=>setShow(false)} style={{flex:1,padding:"9px",background:"transparent",border:"1px solid #2D3A52",borderRadius:8,color:"#8899BB",fontSize:13,cursor:"pointer"}}>
+              Cancelar
+            </button>
+            <button onClick={requestDelete} disabled={loading} style={{flex:1,padding:"9px",background:"#FF4455",border:"none",borderRadius:8,color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer"}}>
+              {loading?"Enviando...":"Confirmar →"}
+            </button>
+          </div>
+        </>
+      ):(
+        <>
+          <p style={{fontSize:24,textAlign:"center" as const}}>📧</p>
+          <p style={{fontWeight:800,color:"#E8EDF5",fontSize:14,textAlign:"center" as const,marginBottom:6}}>Email enviado</p>
+          <p style={{fontSize:12,color:"#8899BB",textAlign:"center" as const}}>
+            Revisa tu correo y confirma la eliminación. Cerrando sesión...
+          </p>
+        </>
+      )}
+    </div>
+  );
+}
 // ─── CLIENT HOME ───
 // ════════════════════════════════════════════════════════════════
 // REEMPLAZA el ClientHome completo en tu App.tsx
@@ -2401,6 +2470,7 @@ return <GCard key={w.id} onClick={async()=>{
             </GCard>
           )}
           <Btn full outline danger onClick={onLogout} color={C.red}>Cerrar sesión</Btn>
+          <DeleteAccountButton user={user} onLogout={onLogout}/>
         </>)}
       </div>
 
@@ -4695,6 +4765,50 @@ async function subscribeToPush(userId: string): Promise<void> {
     console.error("Push subscribe error:", e);
   }
 }
+// ─── CONFIRMAR BAJA ───
+function ConfirmarBaja(){
+  const [status,setStatus]=useState<"loading"|"ok"|"error">("loading");
+  useEffect(()=>{
+    const token=new URLSearchParams(window.location.search).get("token");
+    if(!token){setStatus("error");return;}
+    db.from("users").select("id,name,email").eq("delete_token",token).single().then(async({data,error})=>{
+      if(error||!data){setStatus("error");return;}
+      // Verificar que no haya caducado (24h)
+      const {data:u}=await db.from("users").select("delete_requested_at").eq("id",data.id).single();
+      if(!u?.delete_requested_at){setStatus("error");return;}
+      const requested=new Date(u.delete_requested_at).getTime();
+      if(Date.now()-requested>86400000){setStatus("error");return;}
+      // Marcar como eliminado
+      await db.from("users").update({
+        deleted:true,
+        delete_token:null,
+        password:"DELETED",
+        phone:"DELETED",
+        email:data.email+"_deleted_"+Date.now(),
+      }).eq("id",data.id);
+      setStatus("ok");
+    });
+  },[]);
+
+  return(
+    <div style={{minHeight:"100vh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
+      <div style={{background:C.card,borderRadius:20,padding:32,maxWidth:360,width:"100%",textAlign:"center" as const}}>
+        {status==="loading"&&<><Spin/><p style={{color:C.muted,marginTop:16}}>Procesando...</p></>}
+        {status==="ok"&&<>
+          <p style={{fontSize:40,marginBottom:16}}>✅</p>
+          <h2 style={{color:C.text,fontWeight:800,marginBottom:8}}>Cuenta eliminada</h2>
+          <p style={{color:C.muted,fontSize:14}}>Tus datos de acceso han sido eliminados. Sentimos verte marchar.</p>
+          <p style={{color:C.muted,fontSize:12,marginTop:16}}>Si fue un error contacta con <a href="mailto:admin@algoracompound.com" style={{color:C.accent}}>admin@algoracompound.com</a></p>
+        </>}
+        {status==="error"&&<>
+          <p style={{fontSize:40,marginBottom:16}}>❌</p>
+          <h2 style={{color:C.red,fontWeight:800,marginBottom:8}}>Enlace inválido</h2>
+          <p style={{color:C.muted,fontSize:14}}>El enlace ha caducado o no es válido. Solicita uno nuevo desde la app.</p>
+        </>}
+      </div>
+    </div>
+  );
+}
 // ─── ROOT ───
 export default function App(){
   const [user,setUser]=useState<UserRow|null>(null);
@@ -4749,18 +4863,14 @@ export default function App(){
     }
   }catch(e){}
 };
-  const logout=()=>{setUser(null);localStorage.removeItem("oy_user");};
+ const logout=()=>{setUser(null);localStorage.removeItem("oy_user");};
   const update=(u:UserRow)=>{setUser(u);localStorage.setItem("oy_user",JSON.stringify(u));};
   if(!ready)return <div style={{minHeight:"100dvh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center"}}><Spin /></div>;
   if(window.location.pathname==="/elite-gratis")return <EliteLanding />;
   if(window.location.pathname==="/terminos")return <Terminos />;
-if(window.location.pathname==="/privacidad")return <Privacidad />;
-if(window.location.pathname==="/cancelacion")return <Cancelacion />;
-  if(!ready)return <div style={{minHeight:"100dvh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center"}}><Spin /></div>;
-  if(window.location.pathname==="/elite-gratis")return <EliteLanding />;
-  if(window.location.pathname==="/terminos")return <Terminos />;
-if(window.location.pathname==="/privacidad")return <Privacidad />;
-if(window.location.pathname==="/cancelacion")return <Cancelacion />;
+  if(window.location.pathname==="/privacidad")return <Privacidad />;
+  if(window.location.pathname==="/cancelacion")return <Cancelacion />;
+  if(window.location.pathname==="/confirmar-baja")return <ConfirmarBaja />;
   return (<>
     <style>{`
       @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap');
