@@ -4248,7 +4248,7 @@ setCerts((ct.data||[]) as any[]);
   .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},(p:any)=>{
         const m=p.new as MessageRow;
         if(m.from_id!=="00000000-0000-0000-0000-000000000002"&&m.from_id!=="00000000-0000-0000-0000-000000000001"){
-          ssetMsgs(prev=>{
+          setMsgs(prev=>{
   if(prev.find((x:any)=>x.id===m.id))return prev;
   return [m,...prev];
 });
