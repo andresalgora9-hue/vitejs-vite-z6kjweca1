@@ -4857,7 +4857,6 @@ function ConfirmarBaja(){
       </div>
     </div>
   );
-}
 // ─── ROOT ───
 export default function App(){
   const [user,setUser]=useState<UserRow|null>(null);
