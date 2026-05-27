@@ -263,20 +263,18 @@ return <div style={{position:"fixed",bottom:88,left:"50%",transform:"translateX(
 }
 function InstallBanner(){
   const [show,setShow]=useState(false);
+  const [step,setStep]=useState(0);
   const [deferredPrompt,setDeferredPrompt]=useState<any>(null);
   const isIOS=typeof navigator!=="undefined"&&/iphone|ipad|ipod/i.test(navigator.userAgent);
-const isInStandalone=typeof window!=="undefined"&&(window.matchMedia("(display-mode: standalone)").matches||(navigator as any).standalone===true);
+  const isInStandalone=typeof window!=="undefined"&&(window.matchMedia("(display-mode: standalone)").matches||(navigator as any).standalone===true);
 
   useEffect(()=>{
     if(localStorage.getItem("oy_install_dismissed"))return;
     if(isInStandalone)return;
-
     if(isIOS){
-      // En iOS mostrar instrucciones manuales
-      setTimeout(()=>setShow(true),2000);
+      setTimeout(()=>setShow(true),2500);
       return;
     }
-
     const handler=(e:any)=>{
       e.preventDefault();
       setDeferredPrompt(e);
@@ -285,15 +283,13 @@ const isInStandalone=typeof window!=="undefined"&&(window.matchMedia("(display-m
     window.addEventListener("beforeinstallprompt",handler);
     return()=>window.removeEventListener("beforeinstallprompt",handler);
   },[]);
+
   const install=async()=>{
     if(!deferredPrompt)return;
     deferredPrompt.prompt();
     const {outcome}=await deferredPrompt.userChoice;
-    if(outcome==="accepted"){
-      // Pedir permisos de notificaciones tras instalar
-      if("Notification" in window){
-        await Notification.requestPermission();
-      }
+    if(outcome==="accepted"&&"Notification" in window){
+      await Notification.requestPermission();
     }
     setShow(false);
     localStorage.setItem("oy_install_dismissed","1");
@@ -306,37 +302,80 @@ const isInStandalone=typeof window!=="undefined"&&(window.matchMedia("(display-m
 
   if(!show)return null;
 
+  const iosSteps=[
+    {icon:"⬆️",title:"Pulsa Compartir",desc:'El botón compartir está abajo en Safari'},
+    {icon:"➕",title:'Toca "Añadir a inicio"',desc:'Desplázate abajo en el menú compartir'},
+    {icon:"✅",title:"Pulsa Añadir",desc:"La app aparecerá en tu pantalla de inicio"},
+  ];
+
+  if(isIOS) return(
+    <div style={{
+      position:"fixed",bottom:72,left:12,right:12,zIndex:300,
+      background:"linear-gradient(135deg,#14141F,#0d0d1a)",
+      border:"1px solid #FFD70044",borderRadius:20,
+      padding:"18px 16px",
+      boxShadow:"0 -4px 30px rgba(255,215,0,0.15)",
+      animation:"slideUp 0.4s cubic-bezier(0.34,1.56,0.64,1)",
+    }}>
+      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+        <div style={{width:36,height:36,borderRadius:10,background:"linear-gradient(135deg,#FFD700,#FF8C00)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>🔨</div>
+        <div style={{flex:1}}>
+          <p style={{fontWeight:800,color:"#F0F0FA",fontSize:14,margin:0}}>Instala OfficioYa en tu iPhone</p>
+          <p style={{fontSize:11,color:"#7777AA",margin:"2px 0 0"}}>Accede más rápido y recibe alertas</p>
+        </div>
+        <button onClick={dismiss} style={{background:"none",border:"none",color:"#44445A",cursor:"pointer",fontSize:20,padding:"0 2px",flexShrink:0}}>✕</button>
+      </div>
+
+      <div style={{display:"flex",gap:8,marginBottom:16}}>
+        {iosSteps.map((s,i)=>(
+          <div key={i} onClick={()=>setStep(i)} style={{
+            flex:1,padding:"10px 8px",borderRadius:12,textAlign:"center" as const,cursor:"pointer",
+            background:step===i?"rgba(255,215,0,0.1)":"rgba(255,255,255,0.03)",
+            border:"1px solid "+(step===i?"#FFD70066":"#2D3A52"),
+            transition:"all 0.2s",
+          }}>
+            <div style={{fontSize:20,marginBottom:4}}>{s.icon}</div>
+            <p style={{fontSize:10,fontWeight:700,color:step===i?"#FFD700":"#8899BB",margin:0,lineHeight:1.3}}>{s.title}</p>
+          </div>
+        ))}
+      </div>
+
+      <div style={{background:"rgba(255,215,0,0.06)",border:"1px solid #FFD70022",borderRadius:10,padding:"10px 14px",marginBottom:14}}>
+        <p style={{fontSize:12,color:"#E8EDF5",margin:0,lineHeight:1.6,textAlign:"center" as const}}>
+          {step===0&&<>En Safari pulsa el botón <strong style={{color:"#FFD700"}}>⬆ Compartir</strong> que está en la barra de abajo</>}
+          {step===1&&<>En el menú desplázate hacia abajo hasta encontrar <strong style={{color:"#FFD700"}}>"Añadir a pantalla de inicio"</strong> y tócalo</>}
+          {step===2&&<>Pulsa <strong style={{color:"#FFD700"}}>"Añadir"</strong> arriba a la derecha. ¡Listo! OfficioYa aparecerá en tu inicio</>}
+        </p>
+      </div>
+
+      <div style={{display:"flex",gap:8}}>
+        {step>0&&<button onClick={()=>setStep(s=>s-1)} style={{flex:1,padding:"9px",background:"transparent",border:"1px solid #2D3A52",borderRadius:8,color:"#8899BB",fontSize:12,cursor:"pointer"}}>← Anterior</button>}
+        {step<2
+          ?<button onClick={()=>setStep(s=>s+1)} style={{flex:2,padding:"9px",background:"linear-gradient(135deg,#FFD700,#FF8C00)",border:"none",borderRadius:8,color:"#000",fontSize:13,fontWeight:800,cursor:"pointer"}}>Siguiente paso →</button>
+          :<button onClick={dismiss} style={{flex:2,padding:"9px",background:"linear-gradient(135deg,#FFD700,#FF8C00)",border:"none",borderRadius:8,color:"#000",fontSize:13,fontWeight:800,cursor:"pointer"}}>✅ ¡Entendido!</button>
+        }
+      </div>
+      <style>{`@keyframes slideUp{from{transform:translateY(100px);opacity:0}to{transform:translateY(0);opacity:1}}`}</style>
+    </div>
+  );
+
   return(
     <div style={{
       position:"fixed",bottom:72,left:12,right:12,zIndex:300,
       background:"linear-gradient(135deg,#14141F,#0d0d1a)",
-      border:"1px solid #FFD70044",
-      borderRadius:16,padding:"14px 16px",
+      border:"1px solid #FFD70044",borderRadius:16,padding:"14px 16px",
       boxShadow:"0 -4px 30px rgba(255,215,0,0.12)",
       display:"flex",alignItems:"center",gap:12,
       animation:"slideUp 0.4s cubic-bezier(0.34,1.56,0.64,1)",
     }}>
       <div style={{width:40,height:40,borderRadius:10,background:"linear-gradient(135deg,#FFD700,#FF8C00)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>🔨</div>
       <div style={{flex:1,minWidth:0}}>
-        <p style={{fontWeight:800,color:"#F0F0FA",fontSize:13,margin:0,lineHeight:1.3}}>Instala OfficioYa</p>
+        <p style={{fontWeight:800,color:"#F0F0FA",fontSize:13,margin:0}}>Instala OfficioYa</p>
         <p style={{fontSize:11,color:"#7777AA",margin:"2px 0 0"}}>Recibe alertas aunque el móvil esté bloqueado</p>
       </div>
-      {isIOS?(
-        <div style={{flex:1}}>
-          <p style={{fontSize:11,color:"#FFD700",fontWeight:700,margin:"0 0 4px"}}>Instalar en iPhone:</p>
-          <p style={{fontSize:10,color:"#aaa",margin:0,lineHeight:1.4}}>Pulsa <strong style={{color:"#fff"}}>⬆ Compartir</strong> → <strong style={{color:"#fff"}}>"Añadir a pantalla de inicio"</strong></p>
-        </div>
-      ):(
-        <button onClick={install} style={{
-          background:"linear-gradient(135deg,#FFD700,#FF8C00)",
-          border:"none",borderRadius:8,padding:"8px 14px",
-          color:"#000",fontFamily:"'DM Sans',sans-serif",
-          fontWeight:800,fontSize:12,cursor:"pointer",
-          whiteSpace:"nowrap" as const,flexShrink:0,
-        }}>
-          Instalar
-        </button>
-      )}
+      <button onClick={install} style={{background:"linear-gradient(135deg,#FFD700,#FF8C00)",border:"none",borderRadius:8,padding:"8px 14px",color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:800,fontSize:12,cursor:"pointer",whiteSpace:"nowrap" as const,flexShrink:0}}>
+        Instalar
+      </button>
       <button onClick={dismiss} style={{background:"none",border:"none",color:"#44445A",cursor:"pointer",fontSize:18,padding:"0 2px",flexShrink:0}}>✕</button>
       <style>{`@keyframes slideUp{from{transform:translateY(100px);opacity:0}to{transform:translateY(0);opacity:1}}`}</style>
     </div>
