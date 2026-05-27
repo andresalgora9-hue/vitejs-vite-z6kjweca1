@@ -4017,6 +4017,7 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
               Eliminar mi cuenta
             </button>
           </div>
+          <div style={{height:40}} />
         </>)}
 
         {tab==="planes"&&(<>
