@@ -478,10 +478,48 @@ function StepExito({ nombre, oficio }) {
         ))}
       </div>
 
-      <Btn onClick={()=>window.location.href="/"}>Ir a mi perfil →</Btn>
-      <p style={{ color:C.dim, fontSize:11, marginTop:12 }}>
-        Te avisaremos 3 días antes de que termine el periodo gratis
-      </p>
+      <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:16,padding:"20px",marginBottom:20,textAlign:"left"}}>
+  <p style={{color:C.gold,fontWeight:800,fontSize:14,marginBottom:16,textAlign:"center"}}>📲 Descarga la app y empieza a recibir clientes</p>
+  
+  {/* Android */}
+  <a href="https://play.google.com/store/apps/details?id=com.aficioya.twa" target="_blank" style={{display:"flex",alignItems:"center",gap:12,background:"rgba(255,184,0,0.08)",border:`1px solid rgba(255,184,0,0.25)`,borderRadius:12,padding:"12px 16px",marginBottom:10,textDecoration:"none"}}>
+    <span style={{fontSize:24}}>🤖</span>
+    <div>
+      <p style={{color:C.white,fontWeight:700,fontSize:13,margin:0}}>Descargar en Android</p>
+      <p style={{color:C.muted,fontSize:11,margin:0}}>Google Play Store</p>
+    </div>
+    <span style={{color:C.gold,marginLeft:"auto",fontSize:16}}>→</span>
+  </a>
+
+  {/* iPhone */}
+  <div style={{background:"rgba(255,255,255,0.03)",border:`1px solid ${C.border}`,borderRadius:12,padding:"12px 16px"}}>
+    <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
+      <span style={{fontSize:24}}>🍎</span>
+      <div>
+        <p style={{color:C.white,fontWeight:700,fontSize:13,margin:0}}>Instalar en iPhone</p>
+        <p style={{color:C.muted,fontSize:11,margin:0}}>Sigue estos 3 pasos en Safari</p>
+      </div>
+    </div>
+    {[
+      ["⬆️","Pulsa el botón Compartir","El botón está en la barra inferior de Safari"],
+      ["➕","Toca \"Añadir a inicio\"","Desplázate abajo en el menú compartir"],
+      ["✅","Pulsa Añadir","La app aparecerá en tu pantalla de inicio"],
+    ].map(([ic,t,d],i)=>(
+      <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0",borderTop:i>0?`1px solid ${C.border}`:"none"}}>
+        <span style={{fontSize:18,width:28,textAlign:"center"}}>{ic}</span>
+        <div>
+          <p style={{color:C.white,fontSize:12,fontWeight:700,margin:0}}>{t}</p>
+          <p style={{color:C.muted,fontSize:11,margin:0}}>{d}</p>
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
+
+<Btn onClick={()=>window.location.href="/"}>Ir a mi perfil →</Btn>
+<p style={{ color:C.dim, fontSize:11, marginTop:12 }}>
+  Te avisaremos 3 días antes de que termine el periodo gratis
+</p>
     </div>
   );
 }
