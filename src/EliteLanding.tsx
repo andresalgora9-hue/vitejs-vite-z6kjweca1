@@ -277,7 +277,13 @@ function Btn({ children, onClick, disabled, secondary }) {
 function StepDatos({ onNext }) {
   const [form, setForm] = useState({ nombre:"", oficio:"", telefono:"", email:"", password:"" });
   const [errors, setErrors] = useState({});
-  const OFICIOS = ["Electricista","Fontanero","Cerrajero","Pintor","Carpintero","Albañil","Cristalero","Soldador","Instalador A/C","Techador","Otros"];
+  const OFICIOS = [
+  "Electricista","Fontanero","Cerrajero","Pintor","Albañil","Carpintero",
+  "Reformas Integrales","Climatización","Técnico de Gas","Desatascos y Camión Cuba",
+  "Soldador","Instalador Solar","Yesero","Techador","Montador de Pladur",
+  "Parquetista / Pulidor de Suelos","Cristalero","Manitas a Domicilio",
+  "Jardinero","Fumigador","Tapicero","Otros"
+];
 
   const validate = () => {
     const e = {};
