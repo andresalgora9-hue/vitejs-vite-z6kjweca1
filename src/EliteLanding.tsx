@@ -274,33 +274,75 @@ function Btn({ children, onClick, disabled, secondary }) {
 }
 
 /* ─── STEP 1: DATOS ───────────────────────────────────────────────── */
+// ─── TRACKING CENTRAL — fuera de todos los componentes ───────────
+const track = (evento: string, datos: Record<string,any> = {}) => {
+  if (typeof window === "undefined") return;
+  if ((window as any).fbq)  (window as any).fbq("track", evento, datos);
+  if ((window as any).gtag) (window as any).gtag("event", evento, datos);
+};
+
+const saveLead = async (form: any) => {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    await db.from("leads_landing").insert({
+      nombre:       form.nombre,
+      email:        form.email,
+      telefono:     form.telefono,
+      oficio:       form.oficio,
+      convirtio:    false,
+      utm_source:   params.get("utm_source")   || "directo",
+      utm_medium:   params.get("utm_medium")   || null,
+      utm_campaign: params.get("utm_campaign") || null,
+      utm_content:  params.get("utm_content")  || null,
+    });
+  } catch(e) { console.log("Lead save error", e); }
+};
+
+// ─── STEP 1: DATOS ───────────────────────────────────────────────
 function StepDatos({ onNext }) {
   const [form, setForm] = useState({ nombre:"", oficio:"", telefono:"", email:"", password:"" });
   const [errors, setErrors] = useState({});
+
   const OFICIOS = [
-  "Electricista","Fontanero","Cerrajero","Pintor","Albañil","Carpintero",
-  "Reformas Integrales","Climatización","Técnico de Gas","Desatascos y Camión Cuba",
-  "Soldador","Instalador Solar","Yesero","Techador","Montador de Pladur",
-  "Parquetista / Pulidor de Suelos","Cristalero","Manitas a Domicilio",
-  "Jardinero","Fumigador","Tapicero","Otros"
-];
+    "Electricista","Fontanero","Cerrajero","Pintor","Albañil","Carpintero",
+    "Reformas Integrales","Climatización","Técnico de Gas","Desatascos y Camión Cuba",
+    "Soldador","Instalador Solar","Yesero","Techador","Montador de Pladur",
+    "Parquetista / Pulidor de Suelos","Cristalero","Manitas a Domicilio",
+    "Jardinero","Fumigador","Tapicero","Otros"
+  ];
 
   const validate = () => {
-    const e = {};
-    if (!form.nombre.trim())           e.nombre   = "Obligatorio";
-    if (!form.oficio)                  e.oficio   = "Selecciona tu oficio";
-    if (!/^\d{9}$/.test(form.telefono.replace(/\s/g,""))) e.telefono = "Teléfono no válido (9 dígitos)";
-    if (!form.email.includes("@"))     e.email    = "Email inválido";
-    if (form.password.length < 6)      e.password = "Mínimo 6 caracteres";
+    const e: any = {};
+    if (!form.nombre.trim())                                  e.nombre   = "Obligatorio";
+    if (!form.oficio)                                         e.oficio   = "Selecciona tu oficio";
+    if (!/^\d{9}$/.test(form.telefono.replace(/\s/g,"")))    e.telefono = "Teléfono no válido (9 dígitos)";
+    if (!form.email.includes("@"))                           e.email    = "Email inválido";
+    if (form.password.length < 6)                            e.password = "Mínimo 6 caracteres";
     return e;
   };
 
-  const change = e => { setForm(p=>({...p,[e.target.name]:e.target.value})); setErrors(p=>({...p,[e.target.name]:null})); };
- const saveLead=async(form:any)=>{
-    try{
-      await db.from("leads_landing").insert({nombre:form.nombre,email:form.email,telefono:form.telefono,oficio:form.oficio,convirtio:false});
-    }catch(e){console.log("Lead save error",e);}
+  const change = (e: any) => {
+    setForm(p => ({...p, [e.target.name]: e.target.value}));
+    setErrors(p => ({...p, [e.target.name]: null}));
   };
+
+const saveLead = async (form: any) => {
+  try {
+    // Guardamos UTM params para saber de qué anuncio viene
+    const params = new URLSearchParams(window.location.search);
+    await db.from("leads_landing").insert({
+      nombre: form.nombre,
+      email: form.email,
+      telefono: form.telefono,
+      oficio: form.oficio,
+      convirtio: false,
+      utm_source:   params.get("utm_source")   || "directo",
+      utm_medium:   params.get("utm_medium")   || null,
+      utm_campaign: params.get("utm_campaign") || null,
+      utm_content:  params.get("utm_content")  || null,
+    });
+  } catch(e) { console.log("Lead save error", e); }
+};
 
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:18 }}>
