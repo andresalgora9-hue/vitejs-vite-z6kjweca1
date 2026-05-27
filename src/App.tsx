@@ -3996,10 +3996,24 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
               </div>
             ))}
           </GCard>
-          <Btn full outline danger onClick={onLogout} color={C.red}>Cerrar sesión</Btn>
-        </>)}
-
-        {tab==="planes"&&(<>
+         <Btn full outline danger onClick={onLogout} color={C.red}>Cerrar sesión</Btn>
+          <div style={{marginTop:32,padding:16,background:"rgba(255,68,85,0.04)",border:"1px solid rgba(255,68,85,0.15)",borderRadius:12}}>
+            <p style={{fontSize:11,color:"#5A6A8A",lineHeight:1.7,margin:"0 0 10px 0",textAlign:"center" as const}}>
+              ⚠️ Si eliminas tu cuenta perderás acceso a todos tus datos y conversaciones.{user.plan!=="gratis"&&<> Recuerda gestionar primero la <strong style={{color:"#FF8888"}}>baja de tu suscripción</strong> contactando con <a href="mailto:admin@algoracompound.com" style={{color:"#FFD700"}}>admin@algoracompound.com</a> para evitar cargos.</>}
+            </p>
+            <button onClick={async()=>{
+              if(!window.confirm("¿Seguro que quieres eliminar tu cuenta? Esta acción no se puede deshacer."))return;
+              const token=Math.random().toString(36).substring(2)+Date.now().toString(36);
+              await db.from("users").update({delete_token:token,delete_requested_at:new Date().toISOString()}).eq("id",user.id);
+              await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/send-delete-email",{
+                method:"POST",
+                headers:{"Content-Type":"application/json"},
+                body:JSON.stringify({email:user.email,name:user.name,token}),
+              });
+              alert("Te hemos enviado un email de confirmación. Revisa tu correo.");
+              localStorage.removeItem("oy_user");
+              onLogout();
+            }} style={{background:"transparent",border:"none",color:"#44445A",fontSize:11,cursor:"pointer",textDecoration:"underline",width:"100%",textAlign:"center" as const}}>  
           <div style={{padding:"22px 0 16px",textAlign:"center"}}>
             <h2 style={{fontWeight:900,fontSize:26,letterSpacing:"-0.03em",color:C.text,marginBottom:4}}>Elige tu <span style={{color:C.accent}}>plan</span></h2>
             <p style={{fontSize:13,color:C.muted}}>30 días gratis · Sin tarjeta · Cancela cuando quieras</p>
