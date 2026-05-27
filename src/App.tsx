@@ -3199,9 +3199,10 @@ function PresupuestoForm({msg,proId,proName,proPlan,proRating,onClose,onSent}:{m
         </button>
         <button onClick={onClose} style={{flex:1,padding:"9px",background:"transparent",border:"1px solid "+C.border,borderRadius:8,color:C.muted,cursor:"pointer",fontFamily:"inherit",fontSize:12}}>Cancelar</button>
       </div>
-    </div>
+   </div>
   );
-  function ProDeleteAccountButton({user,onLogout}:{user:UserRow;onLogout:()=>void}){
+}
+function ProDeleteAccountButton({user,onLogout}:{user:UserRow;onLogout:()=>void}){
   const [show,setShow]=useState(false);
   const [loading,setLoading]=useState(false);
   const [sent,setSent]=useState(false);
