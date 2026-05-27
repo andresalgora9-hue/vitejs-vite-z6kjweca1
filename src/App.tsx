@@ -4063,11 +4063,7 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
               localStorage.removeItem("oy_user");
               onLogout();
             }} style={{background:"transparent",border:"none",color:"#44445A",fontSize:11,cursor:"pointer",textDecoration:"underline",width:"100%",textAlign:"center" as const}}>
-              Eliminar mi cuenta
-            </button>
-          </div>
-          <div style={{height:40}} />
-        </>)}
+              </>)}
 
         {tab==="planes"&&(<>
           <div style={{padding:"22px 0 16px",textAlign:"center"}}>
