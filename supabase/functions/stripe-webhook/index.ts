@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const STRIPE_WEBHOOK_SECRET = "whsec_TuWqxJK3GYbFHNLcG9nugJI56mh2KMLH"; // lo obtienes en el paso 3
 const SUPABASE_URL = "https://rjwojxwrsbvwwshwwpvq.supabase.co";
-const SUPABASE_SERVICE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3ODQxNzEzOCwiZXhwIjoyMDkzOTkzMTM4fQ.gocItLf-NEQVg-JadqRL3e01Q2_TGJdyZlE0fgDRxu4"; // Supabase → Settings → API → service_role
+const SUPABASE_SERVICE_KEY = Deno.env.get("SERVICE_ROLE_KEY") || "";
 
 const PLAN_POR_PRICE: Record<string, string> = {
   "price_1TYuneCZe2kZYfZCxD24mHGx": "elite",
@@ -64,18 +64,32 @@ serve(async (req) => {
         break;
       }
 
-      // Pago fallido → avisar pero no cancelar aún
+      // Pago fallido → avisar, dar 5 días de gracia antes de bajar plan
       case "invoice.payment_failed": {
         const invoice = event.data.object;
         const email = invoice.customer_email;
         if (email) {
+          const graceUntil = new Date(Date.now() + 5 * 86400000).toISOString();
           await supabase.from("users").update({
-            plan: "gratis",
+            payment_failed_at: new Date().toISOString(),
+            grace_until: graceUntil,
           }).eq("email", email);
         }
         break;
       }
-
+// Anticipo pagado → actualizar mensaje a ANTICIPO_PAGADO
+      case "payment_intent.succeeded": {
+        const pi = event.data.object;
+        const jobId = pi.metadata?.job_id;
+        const tipo = pi.metadata?.tipo;
+        if (jobId && tipo === "anticipo") {
+          await supabase.from("messages").update({
+            anticipo_status: "ANTICIPO_PAGADO",
+            anticipo_paid_at: new Date().toISOString(),
+          }).eq("job_id", jobId).eq("anticipo_status", "pendiente");
+        }
+        break;
+      }
       // Suscripción cancelada → bajar a gratis
       case "customer.subscription.deleted": {
         const sub = event.data.object;
@@ -90,11 +104,27 @@ serve(async (req) => {
       }
     }
 
+    await supabase.from("webhook_logs").insert({
+      event_type: event.type,
+      event_id: event.id,
+      payload: JSON.stringify(event.data.object),
+      processed_at: new Date().toISOString(),
+      ok: true,
+    });
+
     return new Response(JSON.stringify({ received: true }), {
       headers: { "Content-Type": "application/json" },
     });
 
-  } catch (err: any) {
+ } catch (err: any) {
+    await supabase.from("webhook_logs").insert({
+      event_type: event?.type || "unknown",
+      event_id: event?.id || "unknown",
+      payload: JSON.stringify(event?.data?.object || {}),
+      processed_at: new Date().toISOString(),
+      ok: false,
+      error_message: err.message,
+    });
     return new Response(JSON.stringify({ error: err.message }), { status: 500 });
   }
 });
