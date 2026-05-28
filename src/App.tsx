@@ -2830,6 +2830,7 @@ fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method
         if(!data){setErr("Error creando cuenta.");return;}
         localStorage.setItem("oy_user",JSON.stringify(data));
         fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method:"POST",headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE"},body:JSON.stringify({type:"bienvenida_pro",to:email.toLowerCase().trim(),name:name.trim()})});
+        resetForm();
         onLogin(data as UserRow);
       }
     }catch{setLoading(false);setErr("Error de conexión.");}
@@ -2867,15 +2868,16 @@ fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method
           user={{id:"",name:pendingProFormData.name,email:pendingProFormData.email,password:"",phone:pendingProFormData.phone,type:"profesional",plan:pendingProFormData.plan,bio:"",price:30,trade:pendingProFormData.trade,zone:pendingProFormData.zone,rating:0,reviews:0,jobs:0,verified:false,available:true,whatsapp:pendingProFormData.phone,service_zones:[pendingProFormData.zone],schedule:"Lunes a Viernes",response_time:"24h",free_quote:true,experience_years:0,specialties:[],trial_end:"",joined_at:""} as any}
           priceId={pendingPriceId}
           plan={pendingProFormData.plan as Plan}
-          onClose={()=>{setShowRegisterStripe(false);setPendingProFormData(null);}}
+          onClose={()=>{setShowRegisterStripe(false);setPendingProFormData(null);setErr("Pago cancelado. Tu cuenta no ha sido creada. Puedes intentarlo de nuevo.");}}
           onSuccess={async(pl)=>{
             const trial_end=new Date(Date.now()+30*86400000).toISOString().split("T")[0];
-            const insertData:any={name:pendingProFormData.name,email:pendingProFormData.email,password:pendingProFormData.password,phone:pendingProFormData.phone,type:"profesional",plan:pl,trade:pendingProFormData.trade,zone:pendingProFormData.zone,bio:"",price:30,available:true,verified:false,jobs:0,rating:0,reviews:0,trial_end,whatsapp:pendingProFormData.phone,free_quote:true,service_zones:[pendingProFormData.zone],schedule:"Lunes a Viernes",response_time:"24h",experience_years:0,specialties:[]};
+            const insertData:any={name:pendingProFormData.name,email:pendingProFormData.email,password:pendingProFormData.password,phone:pendingProFormData.phone,type:"profesional",plan:pl,trade:pendingProFormData.trade,zone:pendingProFormData.zone,bio:"",price:30,available:true,verified:false,jobs:0,rating:0,reviews:0,trial_end,whatsapp:pendingProFormData.phone,free_quote:true,service_zones:[pendingProFormData.zone],schedule:"Lunes a Viernes",response_time:"24h",experience_years:0,specialties:[],...(pendingProFormData.stripeCustomerId?{stripe_customer_id:pendingProFormData.stripeCustomerId}:{})};
             const {data,error}=await db.from("users").insert(insertData).select().single();
-            if(error||!data){return;}
+            if(error||!data){setShowRegisterStripe(false);setPendingProFormData(null);setErr("Pago procesado pero hubo un error creando tu cuenta. Contacta con soporte: admin@oficioya.com");return;}
             fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method:"POST",headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE"},body:JSON.stringify({type:"bienvenida_pro",to:pendingProFormData.email,name:pendingProFormData.name})});
             setShowRegisterStripe(false);
             setPendingProFormData(null);
+            resetForm();
             onLogin(data as UserRow);
           }}
         />
@@ -3059,7 +3061,7 @@ fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method
     Información de suscripción: El período de prueba cuenta con 30 días de acceso gratuito. Las solicitudes de cancelación deben procesarse con un mínimo de <strong style={{color:"#F0F0FA"}}>15 días de antelación</strong> respecto a la fecha de renovación para evitar el cargo automático del ciclo posterior ({plan==="elite"?"49,99€":plan==="pro"?"24,99€":"9,99€"}/mes). Al continuar, confirmas la aceptación de nuestros <a href="/terminos" target="_blank" style={{color:"#FFD700",textDecoration:"underline"}}>Términos de Servicio</a> y <a href="/cancelacion" target="_blank" style={{color:"#FFD700",textDecoration:"underline"}}>Política de Cancelación</a>.
   </p>
 </div>
-<Btn full disabled={loading} onClick={registerPro}>{loading?"Creando tu perfil...":"Crear perfil profesional →"}</Btn>
+<Btn full disabled={loading} onClick={registerPro}>{loading?(plan!=="gratis"?"Verificando...":"Creando tu perfil..."):(plan!=="gratis"?"Continuar al pago — "+plan.toUpperCase()+" →":"Crear perfil profesional →")}</Btn> {plan!=="gratis"&&<p style={{fontSize:11,color:C.muted,textAlign:"center" as const,marginTop:8}}>Tu cuenta se crea solo si el pago tiene éxito</p>}
 </>)}
           </GCard>
         )}
@@ -3148,7 +3150,7 @@ function StripePayModal({user,priceId,plan,onClose,onSuccess,isRegistration=fals
         body:JSON.stringify({paymentMethodId:paymentMethod.id,email:user.email,nombre:user.name,telefono:user.phone||"",priceId,userId:user.id}),
       });
       const result=await res.json();
-      if(result.ok){onSuccess(plan);}
+      if(result.ok){if(result.customerId&&setPendingProFormData)setPendingProFormData((prev:any)=>prev?{...prev,stripeCustomerId:result.customerId}:prev);onSuccess(plan);}
       else{setErr(result.error||"Error al procesar");setLoading(false);}
     }catch{setErr("Error de conexión");setLoading(false);}
   };
