@@ -2185,7 +2185,7 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
   useEffect(()=>{
     if(tab==="chats"){
       loadChats();
-      const poll=setInterval(()=>loadChats(),2000);
+      const poll=setInterval(()=>loadChats(),15000);
       return ()=>clearInterval(poll);
     }
   },[tab,loadChats]);
@@ -3450,7 +3450,7 @@ const [chatUser,setChatUser]=useState<UserRow|null>(null);
     db.from("messages").select("id",{count:"exact"} as any).eq("to_id",user.id).then(({count}:any)=>setStats(s=>({...s,contacts:count||0})));
     db.from("reviews").select("id",{count:"exact"} as any).eq("worker_id",user.id).then(({count}:any)=>setStats(s=>({...s,reviews:count||0})));
     // Count unread
-    db.from("messages").select("id",{count:"exact"} as any).eq("to_id",user.id).eq("read",false).then(({count}:any)=>setUnreadMsgs(count||0));
+    db.from("messages").select("id",{count:"exact"} as any).eq("to_id",user.id).eq("read",false).neq("from_id","00000000-0000-0000-0000-000000000001").then(({count}:any)=>setUnreadMsgs(count||0));
   },[user.id]);
 
   
@@ -3503,7 +3503,7 @@ setUnreadMsgs(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
 // ── REALTIME: listen for new messages + lead alerts ── 
 useEffect(()=>{ 
   const ch=db.channel("pro-realtime-"+user.id) 
-  .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"to_id=eq.00000000-0000-0000-0000-000000000002"},(p:any)=>{
+  .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"to_id=eq."+user.id},(p:any)=>{
     
     const m=p.new;
     const isLeadAlert=m.from_id==="00000000-0000-0000-0000-000000000001"||m.text?.includes("NUEVO CLIENTE INTERESADO"); 
