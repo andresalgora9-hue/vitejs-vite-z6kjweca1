@@ -4303,7 +4303,7 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
 
 // ─── ADMIN ───
 function Admin({onLogout}:{onLogout:()=>void}){
-  type AdminTab="overview"|"usuarios"|"registros"|"trabajos"|"mensajes"|"reseñas"|"leads"|"certs"|"reports";
+  type AdminTab="overview"|"usuarios"|"registros"|"trabajos"|"mensajes"|"reseñas"|"leads"|"certs"|"reports"|"sincobro";
   const [tab,setTab]=useState<AdminTab>("overview");
   const [users,setUsers]=useState<UserRow[]>([]);
   const [jobs,setJobs]=useState<JobRow[]>([]);
@@ -4875,6 +4875,31 @@ return()=>{db.removeChannel(ch);clearInterval(poll);};
             <p style={{color:C.muted,fontSize:13}}>Sin reportes todavía.</p>
           </>)}
 
+          {tab==="sincobro"&&(<>
+            <h2 style={{fontWeight:800,fontSize:20,color:C.text,marginBottom:14}}>Registrados sin tarjeta</h2>
+            <p style={{color:C.muted,fontSize:13,marginBottom:16}}>Pros que se registraron pero no completaron el pago. Llámalos hoy.</p>
+            {users.filter(u=>u.type==="profesional"&&u.plan==="gratis"&&!(u as any).stripe_customer_id&&u.email&&!u.email.includes("demo")&&!u.email.includes("prueba")).sort((a,b)=>new Date(b.joined_at).getTime()-new Date(a.joined_at).getTime()).map(u=>(
+              <GCard key={u.id} style={{marginBottom:10}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10}}>
+                  <div style={{flex:1}}>
+                    <p style={{fontWeight:800,fontSize:15,color:C.text,marginBottom:2}}>{u.name}</p>
+                    <p style={{fontSize:12,color:C.muted,marginBottom:4}}>{u.trade} · {u.zone}</p>
+                    <p style={{fontSize:12,color:C.mutedL}}>{u.email}</p>
+                    {u.phone&&<p style={{fontSize:12,color:C.mutedL}}>{u.phone}</p>}
+                    <p style={{fontSize:11,color:C.muted,marginTop:4}}>Registro: {new Date(u.joined_at).toLocaleDateString("es-ES",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</p>
+                  </div>
+                  <div style={{display:"flex",flexDirection:"column",gap:6,alignItems:"flex-end"}}>
+                    {u.phone&&<a href={"tel:"+u.phone} style={{padding:"7px 14px",background:C.green,borderRadius:8,color:"#000",fontWeight:700,fontSize:12,textDecoration:"none"}}>Llamar</a>}
+                    {u.whatsapp&&<a href={"https://wa.me/"+u.whatsapp.replace(/\D/g,"")} target="_blank" rel="noreferrer" style={{padding:"7px 14px",background:"#25D366",borderRadius:8,color:"#000",fontWeight:700,fontSize:12,textDecoration:"none"}}>WhatsApp</a>}
+                  </div>
+                </div>
+              </GCard>
+            ))}
+            {users.filter(u=>u.type==="profesional"&&u.plan==="gratis"&&!(u as any).stripe_customer_id&&u.email&&!u.email.includes("demo")&&!u.email.includes("prueba")).length===0&&(
+              <p style={{textAlign:"center",color:C.muted,fontSize:13,padding:32}}>No hay pros sin tarjeta hoy. Buen trabajo.</p>
+            )}
+          </>)}
+
         </>)}
       </div>
 
@@ -4892,7 +4917,7 @@ return()=>{db.removeChannel(ch);clearInterval(poll);};
         paddingBottom: "calc(10px + env(safe-area-inset-bottom))", // Fix para iPhone
         paddingTop: "10px"
       }}>
-        {([["overview","📊","Overview"],["usuarios","👥","Usuarios"],["registros","📅","Registros"],["trabajos","🔨","Trabajos"],["mensajes","💬","Mensajes"],["reseñas","⭐","Reseñas"],["leads","📋","Leads"],["certs","🏅","Certs"],["reports","🚩","Reports"]] as const).map(([id,icon,label])=>(
+        {([["overview","📊","Overview"],["usuarios","👥","Usuarios"],["registros","📅","Registros"],["trabajos","🔨","Trabajos"],["mensajes","💬","Mensajes"],["reseñas","⭐","Reseñas"],["leads","📋","Leads"],["certs","🏅","Certs"],["reports","🚩","Reports"],["sincobro","💸","Sin cobro"]] as const).map(([id,icon,label])=>(
           <button key={id} onClick={()=>{setTab(id as AdminTab);if(id==="mensajes")setUnreadAdminMsgs(0);}} style={{flex:"0 0 auto",minWidth:60,padding:"8px 4px 10px",background:"none",border:"none",color:tab===id?C.accent:C.muted,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:2,borderBottom:tab===id?"2px solid "+C.accent:"2px solid transparent",position:"relative"}}>
             <span style={{fontSize:16,position:"relative"}}>
               {icon}
