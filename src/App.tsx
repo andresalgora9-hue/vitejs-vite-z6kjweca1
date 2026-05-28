@@ -5218,6 +5218,7 @@ export default function App(){
     const m=path.match(/^\/pro\/(.+)$/);
     return m?m[1]:null;
   });
+  const [deepLinkWorker,setDeepLinkWorker]=useState<UserRow|null>(null);
 
   useEffect(()=>{
     const handler=(e:any)=>{
@@ -5269,6 +5270,21 @@ export default function App(){
  const logout=()=>{setUser(null);localStorage.removeItem("oy_user");};
   const update=(u:UserRow)=>{setUser(u);localStorage.setItem("oy_user",JSON.stringify(u));};
   if(!ready)return <div style={{minHeight:"100dvh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center"}}><Spin /></div>;
+  useEffect(()=>{
+    if(deepLinkSlug&&user&&user.type==="cliente"){
+      db.from("users").select("*").eq("type","profesional").then(({data}:any)=>{
+        if(!data)return;
+        const found=data.find((w:UserRow)=>toSlug(w.name,w.trade)===deepLinkSlug);
+        if(found){setDeepLinkWorker(found);setDeepLinkSlug(null);}
+      });
+    }
+  },[deepLinkSlug,user]);
+
+  if(deepLinkWorker&&user&&user.type==="cliente"){
+    return <div style={{minHeight:"100dvh",background:C.bg}}>
+      <ClientHome user={user} onLogout={()=>{setUser(null);localStorage.removeItem("oy_user");}} initialWorker={deepLinkWorker} />
+    </div>;
+  }
   if(deepLinkSlug&&!user){
     return(
       <div style={{minHeight:"100dvh",background:C.bg,display:"flex",flexDirection:"column"}}>
