@@ -687,6 +687,12 @@ function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:User
   const startX=useRef(0);
   const typingTimer=useRef<any>(null);
 
+useEffect(()=>{
+  history.pushState({panel:"chat"},"");
+  const handlePop=()=>onClose();
+  window.addEventListener("popstate",handlePop);
+  return()=>window.removeEventListener("popstate",handlePop);
+},[]);
   const isSystem=toUser.id==="00000000-0000-0000-0000-000000000001"||toUser.id==="00000000-0000-0000-0000-000000000002";
   const displayColor=isSystem?C.orange:col;
 
