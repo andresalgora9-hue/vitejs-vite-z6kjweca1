@@ -1155,7 +1155,6 @@ function BuscadorExpressModal({workers,onResult,onWorkerSelect,onClose}:{workers
   const [selUbicacion,setSelUbicacion]=useState<"sevilla"|"pueblos"|"">("");
   const [selZonas,setSelZonas]=useState<string[]>([]);
   const [textSearch,setTextSearch]=useState("");
-  const searchInputRef=useRef<HTMLInputElement>(null);
 const searchInputRef=useRef<HTMLInputElement>(null);
 
 useEffect(()=>{
