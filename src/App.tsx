@@ -2749,7 +2749,7 @@ const handleForgot=async()=>{
   const emailData=await emailRes.json();
   if(!emailRes.ok||emailData.statusCode===422||emailData.name==="validation_error"){
     // Email falló pero contraseña ya está cambiada — mostrar contraseña directamente
-    setForgotMsg("✅ Contraseña cambiada. Tu nueva contraseña es: "+nueva_pass);
+    setForgotMsg("✅ Contraseña cambiada. Revisa tu correo o contacta con admin@algoracompound.com");
   } else {
     setForgotMsg("✅ ¡Enviado! Revisa tu correo con la nueva contraseña.");
   }
