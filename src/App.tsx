@@ -760,7 +760,7 @@ function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:User
   body:JSON.stringify({user_id:toUser.id,title:"💬 "+currentUser.name,body:txt.substring(0,80),url:"/"}),
 }).catch(()=>{});
     setSending(false);
-    inputRef.current?.focus();
+    inputRef.current?.blur();
   };
 
   const handleKeyDown=(e:React.KeyboardEvent)=>{
@@ -1096,16 +1096,18 @@ function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:User
           boxShadow:inputFocused?"0 0 0 3px "+displayColor+"18":"none",
         }}>
           <input
-            ref={inputRef}
-            value={input}
-            onChange={e=>handleInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            onFocus={()=>setInputFocused(true)}
-            onBlur={()=>setInputFocused(false)}
-            placeholder="Mensaje..."
-            style={{flex:1,padding:"11px 0",background:"transparent",border:"none",color:C.text,fontFamily:"inherit",fontSize:15,outline:"none"}}
-            autoComplete="off"
-          />
+  ref={inputRef}
+  value={input}
+  onChange={e=>handleInput(e.target.value)}
+  onKeyDown={handleKeyDown}
+  onFocus={()=>setInputFocused(true)}
+  onBlur={()=>setInputFocused(false)}
+  placeholder="Mensaje..."
+  enterKeyHint="send"
+  inputMode="text"
+  style={{flex:1,padding:"11px 0",background:"transparent",border:"none",color:C.text,fontFamily:"inherit",fontSize:15,outline:"none"}}
+  autoComplete="off"
+/>
           {input&&(
             <button onClick={()=>setInput("")} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:14,padding:"0 0 0 6px",flexShrink:0}}>✕</button>
           )}
