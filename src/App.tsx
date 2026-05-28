@@ -5197,7 +5197,7 @@ export default function App(){
   if(window.location.pathname==="/privacidad")return <Privacidad />;
   if(window.location.pathname==="/cancelacion")return <Cancelacion />;
   if(window.location.pathname==="/confirmar-baja")return <ConfirmarBaja />;
-  return (<>
+  return (<Sentry.ErrorBoundary fallback={<div style={{minHeight:"100dvh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:16,padding:24}}><div style={{fontSize:40}}>⚠️</div><p style={{color:C.text,fontWeight:700,fontSize:18,textAlign:"center"}}>Algo salió mal</p><p style={{color:C.muted,fontSize:13,textAlign:"center"}}>Hemos registrado el error automáticamente. Recarga la página.</p><button onClick={()=>window.location.reload()} style={{padding:"12px 24px",background:C.accent,borderRadius:10,border:"none",color:"#000",fontWeight:700,cursor:"pointer"}}>Recargar</button></div>}>
     <style>{`
       @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap');
       *{box-sizing:border-box;margin:0;padding:0;}
@@ -5248,5 +5248,5 @@ export default function App(){
     {user&&user.type==="admin"&&<Admin onLogout={logout} />}
     {user&&user.type==="profesional"&&<ProDashboard user={user} onLogout={logout} onUpdate={update} />}
     {user&&user.type==="cliente"&&<ClientHome user={user} onLogout={logout} />}
-  </>);
+</Sentry.ErrorBoundary>);
 }
