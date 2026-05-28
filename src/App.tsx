@@ -5271,11 +5271,15 @@ export default function App(){
   if(!ready)return <div style={{minHeight:"100dvh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center"}}><Spin /></div>;
   if(deepLinkSlug&&!user){
     return(
-      <div style={{minHeight:"100dvh",background:C.bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24}}>
-        <p style={{fontSize:36,marginBottom:12}}>👷</p>
-        <p style={{fontWeight:800,fontSize:18,color:C.text,marginBottom:8,textAlign:"center"}}>Perfil de profesional</p>
-        <p style={{fontSize:13,color:C.muted,marginBottom:24,textAlign:"center"}}>Inicia sesión para ver el perfil completo</p>
-        <Auth onLogin={(u)=>{setUser(u);}} />
+      <div style={{minHeight:"100dvh",background:C.bg,display:"flex",flexDirection:"column"}}>
+        <div style={{background:"linear-gradient(180deg,#1E2536,#0F1117)",padding:"48px 24px 32px",textAlign:"center",borderBottom:"1px solid "+C.border}}>
+          <img src="/icon-192.png" style={{width:56,height:56,borderRadius:16,marginBottom:16,boxShadow:"0 4px 20px rgba(0,0,0,0.4)"}} />
+          <p style={{fontWeight:900,fontSize:22,color:C.text,marginBottom:6,letterSpacing:"-0.02em"}}>OfficioYa</p>
+          <p style={{fontSize:13,color:C.muted}}>Inicia sesión para ver este perfil</p>
+        </div>
+        <div style={{flex:1,padding:"0 0 40px"}}>
+          <Auth onLogin={(u)=>{setUser(u);}} />
+        </div>
       </div>
     );
   }
