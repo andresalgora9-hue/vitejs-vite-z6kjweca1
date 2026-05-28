@@ -2747,9 +2747,6 @@ const handleForgot=async()=>{
   const [pendingPriceId,setPendingPriceId]=useState<string>("");
   const [showRegisterStripe,setShowRegisterStripe]=useState(false);
   const [pendingProFormData,setPendingProFormData]=useState<any>(null);
-
-  onClose={()=>{setShowRegisterStripe(false);setPendingProFormData(null);setPendingPriceId("");setProStep(1);setErr("Pago cancelado. Tu cuenta no ha sido creada. Puedes intentarlo de nuevo.");}}
-
   const login=async()=>{
     if(!email||!pass){setErr("Introduce email y contraseña.");return;}
     setLoading(true);setErr("");
