@@ -2748,7 +2748,7 @@ const handleForgot=async()=>{
   const [showRegisterStripe,setShowRegisterStripe]=useState(false);
   const [pendingProFormData,setPendingProFormData]=useState<any>(null);
 
-  const resetForm=()=>{setName("");setEmail("");setPhone("");setPass("");setTrade(OFICIOS[0]);setZone(ZONAS[0]);setPlan("gratis");setErr("");setProStep(1);setPendingProFormData(null);setPendingPriceId("");};
+  onClose={()=>{setShowRegisterStripe(false);setPendingProFormData(null);setPendingPriceId("");setProStep(1);setErr("Pago cancelado. Tu cuenta no ha sido creada. Puedes intentarlo de nuevo.");}}
 
   const login=async()=>{
     if(!email||!pass){setErr("Introduce email y contraseña.");return;}
@@ -2802,13 +2802,13 @@ fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method
   };
 
   const registerPro=async()=>{
-    if(!name||!email||!phone||!pass){setErr("Rellena todos los campos obligatorios.");return;}
+    if(!name||!email||!phone||!pass){setErr("Nombre, email, teléfono y contraseña son obligatorios.");return;}
     if(pass.length<6){setErr("Mínimo 6 caracteres.");return;}
     if(!/\S+@\S+\.\S+/.test(email)){setErr("Introduce un email válido.");return;}
     setLoading(true);setErr("");
     try{
       const {data:ex}=await db.from("users").select("id").eq("email",email.toLowerCase()).maybeSingle();
-      if(ex){setLoading(false);setErr("Ya existe una cuenta con ese email.");return;}
+      if(ex){setLoading(false);setErr("Ya existe una cuenta con ese email. ¿Ya tienes cuenta? Inicia sesión.");return;}
       setLoading(false);
       // Si eligió plan de pago → Stripe PRIMERO, cuenta se crea solo si paga
       if(plan!=="gratis"){
@@ -2817,9 +2817,10 @@ fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method
           pro:"price_1TYuioCZe2kZYfZChYFbWcrt",
           elite:"price_1TYuneCZe2kZYfZCxD24mHGx",
         };
-        // Guardamos los datos del formulario para usarlos DESPUÉS del pago
+        const resolvedPriceId=priceMap[plan];
+        if(!resolvedPriceId){setErr("Plan no válido.");return;}
         setPendingProFormData({name:name.trim(),email:email.toLowerCase().trim(),password:pass,phone:phone.trim(),trade,zone,plan});
-        setPendingPriceId(priceMap[plan]);
+        setPendingPriceId(resolvedPriceId);
         setShowRegisterStripe(true);
       } else {
         // Plan gratis → crear cuenta directamente
@@ -2873,7 +2874,8 @@ fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method
             const trial_end=new Date(Date.now()+30*86400000).toISOString().split("T")[0];
             const insertData:any={name:pendingProFormData.name,email:pendingProFormData.email,password:pendingProFormData.password,phone:pendingProFormData.phone,type:"profesional",plan:pl,trade:pendingProFormData.trade,zone:pendingProFormData.zone,bio:"",price:30,available:true,verified:false,jobs:0,rating:0,reviews:0,trial_end,whatsapp:pendingProFormData.phone,free_quote:true,service_zones:[pendingProFormData.zone],schedule:"Lunes a Viernes",response_time:"24h",experience_years:0,specialties:[],...(pendingProFormData.stripeCustomerId?{stripe_customer_id:pendingProFormData.stripeCustomerId}:{})};
             const {data,error}=await db.from("users").insert(insertData).select().single();
-            if(error||!data){setShowRegisterStripe(false);setPendingProFormData(null);setErr("Pago procesado pero hubo un error creando tu cuenta. Contacta con soporte: admin@oficioya.com");return;}
+            if(error){const isDupe=error.message?.includes("duplicate")||error.message?.includes("unique");setShowRegisterStripe(false);setPendingProFormData(null);setErr(isDupe?"Tu email ya está registrado. Inicia sesión y actualiza tu plan desde el perfil.":"Pago procesado pero hubo un error creando tu cuenta. Contacta con soporte: admin@oficioya.com");return;}
+            if(!data){setShowRegisterStripe(false);setPendingProFormData(null);setErr("Pago procesado pero hubo un error creando tu cuenta. Contacta con soporte: admin@oficioya.com");return;}
             fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method:"POST",headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE"},body:JSON.stringify({type:"bienvenida_pro",to:pendingProFormData.email,name:pendingProFormData.name})});
             setShowRegisterStripe(false);
             setPendingProFormData(null);
