@@ -1164,10 +1164,6 @@ useEffect(()=>{
   return()=>window.removeEventListener("popstate",handlePop);
 },[]);
 
-useEffect(()=>{
-  const opcionTodosLocal=selUbicacion==="sevilla"?"Todo Sevilla":"Todos los pueblos";
-  ...
-
   useEffect(()=>{
   const opcionTodosLocal=selUbicacion==="sevilla"?"Todo Sevilla":"Todos los pueblos";
     const handleKey=(e:KeyboardEvent)=>{
