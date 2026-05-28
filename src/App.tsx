@@ -1534,6 +1534,16 @@ function WorkerSheet({worker,onClose,onChat,currentUser}:{worker:UserRow;onClose
   const [newRev,setNewRev]=useState(""); const [selStars,setSelStars]=useState(5); const [saving,setSaving]=useState(false);
   const col=wColor(worker.id);
 
+useEffect(()=>{
+  history.pushState({panel:"worker"},"");
+  const handlePop=()=>onClose();
+  window.addEventListener("popstate",handlePop);
+  return()=>window.removeEventListener("popstate",handlePop);
+},[]);
+
+useEffect(()=>{
+  db.from("reviews")...
+
   useEffect(()=>{
     db.from("reviews").select("*").eq("worker_id",worker.id).eq("approved",true).order("created_at",{ascending:false}).then(({data}:any)=>setReviews(data||[]));
     db.from("certificates").select("*").eq("worker_id",worker.id).then(({data}:any)=>setCerts(data||[]));
