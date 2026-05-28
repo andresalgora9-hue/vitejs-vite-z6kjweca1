@@ -2743,9 +2743,10 @@ const handleForgot=async()=>{
   const [zone,setZone]=useState(ZONAS[0]);
   const [plan,setPlan]=useState<Plan>("gratis");
   const [showPlanDetail,setShowPlanDetail]=useState<Plan|null>(null);
-  const [pendingUser,setPendingUser]=useState<UserRow|null>(null);
+  
   const [pendingPriceId,setPendingPriceId]=useState<string>("");
   const [showRegisterStripe,setShowRegisterStripe]=useState(false);
+  const [pendingProFormData,setPendingProFormData]=useState<any>(null);
 
   const resetForm=()=>{setName("");setEmail("");setPhone("");setPass("");setTrade(OFICIOS[0]);setZone(ZONAS[0]);setPlan("gratis");setErr("");setProStep(1);};
 
@@ -2808,24 +2809,27 @@ fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method
     try{
       const {data:ex}=await db.from("users").select("id").eq("email",email.toLowerCase()).maybeSingle();
       if(ex){setLoading(false);setErr("Ya existe una cuenta con ese email.");return;}
-      const trial_end=new Date(Date.now()+30*86400000).toISOString().split("T")[0];
-      const insertData:any={name:name.trim(),email:email.toLowerCase().trim(),password:pass,phone:phone.trim(),type:"profesional",plan:"gratis",trade,zone,bio:"",price:30,available:true,verified:false,jobs:0,rating:0,reviews:0,trial_end,whatsapp:phone.trim(),free_quote:true,service_zones:[zone],schedule:"Lunes a Viernes",response_time:"24h",experience_years:0,specialties:[]};
-      const {data,error}=await db.from("users").insert(insertData).select().single();
       setLoading(false);
-      if(error){setErr("Error: "+error.message);return;}
-      if(!data){setErr("Error creando cuenta.");return;}
-      localStorage.setItem("oy_user",JSON.stringify(data));fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method:"POST",headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE"},body:JSON.stringify({type:"bienvenida_pro",to:email.toLowerCase(),name:name.trim()})});
-      // Si eligió plan de pago → mostrar Stripe antes de entrar
+      // Si eligió plan de pago → Stripe PRIMERO, cuenta se crea solo si paga
       if(plan!=="gratis"){
         const priceMap:Record<string,string>={
           basico:"price_1TYugfCZe2kZYfZChXHjTrsg",
           pro:"price_1TYuioCZe2kZYfZChYFbWcrt",
           elite:"price_1TYuneCZe2kZYfZCxD24mHGx",
         };
-        setPendingUser(data as UserRow);
+        // Guardamos los datos del formulario para usarlos DESPUÉS del pago
+        setPendingProFormData({name:name.trim(),email:email.toLowerCase().trim(),password:pass,phone:phone.trim(),trade,zone,plan});
         setPendingPriceId(priceMap[plan]);
         setShowRegisterStripe(true);
       } else {
+        // Plan gratis → crear cuenta directamente
+        const trial_end=new Date(Date.now()+30*86400000).toISOString().split("T")[0];
+        const insertData:any={name:name.trim(),email:email.toLowerCase().trim(),password:pass,phone:phone.trim(),type:"profesional",plan:"gratis",trade,zone,bio:"",price:30,available:true,verified:false,jobs:0,rating:0,reviews:0,trial_end,whatsapp:phone.trim(),free_quote:true,service_zones:[zone],schedule:"Lunes a Viernes",response_time:"24h",experience_years:0,specialties:[]};
+        const {data,error}=await db.from("users").insert(insertData).select().single();
+        if(error){setErr("Error: "+error.message);return;}
+        if(!data){setErr("Error creando cuenta.");return;}
+        localStorage.setItem("oy_user",JSON.stringify(data));
+        fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method:"POST",headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE"},body:JSON.stringify({type:"bienvenida_pro",to:email.toLowerCase().trim(),name:name.trim()})});
         onLogin(data as UserRow);
       }
     }catch{setLoading(false);setErr("Error de conexión.");}
@@ -2858,13 +2862,22 @@ fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method
   return(
     <div style={{minHeight:"100dvh",background:C.bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px 20px",backgroundImage:"radial-gradient(ellipse at 20% 0%,#2a0a5a22,transparent 55%),radial-gradient(ellipse at 80% 100%,#0a2a4a22,transparent 55%)",overflowY:"auto"}}>
       {showPlanDetail&&<PlanDetailModal pl={showPlanDetail} onClose={()=>setShowPlanDetail(null)} />}
-      {showRegisterStripe&&pendingUser&&(
+      {showRegisterStripe&&pendingProFormData&&(
         <StripePayModal
-          user={pendingUser}
+          user={{id:"",name:pendingProFormData.name,email:pendingProFormData.email,password:"",phone:pendingProFormData.phone,type:"profesional",plan:pendingProFormData.plan,bio:"",price:30,trade:pendingProFormData.trade,zone:pendingProFormData.zone,rating:0,reviews:0,jobs:0,verified:false,available:true,whatsapp:pendingProFormData.phone,service_zones:[pendingProFormData.zone],schedule:"Lunes a Viernes",response_time:"24h",free_quote:true,experience_years:0,specialties:[],trial_end:"",joined_at:""} as any}
           priceId={pendingPriceId}
-          plan={plan}
-          onClose={()=>{setShowRegisterStripe(false);onLogin(pendingUser);}}
-          onSuccess={(pl)=>{onLogin({...pendingUser,plan:pl});}}
+          plan={pendingProFormData.plan as Plan}
+          onClose={()=>{setShowRegisterStripe(false);setPendingProFormData(null);}}
+          onSuccess={async(pl)=>{
+            const trial_end=new Date(Date.now()+30*86400000).toISOString().split("T")[0];
+            const insertData:any={name:pendingProFormData.name,email:pendingProFormData.email,password:pendingProFormData.password,phone:pendingProFormData.phone,type:"profesional",plan:pl,trade:pendingProFormData.trade,zone:pendingProFormData.zone,bio:"",price:30,available:true,verified:false,jobs:0,rating:0,reviews:0,trial_end,whatsapp:pendingProFormData.phone,free_quote:true,service_zones:[pendingProFormData.zone],schedule:"Lunes a Viernes",response_time:"24h",experience_years:0,specialties:[]};
+            const {data,error}=await db.from("users").insert(insertData).select().single();
+            if(error||!data){return;}
+            fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method:"POST",headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE"},body:JSON.stringify({type:"bienvenida_pro",to:pendingProFormData.email,name:pendingProFormData.name})});
+            setShowRegisterStripe(false);
+            setPendingProFormData(null);
+            onLogin(data as UserRow);
+          }}
         />
       )}
       <div style={{width:"100%",maxWidth:420}}>
@@ -3062,7 +3075,7 @@ fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method
   );
 }
 // SATRIPE // 
-function StripePayModal({user,priceId,plan,onClose,onSuccess}:{user:UserRow;priceId:string;plan:Plan;onClose:()=>void;onSuccess:(pl:Plan)=>void}){
+function StripePayModal({user,priceId,plan,onClose,onSuccess,isRegistration=false}:{user:UserRow;priceId:string;plan:Plan;onClose:()=>void;onSuccess:(pl:Plan)=>void;isRegistration?:boolean}){
   const cardRef=useRef<HTMLDivElement>(null);
   const stripeRef=useRef<any>(null);
   const cardEl=useRef<any>(null);
