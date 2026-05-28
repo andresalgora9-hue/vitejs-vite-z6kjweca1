@@ -652,7 +652,7 @@ function AnticipoCard({m,isMe,currentUser,toUser,showToast}:any){
                   body:JSON.stringify({client_id:currentUser.id,pro_id:m.from_id,pro_name:toUser.name,client_name:currentUser.name,amount:parseInt(amount)}),
                 });
                const data=await res.json();
-console.log("RESPUESTA SUPER-HANDLER:",JSON.stringify(data));
+
 const url=data.url;
 if(url){
   window.location.href=url;
@@ -3498,7 +3498,7 @@ setUnreadMsgs(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
 useEffect(()=>{ 
   const ch=db.channel("pro-realtime-"+user.id) 
   .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"to_id=eq.00000000-0000-0000-0000-000000000002"},(p:any)=>{
-    console.log("MENSAJE RECIBIDO REALTIME:", p.new);
+    
     const m=p.new;
     const isLeadAlert=m.from_id==="00000000-0000-0000-0000-000000000001"||m.text?.includes("NUEVO CLIENTE INTERESADO"); 
     const isAdmin=m.from_id==="00000000-0000-0000-0000-000000000002"; 
@@ -3561,7 +3561,7 @@ useEffect(()=>{
         showPushNotification("🔴 Cliente urgente — OfficioYa","Un cliente necesita tus servicios ahora. Toca para responder.");
     }
   })
-  .subscribe((status:any)=>{console.log("PRO REALTIME STATUS:", status);});
+  .subscribe();
     return ()=>{db.removeChannel(ch);};
 },[user.id,loadChats]);
   // ── POLLING fallback para leads ──
