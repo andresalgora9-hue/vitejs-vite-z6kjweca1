@@ -2178,11 +2178,13 @@ db.from("users").select("name").eq("id",m.from_id).single().then(({data}:any)=>{
       }).subscribe();
       return ()=>{db.removeChannel(ch);};
     },[user.id]);
-  const loadChats=useCallback(async()=>{
+  Chats=useCallback(async()=>{
+    setLoadingChats(true);
+    // Traer todos los mensajes donde el pro es destinatario O remitente
     const {data:received}=await db.from("messages").select("from_id,to_id,text,read,created_at").eq("to_id",user.id);
-  const {data:sent}=await db.from("messages").select("from_id,to_id,text,read,created_at").eq("from_id",user.id);
-  const allMsgs=[...(received||[]),...(sent||[])];
-  if(!allMsgs.length){setChatPartners([]);setUnreadByWorker({});return;}
+    const {data:sent}=await db.from("messages").select("from_id,to_id,text,read,created_at").eq("from_id",user.id);
+    const allMsgs=[...(received||[]),...(sent||[])];
+    if(!allMsgs.length){setChatPartners([]);setUnreadByUser({});setLoadingChats(false);return;}
   const ids=[...new Set(allMsgs.map((m:any)=>m.from_id===user.id?m.to_id:m.from_id))]
     .filter((id:string)=>id!=="00000000-0000-0000-0000-000000000001");
   if(!ids.length){setChatPartners([]);return;}
@@ -2213,6 +2215,7 @@ const counts:Record<string,number>={};
 });
 setUnreadByWorker(counts);
 setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
+  setLoadingChats(false);
   },[user.id]);
 
   useEffect(()=>{
@@ -3489,11 +3492,11 @@ const [chatUser,setChatUser]=useState<UserRow|null>(null);
 
   
 const loadChats=useCallback(async()=>{
-    // Traer todos los mensajes donde el pro es destinatario O remitente
+    setLoadingChats(true);
     const {data:received}=await db.from("messages").select("from_id,to_id,text,read,created_at").eq("to_id",user.id);
-    const {data:sent}=await db.from("messages").select("from_id,to_id,text,read,created_at").eq("from_id",user.id);
-    const allMsgs=[...(received||[]),...(sent||[])];
-    if(!allMsgs.length){setChatPartners([]);setUnreadByUser({});return;}
+  const {data:sent}=await db.from("messages").select("from_id,to_id,text,read,created_at").eq("from_id",user.id);
+  const allMsgs=[...(received||[]),...(sent||[])];
+  if(!allMsgs.length){setChatPartners([]);setUnreadByWorker({});setLoadingChats(false);return;}
 
     // Sacar IDs únicos del otro lado de la conversación
     const ids=[...new Set(allMsgs.map((m:any)=>m.from_id===user.id?m.to_id:m.from_id))]
@@ -3533,6 +3536,7 @@ const sorted=[...allWs].sort((a:any,b:any)=>{
 });
 setUnreadByUser(counts);
 setUnreadMsgs(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
+  setLoadingChats(false);
   },[user.id]);
 // ── REALTIME: listen for new messages + lead alerts ── 
 useEffect(()=>{ 
