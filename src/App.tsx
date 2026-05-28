@@ -2737,7 +2737,7 @@ const handleForgot=async()=>{
   if(!usr){setForgotMsg("No encontramos una cuenta con ese email y teléfono.");setForgotLoading(false);return;}
   const nueva_pass=Math.random().toString(36).slice(-8)+Math.floor(Math.random()*100);
   await db.from("users").update({password:nueva_pass}).eq("id",usr.id);
-  await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{
+  const emailRes=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{
     method:"POST",
     headers:{
       "Content-Type":"application/json",
@@ -2746,7 +2746,13 @@ const handleForgot=async()=>{
     },
     body:JSON.stringify({type:"recuperar_password",to:usr.email,name:usr.name,extra:{nueva_pass}}),
   });
-  setForgotMsg("✅ ¡Enviado! Revisa tu correo con la nueva contraseña.");
+  const emailData=await emailRes.json();
+  if(!emailRes.ok||emailData.statusCode===422||emailData.name==="validation_error"){
+    // Email falló pero contraseña ya está cambiada — mostrar contraseña directamente
+    setForgotMsg("✅ Contraseña cambiada. Tu nueva contraseña es: "+nueva_pass);
+  } else {
+    setForgotMsg("✅ ¡Enviado! Revisa tu correo con la nueva contraseña.");
+  }
   setForgotLoading(false);
 };
   const [err,setErr]=useState("");
