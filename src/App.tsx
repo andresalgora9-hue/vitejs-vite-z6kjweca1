@@ -5228,10 +5228,9 @@ export default function App(){
       });
     }
   },[deepLinkSlug,user]);
-
-  if(deepLinkWorker&&user&&user.type==="cliente"){
+if(deepLinkWorker&&user&&user.type==="cliente"){
     return <div style={{minHeight:"100dvh",background:C.bg}}>
-      <ClientHome user={user} onLogout={()=>{setUser(null);localStorage.removeItem("oy_user");}} initialWorker={deepLinkWorker} />
+      <ClientHome user={user} onLogout={()=>{setUser(null);localStorage.removeItem("oy_user");}} />
     </div>;
   }
   useEffect(()=>{
