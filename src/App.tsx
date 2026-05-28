@@ -2324,8 +2324,8 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
   };
 
   return(
-    <div style={{minHeight:"100dvh",background:C.bg,backgroundImage:"radial-gradient(ellipse at 15% 0%,#1a0a3a22,transparent 50%),radial-gradient(ellipse at 85% 100%,#0a1a3a22,transparent 50%)",paddingBottom:72}}>
-
+    <div data-scroll style={{minHeight:"100dvh",background:C.bg,backgroundImage:"radial-gradient(ellipse at 15% 0%,#1a0a3a22,transparent 50%),radial-gradient(ellipse at 85% 100%,#0a1a3a22,transparent 50%)",paddingBottom:72,overflowY:"auto",height:"100dvh"}}>
+<ScrollToTop />
       {inAppNotif&&<InAppNotification
         msg={inAppNotif.msg} from={inAppNotif.from}
         isAdmin={inAppNotif.isAdmin}
@@ -3802,7 +3802,8 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
   const systemUser:UserRow={id:"00000000-0000-0000-0000-000000000001",name:"Clientes OfficioYa",email:"",password:"",phone:"",type:"cliente",plan:"gratis",bio:"",price:0,trade:"",zone:"",rating:0,reviews:0,jobs:0,verified:true,available:true,whatsapp:"",service_zones:[],schedule:"",response_time:"",free_quote:false,experience_years:0,specialties:[],trial_end:"",joined_at:""};
 
   return(
-    <div style={{minHeight:"100dvh",background:C.bg,backgroundImage:"radial-gradient(ellipse at 70% 0%,#2a0a3a18,transparent 50%)",paddingBottom:120}}>
+    <div data-scroll style={{minHeight:"100dvh",background:C.bg,backgroundImage:"radial-gradient(ellipse at 70% 0%,#2a0a3a18,transparent 50%)",paddingBottom:120,overflowY:"auto",height:"100dvh"}}>
+<ScrollToTop />
 
       {/* ── URGENT LEAD BANNER ── */}
 {urgentLead&&(
