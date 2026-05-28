@@ -2748,7 +2748,7 @@ const handleForgot=async()=>{
   const [showRegisterStripe,setShowRegisterStripe]=useState(false);
   const [pendingProFormData,setPendingProFormData]=useState<any>(null);
 
-  const resetForm=()=>{setName("");setEmail("");setPhone("");setPass("");setTrade(OFICIOS[0]);setZone(ZONAS[0]);setPlan("gratis");setErr("");setProStep(1);};
+  const resetForm=()=>{setName("");setEmail("");setPhone("");setPass("");setTrade(OFICIOS[0]);setZone(ZONAS[0]);setPlan("gratis");setErr("");setProStep(1);setPendingProFormData(null);setPendingPriceId("");};
 
   const login=async()=>{
     if(!email||!pass){setErr("Introduce email y contraseña.");return;}
