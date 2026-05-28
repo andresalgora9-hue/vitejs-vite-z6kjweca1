@@ -30,6 +30,38 @@ Sentry.init({
   replaysOnErrorSampleRate:1.0,
   integrations:[Sentry.replayIntegration()],
 });
+// ── SKELETON LOADER ──
+function SkeletonCard(){
+  return(
+    <div style={{background:C.card,borderRadius:16,padding:16,marginBottom:10,border:"1px solid "+C.border}}>
+      <div style={{display:"flex",gap:12,alignItems:"flex-start"}}>
+        <div style={{width:52,height:52,borderRadius:12,background:"linear-gradient(90deg,#1E2536 25%,#263148 50%,#1E2536 75%)",backgroundSize:"200% 100%",animation:"shimmer 1.5s infinite",flexShrink:0}} />
+        <div style={{flex:1}}>
+          <div style={{height:14,width:"60%",borderRadius:6,background:"linear-gradient(90deg,#1E2536 25%,#263148 50%,#1E2536 75%)",backgroundSize:"200% 100%",animation:"shimmer 1.5s infinite",marginBottom:8}} />
+          <div style={{height:11,width:"40%",borderRadius:6,background:"linear-gradient(90deg,#1E2536 25%,#263148 50%,#1E2536 75%)",backgroundSize:"200% 100%",animation:"shimmer 1.5s infinite",marginBottom:8}} />
+          <div style={{height:11,width:"80%",borderRadius:6,background:"linear-gradient(90deg,#1E2536 25%,#263148 50%,#1E2536 75%)",backgroundSize:"200% 100%",animation:"shimmer 1.5s infinite"}} />
+        </div>
+      </div>
+    </div>
+  );
+}
+function SkeletonList({n=4}:{n?:number}){
+  return <>{Array.from({length:n}).map((_,i)=><SkeletonCard key={i} />)}</>;
+}
+function SkeletonMsg(){
+  return(
+    <div style={{padding:"12px 16px",borderBottom:"1px solid "+C.border,display:"flex",gap:12,alignItems:"center"}}>
+      <div style={{width:44,height:44,borderRadius:22,background:"linear-gradient(90deg,#1E2536 25%,#263148 50%,#1E2536 75%)",backgroundSize:"200% 100%",animation:"shimmer 1.5s infinite",flexShrink:0}} />
+      <div style={{flex:1}}>
+        <div style={{height:13,width:"50%",borderRadius:6,background:"linear-gradient(90deg,#1E2536 25%,#263148 50%,#1E2536 75%)",backgroundSize:"200% 100%",animation:"shimmer 1.5s infinite",marginBottom:7}} />
+        <div style={{height:11,width:"70%",borderRadius:6,background:"linear-gradient(90deg,#1E2536 25%,#263148 50%,#1E2536 75%)",backgroundSize:"200% 100%",animation:"shimmer 1.5s infinite"}} />
+      </div>
+    </div>
+  );
+}
+function SkeletonMsgList({n=5}:{n?:number}){
+  return <>{Array.from({length:n}).map((_,i)=><SkeletonMsg key={i} />)}</>;
+}
 // ── META PIXEL EVENTS ──
 function fbqEvent(event:string, data?:Record<string,any>){
   try{if((window as any).fbq)(window as any).fbq("track",event,data||{});}catch{}
@@ -2069,6 +2101,7 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
   const [selectedWorker,setSelectedWorker]=useState<UserRow|null>(null);
   const [chatWorker,setChatWorker]=useState<UserRow|null>(null);
   const [chatPartners,setChatPartners]=useState<UserRow[]>([]);
+const [loadingChats,setLoadingChats]=useState(true);
   const [toast,setToast]=useState<string|null>(null);
   const [inAppNotif,setInAppNotif]=useState<{msg:string;from:string;fromId:string;isAdmin:boolean}|null>(null);
   const [unreadChats,setUnreadChats]=useState(0);
@@ -2490,7 +2523,7 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
             <>
               {filteredWorkers.length===0&&<div style={{textAlign:"center" as const,padding:"32px 20px",color:C.muted}}><p style={{fontSize:32,marginBottom:8}}>🔍</p><p style={{fontWeight:700,color:C.text,fontSize:16,marginBottom:6}}>Sin resultados</p><p style={{fontSize:13}}>Prueba con otra búsqueda o zona</p></div>}
               <div style={{display:"flex",flexDirection:"column" as const,gap:10}}>
-                {filteredWorkers.map(w=><WorkerCardIdealista key={w.id} w={w} onChat={()=>handleChat(w)} onSelect={()=>setSelectedWorker(w)} />)}
+                {loading?<SkeletonList n={5} />:filteredWorkers.map(w=><WorkerCardIdealista key={w.id} w={w} onChat={()=>handleChat(w)} onSelect={()=>setSelectedWorker(w)} />)}
               </div>
             </>
           )}
@@ -2501,7 +2534,7 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
 
         {tab==="chats"&&(<>
           <div style={{padding:"22px 0 16px"}}><h2 style={{fontWeight:800,fontSize:22,color:C.text}}>Mis conversaciones</h2></div>
-          {chatPartners.length===0?<div style={{textAlign:"center" as const,padding:48,color:C.muted}}>
+          {loadingChats?<SkeletonMsgList n={5} />:chatPartners.length===0?<div style={{textAlign:"center" as const,padding:48,color:C.muted}}>
             <p style={{fontSize:36,marginBottom:8}}>💬</p>
             <p style={{fontWeight:700,fontSize:16,marginBottom:6}}>Sin conversaciones</p>
             <Btn onClick={()=>setTab("buscar")} small>Buscar profesionales →</Btn>
@@ -3405,7 +3438,8 @@ function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;o
   const [photos,setPhotos]=useState<PhotoRow[]>([]);
   const [photoCaption,setPhotoCaption]=useState("");
   const [jobs,setJobs]=useState<JobRow[]>([]);
-  const [chatPartners,setChatPartners]=useState<UserRow[]>([]);
+  const [chatPartners,setChatPartners]=useState<UserRow[]>([]); 
+  const [loadingChats,setLoadingChats]=useState(true);
 const [lastMsgByUser,setLastMsgByUser]=useState<Record<string,any>>({});
 const [chatUser,setChatUser]=useState<UserRow|null>(null);
   const [stats,setStats]=useState({visits:0,contacts:0,reviews:0});
