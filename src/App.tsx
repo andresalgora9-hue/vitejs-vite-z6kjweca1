@@ -1156,7 +1156,18 @@ function BuscadorExpressModal({workers,onResult,onWorkerSelect,onClose}:{workers
   const [selZonas,setSelZonas]=useState<string[]>([]);
   const [textSearch,setTextSearch]=useState("");
   const searchInputRef=useRef<HTMLInputElement>(null);
+const searchInputRef=useRef<HTMLInputElement>(null);
 
+useEffect(()=>{
+  history.pushState({panel:"wizard"},"");
+  const handlePop=()=>onClose();
+  window.addEventListener("popstate",handlePop);
+  return()=>window.removeEventListener("popstate",handlePop);
+},[]);
+
+useEffect(()=>{
+  const opcionTodosLocal=selUbicacion==="sevilla"?"Todo Sevilla":"Todos los pueblos";
+  ...
 
   useEffect(()=>{
   const opcionTodosLocal=selUbicacion==="sevilla"?"Todo Sevilla":"Todos los pueblos";
