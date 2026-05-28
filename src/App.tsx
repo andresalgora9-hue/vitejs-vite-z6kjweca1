@@ -1537,9 +1537,6 @@ useEffect(()=>{
   return()=>window.removeEventListener("popstate",handlePop);
 },[]);
 
-useEffect(()=>{
-  db.from("reviews")...
-
   useEffect(()=>{
     db.from("reviews").select("*").eq("worker_id",worker.id).eq("approved",true).order("created_at",{ascending:false}).then(({data}:any)=>setReviews(data||[]));
     db.from("certificates").select("*").eq("worker_id",worker.id).then(({data}:any)=>setCerts(data||[]));
