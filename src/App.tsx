@@ -62,6 +62,25 @@ function SkeletonMsg(){
 function SkeletonMsgList({n=5}:{n?:number}){
   return <>{Array.from({length:n}).map((_,i)=><SkeletonMsg key={i} />)}</>;
 }
+// ── DEEP LINKS ──
+function toSlug(name:string,trade?:string){
+  const base=(name+" "+(trade||"")).toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .replace(/[^a-z0-9]+/g,"-")
+    .replace(/^-|-$/g,"");
+  return base;
+}
+function getDeepLinkUrl(user:UserRow){
+  return "https://oficioya.com/pro/"+toSlug(user.name,user.trade);
+}
+function shareProfile(user:UserRow){
+  const url=getDeepLinkUrl(user);
+  if(navigator.share){
+    navigator.share({title:user.name+" — OfficioYa",text:"Mira el perfil de "+user.name+" en OfficioYa",url});
+  } else {
+    navigator.clipboard.writeText(url);
+  }
+}
 // ── META PIXEL EVENTS ──
 function fbqEvent(event:string, data?:Record<string,any>){
   try{if((window as any).fbq)(window as any).fbq("track",event,data||{});}catch{}
@@ -2609,6 +2628,14 @@ return <GCard key={w.id} onClick={async()=>{
               </button>
             </GCard>
           )}
+          <GCard style={{marginBottom:14}}>
+          <p style={{fontWeight:700,color:C.text,fontSize:13,marginBottom:12}}>🔗 Compartir mi perfil</p>
+          <p style={{fontSize:12,color:C.muted,marginBottom:12}}>Comparte tu perfil con clientes para que te encuentren directamente</p>
+          <div style={{display:"flex",gap:8,alignItems:"center",background:C.surface,borderRadius:8,border:"1px solid "+C.border,padding:"10px 12px",marginBottom:10}}>
+            <span style={{flex:1,fontSize:11,color:C.mutedL,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" as const}}>{getDeepLinkUrl(user)}</span>
+          </div>
+          <Btn full onClick={()=>{shareProfile(user);showToast("✓ Link copiado al portapapeles");}}>📤 Compartir perfil</Btn>
+        </GCard>
           <Btn full outline danger onClick={onLogout} color={C.red}>Cerrar sesión</Btn>
           <DeleteAccountButton user={user} onLogout={onLogout}/>
         </>)}
@@ -5185,6 +5212,11 @@ export default function App(){
   const [ready,setReady]=useState(false);
   const [installPrompt,setInstallPrompt]=useState<any>(null);
   const [showInstall,setShowInstall]=useState(false);
+  const [deepLinkSlug,setDeepLinkSlug]=useState<string|null>(()=>{
+    const path=window.location.pathname;
+    const m=path.match(/^\/pro\/(.+)$/);
+    return m?m[1]:null;
+  });
 
   useEffect(()=>{
     const handler=(e:any)=>{
@@ -5236,6 +5268,16 @@ export default function App(){
  const logout=()=>{setUser(null);localStorage.removeItem("oy_user");};
   const update=(u:UserRow)=>{setUser(u);localStorage.setItem("oy_user",JSON.stringify(u));};
   if(!ready)return <div style={{minHeight:"100dvh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center"}}><Spin /></div>;
+  if(deepLinkSlug&&!user){
+    return(
+      <div style={{minHeight:"100dvh",background:C.bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24}}>
+        <p style={{fontSize:36,marginBottom:12}}>👷</p>
+        <p style={{fontWeight:800,fontSize:18,color:C.text,marginBottom:8,textAlign:"center"}}>Perfil de profesional</p>
+        <p style={{fontSize:13,color:C.muted,marginBottom:24,textAlign:"center"}}>Inicia sesión para ver el perfil completo</p>
+        <Auth onLogin={(u)=>{setUser(u);}} />
+      </div>
+    );
+  }
   if(window.location.pathname==="/elite-gratis")return <EliteLanding />;
   if(window.location.pathname==="/terminos")return <Terminos />;
   if(window.location.pathname==="/privacidad")return <Privacidad />;
