@@ -4275,6 +4275,14 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
               </div>
             ))}
           </GCard>
+          <GCard style={{marginBottom:14}}>
+          <p style={{fontWeight:700,color:C.text,fontSize:13,marginBottom:12}}>Compartir mi perfil</p>
+          <p style={{fontSize:12,color:C.muted,marginBottom:12}}>Comparte tu perfil con clientes para que te encuentren directamente</p>
+          <div style={{display:"flex",gap:8,alignItems:"center",background:C.surface,borderRadius:8,border:"1px solid "+C.border,padding:"10px 12px",marginBottom:10}}>
+            <span style={{flex:1,fontSize:11,color:C.mutedL,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" as const}}>{getDeepLinkUrl(user)}</span>
+          </div>
+          <Btn full onClick={()=>{shareProfile(user);showToast("✓ Link copiado al portapapeles");}}>Compartir perfil</Btn>
+        </GCard>
         <Btn full outline danger onClick={onLogout} color={C.red}>Cerrar sesión</Btn>
           <ProDeleteAccountButton user={user} onLogout={onLogout}/>
             </>)}
