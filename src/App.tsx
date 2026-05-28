@@ -21,7 +21,13 @@ const C = {
   muted:"#5A6A8A",    // slate-500
   mutedL:"#8899BB",   // slate-400
 };
-
+// ── META PIXEL EVENTS ──
+function fbqEvent(event:string, data?:Record<string,any>){
+  try{if((window as any).fbq)(window as any).fbq("track",event,data||{});}catch{}
+}
+function gtagEvent(event:string, data?:Record<string,any>){
+  try{if((window as any).gtag)(window as any).gtag("event",event,data||{});}catch{}
+}
 const ZONAS = [
   "Sevilla","Madrid","Barcelona","Valencia","Málaga","Bilbao","Zaragoza","Alicante","Granada","Cádiz","Córdoba","Huelva",
 ];
@@ -2780,7 +2786,10 @@ if(hardAdmin){
       setLoading(false);
       if(error){setErr("Error: "+error.message);return;}
       if(!data){setErr("Error creando cuenta.");return;}
-      localStorage.setItem("oy_user",JSON.stringify(data));onLogin(data as UserRow);
+      localStorage.setItem("oy_user",JSON.stringify(data));
+        fbqEvent("CompleteRegistration",{content_name:"cliente"});
+        gtagEvent("sign_up",{method:"email",user_type:"cliente"});
+        onLogin(data as UserRow);
 fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method:"POST",headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE"},body:JSON.stringify({type:"bienvenida_cliente",to:email.toLowerCase(),name:name.trim()})});
       // Ofrecer guardar con biometría
     if(window.PublicKeyCredential&&localStorage.getItem("oy_biometric")!=="declined"){
@@ -2877,6 +2886,10 @@ fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method
             setShowRegisterStripe(false);
             setPendingProFormData(null);
             resetForm();
+            fbqEvent("Purchase",{value:PLAN_PRICES[pl],currency:"EUR",content_name:"suscripcion_"+pl});
+            fbqEvent("CompleteRegistration",{content_name:"pro_"+pl});
+            gtagEvent("purchase",{value:PLAN_PRICES[pl],currency:"EUR",transaction_id:data.id,user_type:"pro",plan:pl});
+            gtagEvent("sign_up",{method:"email",user_type:"pro"});
             onLogin(data as UserRow);
           }}
         />
@@ -3138,6 +3151,8 @@ function StripePayModal({user,priceId,plan,onClose,onSuccess,isRegistration=fals
       billing_details:{name:user.name,email:user.email,phone:user.phone||""},
     });
     if(error){setErr(error.message);setLoading(false);return;}
+    fbqEvent("AddPaymentInfo",{content_name:"suscripcion_"+plan,currency:"EUR",value:PLAN_PRICES[plan]});
+    gtagEvent("add_payment_info",{currency:"EUR",value:PLAN_PRICES[plan],payment_type:"card"});
     try{
       const res=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/dynamic-handler",{
         method:"POST",
