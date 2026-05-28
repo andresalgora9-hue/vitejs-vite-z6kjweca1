@@ -5218,21 +5218,7 @@ export default function App(){
     const m=path.match(/^\/pro\/(.+)$/);
     return m?m[1]:null;
   });
-  const [deepLinkWorker,setDeepLinkWorker]=useState<UserRow|null>(null);
-  useEffect(()=>{
-    if(deepLinkSlug&&user&&user.type==="cliente"){
-      db.from("users").select("*").eq("type","profesional").then(({data}:any)=>{
-        if(!data)return;
-        const found=data.find((w:UserRow)=>toSlug(w.name,w.trade)===deepLinkSlug);
-        if(found){setDeepLinkWorker(found);setDeepLinkSlug(null);}
-      });
-    }
-  },[deepLinkSlug,user]);
-if(deepLinkWorker&&user&&user.type==="cliente"){
-    return <div style={{minHeight:"100dvh",background:C.bg}}>
-      <ClientHome user={user} onLogout={()=>{setUser(null);localStorage.removeItem("oy_user");}} />
-    </div>;
-  }
+  
   useEffect(()=>{
     const handler=(e:any)=>{
       e.preventDefault();
