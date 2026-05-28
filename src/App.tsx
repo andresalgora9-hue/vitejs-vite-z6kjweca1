@@ -30,6 +30,27 @@ Sentry.init({
   replaysOnErrorSampleRate:1.0,
   integrations:[Sentry.replayIntegration()],
 });
+// ── SCROLL TO TOP BUTTON ──
+function ScrollToTop(){
+  const [visible,setVisible]=useState(false);
+  useEffect(()=>{
+    const el=document.querySelector('[data-scroll]');
+    if(!el)return;
+    const handler=()=>setVisible(el.scrollTop>300);
+    el.addEventListener("scroll",handler);
+    return()=>el.removeEventListener("scroll",handler);
+  },[]);
+  if(!visible)return null;
+  return(
+    <button onClick={()=>document.querySelector('[data-scroll]')?.scrollTo({top:0,behavior:"smooth"})}
+      style={{position:"fixed",bottom:90,right:16,zIndex:999,width:44,height:44,borderRadius:22,
+        background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",
+        cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",
+        fontSize:20,boxShadow:"0 4px 16px rgba(0,0,0,0.4)",color:"#000",fontWeight:900}}>
+      ↑
+    </button>
+  );
+}
 // ── SKELETON LOADER ──
 function SkeletonCard(){
   return(
