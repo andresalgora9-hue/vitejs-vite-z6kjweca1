@@ -21,6 +21,15 @@ const C = {
   muted:"#5A6A8A",    // slate-500
   mutedL:"#8899BB",   // slate-400
 };
+// ── SENTRY ──
+import * as Sentry from "@sentry/react";
+Sentry.init({
+  dsn:"https://f7d02053b0878e4828d9fee3e090180f@o4511468494389248.ingest.de.sentry.io/4511468517523536",
+  environment:"production",
+  tracesSampleRate:0.2,
+  replaysOnErrorSampleRate:1.0,
+  integrations:[Sentry.replayIntegration()],
+});
 // ── META PIXEL EVENTS ──
 function fbqEvent(event:string, data?:Record<string,any>){
   try{if((window as any).fbq)(window as any).fbq("track",event,data||{});}catch{}
