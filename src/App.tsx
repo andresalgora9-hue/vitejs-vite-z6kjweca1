@@ -4303,7 +4303,7 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
 
 // ─── ADMIN ───
 function Admin({onLogout}:{onLogout:()=>void}){
-  type AdminTab="overview"|"usuarios"|"registros"|"trabajos"|"mensajes"|"reseñas"|"leads"|"certs"|"reports"|"sincobro";
+  type AdminTab="overview"|"usuarios"|"registros"|"trabajos"|"mensajes"|"reseñas"|"leads"|"certs"|"reports"|"sincobro"|"cobro15"|"sinleads"|"sinfoto";
   const [tab,setTab]=useState<AdminTab>("overview");
   const [users,setUsers]=useState<UserRow[]>([]);
   const [jobs,setJobs]=useState<JobRow[]>([]);
@@ -4574,9 +4574,47 @@ return()=>{db.removeChannel(ch);clearInterval(poll);};
 
           {tab==="overview"&&(<>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14,flexWrap:"wrap",gap:8}}>
-              <h2 style={{fontWeight:800,fontSize:20,color:C.text}}>Overview</h2>
+              <h2 style={{fontWeight:800,fontSize:20,color:C.text}}>Panel de control</h2>
               {PERIOD_BTNS}
             </div>
+
+            {/* URGENTE HOY */}
+            {(()=>{
+              const hoy=new Date();
+              const sinCobro=users.filter(u=>u.type==="profesional"&&u.plan==="gratis"&&!(u as any).stripe_customer_id&&u.email&&!u.email.includes("demo")&&!u.email.includes("prueba"));
+              const cobro15=users.filter(u=>u.type==="profesional"&&(u.plan==="elite"||u.plan==="pro"||u.plan==="basico")&&u.trial_end&&(new Date(u.trial_end).getTime()-hoy.getTime())/(86400000)<=15&&(new Date(u.trial_end).getTime()-hoy.getTime())/(86400000)>0);
+              const sinLeads=users.filter(u=>u.type==="profesional"&&u.plan!=="gratis"&&(new Date(hoy.getTime()-7*86400000)>new Date(u.joined_at)));
+              const sinFoto=users.filter(u=>u.type==="profesional"&&u.plan!=="gratis"&&!u.avatar_url&&!(u as any).photos?.length);
+              const totalUrgente=sinCobro.length+cobro15.length;
+              return(<>
+                {totalUrgente>0&&(
+                  <GCard style={{marginBottom:14,border:"1px solid "+C.red+"44",background:C.red+"08"}}>
+                    <p style={{fontWeight:900,fontSize:13,color:C.red,marginBottom:10}}>🚨 URGENTE HOY — {totalUrgente} acción{totalUrgente>1?"es":""} pendiente{totalUrgente>1?"s":""}</p>
+                    {sinCobro.length>0&&<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:"1px solid "+C.border}}>
+                      <div><p style={{fontSize:13,color:C.text,fontWeight:700}}>{sinCobro.length} pro{sinCobro.length>1?"s":""} se cayeron en el pago</p><p style={{fontSize:11,color:C.muted}}>Se registraron pero no pusieron tarjeta</p></div>
+                      <button onClick={()=>setTab("sincobro")} style={{padding:"6px 12px",background:C.red,borderRadius:8,color:"#fff",border:"none",fontWeight:700,fontSize:12,cursor:"pointer"}}>Ver lista</button>
+                    </div>}
+                    {cobro15.length>0&&<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0"}}>
+                      <div><p style={{fontSize:13,color:C.text,fontWeight:700}}>{cobro15.length} pro{cobro15.length>1?"s":""} con cobro en menos de 15 días</p><p style={{fontSize:11,color:C.muted}}>Avisarles antes de que se cobre</p></div>
+                      <button onClick={()=>setTab("cobro15")} style={{padding:"6px 12px",background:C.orange,borderRadius:8,color:"#000",border:"none",fontWeight:700,fontSize:12,cursor:"pointer"}}>Ver lista</button>
+                    </div>}
+                  </GCard>
+                )}
+                {(sinLeads.length>0||sinFoto.length>0)&&(
+                  <GCard style={{marginBottom:14,border:"1px solid "+C.orange+"44",background:C.orange+"08"}}>
+                    <p style={{fontWeight:900,fontSize:13,color:C.orange,marginBottom:10}}>⚠️ ESTA SEMANA — riesgo de cancelación</p>
+                    {sinLeads.length>0&&<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:sinFoto.length>0?"1px solid "+C.border:"none"}}>
+                      <div><p style={{fontSize:13,color:C.text,fontWeight:700}}>{sinLeads.length} pro{sinLeads.length>1?"s":""} sin leads en 7+ días</p><p style={{fontSize:11,color:C.muted}}>Pueden pensar que la app no funciona</p></div>
+                      <button onClick={()=>setTab("sinleads")} style={{padding:"6px 12px",background:C.orange,borderRadius:8,color:"#000",border:"none",fontWeight:700,fontSize:12,cursor:"pointer"}}>Ver lista</button>
+                    </div>}
+                    {sinFoto.length>0&&<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0"}}>
+                      <div><p style={{fontSize:13,color:C.text,fontWeight:700}}>{sinFoto.length} pro{sinFoto.length>1?"s":""} sin foto ni bio</p><p style={{fontSize:11,color:C.muted}}>No convierten — hay que ayudarles</p></div>
+                      <button onClick={()=>setTab("sinfoto")} style={{padding:"6px 12px",background:C.orange,borderRadius:8,color:"#000",border:"none",fontWeight:700,fontSize:12,cursor:"pointer"}}>Ver lista</button>
+                    </div>}
+                  </GCard>
+                )}
+              </>);
+            })()}
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(130px,1fr))",gap:8,marginBottom:16}}>
               {[
                 {l:"Usuarios",v:users.length,c:C.blue,i:"👥"},
@@ -4874,7 +4912,85 @@ return()=>{db.removeChannel(ch);clearInterval(poll);};
             <h2 style={{fontWeight:800,fontSize:20,color:C.text,marginBottom:14}}>Reports</h2>
             <p style={{color:C.muted,fontSize:13}}>Sin reportes todavía.</p>
           </>)}
+{tab==="cobro15"&&(<>
+            <h2 style={{fontWeight:800,fontSize:20,color:C.text,marginBottom:6}}>Cobro en menos de 15 días</h2>
+            <p style={{color:C.muted,fontSize:13,marginBottom:16}}>Pros con trial acabando pronto. Avisarles antes de que se cobre.</p>
+            {users.filter(u=>u.type==="profesional"&&(u.plan==="elite"||u.plan==="pro"||u.plan==="basico")&&u.trial_end&&(new Date(u.trial_end).getTime()-new Date().getTime())/(86400000)<=15&&(new Date(u.trial_end).getTime()-new Date().getTime())/(86400000)>0).sort((a,b)=>new Date(a.trial_end).getTime()-new Date(b.trial_end).getTime()).map(u=>{
+              const dias=Math.ceil((new Date(u.trial_end).getTime()-new Date().getTime())/86400000);
+              return(
+                <GCard key={u.id} style={{marginBottom:10,border:"1px solid "+C.orange+"44"}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10}}>
+                    <div style={{flex:1}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:2}}>
+                        <p style={{fontWeight:800,fontSize:15,color:C.text}}>{u.name}</p>
+                        <Badge plan={u.plan as Plan} />
+                      </div>
+                      <p style={{fontSize:12,color:C.muted,marginBottom:4}}>{u.trade} · {u.zone}</p>
+                      <p style={{fontSize:12,color:C.mutedL}}>{u.email}</p>
+                      {u.phone&&<p style={{fontSize:12,color:C.mutedL}}>{u.phone}</p>}
+                      <p style={{fontSize:12,color:C.orange,fontWeight:700,marginTop:6}}>⏰ Se cobra en {dias} día{dias>1?"s":""} — {new Date(u.trial_end).toLocaleDateString("es-ES")}</p>
+                    </div>
+                    <div style={{display:"flex",flexDirection:"column",gap:6,alignItems:"flex-end"}}>
+                      {u.phone&&<a href={"tel:"+u.phone} style={{padding:"7px 14px",background:C.green,borderRadius:8,color:"#000",fontWeight:700,fontSize:12,textDecoration:"none"}}>Llamar</a>}
+                      {u.whatsapp&&<a href={"https://wa.me/"+u.whatsapp.replace(/\D/g,"")} target="_blank" rel="noreferrer" style={{padding:"7px 14px",background:"#25D366",borderRadius:8,color:"#000",fontWeight:700,fontSize:12,textDecoration:"none"}}>WhatsApp</a>}
+                    </div>
+                  </div>
+                </GCard>
+              );
+            })}
+            {users.filter(u=>u.type==="profesional"&&(u.plan==="elite"||u.plan==="pro"||u.plan==="basico")&&u.trial_end&&(new Date(u.trial_end).getTime()-new Date().getTime())/(86400000)<=15&&(new Date(u.trial_end).getTime()-new Date().getTime())/(86400000)>0).length===0&&(
+              <p style={{textAlign:"center",color:C.muted,fontSize:13,padding:32}}>Ningún cobro próximo. Todo tranquilo.</p>
+            )}
+          </>)}
 
+          {tab==="sinleads"&&(<>
+            <h2 style={{fontWeight:800,fontSize:20,color:C.text,marginBottom:6}}>Pros sin leads en 7+ días</h2>
+            <p style={{color:C.muted,fontSize:13,marginBottom:16}}>Están pagando pero no reciben contactos. Riesgo alto de cancelación.</p>
+            {users.filter(u=>u.type==="profesional"&&u.plan!=="gratis"&&!u.email.includes("demo")).sort((a,b)=>new Date(a.joined_at).getTime()-new Date(b.joined_at).getTime()).map(u=>(
+              <GCard key={u.id} style={{marginBottom:10,border:"1px solid "+C.orange+"33"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10}}>
+                  <div style={{flex:1}}>
+                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:2}}>
+                      <p style={{fontWeight:800,fontSize:15,color:C.text}}>{u.name}</p>
+                      <Badge plan={u.plan as Plan} />
+                    </div>
+                    <p style={{fontSize:12,color:C.muted,marginBottom:4}}>{u.trade} · {u.zone}</p>
+                    <p style={{fontSize:12,color:C.mutedL}}>{u.email}</p>
+                    {u.phone&&<p style={{fontSize:12,color:C.mutedL}}>{u.phone}</p>}
+                    <p style={{fontSize:11,color:C.muted,marginTop:4}}>Lleva {Math.floor((new Date().getTime()-new Date(u.joined_at).getTime())/86400000)} días registrado</p>
+                  </div>
+                  <div style={{display:"flex",flexDirection:"column",gap:6,alignItems:"flex-end"}}>
+                    {u.phone&&<a href={"tel:"+u.phone} style={{padding:"7px 14px",background:C.green,borderRadius:8,color:"#000",fontWeight:700,fontSize:12,textDecoration:"none"}}>Llamar</a>}
+                    {u.whatsapp&&<a href={"https://wa.me/"+u.whatsapp.replace(/\D/g,"")} target="_blank" rel="noreferrer" style={{padding:"7px 14px",background:"#25D366",borderRadius:8,color:"#000",fontWeight:700,fontSize:12,textDecoration:"none"}}>WhatsApp</a>}
+                  </div>
+                </div>
+              </GCard>
+            ))}
+          </>)}
+
+          {tab==="sinfoto"&&(<>
+            <h2 style={{fontWeight:800,fontSize:20,color:C.text,marginBottom:6}}>Pros sin foto ni bio</h2>
+            <p style={{color:C.muted,fontSize:13,marginBottom:16}}>Están pagando pero su perfil no convierte. Ayudarles a completarlo.</p>
+            {users.filter(u=>u.type==="profesional"&&u.plan!=="gratis"&&!u.avatar_url&&!u.email.includes("demo")).map(u=>(
+              <GCard key={u.id} style={{marginBottom:10,border:"1px solid "+C.orange+"33"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10}}>
+                  <div style={{flex:1}}>
+                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:2}}>
+                      <p style={{fontWeight:800,fontSize:15,color:C.text}}>{u.name}</p>
+                      <Badge plan={u.plan as Plan} />
+                    </div>
+                    <p style={{fontSize:12,color:C.muted,marginBottom:4}}>{u.trade} · {u.zone}</p>
+                    <p style={{fontSize:12,color:C.mutedL}}>{u.email}</p>
+                    {u.phone&&<p style={{fontSize:12,color:C.mutedL}}>{u.phone}</p>}
+                  </div>
+                  <div style={{display:"flex",flexDirection:"column",gap:6,alignItems:"flex-end"}}>
+                    {u.phone&&<a href={"tel:"+u.phone} style={{padding:"7px 14px",background:C.green,borderRadius:8,color:"#000",fontWeight:700,fontSize:12,textDecoration:"none"}}>Llamar</a>}
+                    {u.whatsapp&&<a href={"https://wa.me/"+u.whatsapp.replace(/\D/g,"")} target="_blank" rel="noreferrer" style={{padding:"7px 14px",background:"#25D366",borderRadius:8,color:"#000",fontWeight:700,fontSize:12,textDecoration:"none"}}>WhatsApp</a>}
+                  </div>
+                </div>
+              </GCard>
+            ))}
+          </>)}
           {tab==="sincobro"&&(<>
             <h2 style={{fontWeight:800,fontSize:20,color:C.text,marginBottom:14}}>Registrados sin tarjeta</h2>
             <p style={{color:C.muted,fontSize:13,marginBottom:16}}>Pros que se registraron pero no completaron el pago. Llámalos hoy.</p>
@@ -4917,7 +5033,7 @@ return()=>{db.removeChannel(ch);clearInterval(poll);};
         paddingBottom: "calc(10px + env(safe-area-inset-bottom))", // Fix para iPhone
         paddingTop: "10px"
       }}>
-        {([["overview","📊","Overview"],["usuarios","👥","Usuarios"],["registros","📅","Registros"],["trabajos","🔨","Trabajos"],["mensajes","💬","Mensajes"],["reseñas","⭐","Reseñas"],["leads","📋","Leads"],["certs","🏅","Certs"],["reports","🚩","Reports"],["sincobro","💸","Sin cobro"]] as const).map(([id,icon,label])=>(
+        {([["overview","📊","Hoy"],["usuarios","👥","Usuarios"],["registros","📅","Registros"],["trabajos","🔨","Trabajos"],["mensajes","💬","Mensajes"],["reseñas","⭐","Reseñas"],["leads","📋","Leads"],["certs","🏅","Certs"],["reports","🚩","Reports"],["sincobro","💸","Sin cobro"],["cobro15","⏰","Cobro15"],["sinleads","📉","Sin leads"],["sinfoto","🖼️","Sin foto"]] as const).map(([id,icon,label])=>(
           <button key={id} onClick={()=>{setTab(id as AdminTab);if(id==="mensajes")setUnreadAdminMsgs(0);}} style={{flex:"0 0 auto",minWidth:60,padding:"8px 4px 10px",background:"none",border:"none",color:tab===id?C.accent:C.muted,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:2,borderBottom:tab===id?"2px solid "+C.accent:"2px solid transparent",position:"relative"}}>
             <span style={{fontSize:16,position:"relative"}}>
               {icon}
