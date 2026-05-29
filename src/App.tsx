@@ -216,16 +216,13 @@ async function getLeadsThisMonth(proId:string):Promise<number>{
 async function logLead(proId:string, visitorId:string|null, type:"whatsapp"|"call"|"message"):Promise<boolean>{
   const now=new Date();
   const monthStr=now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0");
-  const {data:pro}=await db.from("users").select("plan").eq("id",proId).single();
-  if(!pro) return false;
-  const limit=PLAN_GATES.contacts[pro.plan as Plan];
-  const used=await getLeadsThisMonth(proId);
-  if(used>=limit&&limit<9999){
-    await db.from("leads_log").insert({pro_id:proId,visitor_id:visitorId,type,blocked:true,month:monthStr});
-    return false;
-  }
-  await db.from("leads_log").insert({pro_id:proId,visitor_id:visitorId,type,blocked:false,month:monthStr});
-  return true;
+  const {data:result}=await db.rpc("log_lead_atomic",{
+    p_pro_id:proId,
+    p_visitor_id:visitorId,
+    p_type:type,
+    p_month:monthStr,
+  });
+  return result?.ok===true;
 }
 
 async function compressImage(file:File, maxWidth=1200, quality=0.82):Promise<File>{
