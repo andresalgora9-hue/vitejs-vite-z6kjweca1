@@ -2199,7 +2199,7 @@ db.from("users").select("name").eq("id",m.from_id).single().then(({data}:any)=>{
     const {data:received}=await db.from("messages").select("from_id,to_id,text,read,created_at").eq("to_id",user.id);
     const {data:sent}=await db.from("messages").select("from_id,to_id,text,read,created_at").eq("from_id",user.id);
     const allMsgs=[...(received||[]),...(sent||[])];
-    if(!allMsgs.length){setChatPartners([]);setUnreadByUser({});setLoadingChats(false);return;}
+    if(!allMsgs.length){setChatPartners([]);setUnreadByWorker({});setLoadingChats(false);return;}
   const ids=[...new Set(allMsgs.map((m:any)=>m.from_id===user.id?m.to_id:m.from_id))]
     .filter((id:string)=>id!=="00000000-0000-0000-0000-000000000001");
   if(!ids.length){setChatPartners([]);return;}
