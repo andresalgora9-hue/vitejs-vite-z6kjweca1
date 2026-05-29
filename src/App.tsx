@@ -3166,7 +3166,7 @@ function StripePayModal({user,priceId,plan,onClose,onSuccess,isRegistration=fals
   const [loading,setLoading]=useState(false);
   const [err,setErr]=useState<string|null>(null);
   const [mounted,setMounted]=useState(false);
-  const STRIPE_PUBLIC_KEY="pk_live_51TBJWACZe2kZYfZCHz1oLjVx17xGuoJzAHZpiOjXjsdfCDoWMyQMJ27BPJCizC5ncJPhefHaxNNpf6n4PTyGHB4100zzShI0xN";
+  const STRIPE_PUBLIC_KEY=import.meta.env.VITE_STRIPE_PUBLIC_KEY;
   const col=PLAN_COLORS[plan];
   const nuncaTuvoElite=!((user as any).stripe_customer_id);
 
