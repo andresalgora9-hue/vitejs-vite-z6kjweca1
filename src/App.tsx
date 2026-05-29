@@ -2170,9 +2170,6 @@ const [loadingChats,setLoadingChats]=useState(true);
 
   useEffect(()=>{countUnread();},[countUnread]);
 
-  }).subscribe();
-      return ()=>{db.removeChannel(ch);};
-    },[user.id]);
         const m=p.new;
         const isAdmin=m.from_id==="00000000-0000-0000-0000-000000000002"||m.from_id==="00000000-0000-0000-0000-000000000001";
 if(isAdmin){
