@@ -6,7 +6,7 @@ import Cancelacion from "./Cancelacion";
 import { db, STORAGE_URL } from "./supabase";
 import type { UserRow, MessageRow, JobRow, CertRow, Plan, PhotoRow } from "./supabase";
 import { MapaZonas, MapaProModal } from './MapaZonas';
-
+import { PRICE_MAP } from "./constants";
 // ── DIM PREMIUM palette — slate/zinc, legible bajo el sol ──
 const C = {
   bg:"#0F1117",       // slate-950 oscuro pero no negro puro
@@ -2892,11 +2892,7 @@ fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method
       setLoading(false);
       // Si eligió plan de pago → Stripe PRIMERO, cuenta se crea solo si paga
       if(plan!=="gratis"){
-        const priceMap:Record<string,string>={
-          basico:"price_1TYugfCZe2kZYfZChXHjTrsg",
-          pro:"price_1TYuioCZe2kZYfZChYFbWcrt",
-          elite:"price_1TYuneCZe2kZYfZCxD24mHGx",
-        };
+  const resolvedPriceId=PRICE_MAP[plan];
         const resolvedPriceId=priceMap[plan];
         if(!resolvedPriceId){setErr("Plan no válido.");return;}
         setPendingProFormData({name:name.trim(),email:email.toLowerCase().trim(),password:pass,phone:phone.trim(),trade,zone,plan});
@@ -4285,12 +4281,8 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
     showToast("✓ Vuelto a plan gratuito");
     return;
   }
-  const priceMap:Record<string,string>={
-    basico:"price_1TYugfCZe2kZYfZChXHjTrsg",
-    pro:"price_1TYuioCZe2kZYfZChYFbWcrt",
-    elite:(user as any).stripe_customer_id?"price_1TYxjFCZe2kZYfZCNN2TBfzs":"price_1TYuneCZe2kZYfZCxD24mHGx",
-  };
-  setShowStripeModal({priceId:priceMap[pl],plan:pl});
+  const elitePriceId=(user as any).stripe_customer_id?PRICE_MAP.elite_recurrente:PRICE_MAP.elite;
+setShowStripeModal({priceId:pl==="elite"?elitePriceId:PRICE_MAP[pl],plan:pl});
 }} style={{marginTop:14,width:"100%",padding:"11px",background:pl==="pro"?"linear-gradient(135deg,"+col+","+C.orange+")":"transparent",border:"1px solid "+col+"66",borderRadius:8,color:pl==="pro"?"#000":col,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:14,cursor:"pointer"}}>
   {pl==="gratis"?"Volver a gratuito →":"Activar "+pl.toUpperCase()+" por "+PLAN_PRICES[pl]+"€/mes →"}
 </button>}
