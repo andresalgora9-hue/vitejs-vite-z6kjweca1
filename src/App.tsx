@@ -2186,9 +2186,6 @@ db.from("users").select("name").eq("id",m.from_id).single().then(({data}:any)=>{
   loadChats();
   setUnreadChats(c=>c+1);
 });}
-      }).subscribe();
-      return ()=>{db.removeChannel(ch);};
-    },[user.id]);
   const loadChats=useCallback(async()=>{
     setLoadingChats(true);
     // Traer todos los mensajes donde el pro es destinatario O remitente
