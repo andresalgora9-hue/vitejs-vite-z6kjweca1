@@ -3021,7 +3021,7 @@ fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method
                     onLogin(data as UserRow);
                   }
                 }catch(e){
-                  setErr("Biometría cancelada o no disponible.");
+                  setErr("Huella no reconocida. Introduce tu contraseña.");
                 }
               }} style={{width:"100%",padding:"12px",background:"linear-gradient(135deg,#1a1a2e,#0d0d1a)",border:"1px solid "+C.accent+"44",borderRadius:10,color:C.accent,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:14,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginTop:8}}>
                 <span style={{fontSize:20}}>🔐</span> Entrar con huella / Face ID
