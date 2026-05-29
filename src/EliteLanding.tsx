@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { db } from "./supabase";
 import { PRICE_MAP } from "./constants";
 
-const STRIPE_PUBLIC_KEY = "pk_live_51TBJWACZe2kZYfZCHz1oLjVx17xGuoJzAHZpiOjXjsdfCDoWMyQMJ27BPJCizC5ncJPhefHaxNNpf6n4PTyGHB4100zzShI0xN";
+const STRIPE_PUBLIC_KEY = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
 const STRIPE_PRICE_ID = PRICE_MAP.elite;
 
 /* ─── TOKENS VISUALES ────────────────────────────────────────────── */
