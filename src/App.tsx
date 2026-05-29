@@ -1557,7 +1557,7 @@ useEffect(()=>{
 
 
 // ─── WORKER CARD ───
-function WorkerCardIdealista({w,onSelect,onChat}:{w:UserRow;onSelect:()=>void;onChat:()=>void}){
+const WorkerCardIdealista=React.memo(({w,onSelect,onChat}:{w:UserRow;onSelect:()=>void;onChat:()=>void})=>{
   const col=wColor(w.id);
   return(
     <div style={{background:C.card,borderRadius:16,border:"1px solid "+C.border,overflow:"hidden",transition:"all 0.2s",boxShadow:"0 2px 12px rgba(0,0,0,0.2)"}}>
@@ -1605,7 +1605,7 @@ function WorkerCardIdealista({w,onSelect,onChat}:{w:UserRow;onSelect:()=>void;on
       </div>
     </div>
   );
-}
+});
 
 // ─── WORKER DETAIL SHEET ───
 function WorkerSheet({worker,onClose,onChat,currentUser}:{worker:UserRow;onClose:()=>void;onChat:(w:UserRow)=>void;currentUser:UserRow|null}){
