@@ -1558,7 +1558,7 @@ useEffect(()=>{
 
 // ─── WORKER CARD ───
 const WorkerCardIdealista=React.memo(({w,onSelect,onChat}:{w:UserRow;onSelect:()=>void;onChat:()=>void})=>{
-  const col=wColor(w.id);
+  const col=React.useMemo(()=>wColor(worker.id),[worker.id]);
   return(
     <div style={{background:C.card,borderRadius:16,border:"1px solid "+C.border,overflow:"hidden",transition:"all 0.2s",boxShadow:"0 2px 12px rgba(0,0,0,0.2)"}}>
       <div style={{display:"flex"}}>
@@ -1615,7 +1615,7 @@ function WorkerSheet({worker,onClose,onChat,currentUser}:{worker:UserRow;onClose
   const [certs,setCerts]=useState<CertRow[]>([]);
   const [photos,setPhotos]=useState<PhotoRow[]>([]);
   const [newRev,setNewRev]=useState(""); const [selStars,setSelStars]=useState(5); const [saving,setSaving]=useState(false);
-  const col=wColor(worker.id);
+  const col=React.useMemo(()=>wColor(worker.id),[worker.id]);
 
 useEffect(()=>{
   history.pushState({panel:"worker"},"");
