@@ -3,7 +3,7 @@ import EliteLanding from "./EliteLanding";
 import Terminos from "./Terminos";
 import Privacidad from "./Privacidad";
 import Cancelacion from "./Cancelacion";
-import { db, STORAGE_URL } from "./supabase";
+import { db, STORAGE_URL, ADMIN_USER } from "./supabase";
 import type { UserRow, MessageRow, JobRow, CertRow, Plan, PhotoRow } from "./supabase";
 import { MapaZonas, MapaProModal } from './MapaZonas';
 import { PRICE_MAP } from "./constants";
@@ -2205,7 +2205,7 @@ db.from("users").select("name").eq("id",m.from_id).single().then(({data}:any)=>{
   if(!ids.length){setChatPartners([]);return;}
   const {data:ws}=await db.from("users").select("*").in("id",ids);
 if(!ws)return;
-const adminUser={id:"00000000-0000-0000-0000-000000000002",name:"OfficioYa Soporte",email:"",password:"",phone:"",type:"admin",plan:"elite",bio:"",price:0,trade:"",zone:"",rating:0,reviews:0,jobs:0,verified:true,available:true,whatsapp:"",service_zones:[],schedule:"",response_time:"",free_quote:false,experience_years:0,specialties:[],trial_end:"",joined_at:""};
+const adminUser=ADMIN_USER;
 const wsFiltered=ws.filter((u:any)=>u.id!=="00000000-0000-0000-0000-000000000002");
 const allWs=ids.includes("00000000-0000-0000-0000-000000000002")?[...wsFiltered,adminUser]:wsFiltered;
   const lastMsg:Record<string,any>={};
@@ -2616,7 +2616,7 @@ return <GCard key={w.id} onClick={async()=>{
               <p style={{fontWeight:700,color:C.text,fontSize:13,marginBottom:6}}>⚠️ Cancelar suscripción</p>
               <p style={{fontSize:12,color:C.muted,marginBottom:10}}>Si quieres darte de baja escríbenos directamente. Gestionaremos tu baja en menos de 24h.</p>
               <button onClick={async()=>{
-                const adminUser={id:"00000000-0000-0000-0000-000000000002",name:"OfficioYa Soporte",email:"admin@oficioya.com",password:"",phone:"",type:"admin",plan:"elite",bio:"",price:0,trade:"",zone:"",rating:0,reviews:0,jobs:0,verified:true,available:true,whatsapp:"",service_zones:[],schedule:"",response_time:"",free_quote:false,experience_years:0,specialties:[],trial_end:"",joined_at:""};
+                const adminUser=ADMIN_USER;
                 await db.from("messages").insert({from_id:user.id,to_id:"00000000-0000-0000-0000-000000000002",text:"Hola, quiero darme de baja de mi suscripción "+user.plan.toUpperCase()+". Por favor, gestiona mi cancelación. Gracias.",read:false});
                 setTab("chats");
               }} style={{width:"100%",padding:"10px",background:C.red+"18",border:"1px solid "+C.red+"44",borderRadius:8,color:C.red,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,cursor:"pointer"}}>
@@ -2836,7 +2836,7 @@ const handleForgot=async()=>{
 ];
 const hardAdmin=ADMIN_ACCOUNTS.find(a=>a.email===email.toLowerCase()&&a.pass===pass);
 if(hardAdmin){
-  const adminUser:UserRow={id:"00000000-0000-0000-0000-000000000002",name:hardAdmin.name,email:hardAdmin.email,password:"",phone:"",type:"admin",plan:"elite",bio:"",price:0,trade:"",zone:"Sevilla",rating:0,reviews:0,jobs:0,verified:true,available:true,whatsapp:"",service_zones:[],schedule:"",response_time:"",free_quote:false,experience_years:0,specialties:[],trial_end:"2099-12-31",joined_at:new Date().toISOString()};
+  const adminUser=ADMIN_USER;
   setLoading(false);localStorage.setItem("oy_user",JSON.stringify(adminUser));onLogin(adminUser);return;
 }
     const {data,error}=await db.from("users").select("*").eq("email",email.toLowerCase()).eq("password",pass).single();
@@ -3521,9 +3521,6 @@ const loadChats=useCallback(async()=>{
       .filter((id:string)=>id!=="00000000-0000-0000-0000-000000000001");
     if(!ids.length){setChatPartners([]);return;}
 
-    const {data:ws}=await db.from("users").select("*").in("id",ids);
-if(!ws)return;
-const adminUser={id:"00000000-0000-0000-0000-000000000002",name:"OfficioYa Soporte",email:"",password:"",phone:"",type:"admin",plan:"elite",bio:"",price:0,trade:"",zone:"",rating:0,reviews:0,jobs:0,verified:true,available:true,whatsapp:"",service_zones:[],schedule:"",response_time:"",free_quote:false,experience_years:0,specialties:[],trial_end:"",joined_at:""};
 const wsFiltered=ws.filter((u:any)=>u.id!=="00000000-0000-0000-0000-000000000002");
 const allWs=ids.includes("00000000-0000-0000-0000-000000000002")?[...wsFiltered,adminUser]:wsFiltered;
     // Último mensaje y timestamp por usuario
@@ -3667,7 +3664,7 @@ useEffect(()=>{
 
   const saveProfile=async()=>{
     setSaving(true);
-    const upd={bio,price:parseInt(price)||30,available,schedule:schedules.join("|"),response_time:responseTime,free_quote:freeQuote,experience_years:parseInt(expYears)||0,specialties,service_zones:serviceZones,whatsapp};
+    const upd={bio,price:Math.max(1,parseInt(price)||30),available,schedule:schedules.join("|"),response_time:responseTime,free_quote:freeQuote,experience_years:parseInt(expYears)||0,specialties,service_zones:serviceZones,whatsapp};
     await db.from("users").update(upd).eq("id",user.id);
     onUpdate({...user,...upd});
     setSaving(false); showToast("✓ Perfil actualizado");
