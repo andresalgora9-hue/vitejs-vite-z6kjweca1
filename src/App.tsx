@@ -2893,7 +2893,6 @@ fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method
       // Si eligió plan de pago → Stripe PRIMERO, cuenta se crea solo si paga
       if(plan!=="gratis"){
   const resolvedPriceId=PRICE_MAP[plan];
-        const resolvedPriceId=priceMap[plan];
         if(!resolvedPriceId){setErr("Plan no válido.");return;}
         setPendingProFormData({name:name.trim(),email:email.toLowerCase().trim(),password:pass,phone:phone.trim(),trade,zone,plan});
         setPendingPriceId(resolvedPriceId);
