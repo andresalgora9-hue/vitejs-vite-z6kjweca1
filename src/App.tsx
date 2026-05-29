@@ -2170,6 +2170,9 @@ const [loadingChats,setLoadingChats]=useState(true);
 
   useEffect(()=>{countUnread();},[countUnread]);
 
+  useEffect(()=>{
+    const ch=db.channel("client-notif-"+user.id)
+      .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"to_id=eq."+user.id},(p:any)=>{
         const m=p.new;
         const isAdmin=m.from_id==="00000000-0000-0000-0000-000000000002"||m.from_id==="00000000-0000-0000-0000-000000000001";
 if(isAdmin){
@@ -2186,6 +2189,9 @@ db.from("users").select("name").eq("id",m.from_id).single().then(({data}:any)=>{
   loadChats();
   setUnreadChats(c=>c+1);
 });}
+      }).subscribe();
+    return()=>{db.removeChannel(ch);};
+  },[user.id,loadChats]);
   const loadChats=useCallback(async()=>{
     setLoadingChats(true);
     // Traer todos los mensajes donde el pro es destinatario O remitente
