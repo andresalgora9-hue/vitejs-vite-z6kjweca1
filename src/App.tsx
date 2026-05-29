@@ -3790,11 +3790,16 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
     const {data:req}=await db.from("budget_requests")
       .select("*").eq("id",requestId).single();
     if(req){
-      const accepted=[...(req.accepted_pros||[]),user.id];
-      await db.from("budget_requests").update({
-        accepted_pros:accepted,
-        status:accepted.length>=3?"closed":"open",
-      }).eq("id",requestId);
+      const {data:rpcResult}=await db.rpc("accept_lead",{
+        p_request_id:requestId,
+        p_pro_id:user.id,
+        p_max_pros:3,
+      });
+      if(!rpcResult?.ok){
+        showToast("Este lead ya no está disponible.");
+        setUrgentLead(null);
+        return;
+      }
       const {data:cliente}=await db.from("users").select("*").eq("id",req.client_id).single();
       if(cliente){
         await db.from("messages").insert({
