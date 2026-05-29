@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const STRIPE_WEBHOOK_SECRET = "whsec_TuWqxJK3GYbFHNLcG9nugJI56mh2KMLH"; // lo obtienes en el paso 3
+const STRIPE_WEBHOOK_SECRET = Deno.env.get("STRIPE_WEBHOOK_SECRET") || "";
 const SUPABASE_URL = "https://rjwojxwrsbvwwshwwpvq.supabase.co";
 const SUPABASE_SERVICE_KEY = Deno.env.get("SERVICE_ROLE_KEY") || "";
 
