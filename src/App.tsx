@@ -1878,32 +1878,6 @@ const eligibles=(allPros||[]) as UserRow[];
       notified_pros:notifiedIds,
       last_notified_at:new Date().toISOString(),
     }).eq("id",req.id);
-
-    // Si nadie acepta en 2h → notificar a admin y rotar
-    setTimeout(async()=>{
-      const {data:check}=await db.from("budget_requests")
-        .select("status").eq("id",req.id).single();
-      if(check?.status==="open"){
-        // Notificar admin
-        await db.from("messages").insert({
-          from_id:"00000000-0000-0000-0000-000000000001",to_id:"00000000-0000-0000-0000-000000000002",
-          text:`⚠️ Solicitud sin aceptar tras 2h: ${oficio} en ${zona} de ${user.name}. Request ID: ${req.id}`,
-          read:false,is_lead_alert:false,
-        });
-        // Rotar a otros 2 elite + 1 pro distintos
-        const nextElites=shuffle(elites.filter(w=>!notifiedIds.includes(w.id))).slice(0,2);
-        const nextPros=shuffle(pros.filter(w=>!notifiedIds.includes(w.id))).slice(0,1);
-        const nextBatch=[...nextElites,...nextPros];
-        for(const pro of nextBatch){
-          await db.from("messages").insert({
-            from_id:"00000000-0000-0000-0000-000000000001",
-            to_id:pro.id,
-            text:`🔴 *NUEVO LEAD*|REQUEST_ID:${req.id}|${user.name} necesita ${oficio} en ${zona}.\n📝 ${desc}${maxBudget?"\n💰 Máx: "+maxBudget+"€":""}`,
-            read:false,is_lead_alert:true,
-          });
-        }
-      }
-    },7200000); // 2 horas
   }
   setDesc("");setMaxBudget("");setShowForm(false);
   loadSolicitudes();
@@ -2821,7 +2795,6 @@ const handleForgot=async()=>{
     .maybeSingle();
   if(!usr){setForgotMsg("No encontramos una cuenta con ese email y teléfono.");setForgotLoading(false);return;}
   const nueva_pass=Math.random().toString(36).slice(-8)+Math.floor(Math.random()*100);
-  await db.from("users").update({password:nueva_pass}).eq("id",usr.id);
   const emailRes=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{
     method:"POST",
     headers:{
@@ -2833,11 +2806,12 @@ const handleForgot=async()=>{
   });
   const emailData=await emailRes.json();
   if(!emailRes.ok||emailData.statusCode===422||emailData.name==="validation_error"){
-    // Email falló pero contraseña ya está cambiada — mostrar contraseña directamente
-    setForgotMsg("✅ Contraseña cambiada. Revisa tu correo o contacta con admin@algoracompound.com");
-  } else {
-    setForgotMsg("✅ ¡Enviado! Revisa tu correo con la nueva contraseña.");
+    setForgotMsg("❌ No pudimos enviar el email. Contacta con admin@oficioya.com");
+    setForgotLoading(false);
+    return;
   }
+  await db.from("users").update({password:nueva_pass}).eq("id",usr.id);
+  setForgotMsg("✅ ¡Enviado! Revisa tu correo con la nueva contraseña.");
   setForgotLoading(false);
 };
   const [err,setErr]=useState("");
