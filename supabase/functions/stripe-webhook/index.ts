@@ -66,17 +66,36 @@ serve(async (req) => {
 
       // Pago fallido → avisar, dar 5 días de gracia antes de bajar plan
       case "invoice.payment_failed": {
-        const invoice = event.data.object;
-        const email = invoice.customer_email;
-        if (email) {
-          const graceUntil = new Date(Date.now() + 5 * 86400000).toISOString();
-          await supabase.from("users").update({
-            payment_failed_at: new Date().toISOString(),
-            grace_until: graceUntil,
-          }).eq("email", email);
-        }
-        break;
-      }
+  const invoice = event.data.object;
+  const customerId = invoice.customer;
+  if (customerId) {
+    const graceUntil = new Date(Date.now() + 5 * 86400000).toISOString();
+    await supabase.from("users").update({
+      payment_failed_at: new Date().toISOString(),
+      grace_until: graceUntil,
+    }).eq("stripe_customer_id", customerId);
+  }
+  break;
+}
+
+case "invoice.payment_failed_grace_expired": {
+  const invoice = event.data.object;
+  const customerId = invoice.customer;
+  if (customerId) {
+    const { data: usr } = await supabase
+      .from("users")
+      .select("grace_until")
+      .eq("stripe_customer_id", customerId)
+      .single();
+    if (usr?.grace_until && new Date(usr.grace_until) < new Date()) {
+      await supabase.from("users").update({
+        plan: "gratis",
+        stripe_subscription_id: null,
+      }).eq("stripe_customer_id", customerId);
+    }
+  }
+  break;
+}
 // Anticipo pagado → actualizar mensaje a ANTICIPO_PAGADO
       case "payment_intent.succeeded": {
         const pi = event.data.object;
