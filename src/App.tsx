@@ -3693,15 +3693,20 @@ useEffect(()=>{
       const uploaded=await uploadImage(photoFile,"workers/"+user.id);
       if(uploaded)url=uploaded;
     }
+    if(!url){showToast("⛔ Error subiendo la imagen. Inténtalo de nuevo.");setUploadingPhoto(false);return;}
     const {data}=await db.from("photos").insert({worker_id:user.id,url,caption:photoCaption}).select().single();
     if(data){setPhotos(p=>[data,...p]);setPhotoCaption("");setPhotoFile(null);setPhotoPreview("");showToast("✓ Foto añadida");}
     setUploadingPhoto(false);
   };
 
   const deletePhoto=async(id:string)=>{
-    await db.from("photos").delete().eq("id",id);
-    setPhotos(p=>p.filter(ph=>ph.id!==id));
-    showToast("Foto eliminada");
+    try{
+      await db.from("photos").delete().eq("id",id);
+      setPhotos(p=>p.filter(ph=>ph.id!==id));
+      showToast("Foto eliminada");
+    }catch{
+      showToast("⛔ Error al eliminar la foto. Inténtalo de nuevo.");
+    }
   };
 
   const updateJobStatus=async(jobId:string,status:string)=>{
@@ -5227,16 +5232,7 @@ export default function App(){
       setShowInstall(false);
     });
   };
- useEffect(()=>{
-    window.onerror=(msg,src,line)=>{
-      document.title="ERR:"+msg+"|L"+line;
-    };
-  },[]);
   useEffect(()=>{
-    const meta = document.createElement('meta');
-    meta.name = "viewport";
-    meta.content = "width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no";
-    document.getElementsByTagName('head')[0].appendChild(meta);
     if('serviceWorker' in navigator){
       navigator.serviceWorker.register('/sw.js').then(()=>{}).catch(()=>{});
     }
