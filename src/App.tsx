@@ -5245,7 +5245,11 @@ export default function App(){
     const s=localStorage.getItem("oy_user");
     if(s){try{setUser(JSON.parse(s));}catch{localStorage.removeItem("oy_user");}}
     setReady(true);
-    db.from("visits").insert({page:"home",user_id:null}).then(()=>{});
+    const _lastVisit=sessionStorage.getItem("oy_visited");
+if(!_lastVisit){
+  sessionStorage.setItem("oy_visited","1");
+  db.from("visits").insert({page:"home",user_id:null}).then(()=>{});
+}
   },[]);
   const login=(u:UserRow)=>{
   setUser(u);
