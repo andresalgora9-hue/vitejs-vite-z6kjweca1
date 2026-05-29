@@ -2044,13 +2044,13 @@ function DeleteAccountButton({user,onLogout}:{user:UserRow;onLogout:()=>void}){
         delete_requested_at:new Date().toISOString(),
       }).eq("id",user.id);
       // Enviar email via Edge Function
-      await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/send-delete-email",{
+      const deleteRes=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/send-delete-email",{
         method:"POST",
         headers:{"Content-Type":"application/json","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo"},
         body:JSON.stringify({email:user.email,name:user.name,token}),
       });
+      if(!deleteRes.ok){setErr("Error al enviar el email. Inténtalo de nuevo.");setLoading(false);return;}
       setSent(true);
-      // Desloguear
       setTimeout(()=>{
         localStorage.removeItem("oy_user");
         onLogout();
