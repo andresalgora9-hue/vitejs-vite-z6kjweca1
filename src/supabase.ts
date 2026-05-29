@@ -111,3 +111,30 @@ export interface LeadLogRow {
   month: string;
   created_at: string;
 }
+export const ADMIN_USER: UserRow = {
+  id: "00000000-0000-0000-0000-000000000002",
+  name: "OfficioYa Soporte",
+  email: "admin@oficioya.com",
+  password: "",
+  phone: "",
+  type: "admin",
+  plan: "elite",
+  bio: "",
+  price: 0,
+  trade: "",
+  zone: "",
+  rating: 0,
+  reviews: 0,
+  jobs: 0,
+  verified: true,
+  available: true,
+  whatsapp: "",
+  service_zones: [],
+  schedule: "",
+  response_time: "",
+  free_quote: false,
+  experience_years: 0,
+  specialties: [],
+  trial_end: "",
+  joined_at: "",
+};
