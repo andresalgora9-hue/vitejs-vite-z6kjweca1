@@ -2170,9 +2170,9 @@ const [loadingChats,setLoadingChats]=useState(true);
 
   useEffect(()=>{countUnread();},[countUnread]);
 
-  useEffect(()=>{
-    const ch=db.channel("client-notif-"+user.id)
-      .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"to_id=eq.00000000-0000-0000-0000-000000000002"},(p:any)=>{
+  }).subscribe();
+      return ()=>{db.removeChannel(ch);};
+    },[user.id]);
         const m=p.new;
         const isAdmin=m.from_id==="00000000-0000-0000-0000-000000000002"||m.from_id==="00000000-0000-0000-0000-000000000001";
 if(isAdmin){
@@ -5161,13 +5161,11 @@ function ConfirmarBaja(){
   useEffect(()=>{
     const token=new URLSearchParams(window.location.search).get("token");
     if(!token){setStatus("error");return;}
-    db.from("users").select("id,name,email").eq("delete_token",token).single().then(async({data,error})=>{
-      if(error||!data){setStatus("error");return;}
-      // Verificar que no haya caducado (24h)
-      const {data:u}=await db.from("users").select("delete_requested_at").eq("id",data.id).single();
-      if(!u?.delete_requested_at){setStatus("error");return;}
-      const requested=new Date(u.delete_requested_at).getTime();
-      if(Date.now()-requested>86400000){setStatus("error");return;}
+    db.from("users").select("id,name,email,delete_requested_at").eq("delete_token",token).single().then(async({data,error})=>{
+  if(error||!data){setStatus("error");return;}
+  if(!data.delete_requested_at){setStatus("error");return;}
+  const requested=new Date(data.delete_requested_at).getTime();
+  if(Date.now()-requested>86400000){setStatus("error");return;}
       // Marcar como eliminado
       await db.from("users").update({
         deleted:true,
