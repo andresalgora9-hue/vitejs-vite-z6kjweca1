@@ -1698,24 +1698,40 @@ useEffect(()=>{
       )}
       {!currentUser&&<div style={{padding:"12px",background:C.surface,borderRadius:10,border:"1px solid "+C.border,textAlign:"center",marginBottom:14}}><p style={{fontSize:13,color:C.muted}}>Regístrate gratis para contactar con este profesional</p></div>}
       {currentUser&&(
+        <>
+        {reportModal&&(
+          <div onClick={()=>setReportModal(null)} style={{position:"fixed",inset:0,background:"rgba(4,4,12,0.85)",backdropFilter:"blur(12px)",zIndex:600,display:"flex",alignItems:"flex-end",justifyContent:"center"}}>
+            <div onClick={e=>e.stopPropagation()} style={{background:"linear-gradient(170deg,#14141F,#0A0A14)",borderRadius:"20px 20px 0 0",width:"100%",maxWidth:560,padding:24,border:"1px solid "+C.border}}>
+              <p style={{fontWeight:800,fontSize:16,color:C.text,marginBottom:6}}>{reportModal==="sugerencia"?"💡 Sugerir mejora":"🚩 Denunciar profesional"}</p>
+              <p style={{fontSize:12,color:C.muted,marginBottom:14}}>{reportModal==="sugerencia"?"¿Qué mejorarías de este profesional?":"¿Por qué quieres denunciar a este profesional?"}</p>
+              <textarea value={reportMsg} onChange={e=>setReportMsg(e.target.value)} placeholder={reportModal==="sugerencia"?"Describe tu sugerencia...":"Describe el motivo de la denuncia..."} rows={3} style={{width:"100%",background:C.card,border:"1px solid "+C.border,borderRadius:10,padding:"10px 12px",color:C.text,fontFamily:"inherit",fontSize:13,outline:"none",resize:"none",marginBottom:12,boxSizing:"border-box" as const}} />
+              {reportSent
+                ?<div style={{textAlign:"center",padding:"12px 0"}}><p style={{fontSize:22,marginBottom:6}}>{reportModal==="sugerencia"?"✅":"🚩"}</p><p style={{fontWeight:700,color:C.text}}>{reportModal==="sugerencia"?"Sugerencia enviada. ¡Gracias!":"Denuncia enviada. La revisaremos."}</p></div>
+                :<div style={{display:"flex",gap:8}}>
+                  <button onClick={()=>setReportModal(null)} style={{flex:1,padding:"11px",background:"transparent",border:"1px solid "+C.border,borderRadius:10,color:C.muted,cursor:"pointer",fontFamily:"inherit",fontSize:13}}>Cancelar</button>
+                  <button disabled={!reportMsg.trim()||reportSending} onClick={async()=>{
+                    setReportSending(true);
+                    await db.from("reports").insert({type:reportModal,worker_id:worker.id,worker_name:worker.name,from_id:currentUser.id,from_name:currentUser.name,message:reportMsg,status:"pending"});
+                    setReportSent(true);
+                    setReportSending(false);
+                    setTimeout(()=>{setReportModal(null);setReportMsg("");setReportSent(false);},2000);
+                  }} style={{flex:2,padding:"11px",background:reportModal==="sugerencia"?"linear-gradient(135deg,"+C.accent+","+C.orange+")":C.red,border:"none",borderRadius:10,color:reportModal==="sugerencia"?"#000":"#fff",fontFamily:"inherit",fontWeight:700,fontSize:13,cursor:!reportMsg.trim()||reportSending?"not-allowed":"pointer",opacity:!reportMsg.trim()||reportSending?0.5:1}}>
+                    {reportSending?"Enviando...":(reportModal==="sugerencia"?"Enviar sugerencia":"Enviar denuncia")}
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+        )}
         <div style={{display:"flex",gap:8,marginBottom:14}}>
-          <button onClick={async()=>{
-            const msg=prompt("¿Qué quieres sugerir sobre este profesional?");
-            if(!msg)return;
-            await db.from("reports").insert({type:"sugerencia",worker_id:worker.id,worker_name:worker.name,from_id:currentUser.id,from_name:currentUser.name,message:msg,status:"pending"});
-            alert("✅ Sugerencia enviada. Gracias.");
-          }} style={{flex:1,padding:"8px",background:C.surface,border:"1px solid "+C.border,borderRadius:8,color:C.mutedL,fontFamily:"'DM Sans',sans-serif",fontSize:11,fontWeight:600,cursor:"pointer"}}>
+          <button onClick={()=>{setReportModal("sugerencia");setReportMsg("");setReportSent(false);}} style={{flex:1,padding:"8px",background:C.surface,border:"1px solid "+C.border,borderRadius:8,color:C.mutedL,fontFamily:"'DM Sans',sans-serif",fontSize:11,fontWeight:600,cursor:"pointer"}}>
             💡 Sugerir mejora
           </button>
-          <button onClick={async()=>{
-            const msg=prompt("¿Por qué quieres denunciar a este profesional?");
-            if(!msg)return;
-            await db.from("reports").insert({type:"denuncia",worker_id:worker.id,worker_name:worker.name,from_id:currentUser.id,from_name:currentUser.name,message:msg,status:"pending"});
-            alert("🚩 Denuncia enviada. La revisaremos en breve.");
-          }} style={{flex:1,padding:"8px",background:C.red+"12",border:"1px solid "+C.red+"33",borderRadius:8,color:C.red,fontFamily:"'DM Sans',sans-serif",fontSize:11,fontWeight:600,cursor:"pointer"}}>
+          <button onClick={()=>{setReportModal("denuncia");setReportMsg("");setReportSent(false);}} style={{flex:1,padding:"8px",background:C.red+"12",border:"1px solid "+C.red+"33",borderRadius:8,color:C.red,fontFamily:"'DM Sans',sans-serif",fontSize:11,fontWeight:600,cursor:"pointer"}}>
             🚩 Denunciar
           </button>
         </div>
+        </>
       )}
 
       <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:14}}>
