@@ -3808,24 +3808,26 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
   if(isNuevoLead&&requestId){
     const {data:req}=await db.from("budget_requests")
       .select("*").eq("id",requestId).single();
-    if(req){
-      // Verificar que el lead sigue abierto
-      const {data:leadCheck}=await db.from("budget_requests")
-        .select("status,accepted_pros")
-        .eq("id",requestId)
-        .single();
-      if(leadCheck?.status==="closed"){
-        showToast("Este lead ya fue cerrado por otro profesional.");
-        setUrgentLead(null);
-        return;
-      }
-      // Añadir este pro a los aceptados
-      const yaAceptados=leadCheck?.accepted_pros||[];
-      if(!yaAceptados.includes(user.id)){
-        await db.from("budget_requests")
-          .update({accepted_pros:[...yaAceptados,user.id]})
-          .eq("id",requestId);
-      }
+    if(!req){
+      // Lead no encontrado — abrir chats directamente
+      setUrgentLead(null);
+      setTab("chats");
+      await loadChats();
+      return;
+    }
+    if(req.status==="closed"){
+      showToast("Este lead ya fue cerrado por otro profesional.");
+      setUrgentLead(null);
+      return;
+    }
+    // Añadir este pro a los aceptados
+    const yaAceptados=req.accepted_pros||[];
+    if(!yaAceptados.includes(user.id)){
+      await db.from("budget_requests")
+        .update({accepted_pros:[...yaAceptados,user.id]})
+        .eq("id",requestId);
+    }
+    {
       const {data:cliente}=await db.from("users").select("*").eq("id",req.client_id).single();
       if(cliente){
         await db.from("messages").insert({
@@ -3856,7 +3858,6 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
         await new Promise(r=>setTimeout(r,200));
         setChatUser(cliente as UserRow);
       }
-    }
   } else {
     setUrgentLead(null);
     setTab("chats");
