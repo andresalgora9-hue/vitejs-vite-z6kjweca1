@@ -3540,6 +3540,7 @@ const loadChats=useCallback(async()=>{
 
 const {data:ws}=await db.from("users").select("*").in("id",ids);
 if(!ws)return;
+const adminUser=ADMIN_USER;
 const wsFiltered=ws.filter((u:any)=>u.id!=="00000000-0000-0000-0000-000000000002");
 const allWs=ids.includes("00000000-0000-0000-0000-000000000002")?[...wsFiltered,adminUser]:wsFiltered;
     // Último mensaje y timestamp por usuario
