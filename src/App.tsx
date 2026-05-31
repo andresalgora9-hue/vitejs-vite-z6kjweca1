@@ -3851,9 +3851,13 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
         }).select().single();
         if(newJob) setJobs(prev=>[newJob,...prev]);
         setUrgentLead(null);
+        // Añadir el cliente directamente a chatPartners sin esperar loadChats
+        setChatPartners(prev=>{
+          if(prev.find(x=>x.id===cliente.id))return prev;
+          return [cliente as UserRow,...prev];
+        });
         setTab("chats");
         await loadChats();
-        await new Promise(r=>setTimeout(r,200));
         setChatUser(cliente as UserRow);
 }
     }
