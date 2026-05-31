@@ -3607,11 +3607,24 @@ useEffect(()=>{
     } 
     else { 
       // Normal message 
-      db.from("users").select("name").eq("id",m.from_id).single().then(({data}:any)=>{ 
-        const senderName=data?.name||"Cliente"; 
-        setInAppNotif({msg:m.text.substring(0,60)+(m.text.length>60?"...":""),from:senderName,fromId:m.from_id,isAdmin:false}); 
-        setUnreadMsgs(c=>c+1); 
-        showPushNotification("💬 "+senderName,m.text.substring(0,80)); 
+      else { 
+      // Normal message
+      db.from("users").select("*").eq("id",m.from_id).single().then(({data}:any)=>{
+        const senderName=data?.name||"Cliente";
+        // Actualizar notificación
+        setInAppNotif({msg:m.text.substring(0,60)+(m.text.length>60?"...":""),from:senderName,fromId:m.from_id,isAdmin:false});
+        setUnreadMsgs(c=>c+1);
+        setUnreadByUser(p=>({...p,[m.from_id]:(p[m.from_id]||0)+1}));
+        showPushNotification("💬 "+senderName,m.text.substring(0,80));
+        // Actualizar último mensaje visible en la lista
+        setLastMsgByUser(p=>({...p,[m.from_id]:m}));
+        // Añadir el cliente a chatPartners si no existe
+        if(data){
+          setChatPartners(prev=>{
+            if(prev.find(x=>x.id===m.from_id))return prev;
+            return [data as UserRow,...prev];
+          });
+        }
         loadChats();
       });
     }
@@ -3676,7 +3689,7 @@ useEffect(()=>{
   useEffect(()=>{
     if(tab==="chats"){
       loadChats();
-      const poll=setInterval(()=>loadChats(),2000);
+      const poll=setInterval(()=>loadChats()1000);
       return ()=>clearInterval(poll);
     }
   },[tab,loadChats]);
