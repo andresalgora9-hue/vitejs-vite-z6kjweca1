@@ -2197,8 +2197,6 @@ db.from("users").select("name").eq("id",m.from_id).single().then(({data}:any)=>{
   const ids=[...new Set(allMsgs.map((m:any)=>m.from_id===user.id?m.to_id:m.from_id))]
     .filter((id:string)=>id!=="00000000-0000-0000-0000-000000000001");
   if(!ids.length){setChatPartners([]);return;}
-  const {data:ws}=await db.from("users").select("*").in("id",ids);
-if(!ws)return;
 const adminUser=ADMIN_USER;
 const {data:ws}=await db.from("users").select("*").in("id",ids);
 if(!ws)return;
