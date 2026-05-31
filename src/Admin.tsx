@@ -119,6 +119,7 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
   const [jobs,setJobs]=useState<JobRow[]>([]);
   const [reviews,setReviews]=useState<any[]>([]);
   const [leads,setLeads]=useState<any[]>([]);
+  const [reports,setReports]=useState<any[]>([]);
   const [loading,setLoading]=useState(true);
   const [toast,setToast]=useState<{msg:string;type:"ok"|"err"}|null>(null);
   const [selectedUser,setSelectedUser]=useState<UserRow|null>(null);
@@ -138,12 +139,13 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
 
   const load=useCallback(async()=>{
     setLoading(true);
-    const [u,m,j,r,ld]=await Promise.all([
+    const [u,m,j,r,ld,rp]=await Promise.all([
       db.from("users").select("*").order("joined_at",{ascending:false}),
       db.from("messages").select("*").order("created_at",{ascending:false}).limit(200),
       db.from("jobs").select("*").order("created_at",{ascending:false}),
       db.from("reviews").select("*").order("created_at",{ascending:false}),
       db.from("leads_landing").select("*").order("created_at",{ascending:false}),
+      db.from("reports").select("*").order("created_at",{ascending:false}),
     ]);
     const allUsers=(u.data||[]).filter((x:any)=>x.type!=="admin"&&x.id!=="00000000-0000-0000-0000-000000000002");
     setUsers(allUsers as UserRow[]);
@@ -151,6 +153,7 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
     setJobs((j.data||[]) as JobRow[]);
     setReviews((r.data||[]) as any[]);
     setLeads((ld.data||[]) as any[]);
+    setReports((rp.data||[]) as any[]);
     const u2=(m.data||[]).filter((x:any)=>!x.read&&x.from_id!=="00000000-0000-0000-0000-000000000002").length;
     setUnread(u2);
     setLoading(false);
@@ -163,13 +166,37 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
       .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},(p:any)=>{
         const m=p.new as MessageRow;
         if(m.from_id!=="00000000-0000-0000-0000-000000000002"){
-          setMsgs(prev=>[m,...prev]);
+          setMsgs(prev=>{if(prev.find((x:any)=>x.id===m.id))return prev;return [m,...prev];});
           setUnread(c=>c+1);
         }
+      })
+      .on("postgres_changes",{event:"UPDATE",schema:"public",table:"messages"},(p:any)=>{
+        const m=p.new as MessageRow;
+        setMsgs(prev=>prev.map(x=>x.id===m.id?{...x,...m}:x));
       })
       .on("postgres_changes",{event:"INSERT",schema:"public",table:"users"},(p:any)=>{
         const u=p.new as UserRow;
         if(u.type!=="admin") setUsers(prev=>[u,...prev]);
+      })
+      .on("postgres_changes",{event:"INSERT",schema:"public",table:"reviews"},(p:any)=>{
+        const r=p.new;
+        setReviews(prev=>{if(prev.find((x:any)=>x.id===r.id))return prev;return [r,...prev];});
+      })
+      .on("postgres_changes",{event:"UPDATE",schema:"public",table:"reviews"},(p:any)=>{
+        const r=p.new;
+        if(r.approved===false){
+          setReviews(prev=>prev.filter((x:any)=>x.id!==r.id));
+        } else {
+          setReviews(prev=>prev.map((x:any)=>x.id===r.id?{...x,...r}:x));
+        }
+      })
+      .on("postgres_changes",{event:"INSERT",schema:"public",table:"reports"},(p:any)=>{
+        const r=p.new;
+        setReports(prev=>{if(prev.find((x:any)=>x.id===r.id))return prev;return [r,...prev];});
+      })
+      .on("postgres_changes",{event:"UPDATE",schema:"public",table:"reports"},(p:any)=>{
+        const r=p.new;
+        setReports(prev=>prev.map((x:any)=>x.id===r.id?{...x,...r}:x));
       })
       .subscribe();
     return()=>{db.removeChannel(ch);};
@@ -245,8 +272,39 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
     showToast("Usuario bloqueado","err");
   };
 
-  const approveReview=async(id:string)=>{await db.from("reviews").update({approved:true}).eq("id",id);setReviews(p=>p.map((r:any)=>r.id===id?{...r,approved:true}:r));showToast("✓ Reseña aprobada");};
-  const deleteReview=async(id:string)=>{await db.from("reviews").delete().eq("id",id);setReviews(p=>p.filter((r:any)=>r.id!==id));showToast("Reseña eliminada");};
+  const approveReview=async(id:string)=>{
+    await db.from("reviews").update({approved:true}).eq("id",id);
+    setReviews(p=>p.map((r:any)=>r.id===id?{...r,approved:true}:r));
+    showToast("✓ Reseña aprobada — visible en la app");
+  };
+  const rejectReview=async(id:string)=>{
+    // Rechazar = approved:false — desaparece del perfil del pro
+    await db.from("reviews").update({approved:false}).eq("id",id);
+    setReviews(p=>p.filter((r:any)=>r.id!==id));
+    showToast("Reseña rechazada — eliminada de la app","err");
+  };
+  const deleteReview=async(id:string)=>{
+    await db.from("reviews").delete().eq("id",id);
+    setReviews(p=>p.filter((r:any)=>r.id!==id));
+    showToast("Reseña eliminada permanentemente","err");
+  };
+  const updateReportStatus=async(id:string,status:"pending"|"investigating"|"approved")=>{
+    await db.from("reports").update({status}).eq("id",id);
+    setReports(p=>p.map((r:any)=>r.id===id?{...r,status}:r));
+    if(status==="approved"){
+      // Buscar el pro afectado y bloquearlo
+      const rep=reports.find((r:any)=>r.id===id);
+      if(rep?.worker_id){
+        await db.from("users").update({available:false}).eq("id",rep.worker_id);
+        setUsers(prev=>prev.map(u=>u.id===rep.worker_id?{...u,available:false}:u));
+        showToast("🚫 Reporte aprobado — profesional bloqueado","err");
+      } else {
+        showToast("✓ Reporte aprobado");
+      }
+    } else if(status==="investigating"){
+      showToast("🔍 Marcado como en investigación");
+    }
+  };
 
   // ────────────────────────────────────────────
   // RENDER
@@ -585,36 +643,123 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
               </div>
 
               {/* Alertas de calidad */}
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
-                <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:16}}>
-                  <p style={{fontWeight:700,fontSize:13,color:C.text,marginBottom:12}}>⭐ Reseñas pendientes de moderación</p>
-                  {reviews.filter((r:any)=>r.approved===null||r.approved===undefined).slice(0,5).map((r:any)=>(
-                    <div key={r.id} style={{display:"flex",gap:10,alignItems:"center",padding:"8px 0",borderBottom:`1px solid ${C.border}`}}>
-                      <div style={{flex:1}}>
-                        <p style={{fontSize:12,color:C.text,fontWeight:600}}>{r.client_name} → <span style={{color:C.accent}}>{users.find(u=>u.id===r.worker_id)?.name||"Pro"}</span></p>
-                        <p style={{fontSize:10,color:C.muted}}>{r.text?.substring(0,60)}...</p>
-                      </div>
-                      <div style={{display:"flex",gap:5}}>
-                        <button onClick={()=>approveReview(r.id)} style={{fontSize:10,padding:"3px 8px",background:C.greenDim,border:`1px solid ${C.green}44`,borderRadius:4,color:C.green,cursor:"pointer"}}>✓</button>
-                        <button onClick={()=>deleteReview(r.id)} style={{fontSize:10,padding:"3px 8px",background:C.redDim,border:`1px solid ${C.red}44`,borderRadius:4,color:C.red,cursor:"pointer"}}>✗</button>
-                      </div>
+              <div style={{display:"flex",flexDirection:"column",gap:14}}>
+
+                {/* REPORTES Y DENUNCIAS */}
+                <div style={{background:C.card,border:`1px solid ${C.red}33`,borderRadius:12,padding:16}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+                    <p style={{fontWeight:700,fontSize:13,color:C.text}}>🚩 Reportes y Denuncias</p>
+                    <div style={{display:"flex",gap:6}}>
+                      <StatusPill label={`${reports.filter((r:any)=>r.status==="pending"||!r.status).length} pendientes`} color={C.red}/>
+                      <StatusPill label={`${reports.filter((r:any)=>r.status==="investigating").length} investigando`} color={C.yellow}/>
+                      <StatusPill label={`${reports.filter((r:any)=>r.status==="approved").length} aprobados`} color={C.green}/>
                     </div>
-                  ))}
-                  {reviews.filter((r:any)=>r.approved===null||r.approved===undefined).length===0&&<p style={{fontSize:12,color:C.muted}}>Sin reseñas pendientes ✓</p>}
+                  </div>
+                  {reports.length===0&&<p style={{fontSize:12,color:C.muted}}>Sin reportes todavía</p>}
+                  {reports.map((r:any)=>{
+                    const pro=users.find(u=>u.id===r.worker_id);
+                    const from=users.find(u=>u.id===r.from_id);
+                    const statusColor=r.status==="approved"?C.green:r.status==="investigating"?C.yellow:C.red;
+                    return(
+                      <div key={r.id} style={{background:C.surface,borderRadius:10,padding:"12px 14px",marginBottom:10,border:`1px solid ${statusColor}33`}}>
+                        <div style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:10}}>
+                          <div style={{flex:1}}>
+                            <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap",marginBottom:4}}>
+                              <span style={{fontSize:9,fontFamily:"monospace",color:r.type==="denuncia"?C.red:C.orange,background:(r.type==="denuncia"?C.red:C.orange)+"18",padding:"2px 7px",borderRadius:3,fontWeight:700,textTransform:"uppercase"}}>
+                                {r.type||"reporte"}
+                              </span>
+                              <StatusPill label={r.status==="approved"?"✓ Aprobado":r.status==="investigating"?"🔍 Investigando":"⏳ Pendiente"} color={statusColor}/>
+                              <span style={{fontSize:9,color:C.muted,fontFamily:"monospace",marginLeft:"auto"}}>{new Date(r.created_at).toLocaleDateString("es-ES")}</span>
+                            </div>
+                            <p style={{fontSize:12,color:C.mutedL,lineHeight:1.5,marginBottom:6}}>{r.message}</p>
+                            <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
+                              {from&&<span style={{fontSize:11,color:C.muted}}>👤 De: <span style={{color:C.text,fontWeight:600}}>{from.name||r.from_name}</span></span>}
+                              {pro&&<button onClick={()=>setSelectedUser(pro)} style={{fontSize:11,color:C.accent,background:"none",border:`1px solid ${C.accent}33`,borderRadius:4,padding:"2px 8px",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>
+                                🔨 {pro.name||r.worker_name} → Ver perfil
+                              </button>}
+                              {!pro&&r.worker_name&&<span style={{fontSize:11,color:C.muted}}>🔨 Pro: <span style={{color:C.accent}}>{r.worker_name}</span></span>}
+                            </div>
+                          </div>
+                        </div>
+                        <div style={{display:"flex",gap:8"}}>
+                          {(r.status==="pending"||!r.status)&&(
+                            <button onClick={()=>updateReportStatus(r.id,"investigating")} style={{fontSize:11,padding:"5px 12px",background:C.yellowDim,border:`1px solid ${C.yellow}44`,borderRadius:6,color:C.yellow,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontWeight:600}}>
+                              🔍 Investigar
+                            </button>
+                          )}
+                          {r.status==="investigating"&&(
+                            <button onClick={()=>updateReportStatus(r.id,"approved")} style={{fontSize:11,padding:"5px 12px",background:C.redDim,border:`1px solid ${C.red}44`,borderRadius:6,color:C.red,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontWeight:700}}>
+                              🚫 Aprobar y bloquear pro
+                            </button>
+                          )}
+                          {r.status==="approved"&&pro&&(
+                            <span style={{fontSize:11,color:C.red,fontFamily:"monospace"}}>✓ Pro bloqueado · {pro.name}</span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-                <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:16}}>
-                  <p style={{fontWeight:700,fontSize:13,color:C.text,marginBottom:12}}>🔔 Pros con riesgo de cancelación</p>
-                  {expiring.slice(0,5).map(u=>(
-                    <div key={u.id} style={{display:"flex",gap:10,alignItems:"center",padding:"8px 0",borderBottom:`1px solid ${C.border}`}}>
-                      <Ava s={u.name.substring(0,2).toUpperCase()} size={28} color={C.yellow} imgUrl={u.avatar_url||""}/>
-                      <div style={{flex:1}}>
-                        <p style={{fontSize:12,color:C.text,fontWeight:600}}>{u.name}</p>
-                        <p style={{fontSize:10,color:C.yellow}}>Trial expira en {Math.ceil((new Date(u.trial_end).getTime()-now.getTime())/86400000)}d</p>
-                      </div>
-                      {u.phone&&<a href={"tel:"+u.phone} style={{fontSize:10,padding:"4px 8px",background:C.greenDim,border:`1px solid ${C.green}44`,borderRadius:4,color:C.green,textDecoration:"none"}}>Llamar</a>}
+
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+                  {/* RESEÑAS */}
+                  <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:16}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+                      <p style={{fontWeight:700,fontSize:13,color:C.text}}>⭐ Reseñas · Moderación</p>
+                      <StatusPill label={`${reviews.filter((r:any)=>r.approved===null||r.approved===undefined).length} pendientes`} color={C.orange}/>
                     </div>
-                  ))}
-                  {expiring.length===0&&<p style={{fontSize:12,color:C.muted}}>Sin pros en riesgo esta semana ✓</p>}
+                    {reviews.filter((r:any)=>r.approved===null||r.approved===undefined).slice(0,8).map((r:any)=>{
+                      const pro=users.find(u=>u.id===r.worker_id);
+                      return(
+                        <div key={r.id} style={{background:C.surface,borderRadius:8,padding:"10px 12px",marginBottom:8,border:`1px solid ${C.border}`}}>
+                          <div style={{display:"flex",gap:8,alignItems:"flex-start",marginBottom:8}}>
+                            <div style={{flex:1}}>
+                              <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:3,flexWrap:"wrap"}}>
+                                <span style={{fontSize:12,fontWeight:700,color:C.text}}>{r.client_name}</span>
+                                <span style={{fontSize:10,color:C.muted}}>→</span>
+                                {pro&&<button onClick={()=>setSelectedUser(pro)} style={{fontSize:11,color:C.accent,background:"none",border:`1px solid ${C.accent}33`,borderRadius:3,padding:"1px 6px",cursor:"pointer"}}>
+                                  {pro.name}
+                                </button>}
+                                <span style={{fontSize:11,color:C.yellow}}>{"★".repeat(r.stars)}{"☆".repeat(5-r.stars)}</span>
+                              </div>
+                              <p style={{fontSize:11,color:C.mutedL,lineHeight:1.4}}>{r.text}</p>
+                            </div>
+                          </div>
+                          <div style={{display:"flex",gap:6}}>
+                            <button onClick={()=>approveReview(r.id)} style={{flex:1,fontSize:11,padding:"5px",background:C.greenDim,border:`1px solid ${C.green}44`,borderRadius:6,color:C.green,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontWeight:700}}>
+                              ✓ Aprobar (visible)
+                            </button>
+                            <button onClick={()=>rejectReview(r.id)} style={{flex:1,fontSize:11,padding:"5px",background:C.yellowDim,border:`1px solid ${C.yellow}44`,borderRadius:6,color:C.yellow,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontWeight:700}}>
+                              ✗ Rechazar (ocultar)
+                            </button>
+                            <button onClick={()=>deleteReview(r.id)} style={{fontSize:11,padding:"5px 8px",background:C.redDim,border:`1px solid ${C.red}44`,borderRadius:6,color:C.red,cursor:"pointer"}}>
+                              🗑
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {reviews.filter((r:any)=>r.approved===null||r.approved===undefined).length===0&&<p style={{fontSize:12,color:C.muted}}>Sin reseñas pendientes ✓</p>}
+                  </div>
+
+                  {/* PROS EN RIESGO */}
+                  <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:16}}>
+                    <p style={{fontWeight:700,fontSize:13,color:C.text,marginBottom:12}}>🔔 Pros con riesgo de cancelación</p>
+                    {expiring.slice(0,5).map(u=>(
+                      <div key={u.id} style={{display:"flex",gap:10,alignItems:"center",padding:"8px 0",borderBottom:`1px solid ${C.border}`}}>
+                        <Ava s={u.name.substring(0,2).toUpperCase()} size={28} color={C.yellow} imgUrl={u.avatar_url||""}/>
+                        <div style={{flex:1}}>
+                          <p style={{fontSize:12,color:C.text,fontWeight:600}}>{u.name}</p>
+                          <p style={{fontSize:10,color:C.yellow}}>Trial expira en {Math.ceil((new Date(u.trial_end).getTime()-now.getTime())/86400000)}d</p>
+                        </div>
+                        <div style={{display:"flex",gap:5}}>
+                          {u.phone&&<a href={"tel:"+u.phone} style={{fontSize:10,padding:"4px 8px",background:C.greenDim,border:`1px solid ${C.green}44`,borderRadius:4,color:C.green,textDecoration:"none"}}>📞</a>}
+                          <button onClick={()=>setSelectedUser(u)} style={{fontSize:10,padding:"4px 8px",background:C.accentDim,border:`1px solid ${C.accent}44`,borderRadius:4,color:C.accent,cursor:"pointer"}}>Ver</button>
+                        </div>
+                      </div>
+                    ))}
+                    {expiring.length===0&&<p style={{fontSize:12,color:C.muted}}>Sin pros en riesgo esta semana ✓</p>}
+                  </div>
                 </div>
               </div>
             </>)}
