@@ -3802,15 +3802,22 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
     const {data:req}=await db.from("budget_requests")
       .select("*").eq("id",requestId).single();
     if(req){
-      const {data:rpcResult}=await db.rpc("accept_lead",{
-        p_request_id:requestId,
-        p_pro_id:user.id,
-        p_max_pros:3,
-      });
-      if(!rpcResult?.ok){
-        showToast("Este lead ya no está disponible.");
+      // Verificar que el lead sigue abierto
+      const {data:leadCheck}=await db.from("budget_requests")
+        .select("status,accepted_pros")
+        .eq("id",requestId)
+        .single();
+      if(leadCheck?.status==="closed"){
+        showToast("Este lead ya fue cerrado por otro profesional.");
         setUrgentLead(null);
         return;
+      }
+      // Añadir este pro a los aceptados
+      const yaAceptados=leadCheck?.accepted_pros||[];
+      if(!yaAceptados.includes(user.id)){
+        await db.from("budget_requests")
+          .update({accepted_pros:[...yaAceptados,user.id]})
+          .eq("id",requestId);
       }
       const {data:cliente}=await db.from("users").select("*").eq("id",req.client_id).single();
       if(cliente){
