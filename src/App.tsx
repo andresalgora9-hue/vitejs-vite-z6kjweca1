@@ -1619,6 +1619,10 @@ function WorkerSheet({worker,onClose,onChat,currentUser}:{worker:UserRow;onClose
   const [certs,setCerts]=useState<CertRow[]>([]);
   const [photos,setPhotos]=useState<PhotoRow[]>([]);
   const [newRev,setNewRev]=useState(""); const [selStars,setSelStars]=useState(5); const [saving,setSaving]=useState(false);
+  const [reportModal,setReportModal]=useState<"sugerencia"|"denuncia"|null>(null);
+  const [reportMsg,setReportMsg]=useState("");
+  const [reportSending,setReportSending]=useState(false);
+  const [reportSent,setReportSent]=useState(false);
   const col=React.useMemo(()=>wColor(worker.id),[worker.id]);
 
 useEffect(()=>{
