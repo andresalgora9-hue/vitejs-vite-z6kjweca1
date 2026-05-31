@@ -2200,6 +2200,8 @@ db.from("users").select("name").eq("id",m.from_id).single().then(({data}:any)=>{
   const {data:ws}=await db.from("users").select("*").in("id",ids);
 if(!ws)return;
 const adminUser=ADMIN_USER;
+const {data:ws}=await db.from("users").select("*").in("id",ids);
+if(!ws)return;
 const wsFiltered=ws.filter((u:any)=>u.id!=="00000000-0000-0000-0000-000000000002");
 const allWs=ids.includes("00000000-0000-0000-0000-000000000002")?[...wsFiltered,adminUser]:wsFiltered;
   const lastMsg:Record<string,any>={};
@@ -3514,6 +3516,8 @@ const loadChats=useCallback(async()=>{
       .filter((id:string)=>id!=="00000000-0000-0000-0000-000000000001");
     if(!ids.length){setChatPartners([]);return;}
 
+const {data:ws}=await db.from("users").select("*").in("id",ids);
+if(!ws)return;
 const wsFiltered=ws.filter((u:any)=>u.id!=="00000000-0000-0000-0000-000000000002");
 const allWs=ids.includes("00000000-0000-0000-0000-000000000002")?[...wsFiltered,adminUser]:wsFiltered;
     // Último mensaje y timestamp por usuario
@@ -3860,13 +3864,6 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
           msg={inAppNotif.msg} from={inAppNotif.from}
           isAdmin={inAppNotif.isAdmin}
           onClose={()=>setInAppNotif(null)}
-          onClick={()=>{
-            setInAppNotif(null);
-            const c=chatPartners.find(x=>x.id===inAppNotif.fromId);
-            if(inAppNotif.isAdmin){setTab("chats");loadChats();}
-            else if(c)setChatUser(c);
-            else{setTab("chats");loadChats();}
-          }}
         />
       )}
 
