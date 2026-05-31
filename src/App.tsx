@@ -3857,8 +3857,8 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
           return [cliente as UserRow,...prev];
         });
         setTab("chats");
-        await loadChats();
         setChatUser(cliente as UserRow);
+        await loadChats();
 }
     }
   } else {
