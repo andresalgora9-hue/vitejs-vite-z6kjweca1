@@ -3605,8 +3605,6 @@ useEffect(()=>{
       setUnreadMsgs(c=>c+1); 
       showPushNotification("👑 OfficioYa Soporte",m.text.replace("[Soporte OfficioYa] ","").substring(0,80)); 
     } 
-    else { 
-      // Normal message 
       else { 
       // Normal message
       db.from("users").select("*").eq("id",m.from_id).single().then(({data}:any)=>{
