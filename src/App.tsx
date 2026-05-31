@@ -5317,13 +5317,14 @@ if(!_lastVisit){
         color: #E8EDF5;
         font-family: 'DM Sans', sans-serif;
         -webkit-font-smoothing: antialiased;
-      }
-      #root {
+     #root {
         min-height: 100vh;
         min-height: 100dvh;
         background: #0F1117;
+        overflow-x: hidden;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
+        max-width: 100vw;
       }
       input,textarea,select{box-sizing:border-box;}
       input::placeholder,textarea::placeholder{color:#44445A;}
