@@ -351,9 +351,12 @@ function Stars({n,size=13,interactive=false,onSet}:{n:number;size?:number;intera
     {[1,2,3,4,5].map(i=><span key={i} onClick={()=>interactive&&onSet&&onSet(i)} style={{color:i<=Math.round(n)?C.accent:C.border}}>{i<=Math.round(n)?"★":"☆"}</span>)}
   </span>;
 }
-function Ava({s,size=44,color=C.purple,online=false}:{s:string;size?:number;color?:string;online?:boolean}){
+function Ava({s,size=44,color=C.purple,online=false,imgUrl=""}:{s:string;size?:number;color?:string;online?:boolean;imgUrl?:string}){
   return <div style={{position:"relative",flexShrink:0}}>
-    <div style={{width:size,height:size,borderRadius:"50%",background:"linear-gradient(135deg,"+color+"55,"+color+"22)",display:"flex",alignItems:"center",justifyContent:"center",color:C.accent,fontWeight:900,fontSize:Math.round(size*0.35),border:"2px solid "+color+"55",boxShadow:"0 0 12px "+color+"22",flexShrink:0}}>{s}</div>
+    {imgUrl
+      ?<img src={imgUrl} style={{width:size,height:size,borderRadius:"50%",objectFit:"cover",border:"2px solid "+color+"55",boxShadow:"0 0 12px "+color+"22",flexShrink:0,display:"block"}} onError={(e:any)=>{e.target.style.display="none";}} />
+      :<div style={{width:size,height:size,borderRadius:"50%",background:"linear-gradient(135deg,"+color+"55,"+color+"22)",display:"flex",alignItems:"center",justifyContent:"center",color:C.accent,fontWeight:900,fontSize:Math.round(size*0.35),border:"2px solid "+color+"55",boxShadow:"0 0 12px "+color+"22",flexShrink:0}}>{s}</div>
+    }
     {online&&<div style={{position:"absolute",bottom:0,right:0,width:10,height:10,borderRadius:"50%",background:C.green,border:"2px solid "+C.bg}} />}
   </div>;
 }
@@ -1559,7 +1562,7 @@ const WorkerCardIdealista=React.memo(({w,onSelect,onChat}:{w:UserRow;onSelect:()
         <div style={{width:4,background:"linear-gradient(180deg,"+col+","+col+"44)",flexShrink:0}} />
         <div style={{flex:1,padding:"14px 14px 12px"}}>
           <div style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:10}}>
-            <div onClick={onSelect} style={{cursor:"pointer",flexShrink:0}}><Ava s={w.name.substring(0,2).toUpperCase()} size={52} color={col} online={w.available} /></div>
+            <div onClick={onSelect} style={{cursor:"pointer",flexShrink:0}}><Ava s={w.name.substring(0,2).toUpperCase()} size={52} color={col} online={w.available} imgUrl={w.avatar_url||""} /></div>
             <div style={{flex:1,minWidth:0,cursor:"pointer"}} onClick={onSelect}>
               <div style={{display:"flex",gap:5,alignItems:"center",marginBottom:2,flexWrap:"wrap"}}>
                 <p style={{fontWeight:800,fontSize:16,color:C.text,lineHeight:1.2}}>{w.name}</p>
@@ -1652,7 +1655,7 @@ useEffect(()=>{
   return(
     <Sheet onClose={onClose}>
       <div style={{display:"flex",gap:14,alignItems:"center",marginBottom:14}}>
-        <Ava s={worker.name.substring(0,2).toUpperCase()} size={58} color={col} online={worker.available} />
+        <Ava s={worker.name.substring(0,2).toUpperCase()} size={58} color={col} online={worker.available} imgUrl={worker.avatar_url||""} />
         <div style={{flex:1,minWidth:0}}>
           <div style={{display:"flex",gap:7,alignItems:"center",flexWrap:"wrap",marginBottom:3}}>
             <p style={{fontWeight:800,fontSize:19,color:C.text}}>{worker.name}</p>
@@ -1726,8 +1729,11 @@ useEffect(()=>{
 
       {tab==="fotos"&&(photos.length===0?<div style={{textAlign:"center",padding:"32px 0",color:C.muted}}><p style={{fontSize:32,marginBottom:8}}>📸</p><p style={{fontSize:13}}>Sin fotos aún</p></div>:
         <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8}}>
-          {photos.map(p=><div key={p.id} style={{borderRadius:10,overflow:"hidden",border:"1px solid "+C.border,background:C.surface,aspectRatio:"4/3",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,color:C.muted,padding:8}}>
-            {p.url?<img src={p.url} alt={p.caption} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={(e:any)=>{e.target.style.display="none";}} />:<span style={{textAlign:"center"}}>{p.caption||"Foto de trabajo"}</span>}
+          {photos.map(p=><div key={p.id} style={{borderRadius:10,overflow:"hidden",border:"1px solid "+C.border,background:C.surface,position:"relative",paddingTop:"75%"}}>
+            {p.url
+              ?<img src={p.url} alt={p.caption||"Foto de trabajo"} style={{position:"absolute",top:0,left:0,width:"100%",height:"100%",objectFit:"cover"}} onError={(e:any)=>{(e.target as HTMLImageElement).style.display="none";}} />
+              :<div style={{position:"absolute",top:0,left:0,width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,color:C.muted}}>{p.caption||"Foto de trabajo"}</div>
+            }
           </div>)}
         </div>
       )}
