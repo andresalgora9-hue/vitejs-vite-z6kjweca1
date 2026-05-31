@@ -3855,12 +3855,20 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
         await loadChats();
         await new Promise(r=>setTimeout(r,200));
         setChatUser(cliente as UserRow);
-      }
-      }      
+}
+    }
   } else {
     setUrgentLead(null);
-    setTab("chats");
-    await loadChats();
+    if(urgentLead.fromId&&urgentLead.fromId!=="00000000-0000-0000-0000-000000000001"){
+      const {data:cliente}=await db.from("users").select("*").eq("id",urgentLead.fromId).single();
+      setTab("chats");
+      await loadChats();
+      await new Promise(r=>setTimeout(r,200));
+      if(cliente)setChatUser(cliente as UserRow);
+    } else {
+      setTab("chats");
+      await loadChats();
+    }
   }
 }}
   />
