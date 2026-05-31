@@ -1653,8 +1653,19 @@ useEffect(()=>{
     if(!newRev.trim())return;
     setSaving(true);
     const {data}=await db.from("reviews").insert({worker_id:worker.id,client_name:currentUser?.name||"Anónimo",client_id:currentUser?.id||null,stars:selStars,text:newRev,photo:"",photo_url:"",approved:true}).select().single();
-    if(data)setReviews(p=>[data,...p]);
-    setNewRev(""); setSaving(false);
+    if(data){
+      const newReviews=[data,...reviews];
+      setReviews(newReviews);
+      // Recalcular rating y actualizar en BD
+      const newAvg=newReviews.reduce((s:number,r:any)=>s+r.stars,0)/newReviews.length;
+      await db.from("users").update({
+        rating:Math.round(newAvg*10)/10,
+        reviews:newReviews.length,
+      }).eq("id",worker.id);
+    }
+    setNewRev("");
+    setSaving(false);
+  };
   };
 
   const avgRating=reviews.length>0?reviews.reduce((s:number,r:any)=>s+r.stars,0)/reviews.length:worker.rating;
