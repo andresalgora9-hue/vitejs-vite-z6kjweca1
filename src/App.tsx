@@ -800,7 +800,7 @@ useEffect(()=>{
       .eq("read",false)
       .then(()=>{});
 
-    const channelName="chat-"+[currentUser.id,toUser.id].sort().join("-");
+  const channelName="chat-"+[currentUser.id,toUser.id].sort().join("-");
     const channel=db.channel(channelName)
       .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"to_id=eq."+currentUser.id},(payload:any)=>{
         const m=payload.new as MessageRow;
@@ -810,18 +810,25 @@ useEffect(()=>{
             return [...prev,m];
           });
           setIsTyping(false);
-          // Marcar como leído inmediatamente al recibir en chat abierto
           db.from("messages").update({read:true}).eq("id",m.id).then(()=>{});
-          showPushNotification("💬 "+toUser.name,m.text.substring(0,80));
         }
       })
-      .on("postgres_changes",{event:"UPDATE",schema:"public",table:"messages",filter:"from_id=eq."+currentUser.id},(payload:any)=>{
+      .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"to_id=eq."+toUser.id},(payload:any)=>{
         const m=payload.new as MessageRow;
-        // Actualizar estado leído de mensajes propios (doble check)
+        if(m.from_id===currentUser.id){
+          setMsgs(prev=>{
+            if(prev.find(x=>x.id===m.id))return prev;
+            return [...prev,{...m}];
+          });
+        }
+      })
+      .on("postgres_changes",{event:"UPDATE",schema:"public",table:"messages"},(payload:any)=>{
+        const m=payload.new as MessageRow;
         setMsgs(prev=>prev.map(x=>x.id===m.id?{...x,read:m.read}:x));
       })
       .subscribe();
-    const poll=setInterval(()=>loadMsgs(),2000);
+    // Polling solo como fallback cada 8s en vez de 2s
+    const poll=setInterval(()=>loadMsgs(),8000);
     return ()=>{db.removeChannel(channel);clearInterval(poll);};
   },[loadMsgs,currentUser.id,toUser.id,toUser.name]);
 
