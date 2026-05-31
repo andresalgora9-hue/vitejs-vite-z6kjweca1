@@ -3864,6 +3864,25 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
           msg={inAppNotif.msg} from={inAppNotif.from}
           isAdmin={inAppNotif.isAdmin}
           onClose={()=>setInAppNotif(null)}
+          onClick={()=>{
+            const fromId=inAppNotif.fromId;
+            const isAdmin=inAppNotif.isAdmin;
+            setInAppNotif(null);
+            if(isAdmin){
+              setTab("chats");
+              loadChats().then(()=>{
+                const adminU=chatPartners.find(x=>x.id==="00000000-0000-0000-0000-000000000002");
+                if(adminU)setChatUser(adminU);
+              });
+            } else {
+              loadChats().then(()=>{
+                db.from("users").select("*").eq("id",fromId).single().then(({data}:any)=>{
+                  if(data)setChatUser(data);
+                  else setTab("chats");
+                });
+              });
+            }
+          }}
         />
       )}
 
