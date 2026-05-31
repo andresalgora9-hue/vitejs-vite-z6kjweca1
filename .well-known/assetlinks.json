@@ -1,0 +1,10 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.aficioya.twa",
+    "sha256_cert_fingerprints": [
+      "B9:36:A7:64:46:B1:6F:97:50:9B:D9:07:35:5D:D5:5B:B1:3C:F8:DD:79:43:25:D1:C1:F7:8D:96:8F:EE:39:15"
+    ]
+  }
+}]
