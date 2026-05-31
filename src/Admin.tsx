@@ -681,7 +681,7 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
                             </div>
                           </div>
                         </div>
-                        <div style={{display:"flex",gap:8"}}>
+                        <div style={{display:"flex",gap:8}}>
                           {(r.status==="pending"||!r.status)&&(
                             <button onClick={()=>updateReportStatus(r.id,"investigating")} style={{fontSize:11,padding:"5px 12px",background:C.yellowDim,border:`1px solid ${C.yellow}44`,borderRadius:6,color:C.yellow,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontWeight:600}}>
                               🔍 Investigar
