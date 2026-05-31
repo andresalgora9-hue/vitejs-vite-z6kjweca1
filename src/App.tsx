@@ -96,25 +96,10 @@ function getDeepLinkUrl(user:UserRow){
 }
 function shareProfile(user:UserRow){
   const url=getDeepLinkUrl(user);
-  const shareData={
-    title:user.name+" — "+( user.trade||"Profesional")+" en OfficioYa",
-    text:"Mira el perfil de "+user.name+(user.trade?", "+user.trade:"")+" en OfficioYa · Profesionales de confianza en Sevilla",
-    url,
-  };
-  if(navigator.share && navigator.canShare && navigator.canShare(shareData)){
-    navigator.share(shareData).catch(()=>{
-      // Si el usuario cancela el share nativo, no hacer nada
-    });
+  if(navigator.share){
+    navigator.share({title:user.name+" — OfficioYa",text:"Mira el perfil de "+user.name+" en OfficioYa",url});
   } else {
-    navigator.clipboard.writeText(url).catch(()=>{
-      // Fallback si clipboard tampoco está disponible
-      const el=document.createElement("input");
-      el.value=url;
-      document.body.appendChild(el);
-      el.select();
-      document.execCommand("copy");
-      document.body.removeChild(el);
-    });
+    navigator.clipboard.writeText(url);
   }
 }
 // ── META PIXEL EVENTS ──
@@ -575,7 +560,8 @@ function UrgentLeadBanner({msg,desc,onClose,onClick}:{msg:string;desc?:string;on
   const [procesando,setProcesando]=useState(false);
   useEffect(()=>{
     if(navigator.vibrate) navigator.vibrate([200,100,200,100,400]);
-    // Sin auto-cierre: el profesional debe aceptar o ignorar manualmente
+    const t=setTimeout(onClose,20000);
+    return()=>clearTimeout(t);
   },[onClose]);
 
   const handleAceptar=async()=>{
@@ -631,30 +617,25 @@ function UrgentLeadBanner({msg,desc,onClose,onClick}:{msg:string;desc?:string;on
 
 // ─── IN-APP NOTIFICATION (normal, desde arriba) ───
 function InAppNotification({msg,from,onClose,onClick,isAdmin=false}:{msg:string;from:string;onClose:()=>void;onClick:()=>void;isAdmin?:boolean}){
-  // Sin auto-cierre: el pro debe tocarla o cerrarla manualmente
+  useEffect(()=>{const t=setTimeout(onClose,6000);return()=>clearTimeout(t);},[onClose]);
   const borderColor=isAdmin?C.orange:C.accent;
   const icon=isAdmin?"👑":"💬";
   return(
-    <div style={{
-      position:"fixed",top:0,left:0,right:0,zIndex:10000,
-      background:"linear-gradient(135deg,#12121E,#1A1A2E)",
-      borderBottom:"2px solid "+borderColor+"88",
-      padding:"14px 16px",
-      boxShadow:"0 6px 32px rgba(0,0,0,0.8)",
+    <div onClick={onClick} style={{
+      position:"fixed",top:16,left:"50%",transform:"translateX(-50%)",zIndex:10000,
+      background:"linear-gradient(135deg,#1A1A2E,#12121E)",
+      border:"1px solid "+borderColor+"66",
+      borderRadius:16,padding:"12px 16px",display:"flex",gap:12,alignItems:"center",
+      boxShadow:"0 8px 32px rgba(0,0,0,0.7),0 0 0 1px "+borderColor+"22",
+      cursor:"pointer",maxWidth:"calc(100vw - 32px)",width:360,
       animation:"slideDownNotif 0.35s cubic-bezier(0.34,1.56,0.64,1)",
     }}>
-      <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
-        <div style={{width:44,height:44,borderRadius:"50%",background:"linear-gradient(135deg,"+borderColor+"44,"+borderColor+"22)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0,border:"1px solid "+borderColor+"44"}}>{icon}</div>
-        <div style={{flex:1,minWidth:0}}>
-          <p style={{fontSize:11,fontWeight:800,color:borderColor,marginBottom:2,textTransform:"uppercase" as const,letterSpacing:"0.05em"}}>{from}</p>
-          <p style={{fontSize:14,color:C.text,fontWeight:600,lineHeight:1.3}}>{msg}</p>
-        </div>
-        <button onClick={e=>{e.stopPropagation();onClose();}} style={{background:"rgba(255,255,255,0.06)",border:"1px solid #ffffff15",color:C.muted,cursor:"pointer",fontSize:14,padding:"6px 8px",borderRadius:8,flexShrink:0}}>✕</button>
+      <div style={{width:40,height:40,borderRadius:"50%",background:"linear-gradient(135deg,"+borderColor+"33,"+borderColor+"18)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0,border:"1px solid "+borderColor+"33"}}>{icon}</div>
+      <div style={{flex:1,minWidth:0}}>
+        <p style={{fontSize:11,fontWeight:800,color:borderColor,marginBottom:2}}>{from}</p>
+        <p style={{fontSize:13,color:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{msg}</p>
       </div>
-      <div style={{display:"flex",gap:8}}>
-        <button onClick={onClick} style={{flex:2,padding:"9px 0",background:"linear-gradient(135deg,"+borderColor+","+borderColor+"BB)",borderRadius:9,border:"none",color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:800,fontSize:13,cursor:"pointer"}}>💬 Abrir chat</button>
-        <button onClick={onClose} style={{flex:1,padding:"9px 0",background:"transparent",border:"1px solid "+borderColor+"33",borderRadius:9,color:borderColor,fontFamily:"'DM Sans',sans-serif",fontWeight:600,fontSize:13,cursor:"pointer"}}>Ahora no</button>
-      </div>
+      <button onClick={e=>{e.stopPropagation();onClose();}} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:16,padding:"0 4px",flexShrink:0}}>✕</button>
     </div>
   );
 }
@@ -2646,7 +2627,7 @@ return <GCard key={w.id} onClick={async()=>{
           <div style={{display:"flex",gap:8,alignItems:"center",background:C.surface,borderRadius:8,border:"1px solid "+C.border,padding:"10px 12px",marginBottom:10}}>
             <span style={{flex:1,fontSize:11,color:C.mutedL,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" as const}}>{getDeepLinkUrl(user)}</span>
           </div>
-          {/* Compartir perfil: solo disponible para profesionales */}
+          <Btn full onClick={()=>{shareProfile(user);showToast("✓ Link copiado al portapapeles");}}>📤 Compartir perfil</Btn>
         </GCard>
           <Btn full outline danger onClick={onLogout} color={C.red}>Cerrar sesión</Btn>
           <DeleteAccountButton user={user} onLogout={onLogout}/>
@@ -5257,17 +5238,6 @@ export default function App(){
     if('serviceWorker' in navigator){
       navigator.serviceWorker.register('/sw.js').then(()=>{}).catch(()=>{});
     }
-    // ── Botón atrás móvil: evitar que cierre la app ──
-    // Añadimos una entrada falsa al historial para interceptar el "atrás"
-    window.history.pushState({oy:true},"","");
-    const handlePopState=(e:PopStateEvent)=>{
-      if(!e.state?.oy){
-        // Re-añadir la entrada para que el siguiente "atrás" no cierre la app
-        window.history.pushState({oy:true},"","");
-      }
-    };
-    window.addEventListener("popstate",handlePopState);
-    return()=>window.removeEventListener("popstate",handlePopState);
     const s=localStorage.getItem("oy_user");
     if(s){try{setUser(JSON.parse(s));}catch{localStorage.removeItem("oy_user");}}
     setReady(true);
@@ -5290,25 +5260,7 @@ if(!_lastVisit){
 };
  const logout=()=>{setUser(null);localStorage.removeItem("oy_user");};
   const update=(u:UserRow)=>{setUser(u);localStorage.setItem("oy_user",JSON.stringify(u));};
-  if(!ready)return(
-  <div style={{minHeight:"100dvh",background:"#0F1117",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:0}}>
-    <style>{`
-      @keyframes splashPulse{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.06);opacity:0.85;}}
-      @keyframes splashFadeUp{from{transform:translateY(10px);opacity:0;}to{transform:translateY(0);opacity:1;}}
-      @keyframes splashDot{0%,80%,100%{transform:scale(0.6);opacity:0.3;}40%{transform:scale(1);opacity:1;}}
-    `}</style>
-    <div style={{animation:"splashPulse 1.8s ease-in-out infinite",marginBottom:24}}>
-      <div style={{width:88,height:88,borderRadius:24,background:"linear-gradient(135deg,#FF6B35,#FF8C42)",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 8px 40px #FF6B3566"}}>
-        <span style={{fontSize:42}}>🔧</span>
-      </div>
-    </div>
-    <p style={{fontWeight:900,fontSize:26,color:"#F2F0EB",letterSpacing:"-1px",margin:0,animation:"splashFadeUp 0.5s ease both",animationDelay:"0.1s"}}>OfficioYa</p>
-    <p style={{fontSize:13,color:"#555",margin:"6px 0 32px",animation:"splashFadeUp 0.5s ease both",animationDelay:"0.2s"}}>Profesionales de confianza en Sevilla</p>
-    <div style={{display:"flex",gap:7}}>
-      {[0,1,2].map(i=><div key={i} style={{width:8,height:8,borderRadius:"50%",background:"#FF6B35",animation:`splashDot 1.2s ease-in-out ${i*0.2}s infinite`}}/>)}
-    </div>
-  </div>
-);
+  if(!ready)return <div style={{minHeight:"100dvh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center"}}><Spin /></div>;
   if(deepLinkSlug&&!user){
     return(
       <div style={{minHeight:"100dvh",background:C.bg,display:"flex",flexDirection:"column"}}>
