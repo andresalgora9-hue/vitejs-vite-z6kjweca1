@@ -560,8 +560,6 @@ function UrgentLeadBanner({msg,desc,onClose,onClick}:{msg:string;desc?:string;on
   const [procesando,setProcesando]=useState(false);
   useEffect(()=>{
     if(navigator.vibrate) navigator.vibrate([200,100,200,100,400]);
-    const t=setTimeout(onClose,20000);
-    return()=>clearTimeout(t);
   },[onClose]);
 
   const handleAceptar=async()=>{
@@ -617,7 +615,6 @@ function UrgentLeadBanner({msg,desc,onClose,onClick}:{msg:string;desc?:string;on
 
 // ─── IN-APP NOTIFICATION (normal, desde arriba) ───
 function InAppNotification({msg,from,onClose,onClick,isAdmin=false}:{msg:string;from:string;onClose:()=>void;onClick:()=>void;isAdmin?:boolean}){
-  useEffect(()=>{const t=setTimeout(onClose,6000);return()=>clearTimeout(t);},[onClose]);
   const borderColor=isAdmin?C.orange:C.accent;
   const icon=isAdmin?"👑":"💬";
   return(
@@ -2627,7 +2624,6 @@ return <GCard key={w.id} onClick={async()=>{
           <div style={{display:"flex",gap:8,alignItems:"center",background:C.surface,borderRadius:8,border:"1px solid "+C.border,padding:"10px 12px",marginBottom:10}}>
             <span style={{flex:1,fontSize:11,color:C.mutedL,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" as const}}>{getDeepLinkUrl(user)}</span>
           </div>
-          <Btn full onClick={()=>{shareProfile(user);showToast("✓ Link copiado al portapapeles");}}>📤 Compartir perfil</Btn>
         </GCard>
           <Btn full outline danger onClick={onLogout} color={C.red}>Cerrar sesión</Btn>
           <DeleteAccountButton user={user} onLogout={onLogout}/>
@@ -5260,7 +5256,27 @@ if(!_lastVisit){
 };
  const logout=()=>{setUser(null);localStorage.removeItem("oy_user");};
   const update=(u:UserRow)=>{setUser(u);localStorage.setItem("oy_user",JSON.stringify(u));};
-  if(!ready)return <div style={{minHeight:"100dvh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center"}}><Spin /></div>;
+  if(!ready)return(
+    <div style={{minHeight:"100dvh",background:"#0F1117",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:0}}>
+      <style>{`
+        @keyframes splashPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.08);}}
+        @keyframes splashFadeUp{from{transform:translateY(10px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+        @keyframes splashDot{0%,80%,100%{transform:scale(0.6);opacity:0.3;}40%{transform:scale(1);opacity:1;}}
+      `}</style>
+      <div style={{width:88,height:88,borderRadius:24,background:"linear-gradient(135deg,#FF8C00,#FF6B35)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:44,marginBottom:24,animation:"splashPulse 1.8s ease-in-out infinite",boxShadow:"0 8px 40px #FF6B3555"}}>
+        🔨
+      </div>
+      <p style={{fontWeight:900,fontSize:28,color:"#F2F0EB",letterSpacing:"-1px",margin:0,animation:"splashFadeUp 0.5s ease both",animationDelay:"0.1s"}}>
+        <span style={{color:"#F2F0EB"}}>Oficio</span><span style={{color:"#FFD700"}}>Ya</span>
+      </p>
+      <p style={{fontSize:13,color:"#5A6A8A",margin:"6px 0 32px",animation:"splashFadeUp 0.5s ease both",animationDelay:"0.2s"}}>
+        Profesionales de confianza · Sevilla
+      </p>
+      <div style={{display:"flex",gap:7}}>
+        {[0,1,2].map(i=><div key={i} style={{width:8,height:8,borderRadius:"50%",background:"#FF6B35",animation:`splashDot 1.2s ease-in-out ${i*0.2}s infinite`}}/>)}
+      </div>
+    </div>
+  );
   if(deepLinkSlug&&!user){
     return(
       <div style={{minHeight:"100dvh",background:C.bg,display:"flex",flexDirection:"column"}}>
