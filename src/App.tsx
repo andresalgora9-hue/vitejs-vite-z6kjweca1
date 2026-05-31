@@ -3687,7 +3687,7 @@ useEffect(()=>{
   useEffect(()=>{
     if(tab==="chats"){
       loadChats();
-      const poll=setInterval(()=>loadChats()1000);
+      const poll=setInterval(()=>loadChats()10000);
       return ()=>clearInterval(poll);
     }
   },[tab,loadChats]);
