@@ -891,10 +891,10 @@ useEffect(()=>{
 
         <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",cursor:"pointer"}}>
           <div style={{position:"relative",marginBottom:2}}>
-            <div style={{width:34,height:34,borderRadius:"50%",background:"linear-gradient(135deg,"+displayColor+"66,"+displayColor+"33)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:800,fontSize:13,border:"1.5px solid "+displayColor+"55"}}>
-              {isSystem?"🛡":toUser.name.substring(0,2).toUpperCase()}
-            </div>
-            {toUser.available&&!isSystem&&<div style={{position:"absolute",bottom:0,right:0,width:9,height:9,borderRadius:"50%",background:C.green,border:"2px solid "+C.bg}} />}
+            {isSystem
+              ?<div style={{width:34,height:34,borderRadius:"50%",background:"linear-gradient(135deg,"+displayColor+"66,"+displayColor+"33)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:800,fontSize:13,border:"1.5px solid "+displayColor+"55"}}>🛡</div>
+              :<Ava s={toUser.name.substring(0,2).toUpperCase()} size={34} color={displayColor} online={toUser.available} imgUrl={toUser.avatar_url||""} />
+            }
           </div>
           <p style={{fontWeight:700,fontSize:14,color:C.text,lineHeight:1}}>{isSystem?"OfficioYa Soporte":toUser.name}</p>
           <p style={{fontSize:10,color:isTyping?C.green:toUser.available?C.green:C.muted,transition:"color 0.3s"}}>
