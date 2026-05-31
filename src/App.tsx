@@ -323,7 +323,7 @@ function showPushNotification(title:string, body:string):void{
   }
 }
 const wColor=(id:string)=>[C.purple,C.blue,C.pink,"#10B981",C.orange,C.cyan][id.charCodeAt(id.length-1)%6];
-function trialDaysLeft(t:string){return Math.max(0,Math.ceil((new Date(t).getTime()-Date.now())/86400000));}
+function trialDaysLeft(t:string){if(!t)return 0;const d=new Date(t);if(isNaN(d.getTime()))return 0;return Math.max(0,Math.ceil((d.getTime()-Date.now())/86400000));}
 function timeAgo(iso:string){
   const d=(Date.now()-new Date(iso).getTime())/1000;
   if(d<60)return"ahora";if(d<3600)return Math.floor(d/60)+"m";
