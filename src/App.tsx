@@ -830,7 +830,7 @@ useEffect(()=>{
     // Polling solo como fallback cada 8s en vez de 2s
     const poll=setInterval(()=>loadMsgs(),8000);
     return ()=>{db.removeChannel(channel);clearInterval(poll);};
-  },[loadMsgs,currentUser.id,toUser.id,toUser.name]);
+  },[currentUser.id,toUser.id,toUser.name]);
 
   useEffect(()=>{
     setTimeout(()=>bottomRef.current?.scrollIntoView({behavior:"smooth"}),80);
