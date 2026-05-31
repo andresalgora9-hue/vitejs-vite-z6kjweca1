@@ -3477,20 +3477,29 @@ const [chatUser,setChatUser]=useState<UserRow|null>(null);
   const canAddPhoto=photoLimit===999||photos.length<photoLimit;
 
   // Pedir permiso de notificaciones push
+  // Pedir permiso de notificaciones push y suscribir
   useEffect(()=>{
-    if("Notification" in window && Notification.permission==="default"){
-      setTimeout(()=>{
-        Notification.requestPermission().then(perm=>{
-          if(perm==="granted"){
-            new Notification("🔔 OfficioYa activado",{
-              body:"Recibirás alertas de nuevos clientes aunque el móvil esté bloqueado",
-              icon:"/icon-192.png",
-            });
-          }
-        });
-      },3000);
-    }
-  },[]);
+    const setupPush=async()=>{
+      if(!("Notification" in window)||!("serviceWorker" in navigator))return;
+      let perm=Notification.permission;
+      if(perm==="default"){
+        await new Promise(r=>setTimeout(r,3000));
+        perm=await Notification.requestPermission();
+      }
+      if(perm==="granted"){
+        await subscribeToPush(user.id);
+        // Notificación de confirmación solo si acaba de aceptar
+        if(Notification.permission==="granted"){
+          const reg=await navigator.serviceWorker.ready;
+          reg.showNotification("🔔 OfficioYa activado",{
+            body:"Recibirás alertas de nuevos clientes aunque el móvil esté bloqueado",
+            icon:"/icon-192.png",
+          });
+        }
+      }
+    };
+    setupPush();
+  },[user.id]);
 
   useEffect(()=>{
     db.from("certificates").select("*").eq("worker_id",user.id).then(({data}:any)=>setCerts(data||[]));
