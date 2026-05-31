@@ -354,7 +354,7 @@ function Stars({n,size=13,interactive=false,onSet}:{n:number;size?:number;intera
 function Ava({s,size=44,color=C.purple,online=false,imgUrl=""}:{s:string;size?:number;color?:string;online?:boolean;imgUrl?:string}){
   return <div style={{position:"relative",flexShrink:0}}>
     {imgUrl
-      ?<img src={imgUrl} style={{width:size,height:size,borderRadius:"50%",objectFit:"cover",border:"2px solid "+color+"55",boxShadow:"0 0 12px "+color+"22",flexShrink:0,display:"block"}} onError={(e:any)=>{e.target.style.display="none";}} />
+      ?<img src={imgUrl} style={{width:size,height:size,borderRadius:"50%",objectFit:"cover",border:"2px solid "+color+"55",boxShadow:"0 0 12px "+color+"22",display:"block"}} onError={(e:any)=>{e.target.style.display="none";}} />
       :<div style={{width:size,height:size,borderRadius:"50%",background:"linear-gradient(135deg,"+color+"55,"+color+"22)",display:"flex",alignItems:"center",justifyContent:"center",color:C.accent,fontWeight:900,fontSize:Math.round(size*0.35),border:"2px solid "+color+"55",boxShadow:"0 0 12px "+color+"22",flexShrink:0}}>{s}</div>
     }
     {online&&<div style={{position:"absolute",bottom:0,right:0,width:10,height:10,borderRadius:"50%",background:C.green,border:"2px solid "+C.bg}} />}
