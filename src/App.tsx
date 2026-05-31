@@ -1656,7 +1656,6 @@ useEffect(()=>{
     if(data){
       const newReviews=[data,...reviews];
       setReviews(newReviews);
-      // Recalcular rating y actualizar en BD
       const newAvg=newReviews.reduce((s:number,r:any)=>s+r.stars,0)/newReviews.length;
       await db.from("users").update({
         rating:Math.round(newAvg*10)/10,
@@ -1665,7 +1664,6 @@ useEffect(()=>{
     }
     setNewRev("");
     setSaving(false);
-  };
   };
 
   const avgRating=reviews.length>0?reviews.reduce((s:number,r:any)=>s+r.stars,0)/reviews.length:worker.rating;
