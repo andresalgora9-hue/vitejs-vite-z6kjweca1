@@ -749,7 +749,7 @@ if(url){
   );
 }
 // ─── CHAT FULL-SCREEN — iPhone style ───
-function ChatPanel({toUser,currentUser,onClose}:{toUser:UserRow;currentUser:UserRow;onClose:()=>void}){
+function ChatPanel({toUser,currentUser,onClose,onViewProfile}:{toUser:UserRow;currentUser:UserRow;onClose:()=>void;onViewProfile?:(u:UserRow)=>void}){
   const [msgs,setMsgs]=useState<MessageRow[]>([]);
   const [input,setInput]=useState("");
   const [sending,setSending]=useState(false);
@@ -889,7 +889,7 @@ useEffect(()=>{
           Atrás
         </button>
 
-        <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",cursor:"pointer"}}>
+       <div onClick={()=>!isSystem&&onViewProfile&&onViewProfile(toUser)} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",cursor:!isSystem&&onViewProfile?"pointer":"default"}}>
           <div style={{position:"relative",marginBottom:2}}>
             {isSystem
               ?<div style={{width:34,height:34,borderRadius:"50%",background:"linear-gradient(135deg,"+displayColor+"66,"+displayColor+"33)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:800,fontSize:13,border:"1.5px solid "+displayColor+"55"}}>🛡</div>
@@ -2770,7 +2770,7 @@ return <GCard key={w.id} onClick={async()=>{
       
       {showWizard&&<BuscadorExpressModal workers={workers} onResult={handleWizardResult} onWorkerSelect={w=>{setShowWizard(false);setSelectedWorker(w);}} onClose={()=>setShowWizard(false)} />}
       {selectedWorker&&<WorkerSheet worker={selectedWorker} onClose={()=>setSelectedWorker(null)} onChat={w=>{setSelectedWorker(null);handleChat(w);}} currentUser={user} />}
-      {chatWorker&&<ChatPanel toUser={chatWorker} currentUser={user} onClose={()=>setChatWorker(null)} />}
+      {chatWorker&&<ChatPanel toUser={chatWorker} currentUser={user} onClose={()=>setChatWorker(null)} onViewProfile={(w)=>{setChatWorker(null);setSelectedWorker(w);}} />}
       <InstallBanner/>
 <Ping msg={toast} />
     </div>
@@ -4403,7 +4403,7 @@ setShowStripeModal({priceId:pl==="elite"?elitePriceId:PRICE_MAP[pl],plan:pl});
         />
       )}
       
-      {chatUser&&<ChatPanel toUser={chatUser} currentUser={user} onClose={()=>{setChatUser(null);setUnreadMsgs(0);}} />}
+      {chatUser&&<ChatPanel toUser={chatUser} currentUser={user} onClose={()=>{setChatUser(null);setUnreadMsgs(0);}} onViewProfile={(w)=>{setChatUser(null);setSelectedWorker(w);}} />}
       {showStripeModal&&(
   <StripePayModal
     user={user}
