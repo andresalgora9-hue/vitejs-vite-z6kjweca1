@@ -1791,7 +1791,7 @@ function RankingSection({workers,onSelect}:{workers:UserRow[];onSelect:(w:UserRo
           <GCard key={w.id} onClick={()=>onSelect(w)} glow={col} style={{marginBottom:8,padding:"12px 14px"}}>
             <div style={{display:"flex",gap:10,alignItems:"center"}}>
               <div style={{width:28,textAlign:"center",fontWeight:900,color:i<3?C.accent:C.muted,fontSize:i<3?18:13,flexShrink:0}}>{medal||"#"+(i+1)}</div>
-              <Ava s={w.name.substring(0,2).toUpperCase()} size={40} color={col} online={w.available} />
+              <Ava s={w.name.substring(0,2).toUpperCase()} size={40} color={col} online={w.available} imgUrl={w.avatar_url||""} />
               <div style={{flex:1,minWidth:0}}>
                 <p style={{fontWeight:700,color:C.text,fontSize:14}}>{w.name}</p>
                 <p style={{fontSize:11,color:col}}>{OFICIO_ICONS[w.trade||""]||"🔧"} {w.trade}</p>
@@ -2569,9 +2569,11 @@ return <GCard key={w.id} onClick={async()=>{
   setChatWorker(w);
 }} glow={col}>
   <div style={{display:"flex",gap:12,alignItems:"center"}}>
-    <Ava s={w.name.substring(0,2).toUpperCase()} size={46} color={col} online={w.available} />
+    <div onClick={e=>{e.stopPropagation();setSelectedWorker(w);}} style={{cursor:"pointer"}}>
+      <Ava s={w.name.substring(0,2).toUpperCase()} size={46} color={col} online={w.available} imgUrl={w.avatar_url||""} />
+    </div>
     <div style={{flex:1,minWidth:0}}>
-      <p style={{fontWeight:700,color:C.text,fontSize:14}}>{w.name}</p>
+      <p onClick={e=>{e.stopPropagation();setSelectedWorker(w);}} style={{fontWeight:700,color:C.text,fontSize:14,cursor:"pointer"}}>{w.name}</p>
       <p style={{fontSize:12,color:unread>0?C.text:col,fontWeight:unread>0?600:400,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" as const}}>
         {lastMsgByWorker[w.id]?.text
           ?(lastMsgByWorker[w.id].from_id===user.id?"Tú: ":"")+lastMsgByWorker[w.id].text.substring(0,40)+(lastMsgByWorker[w.id].text.length>40?"...":"")
@@ -3821,7 +3823,7 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
         await db.from("messages").insert({
           from_id:"00000000-0000-0000-0000-000000000001",
           to_id:req.client_id,
-          text:`PRO_ACEPTO|REQUEST_ID:${requestId}|${accepted.length}`,
+          text:`PRO_ACEPTO|REQUEST_ID:${requestId}|1`,
           read:false,
           is_lead_alert:false,
         });
@@ -3929,7 +3931,7 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
         {tab==="inicio"&&(<>
           <div style={{padding:"22px 0 16px"}}>
             <div style={{display:"flex",gap:12,alignItems:"center",marginBottom:18}}>
-              <Ava s={user.name.substring(0,2).toUpperCase()} size={50} color={C.accent} online={available} />
+              <Ava s={user.name.substring(0,2).toUpperCase()} size={50} color={C.accent} online={available} imgUrl={user.avatar_url||""} />
               <div style={{flex:1}}>
                 <p style={{fontWeight:800,fontSize:18,color:C.text}}>{user.name}</p>
                 <p style={{fontSize:13,color:C.accent,fontWeight:600}}>{OFICIO_ICONS[user.trade||""]||"🔧"} {user.trade} · {user.zone}</p>
