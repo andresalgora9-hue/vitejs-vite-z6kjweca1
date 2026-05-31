@@ -3653,7 +3653,7 @@ useEffect(()=>{
   })
   .subscribe();
     return ()=>{db.removeChannel(ch);};
-},[user.id,loadChats]);
+},[user.id]);
   // ── POLLING fallback para leads ──
 useEffect(()=>{
   const poll=setInterval(async()=>{
