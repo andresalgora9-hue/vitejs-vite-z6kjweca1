@@ -569,7 +569,7 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
                               ):<span style={{color:C.muted,fontSize:10}}>—</span>}
                             </td>
                             <td style={{padding:"10px 14px"}}>
-                              <div style={{display:"flex",gap:6"}}>
+                              <div style={{display:"flex",gap:6}}>
                                 <button onClick={()=>setSelectedUser(u)} style={{fontSize:10,padding:"4px 8px",background:C.accent+"18",border:`1px solid ${C.accent}44`,borderRadius:4,color:C.accent,cursor:"pointer",fontFamily:"monospace"}}>Ver</button>
                                 {!u.verified&&<button onClick={()=>verifyUser(u.id)} style={{fontSize:10,padding:"4px 8px",background:C.greenDim,border:`1px solid ${C.green}44`,borderRadius:4,color:C.green,cursor:"pointer",fontFamily:"monospace"}}>✓</button>}
                                 {u.phone&&<a href={"tel:"+u.phone} style={{fontSize:10,padding:"4px 8px",background:C.greenDim,border:`1px solid ${C.green}44`,borderRadius:4,color:C.green,textDecoration:"none",fontFamily:"monospace"}}>📞</a>}
