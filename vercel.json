@@ -1,5 +1,13 @@
 {
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/fontanero-sevilla",    "destination": "/fontanero-sevilla.html" },
+    { "source": "/electricista-sevilla", "destination": "/electricista-sevilla.html" },
+    { "source": "/cerrajero-sevilla",    "destination": "/cerrajero-sevilla.html" },
+    { "source": "/pintor-sevilla",       "destination": "/pintor-sevilla.html" },
+    { "source": "/albanil-sevilla",      "destination": "/albanil-sevilla.html" },
+    { "source": "/limpieza-sevilla",     "destination": "/limpieza-sevilla.html" },
+    { "source": "/reformas-sevilla",     "destination": "/reformas-sevilla.html" },
+    { "source": "/climatizacion-sevilla","destination": "/climatizacion-sevilla.html" },
+    { "source": "/(.*)",                 "destination": "/index.html" }
   ]
 }
