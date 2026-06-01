@@ -2,18 +2,138 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#FFD700" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <!-- ── TEMA Y PWA ─────────────────────────────────────────── -->
+    <meta name="theme-color" content="#FFB800" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="description" content="¿Buscas profesionales de confianza? Encuentra fontaneros, electricistas, pintores y limpiadores en Sevilla. Regístrate gratis como cliente o profesional." />
+    <meta name="apple-mobile-web-app-title" content="OfficioYa" />
+    <meta name="application-name" content="OfficioYa" />
+
+    <!-- ── SEO BÁSICO ─────────────────────────────────────────── -->
+    <title>OfficioYa — Fontaneros, Electricistas y Profesionales verificados en Sevilla</title>
+    <meta name="description" content="Encuentra fontaneros, electricistas, cerrajeros y pintores verificados en Sevilla. Reseñas reales de vecinos. Disponibilidad en tiempo real. Primer mes gratis para profesionales." />
+    <meta name="keywords" content="fontanero Sevilla, electricista Sevilla, cerrajero Sevilla, profesionales Sevilla, reformas Sevilla, pintor Sevilla, urgencias hogar Sevilla, OfficioYa" />
+    <meta name="author" content="OfficioYa" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://www.aficioya.com/" />
+
+    <!-- ── GOOGLE VERIFICATION ────────────────────────────────── -->
     <meta name="google-site-verification" content="xNDoTm_EoLyJZd6-3BzkBc_UIWkqL2X5TepIn05keTk" />
-    <title>OficioYa — Fontaneros, Electricistas y Reformas en Sevilla</title>
+
+    <!-- ── OPEN GRAPH (Facebook / WhatsApp / LinkedIn) ────────── -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="OfficioYa" />
+    <meta property="og:title" content="OfficioYa — Profesionales verificados en Sevilla" />
+    <meta property="og:description" content="Fontaneros, electricistas, cerrajeros y pintores con reseñas reales de vecinos. Disponibles hoy en Sevilla. Sin sorpresas." />
+    <meta property="og:image" content="https://www.aficioya.com/icon-512.png" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+    <meta property="og:image:alt" content="OfficioYa — Profesionales verificados en Sevilla" />
+    <meta property="og:url" content="https://www.aficioya.com/" />
+    <meta property="og:locale" content="es_ES" />
+
+    <!-- ── TWITTER CARDS ──────────────────────────────────────── -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="OfficioYa — Profesionales verificados en Sevilla" />
+    <meta name="twitter:description" content="Fontaneros, electricistas, cerrajeros y pintores con reseñas reales de vecinos. Disponibles hoy en Sevilla." />
+    <meta name="twitter:image" content="https://www.aficioya.com/icon-512.png" />
+
+    <!-- ── SCHEMA.ORG — DATOS ESTRUCTURADOS ──────────────────── -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      "name": "OfficioYa",
+      "description": "Plataforma de profesionales verificados para comunidades de vecinos en Sevilla. Fontaneros, electricistas, cerrajeros y pintores con reseñas reales.",
+      "url": "https://www.aficioya.com",
+      "logo": "https://www.aficioya.com/icon-512.png",
+      "image": "https://www.aficioya.com/icon-512.png",
+      "telephone": "+34656398014",
+      "email": "admin@agoracompound.com",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Sevilla",
+        "addressRegion": "Andalucía",
+        "addressCountry": "ES"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": "37.3891",
+        "longitude": "-5.9845"
+      },
+      "areaServed": {
+        "@type": "City",
+        "name": "Sevilla"
+      },
+      "priceRange": "€-€€",
+      "openingHours": "Mo-Su 00:00-23:59",
+      "sameAs": [
+        "https://www.aficioya.com"
+      ]
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "OfficioYa",
+      "url": "https://www.aficioya.com",
+      "description": "App de profesionales verificados para comunidades de vecinos en Sevilla",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Android, iOS, Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "EUR",
+        "description": "Primer mes gratuito para profesionales"
+      }
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "¿Cómo encuentro un fontanero de confianza en Sevilla?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "En OfficioYa puedes ver fontaneros verificados en Sevilla con fotos de sus trabajos reales y reseñas de vecinos de la ciudad. Disponibilidad en tiempo real."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Cómo registro mi negocio como profesional en OfficioYa?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Entra en aficioya.com, elige tu oficio y zona en Sevilla, y regístrate. El primer mes es completamente gratis."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "¿En qué zonas de Sevilla está disponible OfficioYa?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "OfficioYa cubre toda la ciudad de Sevilla y su área metropolitana, incluyendo Triana, Nervión, Los Remedios, Macarena, Dos Hermanas, Mairena del Aljarafe y más."
+          }
+        }
+      ]
+    }
+    </script>
+
+    <!-- ── RECURSOS ────────────────────────────────────────────── -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/icon-192.png" />
     <link rel="manifest" href="/manifest.json" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <!-- ── ESTILOS ────────────────────────────────────────────── -->
     <style>
       body{margin:0;background:#0A0A0F;}
       #root{min-height:100vh;}
@@ -25,12 +145,13 @@
   <body>
     <div id="root">
       <div style="min-height:100vh;background:#0A0A0F;display:flex;align-items:center;justify-content:center;">
-        <div style="width:40px;height:40px;border:3px solid #FFD700;border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+        <div style="width:40px;height:40px;border:3px solid #FFB800;border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
       </div>
       <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
     </div>
     <script type="module" src="/src/main.tsx"></script>
-    <!-- Meta Pixel Code -->
+
+    <!-- ── META PIXEL ─────────────────────────────────────────── -->
     <script>
     !function(f,b,e,v,n,t,s)
     {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -43,15 +164,14 @@
     fbq('init', '3879367672371830');
     fbq('track', 'PageView');
     </script>
-    <!-- End Meta Pixel Code -->
-    <!-- Google Analytics 4 -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-S6F18YG34M"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-S6F18YG34M'); // GA4 — mide TODO el comportamiento
-  gtag('config', 'AW-XXXXXXXXX'); // Google Ads — mide conversiones
-</script>
+
+    <!-- ── GOOGLE ANALYTICS 4 ─────────────────────────────────── -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-S6F18YG34M"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-S6F18YG34M');
+    </script>
   </body>
 </html>
