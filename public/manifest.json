@@ -1,16 +1,17 @@
 {
-  "name": "OfficioYa — Profesionales de confianza",
+  "name": "OfficioYa — Profesionales de confianza en Sevilla",
   "short_name": "OfficioYa",
-  "description": "Encuentra profesionales verificados en tu zona. Electricistas, fontaneros, pintores y más.",
+  "description": "Fontaneros, electricistas, cerrajeros y pintores verificados en Sevilla. Reseñas reales de vecinos. Disponibilidad en tiempo real.",
   "start_url": "/",
-  "id": "https://aficioya.com/",
+  "id": "https://www.aficioya.com/",
   "display": "standalone",
   "background_color": "#0A0A0F",
-  "theme_color": "#FFD700",
+  "theme_color": "#FFB800",
   "orientation": "portrait-primary",
   "lang": "es",
   "scope": "/",
   "prefer_related_applications": false,
+  "categories": ["business", "utilities"],
   "icons": [
     {
       "src": "/icon-192.png",
@@ -43,8 +44,19 @@
       "sizes": "512x512",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "OfficioYa app"
+      "label": "OfficioYa — Profesionales verificados en Sevilla"
     }
   ],
-  "categories": ["business", "utilities"]
+  "shortcuts": [
+    {
+      "name": "Buscar profesional",
+      "url": "/",
+      "description": "Encuentra un profesional verificado en Sevilla"
+    },
+    {
+      "name": "Registrarme como profesional",
+      "url": "/elite-gratis",
+      "description": "Primer mes gratis para profesionales"
+    }
+  ]
 }
