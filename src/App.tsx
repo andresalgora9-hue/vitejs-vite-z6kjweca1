@@ -794,11 +794,12 @@ useEffect(()=>{
     loadMsgs();
     // ── Marcar TODOS los mensajes de esta conv como leídos al abrir ──
     db.from("messages")
-      .update({read:true})
-      .eq("to_id",currentUser.id)
-      .eq("from_id",toUser.id)
-      .eq("read",false)
-      .then(()=>{});
+  .update({read:true})
+  .eq("to_id",currentUser.id)
+  .eq("from_id",toUser.id)
+  .eq("read",false)
+  .eq("is_lead_alert",false)
+  .then(()=>{});
 
   const channelName="chat-"+[currentUser.id,toUser.id].sort().join("-");
     const channel=db.channel(channelName)
