@@ -1894,8 +1894,9 @@ function SolicitudesTab({user,workers,onWorkerSelect,onChat}:{user:UserRow;worke
 
   if(req){
     // Solo elite y pro, filtrados por oficio y zona
-    const {data:allPros}=await db.from("users").select("*").eq("type","profesional").eq("available",true).in("plan",["elite","pro"]).eq("trade",oficio);
-const eligibles=(allPros||[]) as UserRow[];
+    const {data:allPros}=await db.from("users").select("*").eq("type","profesional").eq("available",true).in("plan",["elite","pro"]);
+const norm=(s:string)=>s?.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim()||"";
+const eligibles=((allPros||[]) as UserRow[]).filter(w=>norm(w.trade||"")===norm(oficio));
     // Separar y barajar aleatoriamente
     const shuffle=(arr:UserRow[])=>[...arr].sort(()=>Math.random()-0.5);
     const elites=shuffle(eligibles.filter(w=>w.plan==="elite"));
@@ -3897,14 +3898,13 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
         }).select().single();
         if(newJob) setJobs(prev=>[newJob,...prev]);
         setUrgentLead(null);
-        // Añadir el cliente directamente a chatPartners sin esperar loadChats
         setChatPartners(prev=>{
           if(prev.find(x=>x.id===cliente.id))return prev;
           return [cliente as UserRow,...prev];
         });
         setTab("chats");
-        setChatUser(cliente as UserRow);
         await loadChats();
+        setChatUser(cliente as UserRow);
 }
     }
   } else {
