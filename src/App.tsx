@@ -304,15 +304,14 @@ function showPushNotification(title:string, body:string):void{
     // Intentar via Service Worker primero (funciona con móvil bloqueado)
     if("serviceWorker" in navigator){
       navigator.serviceWorker.ready.then(sw=>{
-       sw.showNotification(title,{
+        sw.showNotification(title,{
           body,
           icon:"/icon-192.png",
           badge:"/icon-192.png",
           vibrate:[200,100,200],
           requireInteraction:true,
           tag:"msg-"+Date.now(),
-        } as any)
-          // Fallback: notificación directa
+        } as any).catch(()=>{
           new Notification(title,{body,icon:"/icon-192.png"});
         });
       }).catch(()=>{
