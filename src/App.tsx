@@ -304,14 +304,14 @@ function showPushNotification(title:string, body:string):void{
     // Intentar via Service Worker primero (funciona con móvil bloqueado)
     if("serviceWorker" in navigator){
       navigator.serviceWorker.ready.then(sw=>{
-        sw.showNotification(title,{
+       sw.showNotification(title,{
           body,
           icon:"/icon-192.png",
           badge:"/icon-192.png",
           vibrate:[200,100,200],
           requireInteraction:true,
-          tag:"officioya-notif",
-        } as any).catch(()=>{
+          tag:"msg-"+Date.now(),
+        } as any)
           // Fallback: notificación directa
           new Notification(title,{body,icon:"/icon-192.png"});
         });
@@ -819,6 +819,8 @@ useEffect(()=>{
         if(m.from_id===currentUser.id){
           setMsgs(prev=>{
             if(prev.find(x=>x.id===m.id))return prev;
+            const tempIdx=prev.findIndex(x=>x.id.startsWith("tmp-")&&x.text===m.text&&x.from_id===m.from_id);
+            if(tempIdx!==-1){const next=[...prev];next[tempIdx]=m;return next;}
             return [...prev,{...m}];
           });
         }
@@ -851,7 +853,10 @@ useEffect(()=>{
     const tempId="tmp-"+Date.now();
     const tempMsg:MessageRow={id:tempId,from_id:currentUser.id,to_id:toUser.id,text:txt,read:false,created_at:new Date().toISOString()} as any;
     setMsgs(prev=>[...prev,tempMsg]);
-    await db.from("messages").insert({from_id:currentUser.id,to_id:toUser.id,text:txt,read:false});
+    const {data:inserted}=await db.from("messages").insert({from_id:currentUser.id,to_id:toUser.id,text:txt,read:false}).select().single();
+    if(inserted){
+      setMsgs(prev=>prev.map(m=>m.id===tempId?(inserted as MessageRow):m));
+    }
     fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/send-push",{
   method:"POST",
   headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE"},
