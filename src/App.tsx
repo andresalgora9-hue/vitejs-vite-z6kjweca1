@@ -2879,15 +2879,6 @@ const handleForgot=async()=>{
   const login=async()=>{
     if(!email||!pass){setErr("Introduce email y contraseña.");return;}
     setLoading(true);setErr("");
-    const ADMIN_ACCOUNTS=[
-  {email:"andresalgora9@gmail.com",pass:"Oficiooficio9",name:"Andrés Admin"},
-  {email:"admin@oficioya.com",pass:"¡Admin2026!",name:"Admin OfficioYa"},
-];
-const hardAdmin=ADMIN_ACCOUNTS.find(a=>a.email===email.toLowerCase()&&a.pass===pass);
-if(hardAdmin){
-  const adminUser=ADMIN_USER;
-  setLoading(false);localStorage.setItem("oy_user",JSON.stringify(adminUser));onLogin(adminUser);return;
-}
     const {data,error}=await db.from("users").select("*").eq("email",email.toLowerCase()).eq("password",pass).single();
     setLoading(false);
     if(error||!data){setErr("Email o contraseña incorrectos.");return;}
