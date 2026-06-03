@@ -1,0 +1,8 @@
+{
+  "functions": [
+    {
+      "slug": "auth-handler",
+      "excludePattern": ["_old", "_archive"]
+    }
+  ]
+}
