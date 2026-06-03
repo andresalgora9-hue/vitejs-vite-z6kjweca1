@@ -2879,10 +2879,20 @@ const handleForgot=async()=>{
   const login=async()=>{
     if(!email||!pass){setErr("Introduce email y contraseña.");return;}
     setLoading(true);setErr("");
-    const {data,error}=await db.from("users").select("*").eq("email",email.toLowerCase()).eq("password",pass).single();
-    setLoading(false);
-    if(error||!data){setErr("Email o contraseña incorrectos.");return;}
-    localStorage.setItem("oy_user",JSON.stringify(data));onLogin(data as UserRow);
+    try{
+      const res=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/auth-handler",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({action:"login",email:email.toLowerCase(),password:pass})
+      });
+      const data=await res.json();
+      setLoading(false);
+      if(!res.ok||!data.success){setErr(data.error||"Email o contraseña incorrectos.");return;}
+      localStorage.setItem("oy_user",JSON.stringify(data.user));onLogin(data.user as UserRow);
+    }catch(e){
+      setLoading(false);
+      setErr("Error de conexión.");
+    }
   };
 
   const registerCliente=async()=>{
@@ -2891,18 +2901,17 @@ const handleForgot=async()=>{
     if(!/\S+@\S+\.\S+/.test(email)){setErr("Introduce un email válido.");return;}
     setLoading(true);setErr("");
     try{
-      const {data:ex}=await db.from("users").select("id").eq("email",email.toLowerCase()).maybeSingle();
-      if(ex){setLoading(false);setErr("Ya existe una cuenta con ese email.");return;}
-      const trial_end=new Date(Date.now()+365*86400000).toISOString().split("T")[0];
-      const insertData:any={name:name.trim(),email:email.toLowerCase().trim(),password:pass,type:"cliente",plan:"gratis",bio:"",price:0,available:true,verified:false,jobs:0,rating:0,reviews:0,trial_end};
-      if(phone){insertData.phone=phone.trim();insertData.whatsapp=phone.trim();}
-      const {data,error}=await db.from("users").insert(insertData).select().single();
+      const res=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/auth-handler",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({action:"register",name:name.trim(),email:email.toLowerCase().trim(),password:pass,type:"cliente",phone:phone.trim(),trial_end:new Date(Date.now()+365*86400000).toISOString().split("T")[0]})
+      });
+      const data=await res.json();
       setLoading(false);
-      if(error){setErr("Error: "+error.message);return;}
-      if(!data){setErr("Error creando cuenta.");return;}
-      localStorage.setItem("oy_user",JSON.stringify(data));
-        fbqEvent("CompleteRegistration",{content_name:"cliente"});
-        gtagEvent("sign_up",{method:"email",user_type:"cliente"});
+      if(!res.ok||!data.success){setErr(data.error||"Error en registro.");return;}
+      localStorage.setItem("oy_user",JSON.stringify(data.user));
+      fbqEvent("CompleteRegistration",{content_name:"cliente"});
+      gtagEvent("sign_up",{method:"email",user_type:"cliente"});
         onLogin(data as UserRow);
 fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method:"POST",headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE"},body:JSON.stringify({type:"bienvenida_cliente",to:email.toLowerCase(),name:name.trim()})});
       // Ofrecer guardar con biometría
