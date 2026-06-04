@@ -3929,7 +3929,7 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
               });
             } else {
               loadChats().then(()=>{
-                db.from("users").select("*").eq("id",fromId).single().then(({data}:any)=>{
+                db.from("users").select("id,name,email,phone,type,plan,bio,price,trade,zone,rating,reviews,jobs,verified,available,whatsapp,service_zones,schedule,response_time,free_quote,experience_years,specialties,trial_end,joined_at,avatar_url").eq("id",fromId).single().then(({data}:any)=>{
                   if(data)setChatUser(data);
                   else setTab("chats");
                 });
