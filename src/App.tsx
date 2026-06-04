@@ -2983,6 +2983,7 @@ fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEA
       setPendingProFormData(null);
       localStorage.setItem("oy_user",JSON.stringify(data));
         fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({type:"bienvenida_pro",to:email.toLowerCase().trim(),name:name.trim()})});
+        fetch(`${SUPABASE_FUNCTIONS_URL}/notify-admin`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({type:"nuevo_pro",nombre:name.trim(),oficio:trade,zona:zone,plan:"gratis"})});
         resetForm();
         onLogin(data as UserRow);
       }
