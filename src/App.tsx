@@ -2252,7 +2252,7 @@ db.from("users").select("name").eq("id",m.from_id).single().then(({data}:any)=>{
     .filter((id:string)=>id!=="00000000-0000-0000-0000-000000000001");
   if(!ids.length){setChatPartners([]);return;}
 const adminUser=ADMIN_USER;
-const {data:ws}=await db.from("users").select("*").in("id",ids);
+const {data:ws}=await db.from("users").select("id,name,email,phone,type,plan,bio,price,trade,zone,rating,reviews,jobs,verified,available,whatsapp,service_zones,schedule,response_time,free_quote,experience_years,specialties,trial_end,joined_at,avatar_url").in("id",ids);
 if(!ws)return;
 const wsFiltered=ws.filter((u:any)=>u.id!=="00000000-0000-0000-0000-000000000002");
 const allWs=ids.includes("00000000-0000-0000-0000-000000000002")?[...wsFiltered,adminUser]:wsFiltered;
@@ -3539,7 +3539,7 @@ const loadChats=useCallback(async()=>{
       .filter((id:string)=>id!=="00000000-0000-0000-0000-000000000001");
     if(!ids.length){setChatPartners([]);return;}
 
-const {data:ws}=await db.from("users").select("*").in("id",ids);
+const {data:ws}=await db.from("users").select("id,name,email,phone,type,plan,bio,price,trade,zone,rating,reviews,jobs,verified,available,whatsapp,service_zones,schedule,response_time,free_quote,experience_years,specialties,trial_end,joined_at,avatar_url").in("id",ids);
 if(!ws)return;
 const adminUser=ADMIN_USER;
 const wsFiltered=ws.filter((u:any)=>u.id!=="00000000-0000-0000-0000-000000000002");
