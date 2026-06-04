@@ -3011,8 +3011,15 @@ fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method
           onClose={()=>{setShowRegisterStripe(false);setPendingProFormData(null);setErr("Pago cancelado. Tu cuenta no ha sido creada. Puedes intentarlo de nuevo.");}}
           onSuccess={async(pl)=>{
             const trial_end=new Date(Date.now()+30*86400000).toISOString().split("T")[0];
-            const insertData:any={name:pendingProFormData.name,email:pendingProFormData.email,password:pendingProFormData.password,phone:pendingProFormData.phone,type:"profesional",plan:pl,trade:pendingProFormData.trade,zone:pendingProFormData.zone,bio:"",price:30,available:true,verified:false,jobs:0,rating:0,reviews:0,trial_end,whatsapp:pendingProFormData.phone,free_quote:true,service_zones:[pendingProFormData.zone],schedule:"Lunes a Viernes",response_time:"24h",experience_years:0,specialties:[],...(pendingProFormData.stripeCustomerId?{stripe_customer_id:pendingProFormData.stripeCustomerId}:{})};
-            const {data,error}=await db.from("users").insert(insertData).select().single();
+            const res=await fetch(`${SUPABASE_FUNCTIONS_URL}/auth-handler`,{
+        method:"POST",
+        headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":`Bearer ${SUPABASE_KEY}`},
+        body:JSON.stringify({action:"register",email:pendingProFormData.email,password:pendingProFormData.password,name:pendingProFormData.name,type:"profesional",phone:pendingProFormData.phone,trial_end})
+      });
+      const result=await res.json();
+      const error=result.success?null:result;
+      const data=result.success?result.user:null;
+      if(result.success){await db.from("users").update({trade:pendingProFormData.trade,zone:pendingProFormData.zone,plan:pl,price:30,whatsapp:pendingProFormData.phone,free_quote:true,service_zones:[pendingProFormData.zone],schedule:"Lunes a Viernes",response_time:"24h",experience_years:0,specialties:[],...(pendingProFormData.stripeCustomerId?{stripe_customer_id:pendingProFormData.stripeCustomerId}:{})}).eq("id",result.user.id);}
             if(error){const isDupe=error.message?.includes("duplicate")||error.message?.includes("unique");setShowRegisterStripe(false);setPendingProFormData(null);setErr(isDupe?"Tu email ya está registrado. Inicia sesión y actualiza tu plan desde el perfil.":"Pago procesado pero hubo un error creando tu cuenta. Contacta con soporte: admin@oficioya.com");return;}
             if(!data){setShowRegisterStripe(false);setPendingProFormData(null);setErr("Pago procesado pero hubo un error creando tu cuenta. Contacta con soporte: admin@oficioya.com");return;}
             fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method:"POST",headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE"},body:JSON.stringify({type:"bienvenida_pro",to:pendingProFormData.email,name:pendingProFormData.name})});
