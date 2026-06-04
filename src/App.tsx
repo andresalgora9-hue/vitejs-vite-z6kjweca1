@@ -4368,9 +4368,7 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
           <Btn full onClick={()=>{shareProfile(user);showToast("✓ Link copiado al portapapeles");}}>Compartir perfil</Btn>
         </GCard>
           <ChangePasswordCard userId={user.id} />
-        <Btn full outline danger onClick={onLogout} color={C.red}>Cerrar sesión</Btn>
-          </GCard>
-        <Btn full outline danger onClick={onLogout} color={C.red}>Cerrar sesión</Btn>
+          <Btn full outline danger onClick={onLogout} color={C.red}>Cerrar sesión</Btn>
           <ProDeleteAccountButton user={user} onLogout={onLogout}/>
             </>)}
         {tab==="planes"&&(<>
