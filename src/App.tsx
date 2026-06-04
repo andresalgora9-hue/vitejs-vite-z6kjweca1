@@ -2094,8 +2094,8 @@ function DeleteAccountButton({user,onLogout}:{user:UserRow;onLogout:()=>void}){
       // Enviar email via Edge Function
       const deleteRes=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/send-delete-email",{
         method:"POST",
-        headers:{"Content-Type":"application/json","Authorization":"Bearer "+SUPABASE_KEY
-        body:JSON.stringify({email:user.email,name:user.name,token}),
+        headers:{"Content-Type":"application/json","Authorization":"Bearer "+SUPABASE_KEY},
+          body:JSON.stringify({email:user.email,name:user.name,token}),
       });
       if(!deleteRes.ok){setErr("Error al enviar el email. Inténtalo de nuevo.");setLoading(false);return;}
       setSent(true);
