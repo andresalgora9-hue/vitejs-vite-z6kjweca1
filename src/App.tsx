@@ -2939,7 +2939,7 @@ const handleForgot=async()=>{
     setForgotLoading(false);
     return;
   }
-  await fetch(`${SUPABASE_FUNCTIONS_URL}/auth-handler`,{method:"POST",headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":`Bearer ${SUPABASE_KEY}`},body:JSON.stringify({action:"reset_password",userId:usr.id,password:nueva_pass})});
+  await fetch(`${SUPABASE_FUNCTIONS_URL}/auth-handler`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({action:"reset_password",userId:usr.id,password:nueva_pass})});
   setForgotMsg("✅ ¡Enviado! Revisa tu correo con la nueva contraseña.");
   setForgotLoading(false);
 };
@@ -2962,7 +2962,7 @@ const handleForgot=async()=>{
     try{
       const res=await fetch(`${SUPABASE_FUNCTIONS_URL}/auth-handler`,{
         method:"POST",
-        headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":`Bearer ${SUPABASE_KEY}`},
+        headers:SUPABASE_HEADERS,
         body:JSON.stringify({action:"login",email:email.toLowerCase(),password:pass})
       });
       const result=await res.json();
@@ -2983,7 +2983,7 @@ const handleForgot=async()=>{
       const trial_end=new Date(Date.now()+365*86400000).toISOString().split("T")[0];
       const res=await fetch(`${SUPABASE_FUNCTIONS_URL}/auth-handler`,{
         method:"POST",
-        headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":`Bearer ${SUPABASE_KEY}`},
+        headers:SUPABASE_HEADERS,
         body:JSON.stringify({action:"register",email:email.toLowerCase().trim(),password:pass,name:name.trim(),type:"cliente",phone:phone?phone.trim():"",trial_end})
       });
       const result=await res.json();
@@ -3019,7 +3019,7 @@ fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEA
         const trial_end=new Date(Date.now()+30*86400000).toISOString().split("T")[0];
         const res=await fetch(`${SUPABASE_FUNCTIONS_URL}/auth-handler`,{
         method:"POST",
-        headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":`Bearer ${SUPABASE_KEY}`},
+        headers:SUPABASE_HEADERS,
         body:JSON.stringify({action:"register",email:email.toLowerCase().trim(),password:pass,name:name.trim(),type:"profesional",phone:phone.trim(),trial_end})
       });
       const result=await res.json();
@@ -3074,7 +3074,7 @@ fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEA
             const trial_end=new Date(Date.now()+30*86400000).toISOString().split("T")[0];
             const res=await fetch(`${SUPABASE_FUNCTIONS_URL}/auth-handler`,{
         method:"POST",
-        headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":`Bearer ${SUPABASE_KEY}`},
+        headers:SUPABASE_HEADERS,
         body:JSON.stringify({action:"register",email:pendingProFormData.email,password:pendingProFormData.password,name:pendingProFormData.name,type:"profesional",phone:pendingProFormData.phone,trial_end})
       });
       const result=await res.json();
