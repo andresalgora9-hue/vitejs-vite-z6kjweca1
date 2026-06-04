@@ -3876,7 +3876,7 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
   } else {
     setUrgentLead(null);
     if(urgentLead.fromId&&urgentLead.fromId!=="00000000-0000-0000-0000-000000000001"){
-      const {data:cliente}=await db.from("users").select("*").eq("id",urgentLead.fromId).single();
+      const {data:cliente}=await db.from("users").select("id,name,email,phone,type,plan,bio,price,trade,zone,rating,reviews,jobs,verified,available,whatsapp,service_zones,schedule,response_time,free_quote,experience_years,specialties,trial_end,joined_at,avatar_url").eq("id",urgentLead.fromId).single();
       setTab("chats");
       await loadChats();
       await new Promise(r=>setTimeout(r,200));
