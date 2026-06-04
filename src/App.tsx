@@ -2908,16 +2908,19 @@ const handleForgot=async()=>{
       const {data:ex}=await db.from("users").select("id").eq("email",email.toLowerCase()).maybeSingle();
       if(ex){setLoading(false);setErr("Ya existe una cuenta con ese email.");return;}
       const trial_end=new Date(Date.now()+365*86400000).toISOString().split("T")[0];
-      const insertData:any={name:name.trim(),email:email.toLowerCase().trim(),password:pass,type:"cliente",plan:"gratis",bio:"",price:0,available:true,verified:false,jobs:0,rating:0,reviews:0,trial_end};
-      if(phone){insertData.phone=phone.trim();insertData.whatsapp=phone.trim();}
-      const {data,error}=await db.from("users").insert(insertData).select().single();
+      const res=await fetch(`${SUPABASE_FUNCTIONS_URL}/auth-handler`,{
+        method:"POST",
+        headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":`Bearer ${SUPABASE_KEY}`},
+        body:JSON.stringify({action:"register",email:email.toLowerCase().trim(),password:pass,name:name.trim(),type:"cliente",phone:phone?phone.trim():"",trial_end})
+      });
+      const result=await res.json();
       setLoading(false);
-      if(error){setErr("Error: "+error.message);return;}
-      if(!data){setErr("Error creando cuenta.");return;}
-      localStorage.setItem("oy_user",JSON.stringify(data));
+      if(!result.success){setErr(result.error||"Error creando cuenta.");return;}
+      if(phone){await db.from("users").update({phone:phone.trim(),whatsapp:phone.trim()}).eq("id",result.user.id);}
+      localStorage.setItem("oy_user",JSON.stringify(result.user));
         fbqEvent("CompleteRegistration",{content_name:"cliente"});
         gtagEvent("sign_up",{method:"email",user_type:"cliente"});
-        onLogin(data as UserRow);
+        onLogin(result.user as UserRow);
 fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method:"POST",headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE"},body:JSON.stringify({type:"bienvenida_cliente",to:email.toLowerCase(),name:name.trim()})});
       // Ofrecer guardar con biometría
     if(window.PublicKeyCredential&&localStorage.getItem("oy_biometric")!=="declined"){
