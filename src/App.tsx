@@ -2859,7 +2859,7 @@ const handleForgot=async()=>{
     setForgotLoading(false);
     return;
   }
-  await db.from("users").update({password:nueva_pass}).eq("id",usr.id);
+  await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/auth-handler",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"reset_password",user_id:usr.id,new_password:nueva_pass})});
   setForgotMsg("✅ ¡Enviado! Revisa tu correo con la nueva contraseña.");
   setForgotLoading(false);
 };
@@ -2934,16 +2934,20 @@ fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method
         setPendingPriceId(resolvedPriceId);
         setShowRegisterStripe(true);
       } else {
-        // Plan gratis → crear cuenta directamente
+    // Plan gratis → crear cuenta via edge function (bcrypt)
         const trial_end=new Date(Date.now()+30*86400000).toISOString().split("T")[0];
-        const insertData:any={name:name.trim(),email:email.toLowerCase().trim(),password:pass,phone:phone.trim(),type:"profesional",plan:"gratis",trade,zone,bio:"",price:30,available:true,verified:false,jobs:0,rating:0,reviews:0,trial_end,whatsapp:phone.trim(),free_quote:true,service_zones:[zone],schedule:"Lunes a Viernes",response_time:"24h",experience_years:0,specialties:[]};
-        const {data,error}=await db.from("users").insert(insertData).select().single();
-        if(error){setErr("Error: "+error.message);return;}
-        if(!data){setErr("Error creando cuenta.");return;}
-        localStorage.setItem("oy_user",JSON.stringify(data));
-        fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY},body:JSON.stringify({type:"bienvenida_pro",to:email.toLowerCase().trim(),name:name.trim()})});
+        const res=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/auth-handler",{
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({action:"register",name:name.trim(),email:email.toLowerCase().trim(),password:pass,phone:phone.trim(),type:"profesional",plan:"gratis",trade,zone,trial_end})
+        });
+        const data=await res.json();
+        setLoading(false);
+        if(!res.ok||!data.success){setErr(data.error||"Error en registro.");return;}
+        localStorage.setItem("oy_user",JSON.stringify(data.user));
+        fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+SUPABASE_KEY},body:JSON.stringify({type:"bienvenida_pro",to:email.toLowerCase().trim(),name:name.trim()})});
         resetForm();
-        onLogin(data as UserRow);
+        onLogin(data.user as UserRow);
       }
     }catch{setLoading(false);setErr("Error de conexión.");}
   };
