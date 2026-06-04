@@ -1,0 +1,868 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title id="page-title">Profesional verificado en Sevilla | OfficioYa</title>
+  <meta id="page-desc" name="description" content="Profesional verificado en Sevilla con reseñas reales de clientes. Contacta directamente desde OfficioYa."/>
+  <meta name="robots" content="index, follow"/>
+  <link id="canonical" rel="canonical" href="https://www.aficioya.com/pro/"/>
+
+  <!-- Open Graph -->
+  <meta id="og-title" property="og:title" content="Profesional verificado | OfficioYa"/>
+  <meta id="og-desc" property="og:description" content="Profesional verificado en Sevilla con reseñas reales."/>
+  <meta id="og-image" property="og:image" content="https://www.aficioya.com/icon-512.png"/>
+  <meta property="og:type" content="profile"/>
+  <meta id="og-url" property="og:url" content="https://www.aficioya.com/pro/"/>
+
+  <!-- Schema.org dinámico -->
+  <script id="schema-ld" type="application/ld+json">{}</script>
+
+  <link rel="icon" href="/favicon.svg"/>
+  <link rel="manifest" href="/manifest.json"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+
+  <style>
+    :root {
+      --gold: #FFB800;
+      --gold-dim: #FFB80022;
+      --gold-mid: #FFB80044;
+      --bg: #09090F;
+      --surface: #111118;
+      --card: #16161F;
+      --border: #1E1E2E;
+      --text: #F0EDE8;
+      --muted: #5A6070;
+      --green: #22C55E;
+      --red: #EF4444;
+      --blue: #3B82F6;
+    }
+    *{margin:0;padding:0;box-sizing:border-box}
+    html{background:var(--bg);scroll-behavior:smooth}
+    body{
+      font-family:'DM Sans',sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      min-height:100vh;
+      -webkit-font-smoothing:antialiased;
+    }
+    a{text-decoration:none;color:inherit}
+
+    /* ── LOADING ── */
+    #loading{
+      position:fixed;inset:0;
+      background:var(--bg);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      z-index:999;gap:16px;
+      transition:opacity 0.4s;
+    }
+    #loading.hide{opacity:0;pointer-events:none}
+    .loader-logo{font-family:'Sora',sans-serif;font-size:22px;font-weight:800;color:var(--gold)}
+    .loader-dots{display:flex;gap:6px}
+    .loader-dots span{
+      width:8px;height:8px;border-radius:50%;
+      background:var(--gold);opacity:0.3;
+      animation:dotPulse 1.2s ease-in-out infinite;
+    }
+    .loader-dots span:nth-child(2){animation-delay:.2s}
+    .loader-dots span:nth-child(3){animation-delay:.4s}
+    @keyframes dotPulse{0%,80%,100%{opacity:.3;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
+
+    /* ── ERROR ── */
+    #error-state{display:none;text-align:center;padding:80px 24px}
+    #error-state h2{font-family:'Sora',sans-serif;font-size:22px;margin-bottom:8px}
+    #error-state p{color:var(--muted);margin-bottom:24px}
+    #error-state a{
+      display:inline-block;background:var(--gold);color:#000;
+      font-weight:700;padding:12px 28px;border-radius:8px;
+    }
+
+    /* ── NAV ── */
+    nav{
+      position:sticky;top:0;z-index:100;
+      background:rgba(9,9,15,0.92);
+      backdrop-filter:blur(20px);
+      border-bottom:1px solid var(--border);
+    }
+    .nav-inner{
+      max-width:680px;margin:0 auto;
+      padding:14px 20px;
+      display:flex;align-items:center;justify-content:space-between;
+    }
+    .nav-logo{
+      font-family:'Sora',sans-serif;
+      font-size:18px;font-weight:800;
+      display:flex;align-items:center;gap:8px;
+    }
+    .nav-logo span{color:var(--gold)}
+    .nav-logo em{color:var(--text);font-style:normal}
+    .nav-badge{
+      font-size:10px;font-weight:700;
+      background:var(--gold-dim);color:var(--gold);
+      border:1px solid var(--gold-mid);
+      padding:2px 8px;border-radius:20px;
+      letter-spacing:.5px;
+    }
+    .nav-cta{
+      background:var(--gold);color:#000;
+      font-weight:700;font-size:13px;
+      padding:8px 18px;border-radius:7px;
+      white-space:nowrap;cursor:pointer;
+      border:none;font-family:'DM Sans',sans-serif;
+      transition:transform .15s,box-shadow .15s;
+    }
+    .nav-cta:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(255,184,0,.3)}
+
+    /* ── MAIN CONTENT ── */
+    #profile-content{display:none;max-width:680px;margin:0 auto;padding:0 20px 80px}
+
+    /* ── HERO CARD ── */
+    .hero-card{
+      margin-top:28px;
+      background:linear-gradient(135deg,#111118,#0D0D16);
+      border:1px solid var(--border);
+      border-radius:20px;
+      overflow:hidden;
+      position:relative;
+    }
+    .hero-banner{
+      height:6px;
+      background:linear-gradient(90deg,var(--gold),#FF8C00,var(--gold));
+      background-size:200% auto;
+      animation:shimmer 3s linear infinite;
+    }
+    @keyframes shimmer{to{background-position:-200% center}}
+    .hero-body{padding:28px 24px}
+    .hero-top{display:flex;gap:18px;align-items:flex-start;margin-bottom:20px}
+    .avatar-wrap{position:relative;flex-shrink:0}
+    .avatar{
+      width:80px;height:80px;border-radius:16px;
+      object-fit:cover;
+      border:2px solid var(--gold-mid);
+      background:var(--card);
+    }
+    .avatar-initials{
+      width:80px;height:80px;border-radius:16px;
+      background:linear-gradient(135deg,#1a1a2e,#111118);
+      border:2px solid var(--gold-mid);
+      display:flex;align-items:center;justify-content:center;
+      font-family:'Sora',sans-serif;font-size:24px;font-weight:800;
+      color:var(--gold);
+    }
+    .avail-dot{
+      position:absolute;bottom:4px;right:4px;
+      width:14px;height:14px;border-radius:50%;
+      border:2px solid var(--bg);
+    }
+    .avail-dot.on{background:var(--green);box-shadow:0 0 8px rgba(34,197,94,.5)}
+    .avail-dot.off{background:var(--muted)}
+    .hero-info{flex:1;min-width:0}
+    .hero-name{
+      font-family:'Sora',sans-serif;
+      font-size:22px;font-weight:800;
+      line-height:1.2;margin-bottom:5px;
+    }
+    .hero-trade{
+      font-size:14px;font-weight:600;
+      color:var(--gold);margin-bottom:8px;
+      display:flex;align-items:center;gap:6px;
+    }
+    .hero-meta{display:flex;flex-wrap:wrap;gap:6px}
+    .badge{
+      display:inline-flex;align-items:center;gap:4px;
+      font-size:11px;font-weight:600;
+      padding:3px 9px;border-radius:20px;
+      border:1px solid;
+    }
+    .badge-verified{color:var(--green);background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.25)}
+    .badge-plan{color:var(--gold);background:var(--gold-dim);border-color:var(--gold-mid)}
+    .badge-zone{color:var(--muted);background:rgba(255,255,255,.04);border-color:var(--border)}
+
+    /* ── STATS BAR ── */
+    .stats-bar{
+      display:grid;grid-template-columns:repeat(4,1fr);
+      gap:1px;background:var(--border);
+      border-radius:12px;overflow:hidden;
+      margin-bottom:20px;
+    }
+    .stat-cell{
+      background:var(--card);
+      padding:12px 8px;text-align:center;
+    }
+    .stat-val{
+      font-family:'Sora',sans-serif;
+      font-size:18px;font-weight:800;
+      color:var(--gold);line-height:1;
+      margin-bottom:3px;
+    }
+    .stat-lbl{font-size:10px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.5px}
+
+    /* ── SECTIONS ── */
+    .section{margin-top:20px}
+    .sec-title{
+      font-family:'Sora',sans-serif;
+      font-size:13px;font-weight:700;
+      color:var(--muted);
+      text-transform:uppercase;letter-spacing:1.5px;
+      margin-bottom:12px;
+    }
+    .bio-text{
+      font-size:15px;color:#C8C4BE;
+      line-height:1.8;
+    }
+
+    /* ── INFO GRID ── */
+    .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .info-cell{
+      background:var(--card);border:1px solid var(--border);
+      border-radius:12px;padding:14px 16px;
+      display:flex;align-items:center;gap:12px;
+    }
+    .info-icon{font-size:20px;flex-shrink:0}
+    .info-label{font-size:11px;color:var(--muted);margin-bottom:2px;font-weight:500}
+    .info-value{font-size:13px;font-weight:600;color:var(--text)}
+
+    /* ── RATINGS ── */
+    .rating-big{
+      background:var(--card);border:1px solid var(--border);
+      border-radius:16px;padding:20px;
+      display:flex;align-items:center;gap:20px;
+    }
+    .rating-num{
+      font-family:'Sora',sans-serif;
+      font-size:48px;font-weight:800;
+      color:var(--gold);line-height:1;flex-shrink:0;
+    }
+    .rating-stars{font-size:20px;margin-bottom:4px;letter-spacing:2px}
+    .rating-sub{font-size:12px;color:var(--muted)}
+
+    /* ── REVIEWS ── */
+    .reviews-list{display:flex;flex-direction:column;gap:10px}
+    .review-card{
+      background:var(--card);border:1px solid var(--border);
+      border-radius:12px;padding:16px;
+    }
+    .review-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+    .review-avatar{
+      width:34px;height:34px;border-radius:50%;
+      background:linear-gradient(135deg,#1E1E30,#111118);
+      display:flex;align-items:center;justify-content:center;
+      font-size:13px;font-weight:700;color:var(--gold);flex-shrink:0;
+    }
+    .review-name{font-size:13px;font-weight:600}
+    .review-date{font-size:11px;color:var(--muted);margin-left:auto}
+    .review-stars{font-size:13px;letter-spacing:1px;margin-bottom:6px}
+    .review-text{font-size:13px;color:#A0A0B0;line-height:1.65}
+    .no-reviews{
+      text-align:center;padding:32px;
+      color:var(--muted);font-size:13px;
+    }
+
+    /* ── SPECIALTIES ── */
+    .tags{display:flex;flex-wrap:wrap;gap:7px}
+    .tag{
+      font-size:12px;color:var(--gold);
+      background:var(--gold-dim);border:1px solid var(--gold-mid);
+      padding:4px 11px;border-radius:20px;font-weight:500;
+    }
+
+    /* ── PHOTOS ── */
+    .photos-grid{
+      display:grid;grid-template-columns:repeat(2,1fr);
+      gap:10px;
+    }
+    .photo-item{
+      border-radius:12px;overflow:hidden;
+      aspect-ratio:4/3;background:var(--card);
+      border:1px solid var(--border);position:relative;
+    }
+    .photo-item img{width:100%;height:100%;object-fit:cover;display:block}
+    .photo-caption{
+      position:absolute;bottom:0;left:0;right:0;
+      background:linear-gradient(transparent,rgba(0,0,0,.7));
+      padding:20px 10px 8px;
+      font-size:11px;color:#ddd;
+    }
+
+    /* ── CTA FIJO ── */
+    .cta-fixed{
+      position:fixed;bottom:0;left:0;right:0;
+      background:rgba(9,9,15,0.96);
+      backdrop-filter:blur(20px);
+      border-top:1px solid var(--border);
+      padding:14px 20px calc(14px + env(safe-area-inset-bottom));
+      z-index:200;
+    }
+    .cta-inner{max-width:680px;margin:0 auto;display:flex;gap:10px;align-items:center}
+    .cta-pro-info{flex:1;min-width:0}
+    .cta-pro-name{font-size:14px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .cta-pro-status{font-size:11px;color:var(--green)}
+    .btn-contact{
+      background:linear-gradient(135deg,var(--gold),#FF8C00);
+      color:#000;font-weight:800;font-size:15px;
+      padding:14px 28px;border-radius:12px;
+      border:none;cursor:pointer;
+      font-family:'DM Sans',sans-serif;
+      white-space:nowrap;flex-shrink:0;
+      box-shadow:0 4px 20px rgba(255,184,0,.3);
+      transition:transform .15s,box-shadow .15s;
+    }
+    .btn-contact:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(255,184,0,.4)}
+
+    /* ── INSTALL MODAL ── */
+    #install-modal{
+      display:none;position:fixed;inset:0;
+      background:rgba(0,0,0,.85);
+      backdrop-filter:blur(16px);
+      z-index:500;
+      align-items:flex-end;justify-content:center;
+    }
+    #install-modal.show{display:flex}
+    .modal-box{
+      background:linear-gradient(160deg,#14141F,#0A0A14);
+      border:1px solid var(--gold-mid);
+      border-radius:24px 24px 0 0;
+      padding:28px 24px calc(28px + env(safe-area-inset-bottom));
+      width:100%;max-width:560px;
+      animation:slideUp .35s cubic-bezier(.34,1.56,.64,1);
+    }
+    @keyframes slideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
+    .modal-handle{width:40px;height:4px;border-radius:2px;background:var(--border);margin:0 auto 20px}
+    .modal-title{
+      font-family:'Sora',sans-serif;
+      font-size:20px;font-weight:800;
+      margin-bottom:6px;
+    }
+    .modal-sub{font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.6}
+    .modal-steps{display:flex;flex-direction:column;gap:12px;margin-bottom:24px}
+    .modal-step{
+      display:flex;gap:14px;align-items:center;
+      background:var(--card);border:1px solid var(--border);
+      border-radius:12px;padding:14px;
+    }
+    .step-num{
+      width:32px;height:32px;border-radius:10px;
+      background:var(--gold-dim);border:1px solid var(--gold-mid);
+      display:flex;align-items:center;justify-content:center;
+      font-family:'Sora',sans-serif;font-size:14px;font-weight:800;
+      color:var(--gold);flex-shrink:0;
+    }
+    .step-text{font-size:13px;font-weight:500;color:var(--text)}
+    .btn-install{
+      width:100%;padding:16px;
+      background:linear-gradient(135deg,var(--gold),#FF8C00);
+      color:#000;font-weight:800;font-size:15px;
+      border:none;border-radius:12px;cursor:pointer;
+      font-family:'DM Sans',sans-serif;
+      box-shadow:0 4px 20px rgba(255,184,0,.3);
+      margin-bottom:10px;
+    }
+    .btn-dismiss{
+      width:100%;padding:12px;
+      background:transparent;border:1px solid var(--border);
+      color:var(--muted);font-size:13px;
+      border-radius:10px;cursor:pointer;
+      font-family:'DM Sans',sans-serif;
+    }
+
+    /* ── FOOTER ── */
+    .page-footer{
+      border-top:1px solid var(--border);
+      padding:24px 20px;margin-top:40px;
+      text-align:center;
+    }
+    .page-footer p{font-size:12px;color:var(--muted);margin-bottom:8px}
+    .foot-links{display:flex;justify-content:center;gap:20px}
+    .foot-links a{font-size:11px;color:var(--muted)}
+
+    /* ── ANIMACIONES ENTRADA ── */
+    .fade-in{
+      opacity:0;transform:translateY(16px);
+      animation:fadeUp .5s ease forwards;
+    }
+    .fade-in:nth-child(2){animation-delay:.08s}
+    .fade-in:nth-child(3){animation-delay:.16s}
+    .fade-in:nth-child(4){animation-delay:.24s}
+    .fade-in:nth-child(5){animation-delay:.32s}
+    @keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+
+    @media(max-width:480px){
+      .hero-name{font-size:18px}
+      .info-grid{grid-template-columns:1fr}
+      .stats-bar{grid-template-columns:repeat(2,1fr)}
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="loader-logo">🔨 OfficioYa</div>
+  <div class="loader-dots"><span></span><span></span><span></span></div>
+</div>
+
+<!-- ERROR -->
+<div id="error-state">
+  <p style="font-size:40px;margin-bottom:16px">😕</p>
+  <h2>Profesional no encontrado</h2>
+  <p>El perfil que buscas no existe o ha sido eliminado.</p>
+  <a href="/">Ver todos los profesionales →</a>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="nav-logo">
+      <span>🔨</span>
+      <em>Oficio</em><span>Ya</span>
+      <div class="nav-badge">SEVILLA</div>
+    </a>
+    <button class="nav-cta" onclick="handleContact()">Contactar</button>
+  </div>
+</nav>
+
+<!-- PERFIL -->
+<div id="profile-content">
+
+  <!-- HERO -->
+  <div class="hero-card fade-in">
+    <div class="hero-banner"></div>
+    <div class="hero-body">
+      <div class="hero-top">
+        <div class="avatar-wrap">
+          <div id="avatar-container"></div>
+          <div id="avail-dot" class="avail-dot"></div>
+        </div>
+        <div class="hero-info">
+          <h1 class="hero-name" id="pro-name">—</h1>
+          <div class="hero-trade" id="pro-trade">—</div>
+          <div class="hero-meta" id="pro-badges"></div>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div class="stats-bar">
+        <div class="stat-cell">
+          <div class="stat-val" id="stat-rating">—</div>
+          <div class="stat-lbl">Valoración</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-val" id="stat-reviews">—</div>
+          <div class="stat-lbl">Reseñas</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-val" id="stat-jobs">—</div>
+          <div class="stat-lbl">Trabajos</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-val" id="stat-price">—</div>
+          <div class="stat-lbl">€/hora</div>
+        </div>
+      </div>
+
+      <!-- BIO -->
+      <div id="bio-section" class="section" style="display:none">
+        <p class="sec-title">Sobre mí</p>
+        <p class="bio-text" id="pro-bio"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- INFO GRID -->
+  <div class="section fade-in">
+    <p class="sec-title">Información</p>
+    <div class="info-grid">
+      <div class="info-cell">
+        <span class="info-icon">📍</span>
+        <div>
+          <div class="info-label">Zona principal</div>
+          <div class="info-value" id="info-zone">—</div>
+        </div>
+      </div>
+      <div class="info-cell">
+        <span class="info-icon">⚡</span>
+        <div>
+          <div class="info-label">Tiempo de respuesta</div>
+          <div class="info-value" id="info-response">—</div>
+        </div>
+      </div>
+      <div class="info-cell">
+        <span class="info-icon">🗓️</span>
+        <div>
+          <div class="info-label">Horario</div>
+          <div class="info-value" id="info-schedule">—</div>
+        </div>
+      </div>
+      <div class="info-cell">
+        <span class="info-icon" id="quote-icon">💬</span>
+        <div>
+          <div class="info-label">Presupuesto</div>
+          <div class="info-value" id="info-quote">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ESPECIALIDADES -->
+  <div class="section fade-in" id="specialties-section" style="display:none">
+    <p class="sec-title">Especialidades</p>
+    <div class="tags" id="specialties-list"></div>
+  </div>
+
+  <!-- FOTOS -->
+  <div class="section fade-in" id="photos-section" style="display:none">
+    <p class="sec-title">Fotos de trabajos</p>
+    <div class="photos-grid" id="photos-grid"></div>
+  </div>
+
+  <!-- VALORACIÓN Y RESEÑAS -->
+  <div class="section fade-in" id="reviews-section">
+    <p class="sec-title">Valoraciones</p>
+    <div class="rating-big" style="margin-bottom:14px">
+      <div class="rating-num" id="rating-num">—</div>
+      <div>
+        <div class="rating-stars" id="rating-stars">☆☆☆☆☆</div>
+        <div class="rating-sub" id="rating-sub">Sin valoraciones aún</div>
+      </div>
+    </div>
+    <div class="reviews-list" id="reviews-list">
+      <div class="no-reviews">Cargando reseñas...</div>
+    </div>
+  </div>
+
+  <!-- ZONAS DE SERVICIO -->
+  <div class="section fade-in" id="zones-section" style="display:none">
+    <p class="sec-title">Zonas donde trabaja</p>
+    <div class="tags" id="zones-list"></div>
+  </div>
+
+  <!-- CTA MEDIO PÁGINA -->
+  <div class="fade-in" style="margin-top:32px;background:linear-gradient(135deg,#111118,#0D0D16);border:1px solid var(--gold-mid);border-radius:20px;padding:28px 24px;text-align:center">
+    <div style="font-size:32px;margin-bottom:12px">💬</div>
+    <h3 style="font-family:'Sora',sans-serif;font-size:18px;font-weight:800;margin-bottom:8px">¿Te interesa este profesional?</h3>
+    <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.7">Escríbele directamente a través de OfficioYa.<br>Gratis para clientes · Respuesta en tiempo real.</p>
+    <button onclick="handleContact()" style="background:linear-gradient(135deg,var(--gold),#FF8C00);color:#000;font-weight:800;font-size:15px;padding:14px 36px;border-radius:12px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;box-shadow:0 4px 20px rgba(255,184,0,.3)">
+      Escribir mensaje →
+    </button>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="page-footer">
+    <p>© 2026 OfficioYa · Profesionales verificados en Sevilla</p>
+    <div class="foot-links">
+      <a href="/terminos">Términos</a>
+      <a href="/privacidad">Privacidad</a>
+      <a href="/">Ver todos los profesionales</a>
+    </div>
+  </footer>
+
+</div>
+
+<!-- CTA FIJO -->
+<div class="cta-fixed" id="cta-fixed" style="display:none">
+  <div class="cta-inner">
+    <div class="cta-pro-info">
+      <div class="cta-pro-name" id="cta-name">—</div>
+      <div class="cta-pro-status" id="cta-status">● Disponible ahora</div>
+    </div>
+    <button class="btn-contact" onclick="handleContact()">💬 Contactar</button>
+  </div>
+</div>
+
+<!-- INSTALL MODAL -->
+<div id="install-modal">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <h2 class="modal-title">Instala OfficioYa para chatear</h2>
+    <p class="modal-sub">Es gratis y solo tarda 10 segundos. Podrás hablar directamente con <span id="modal-pro-name">este profesional</span> y recibir sus respuestas en tiempo real.</p>
+    <div class="modal-steps" id="modal-steps-android">
+      <div class="modal-step">
+        <div class="step-num">1</div>
+        <div class="step-text">Pulsa el botón de abajo para instalar OfficioYa</div>
+      </div>
+      <div class="modal-step">
+        <div class="step-num">2</div>
+        <div class="step-text">Crea tu cuenta gratis en 30 segundos</div>
+      </div>
+      <div class="modal-step">
+        <div class="step-num">3</div>
+        <div class="step-text">Habla directamente con <span id="modal-pro-name2">el profesional</span></div>
+      </div>
+    </div>
+    <div class="modal-steps" id="modal-steps-ios" style="display:none">
+      <div class="modal-step">
+        <div class="step-num">⬆️</div>
+        <div class="step-text">En Safari pulsa el botón Compartir (abajo)</div>
+      </div>
+      <div class="modal-step">
+        <div class="step-num">➕</div>
+        <div class="step-text">Toca "Añadir a pantalla de inicio"</div>
+      </div>
+      <div class="modal-step">
+        <div class="step-num">✅</div>
+        <div class="step-text">Abre la app y regístrate gratis</div>
+      </div>
+    </div>
+    <button class="btn-install" id="install-btn" onclick="doInstall()">Instalar OfficioYa gratis →</button>
+    <button class="btn-dismiss" onclick="closeModal()">Ahora no</button>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://rjwojxwrsbvwwshwwpvq.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE";
+
+let proData = null;
+let deferredInstall = null;
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const isInApp = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+
+// Capturar prompt de instalación
+window.addEventListener("beforeinstallprompt", e => {
+  e.preventDefault();
+  deferredInstall = e;
+});
+
+function toSlug(name, trade) {
+  return ((name || "") + " " + (trade || ""))
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function stars(n) {
+  const full = Math.round(n);
+  return "★".repeat(full) + "☆".repeat(5 - full);
+}
+
+function timeAgo(iso) {
+  const d = (Date.now() - new Date(iso).getTime()) / 1000;
+  if (d < 60) return "ahora";
+  if (d < 3600) return Math.floor(d / 60) + "m";
+  if (d < 86400) return Math.floor(d / 3600) + "h";
+  return Math.floor(d / 86400) + "d";
+}
+
+async function loadProfile() {
+  const path = window.location.pathname; // /pro/juan-garcia-electricista
+  const slug = path.replace("/pro/", "").replace(/\/$/, "");
+  if (!slug) { showError(); return; }
+
+  try {
+    // Traer todos los profesionales y buscar por slug
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/users?type=eq.profesional&deleted=eq.false&select=id,name,trade,zone,bio,price,available,verified,plan,rating,reviews,jobs,schedule,response_time,free_quote,experience_years,specialties,service_zones,avatar_url,joined_at`, {
+      headers: { "apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY }
+    });
+    const users = await res.json();
+    const pro = users.find(u => toSlug(u.name, u.trade) === slug);
+    if (!pro) { showError(); return; }
+    proData = pro;
+
+    // Cargar reseñas
+    const revRes = await fetch(`${SUPABASE_URL}/rest/v1/reviews?worker_id=eq.${pro.id}&approved=eq.true&order=created_at.desc&limit=10`, {
+      headers: { "apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY }
+    });
+    const reviews = await revRes.json();
+
+    // Cargar fotos
+    const photoRes = await fetch(`${SUPABASE_URL}/rest/v1/photos?worker_id=eq.${pro.id}&order=created_at.desc&limit=6`, {
+      headers: { "apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY }
+    });
+    const photos = await photoRes.json();
+
+    renderProfile(pro, reviews, photos);
+  } catch(e) {
+    showError();
+  }
+}
+
+function renderProfile(pro, reviews, photos) {
+  // Meta tags dinámicos
+  const title = `${pro.name} — ${pro.trade} en ${pro.zone} | OfficioYa`;
+  const desc = `${pro.name}, ${pro.trade} verificado en ${pro.zone}. ${pro.rating > 0 ? pro.rating + "★ con " + pro.reviews + " reseñas." : ""} ${pro.bio ? pro.bio.substring(0, 100) + "..." : "Contacta directamente en OfficioYa."}`;
+  document.title = title;
+  document.getElementById("page-title").content = title;
+  document.getElementById("page-desc").setAttribute("content", desc);
+  document.getElementById("og-title").setAttribute("content", title);
+  document.getElementById("og-desc").setAttribute("content", desc);
+  if (pro.avatar_url) document.getElementById("og-image").setAttribute("content", pro.avatar_url);
+  const url = `https://www.aficioya.com/pro/${toSlug(pro.name, pro.trade)}`;
+  document.getElementById("canonical").setAttribute("href", url);
+  document.getElementById("og-url").setAttribute("content", url);
+
+  // Schema.org
+  document.getElementById("schema-ld").textContent = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": pro.name,
+    "jobTitle": pro.trade,
+    "description": pro.bio || `${pro.trade} verificado en ${pro.zone}`,
+    "url": url,
+    "image": pro.avatar_url || "https://www.aficioya.com/icon-512.png",
+    "address": { "@type": "PostalAddress", "addressLocality": pro.zone, "addressRegion": "Andalucía", "addressCountry": "ES" },
+    "aggregateRating": pro.reviews > 0 ? {
+      "@type": "AggregateRating",
+      "ratingValue": pro.rating,
+      "reviewCount": pro.reviews,
+      "bestRating": 5
+    } : undefined
+  });
+
+  // Avatar
+  const avatarContainer = document.getElementById("avatar-container");
+  if (pro.avatar_url) {
+    avatarContainer.innerHTML = `<img class="avatar" src="${pro.avatar_url}" alt="${pro.name}" onerror="this.style.display='none'"/>`;
+  } else {
+    const initials = pro.name.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
+    avatarContainer.innerHTML = `<div class="avatar-initials">${initials}</div>`;
+  }
+
+  // Disponibilidad dot
+  const dot = document.getElementById("avail-dot");
+  dot.className = "avail-dot " + (pro.available ? "on" : "off");
+
+  // Nombre y trade
+  const tradeIcons = {"Electricista":"⚡","Fontanero":"🔧","Cerrajero":"🔑","Pintor":"🖌️","Albañil":"🧱","Reformas Integrales":"🏗️","Climatización":"❄️","Manitas a Domicilio":"🔨","Carpintero":"🪵","Jardinero":"🌿","Servicio Doméstico / Limpieza":"🧹","Desatascos":"🌊","Técnico de Gas":"🔩","Soldador":"🔥","Instalador Solar":"☀️","Fumigador":"🪲","Mecánico":"🚗","Mudanzas y Portes":"📦"};
+  const icon = tradeIcons[pro.trade] || "🔧";
+  document.getElementById("pro-name").textContent = pro.name;
+  document.getElementById("pro-trade").innerHTML = `${icon} ${pro.trade} · ${pro.zone}`;
+
+  // Badges
+  const badges = document.getElementById("pro-badges");
+  let badgesHTML = "";
+  if (pro.verified) badgesHTML += `<span class="badge badge-verified">✓ Verificado</span>`;
+  if (pro.plan === "elite" || pro.plan === "pro") badgesHTML += `<span class="badge badge-plan">${pro.plan.toUpperCase()}</span>`;
+  if (pro.available) badgesHTML += `<span class="badge" style="color:var(--green);background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.25)">● Disponible hoy</span>`;
+  badges.innerHTML = badgesHTML;
+
+  // Stats
+  document.getElementById("stat-rating").textContent = pro.rating > 0 ? pro.rating.toFixed(1) + "★" : "Nuevo";
+  document.getElementById("stat-reviews").textContent = pro.reviews || 0;
+  document.getElementById("stat-jobs").textContent = pro.jobs || 0;
+  document.getElementById("stat-price").textContent = (pro.price || 30) + "€";
+
+  // Bio
+  if (pro.bio) {
+    document.getElementById("bio-section").style.display = "block";
+    document.getElementById("pro-bio").textContent = pro.bio;
+  }
+
+  // Info grid
+  document.getElementById("info-zone").textContent = pro.zone || "Sevilla";
+  document.getElementById("info-response").textContent = pro.response_time || "24h";
+  document.getElementById("info-schedule").textContent = (pro.schedule || "Lunes a Viernes").split("|")[0];
+  document.getElementById("info-quote").textContent = pro.free_quote ? "Gratis sin compromiso" : "Con presupuesto previo";
+  document.getElementById("quote-icon").textContent = pro.free_quote ? "🎁" : "📋";
+
+  // Especialidades
+  if (pro.specialties && pro.specialties.length > 0) {
+    document.getElementById("specialties-section").style.display = "block";
+    document.getElementById("specialties-list").innerHTML = pro.specialties.map(s => `<span class="tag">${s}</span>`).join("");
+  }
+
+  // Fotos
+  if (photos && photos.length > 0) {
+    document.getElementById("photos-section").style.display = "block";
+    document.getElementById("photos-grid").innerHTML = photos.map(p =>
+      `<div class="photo-item"><img src="${p.url}" alt="${p.caption || "Trabajo de " + pro.name}" loading="lazy"/>${p.caption ? `<div class="photo-caption">${p.caption}</div>` : ""}</div>`
+    ).join("");
+  }
+
+  // Valoración
+  document.getElementById("rating-num").textContent = pro.rating > 0 ? pro.rating.toFixed(1) : "—";
+  document.getElementById("rating-stars").textContent = pro.rating > 0 ? stars(pro.rating) : "☆☆☆☆☆";
+  document.getElementById("rating-sub").textContent = pro.reviews > 0 ? `${pro.reviews} reseñas de clientes reales` : "Sin valoraciones todavía · Sé el primero";
+
+  // Reseñas
+  const reviewsList = document.getElementById("reviews-list");
+  if (reviews && reviews.length > 0) {
+    reviewsList.innerHTML = reviews.map(r => `
+      <div class="review-card">
+        <div class="review-header">
+          <div class="review-avatar">${r.client_name[0].toUpperCase()}</div>
+          <div class="review-name">${r.client_name}</div>
+          <div class="review-date">${timeAgo(r.created_at)}</div>
+        </div>
+        <div class="review-stars" style="color:#FFB800">${stars(r.stars)}</div>
+        <div class="review-text">${r.text}</div>
+      </div>
+    `).join("");
+  } else {
+    reviewsList.innerHTML = `<div class="no-reviews">Sin reseñas aún · Sé el primero en valorar</div>`;
+  }
+
+  // Zonas
+  if (pro.service_zones && pro.service_zones.length > 1) {
+    document.getElementById("zones-section").style.display = "block";
+    document.getElementById("zones-list").innerHTML = pro.service_zones.map(z => `<span class="tag" style="background:rgba(59,130,246,.1);color:#60A5FA;border-color:rgba(59,130,246,.2)">📍 ${z}</span>`).join("");
+  }
+
+  // CTA fijo
+  document.getElementById("cta-name").textContent = pro.name;
+  document.getElementById("cta-status").textContent = pro.available ? "● Disponible ahora" : "○ Ver disponibilidad";
+  document.getElementById("cta-status").style.color = pro.available ? "var(--green)" : "var(--muted)";
+  document.getElementById("cta-fixed").style.display = "block";
+
+  // Modal
+  document.getElementById("modal-pro-name").textContent = pro.name;
+  document.getElementById("modal-pro-name2").textContent = pro.name;
+  if (isIOS) {
+    document.getElementById("modal-steps-android").style.display = "none";
+    document.getElementById("modal-steps-ios").style.display = "flex";
+    document.getElementById("install-btn").textContent = "Ver cómo instalar en iPhone →";
+  }
+
+  // Mostrar todo
+  document.getElementById("loading").classList.add("hide");
+  document.getElementById("profile-content").style.display = "block";
+}
+
+function showError() {
+  document.getElementById("loading").classList.add("hide");
+  document.getElementById("error-state").style.display = "block";
+}
+
+function handleContact() {
+  // Si la app está instalada → deep link directo
+  if (isInApp) {
+    window.location.href = "/";
+    return;
+  }
+  // Si tiene el prompt de instalación → mostrar modal
+  document.getElementById("install-modal").classList.add("show");
+}
+
+function doInstall() {
+  if (deferredInstall) {
+    deferredInstall.prompt();
+    deferredInstall.userChoice.then(() => {
+      deferredInstall = null;
+      closeModal();
+      // Redirigir a la app con el perfil del pro
+      if (proData) {
+        window.location.href = `/?pro=${proData.id}`;
+      }
+    });
+  } else {
+    // iOS o sin prompt → redirigir a la app web
+    const proId = proData ? `?pro=${proData.id}` : "";
+    window.location.href = `/${proId}`;
+  }
+}
+
+function closeModal() {
+  document.getElementById("install-modal").classList.remove("show");
+}
+
+// Cerrar modal al tocar fuera
+document.getElementById("install-modal").addEventListener("click", function(e) {
+  if (e.target === this) closeModal();
+});
+
+// Iniciar
+loadProfile();
+</script>
+</body>
+</html>
