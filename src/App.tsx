@@ -547,6 +547,32 @@ function GCard({children,style={},onClick,glow=""}:any){
   return <div onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)} onClick={onClick}
     style={{background:hov&&onClick?C.cardHover:C.card,borderRadius:14,border:"1px solid "+(hov&&glow?glow+"44":C.border),padding:18,transition:"all 0.2s",cursor:onClick?"pointer":"default",boxShadow:hov&&glow?"0 6px 24px "+glow+"18":"0 2px 12px rgba(0,0,0,0.25),inset 0 1px 0 rgba(255,255,255,0.02)",...style}}>{children}</div>;
 }
+function ChangePasswordCard({userId}:{userId:string}){
+  const [cp1,setCp1]=useState("");
+  const [cp2,setCp2]=useState("");
+  const [cpMsg,setCpMsg]=useState("");
+  const [cpLoading,setCpLoading]=useState(false);
+  return(
+    <GCard style={{marginBottom:14}}>
+      <p style={{fontWeight:700,color:C.text,fontSize:13,marginBottom:12}}>🔒 Cambiar contraseña</p>
+      <input value={cp1} onChange={e=>setCp1(e.target.value)} type="password" placeholder="Nueva contraseña" style={{width:"100%",padding:"10px 12px",background:C.surface,border:"1px solid "+C.border,borderRadius:8,color:C.text,fontFamily:"'DM Sans',sans-serif",fontSize:13,marginBottom:8,boxSizing:"border-box" as const}}/>
+      <input value={cp2} onChange={e=>setCp2(e.target.value)} type="password" placeholder="Repetir contraseña" style={{width:"100%",padding:"10px 12px",background:C.surface,border:"1px solid "+C.border,borderRadius:8,color:C.text,fontFamily:"'DM Sans',sans-serif",fontSize:13,marginBottom:10,boxSizing:"border-box" as const}}/>
+      {cpMsg&&<p style={{fontSize:12,color:cpMsg.startsWith("✅")?C.green:C.red,marginBottom:8}}>{cpMsg}</p>}
+      <button disabled={cpLoading} onClick={async()=>{
+        if(cp1.length<6){setCpMsg("Mínimo 6 caracteres.");return;}
+        if(cp1!==cp2){setCpMsg("Las contraseñas no coinciden.");return;}
+        setCpLoading(true);setCpMsg("");
+        const res=await fetch(`${SUPABASE_FUNCTIONS_URL}/auth-handler`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({action:"reset_password",userId,password:cp1})});
+        const result=await res.json();
+        setCpLoading(false);
+        if(result.success){setCpMsg("✅ Contraseña actualizada.");setCp1("");setCp2("");}
+        else{setCpMsg("❌ Error al actualizar. Inténtalo de nuevo.");}
+      }} style={{width:"100%",padding:"10px",background:C.accent,border:"none",borderRadius:8,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,cursor:"pointer"}}>
+        {cpLoading?"Guardando...":"Guardar contraseña"}
+      </button>
+    </GCard>
+  );
+}
 function Toggle({value,onChange,label}:{value:boolean;onChange:(v:boolean)=>void;label:string}){
   return <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 0"}}>
     <span style={{flex:1,fontSize:13,color:C.text}}>{label}</span>
@@ -2688,10 +2714,7 @@ return <GCard key={w.id} onClick={async()=>{
             <span style={{flex:1,fontSize:11,color:C.mutedL,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" as const}}>{getDeepLinkUrl(user)}</span>
           </div>
         </GCard>
-          <GCard style={{marginBottom:14}}>
-            <p style={{fontWeight:700,color:C.text,fontSize:13,marginBottom:12}}>🔒 Cambiar contraseña</p>
-            {(()=>{
-              const [cp1,setCp1]=React.useState("");
+          <ChangePasswordCard userId={user.id} />
               const [cp2,setCp2]=React.useState("");
               const [cpMsg,setCpMsg]=React.useState("");
               const [cpLoading,setCpLoading]=React.useState(false);
@@ -4366,10 +4389,7 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
           </div>
           <Btn full onClick={()=>{shareProfile(user);showToast("✓ Link copiado al portapapeles");}}>Compartir perfil</Btn>
         </GCard>
-          <GCard style={{marginBottom:14}}>
-            <p style={{fontWeight:700,color:C.text,fontSize:13,marginBottom:12}}>🔒 Cambiar contraseña</p>
-            {(()=>{
-              const [cp1,setCp1]=React.useState("");
+          <ChangePasswordCard userId={user.id} />
               const [cp2,setCp2]=React.useState("");
               const [cpMsg,setCpMsg]=React.useState("");
               const [cpLoading,setCpLoading]=React.useState(false);
