@@ -8,6 +8,13 @@ import { db, STORAGE_URL, ADMIN_USER } from "./supabase";
 import type { UserRow, MessageRow, JobRow, CertRow, Plan, PhotoRow } from "./supabase";
 import { MapaZonas, MapaProModal } from './MapaZonas';
 import { PRICE_MAP } from "./constants";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE";
+const SUPABASE_FUNCTIONS_URL = "https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1";
+const SUPABASE_HEADERS = {
+  "Content-Type": "application/json",
+  "apikey": SUPABASE_ANON_KEY,
+  "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
+};
 // ── DIM PREMIUM palette — slate/zinc, legible bajo el sol ──
 const C = {
   bg:"#0F1117",       // slate-950 oscuro pero no negro puro
@@ -93,7 +100,7 @@ function toSlug(name:string,trade?:string){
   return base;
 }
 function getDeepLinkUrl(user:UserRow){
-  return "https://www.aficioya.com/pro/"+toSlug(user.name,user.trade);
+  return "https://oficioya.com/pro/"+toSlug(user.name,user.trade);
 }
 function shareProfile(user:UserRow){
   const url=getDeepLinkUrl(user);
@@ -717,7 +724,7 @@ function AnticipoCard({m,isMe,currentUser,toUser,showToast}:any){
               try{
                 const res=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/super-handler",{
                   method:"POST",
-                  headers:{"Content-Type":"application/json","Authorization":"Bearer "+SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY},
+                  headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE"},
                   body:JSON.stringify({client_id:currentUser.id,pro_id:m.from_id,pro_name:toUser.name,client_name:currentUser.name,amount:parseInt(amount),session_user_id:currentUser.id}),
                 });
                const data=await res.json();
@@ -859,7 +866,7 @@ useEffect(()=>{
     }
     fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/send-push",{
   method:"POST",
-  headers:{"Content-Type":"application/json","Authorization":"Bearer "+SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY},
+  headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE"},
   body:JSON.stringify({user_id:toUser.id,title:"💬 "+currentUser.name,body:txt.substring(0,80),url:"/"}),
 }).catch(()=>{});
     setSending(false);
@@ -984,8 +991,8 @@ useEffect(()=>{
             method:"POST",
             headers:{
               "Content-Type":"application/json",
-              "Authorization":"Bearer "+SUPABASE_KEY,
-              "Authorization":"Bearer "+SUPABASE_KEY,
+              "apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE",
+              "Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE",
             },
             body:JSON.stringify({client_id:currentUser.id,pro_id:toUser.id,pro_name:toUser.name,client_name:currentUser.name,amount:15,session_user_id:currentUser.id}),
           });
@@ -1002,8 +1009,8 @@ useEffect(()=>{
             method:"POST",
             headers:{
               "Content-Type":"application/json",
-              "Authorization":"Bearer "+SUPABASE_KEY,
-              "Authorization":"Bearer "+SUPABASE_KEY,
+              "apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE",
+              "Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE",
             },
             body:JSON.stringify({client_id:currentUser.id,pro_id:toUser.id,pro_name:toUser.name,client_name:currentUser.name,amount:50,session_user_id:currentUser.id}),
           });
@@ -1895,7 +1902,7 @@ function SolicitudesTab({user,workers,onWorkerSelect,onChat}:{user:UserRow;worke
 
   if(req){
     // Solo elite y pro, filtrados por oficio y zona
-    const {data:allPros}=await db.from("users").select("id,name,email,phone,type,plan,bio,price,trade,zone,rating,reviews,jobs,verified,available,whatsapp,service_zones,schedule,response_time,free_quote,experience_years,specialties,trial_end,joined_at,avatar_url,map_lat,map_lng,show_on_map").eq("type","profesional").eq("available",true).in("plan",["elite","pro"]);
+    const {data:allPros}=await db.from("users").select("*").eq("type","profesional").eq("available",true).in("plan",["elite","pro"]);
 const norm=(s:string)=>s?.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim()||"";
 const eligibles=((allPros||[]) as UserRow[]).filter(w=>norm(w.trade||"")===norm(oficio));
     // Separar y barajar aleatoriamente
@@ -1916,7 +1923,7 @@ const eligibles=((allPros||[]) as UserRow[]).filter(w=>norm(w.trade||"")===norm(
       });
       fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/send-push",{
         method:"POST",
-        headers:{"Content-Type":"application/json","Authorization":"Bearer "+SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY},
+        headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE"},
         body:JSON.stringify({user_id:pro.id,title:"🔴 Nuevo lead",body:"Un cliente necesita "+oficio+" en "+zona,url:"/"}),
       }).catch(()=>{});
       notifiedIds.push(pro.id);
@@ -2094,8 +2101,8 @@ function DeleteAccountButton({user,onLogout}:{user:UserRow;onLogout:()=>void}){
       // Enviar email via Edge Function
       const deleteRes=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/send-delete-email",{
         method:"POST",
-        headers:{"Content-Type":"application/json","Authorization":"Bearer "+SUPABASE_KEY},
-          body:JSON.stringify({email:user.email,name:user.name,token}),
+        headers:{"Content-Type":"application/json","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo"},
+        body:JSON.stringify({email:user.email,name:user.name,token}),
       });
       if(!deleteRes.ok){setErr("Error al enviar el email. Inténtalo de nuevo.");setLoading(false);return;}
       setSent(true);
@@ -2195,7 +2202,7 @@ const [loadingChats,setLoadingChats]=useState(true);
 
   const loadWorkers=useCallback(async()=>{
     setLoading(true);
-    const {data}=await db.from("users").select("id,name,email,phone,type,plan,bio,price,trade,zone,rating,reviews,jobs,verified,available,whatsapp,service_zones,schedule,response_time,free_quote,experience_years,specialties,trial_end,joined_at,avatar_url,map_lat,map_lng,show_on_map").eq("type","profesional");
+    const {data}=await db.from("users").select("*").eq("type","profesional");
     const sorted=(data||[]).sort((a:UserRow,b:UserRow)=>{
       const order:Record<Plan,number>={elite:3,pro:2,basico:1,gratis:0};
       return order[b.plan as Plan]-order[a.plan as Plan]||b.rating-a.rating;
@@ -2252,7 +2259,7 @@ db.from("users").select("name").eq("id",m.from_id).single().then(({data}:any)=>{
     .filter((id:string)=>id!=="00000000-0000-0000-0000-000000000001");
   if(!ids.length){setChatPartners([]);return;}
 const adminUser=ADMIN_USER;
-const {data:ws}=await db.from("users").select("id,name,email,phone,type,plan,bio,price,trade,zone,rating,reviews,jobs,verified,available,whatsapp,service_zones,schedule,response_time,free_quote,experience_years,specialties,trial_end,joined_at,avatar_url").in("id",ids);
+const {data:ws}=await db.from("users").select("*").in("id",ids);
 if(!ws)return;
 const wsFiltered=ws.filter((u:any)=>u.id!=="00000000-0000-0000-0000-000000000002");
 const allWs=ids.includes("00000000-0000-0000-0000-000000000002")?[...wsFiltered,adminUser]:wsFiltered;
@@ -2848,8 +2855,8 @@ const handleForgot=async()=>{
     method:"POST",
     headers:{
       "Content-Type":"application/json",
-      "Authorization":"Bearer "+SUPABASE_KEY,
-      "Authorization":"Bearer "+SUPABASE_KEY,
+      "apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE",
+      "Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE",
     },
     body:JSON.stringify({type:"recuperar_password",to:usr.email,name:usr.name,extra:{nueva_pass}}),
   });
@@ -2859,7 +2866,7 @@ const handleForgot=async()=>{
     setForgotLoading(false);
     return;
   }
-  await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/auth-handler",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"reset_password",user_id:usr.id,new_password:nueva_pass})});
+  await db.from("users").update({password:nueva_pass}).eq("id",usr.id);
   setForgotMsg("✅ ¡Enviado! Revisa tu correo con la nueva contraseña.");
   setForgotLoading(false);
 };
@@ -2879,20 +2886,10 @@ const handleForgot=async()=>{
   const login=async()=>{
     if(!email||!pass){setErr("Introduce email y contraseña.");return;}
     setLoading(true);setErr("");
-    try{
-      const res=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/auth-handler",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({action:"login",email:email.toLowerCase(),password:pass})
-      });
-      const data=await res.json();
-      setLoading(false);
-      if(!res.ok||!data.success){setErr(data.error||"Email o contraseña incorrectos.");return;}
-      localStorage.setItem("oy_user",JSON.stringify(data.user));onLogin(data.user as UserRow);
-    }catch(e){
-      setLoading(false);
-      setErr("Error de conexión.");
-    }
+    const {data,error}=await db.from("users").select("*").eq("email",email.toLowerCase()).eq("password",pass).single();
+    setLoading(false);
+    if(error||!data){setErr("Email o contraseña incorrectos.");return;}
+    localStorage.setItem("oy_user",JSON.stringify(data));onLogin(data as UserRow);
   };
 
   const registerCliente=async()=>{
@@ -2901,19 +2898,33 @@ const handleForgot=async()=>{
     if(!/\S+@\S+\.\S+/.test(email)){setErr("Introduce un email válido.");return;}
     setLoading(true);setErr("");
     try{
-      const res=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/auth-handler",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({action:"register",name:name.trim(),email:email.toLowerCase().trim(),password:pass,type:"cliente",phone:phone.trim(),trial_end:new Date(Date.now()+365*86400000).toISOString().split("T")[0]})
-      });
-      const data=await res.json();
+      const {data:ex}=await db.from("users").select("id").eq("email",email.toLowerCase()).maybeSingle();
+      if(ex){setLoading(false);setErr("Ya existe una cuenta con ese email.");return;}
+      const trial_end=new Date(Date.now()+365*86400000).toISOString().split("T")[0];
+      const insertData:any={name:name.trim(),email:email.toLowerCase().trim(),password:pass,type:"cliente",plan:"gratis",bio:"",price:0,available:true,verified:false,jobs:0,rating:0,reviews:0,trial_end};
+      if(phone){insertData.phone=phone.trim();insertData.whatsapp=phone.trim();}
+      const {data,error}=await db.from("users").insert(insertData).select().single();
       setLoading(false);
-      if(!res.ok||!data.success){setErr(data.error||"Error en registro.");return;}
-      localStorage.setItem("oy_user",JSON.stringify(data.user));
-      fbqEvent("CompleteRegistration",{content_name:"cliente"});
-      gtagEvent("sign_up",{method:"email",user_type:"cliente"});
+      if(error){setErr("Error: "+error.message);return;}
+      if(!data){setErr("Error creando cuenta.");return;}
+      localStorage.setItem("oy_user",JSON.stringify(data));
+        fbqEvent("CompleteRegistration",{content_name:"cliente"});
+        gtagEvent("sign_up",{method:"email",user_type:"cliente"});
         onLogin(data as UserRow);
-fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY},body:JSON.stringify({type:"bienvenida_cliente",to:email.toLowerCase(),name:name.trim()})});
+fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method:"POST",headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE"},body:JSON.stringify({type:"bienvenida_cliente",to:email.toLowerCase(),name:name.trim()})});
+      // Ofrecer guardar con biometría
+    if(window.PublicKeyCredential&&localStorage.getItem("oy_biometric")!=="declined"){
+      setTimeout(()=>{
+        const ok=confirm("¿Quieres entrar con huella o Face ID la próxima vez?");
+        if(ok){
+          localStorage.setItem("oy_biometric_email",email.toLowerCase());
+          localStorage.setItem("oy_biometric_pass",pass);
+          localStorage.setItem("oy_biometric","enabled");
+        } else {
+          localStorage.setItem("oy_biometric","declined");
+        }
+      },500);
+    }
     }catch{setLoading(false);setErr("Error de conexión.");}
   };
 
@@ -2934,20 +2945,16 @@ fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method
         setPendingPriceId(resolvedPriceId);
         setShowRegisterStripe(true);
       } else {
-    // Plan gratis → crear cuenta via edge function (bcrypt)
+        // Plan gratis → crear cuenta directamente
         const trial_end=new Date(Date.now()+30*86400000).toISOString().split("T")[0];
-        const res=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/auth-handler",{
-          method:"POST",
-          headers:{"Content-Type":"application/json"},
-          body:JSON.stringify({action:"register",name:name.trim(),email:email.toLowerCase().trim(),password:pass,phone:phone.trim(),type:"profesional",plan:"gratis",trade,zone,trial_end})
-        });
-        const data=await res.json();
-        setLoading(false);
-        if(!res.ok||!data.success){setErr(data.error||"Error en registro.");return;}
-        localStorage.setItem("oy_user",JSON.stringify(data.user));
-        fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+SUPABASE_KEY},body:JSON.stringify({type:"bienvenida_pro",to:email.toLowerCase().trim(),name:name.trim()})});
+        const insertData:any={name:name.trim(),email:email.toLowerCase().trim(),password:pass,phone:phone.trim(),type:"profesional",plan:"gratis",trade,zone,bio:"",price:30,available:true,verified:false,jobs:0,rating:0,reviews:0,trial_end,whatsapp:phone.trim(),free_quote:true,service_zones:[zone],schedule:"Lunes a Viernes",response_time:"24h",experience_years:0,specialties:[]};
+        const {data,error}=await db.from("users").insert(insertData).select().single();
+        if(error){setErr("Error: "+error.message);return;}
+        if(!data){setErr("Error creando cuenta.");return;}
+        localStorage.setItem("oy_user",JSON.stringify(data));
+        fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method:"POST",headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE"},body:JSON.stringify({type:"bienvenida_pro",to:email.toLowerCase().trim(),name:name.trim()})});
         resetForm();
-        onLogin(data.user as UserRow);
+        onLogin(data as UserRow);
       }
     }catch{setLoading(false);setErr("Error de conexión.");}
   };
@@ -2991,7 +2998,7 @@ fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method
             const {data,error}=await db.from("users").insert(insertData).select().single();
             if(error){const isDupe=error.message?.includes("duplicate")||error.message?.includes("unique");setShowRegisterStripe(false);setPendingProFormData(null);setErr(isDupe?"Tu email ya está registrado. Inicia sesión y actualiza tu plan desde el perfil.":"Pago procesado pero hubo un error creando tu cuenta. Contacta con soporte: admin@oficioya.com");return;}
             if(!data){setShowRegisterStripe(false);setPendingProFormData(null);setErr("Pago procesado pero hubo un error creando tu cuenta. Contacta con soporte: admin@oficioya.com");return;}
-            fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY},body:JSON.stringify({type:"bienvenida_pro",to:pendingProFormData.email,name:pendingProFormData.name})});
+            fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method:"POST",headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE"},body:JSON.stringify({type:"bienvenida_pro",to:pendingProFormData.email,name:pendingProFormData.name})});
             setShowRegisterStripe(false);
             setPendingProFormData(null);
             resetForm();
@@ -3036,6 +3043,37 @@ fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method
     </div>
   </div>
 )}
+            {localStorage.getItem("oy_biometric")==="enabled"&&(
+              <button onClick={async()=>{
+                try{
+                  const savedEmail=localStorage.getItem("oy_biometric_email")||"";
+                  const savedPass=localStorage.getItem("oy_biometric_pass")||"";
+                  if(!savedEmail||!savedPass){localStorage.removeItem("oy_biometric");return;}
+                  // Verificar biometría con WebAuthn
+                  const cred=await navigator.credentials.get({
+                    publicKey:{
+                      challenge:new Uint8Array(32),
+                      userVerification:"required",
+                      timeout:60000,
+                    }
+                  } as any);
+                  if(cred){
+                    setEmail(savedEmail);
+                    setPass(savedPass);
+                    setLoading(true);
+                    const {data,error}=await db.from("users").select("*").eq("email",savedEmail).eq("password",savedPass).single();
+                    setLoading(false);
+                    if(error||!data){setErr("Error de autenticación.");return;}
+                    localStorage.setItem("oy_user",JSON.stringify(data));
+                    onLogin(data as UserRow);
+                  }
+                }catch(e){
+                  setErr("Huella no reconocida. Introduce tu contraseña.");
+                }
+              }} style={{width:"100%",padding:"12px",background:"linear-gradient(135deg,#1a1a2e,#0d0d1a)",border:"1px solid "+C.accent+"44",borderRadius:10,color:C.accent,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:14,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginTop:8}}>
+                <span style={{fontSize:20}}>🔐</span> Entrar con huella / Face ID
+              </button>
+            )}
             <div style={{textAlign:"center",marginTop:16}}>
               <p style={{fontSize:13,color:C.muted}}>¿No tienes cuenta? <button onClick={()=>{setMode("pick");resetForm();}} style={{background:"none",border:"none",color:C.accent,cursor:"pointer",fontSize:13,fontWeight:700}}>Regístrate gratis</button></p>
             </div>
@@ -3236,8 +3274,8 @@ function StripePayModal({user,priceId,plan,onClose,onSuccess,isRegistration=fals
         method:"POST",
         headers:{
           "Content-Type":"application/json",
-          "Authorization":"Bearer "+SUPABASE_KEY,
-          "Authorization":"Bearer "+SUPABASE_KEY,
+          "apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE",
+          "Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE",
         },
         body:JSON.stringify({paymentMethodId:paymentMethod.id,email:user.email,nombre:user.name,telefono:user.phone||"",priceId,userId:user.id}),
       });
@@ -3539,7 +3577,7 @@ const loadChats=useCallback(async()=>{
       .filter((id:string)=>id!=="00000000-0000-0000-0000-000000000001");
     if(!ids.length){setChatPartners([]);return;}
 
-const {data:ws}=await db.from("users").select("id,name,email,phone,type,plan,bio,price,trade,zone,rating,reviews,jobs,verified,available,whatsapp,service_zones,schedule,response_time,free_quote,experience_years,specialties,trial_end,joined_at,avatar_url").in("id",ids);
+const {data:ws}=await db.from("users").select("*").in("id",ids);
 if(!ws)return;
 const adminUser=ADMIN_USER;
 const wsFiltered=ws.filter((u:any)=>u.id!=="00000000-0000-0000-0000-000000000002");
@@ -3609,7 +3647,7 @@ useEffect(()=>{
     } 
       else { 
       // Normal message
-      db.from("users").select("id,name,email,phone,type,plan,bio,price,trade,zone,rating,reviews,jobs,verified,available,whatsapp,service_zones,schedule,response_time,free_quote,experience_years,specialties,trial_end,joined_at,avatar_url").eq("id",m.from_id).single().then(({data}:any)=>{
+      db.from("users").select("*").eq("id",m.from_id).single().then(({data}:any)=>{
         const senderName=data?.name||"Cliente";
         // Actualizar notificación
         setInAppNotif({msg:m.text.substring(0,60)+(m.text.length>60?"...":""),from:senderName,fromId:m.from_id,isAdmin:false});
@@ -3839,7 +3877,7 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
           .update({accepted_pros:[...yaAceptados,user.id]})
           .eq("id",requestId);
       }
-      const {data:cliente}=await db.from("users").select("id,name,email,phone,type,plan,bio,price,trade,zone,rating,reviews,jobs,verified,available,whatsapp,service_zones,schedule,response_time,free_quote,experience_years,specialties,trial_end,joined_at,avatar_url").eq("id",req.client_id).single();
+      const {data:cliente}=await db.from("users").select("*").eq("id",req.client_id).single();
       if(cliente){
         await db.from("messages").insert({
           from_id:user.id,
@@ -3876,7 +3914,7 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
   } else {
     setUrgentLead(null);
     if(urgentLead.fromId&&urgentLead.fromId!=="00000000-0000-0000-0000-000000000001"){
-      const {data:cliente}=await db.from("users").select("id,name,email,phone,type,plan,bio,price,trade,zone,rating,reviews,jobs,verified,available,whatsapp,service_zones,schedule,response_time,free_quote,experience_years,specialties,trial_end,joined_at,avatar_url").eq("id",urgentLead.fromId).single();
+      const {data:cliente}=await db.from("users").select("*").eq("id",urgentLead.fromId).single();
       setTab("chats");
       await loadChats();
       await new Promise(r=>setTimeout(r,200));
@@ -3929,7 +3967,7 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
               });
             } else {
               loadChats().then(()=>{
-                db.from("users").select("id,name,email,phone,type,plan,bio,price,trade,zone,rating,reviews,jobs,verified,available,whatsapp,service_zones,schedule,response_time,free_quote,experience_years,specialties,trial_end,joined_at,avatar_url").eq("id",fromId).single().then(({data}:any)=>{
+                db.from("users").select("*").eq("id",fromId).single().then(({data}:any)=>{
                   if(data)setChatUser(data);
                   else setTab("chats");
                 });
@@ -4080,7 +4118,7 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
                     <button onClick={async()=>{
                       await updateJobStatus(j.id,"in_progress");
                       // Abrir chat con cliente
-                      const {data:cliente}=await db.from("users").select("id,name,email,phone,type,plan,bio,price,trade,zone,rating,reviews,jobs,verified,available,whatsapp,service_zones,schedule,response_time,free_quote,experience_years,specialties,trial_end,joined_at,avatar_url").eq("id",j.client_id).single();
+                      const {data:cliente}=await db.from("users").select("*").eq("id",j.client_id).single();
                       if(cliente){
                         await db.from("messages").insert({
                           from_id:user.id,to_id:j.client_id,
