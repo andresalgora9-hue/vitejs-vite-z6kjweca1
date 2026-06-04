@@ -3839,7 +3839,7 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
           .update({accepted_pros:[...yaAceptados,user.id]})
           .eq("id",requestId);
       }
-      const {data:cliente}=await db.from("users").select("*").eq("id",req.client_id).single();
+      const {data:cliente}=await db.from("users").select("id,name,email,phone,type,plan,bio,price,trade,zone,rating,reviews,jobs,verified,available,whatsapp,service_zones,schedule,response_time,free_quote,experience_years,specialties,trial_end,joined_at,avatar_url").eq("id",req.client_id).single();
       if(cliente){
         await db.from("messages").insert({
           from_id:user.id,
