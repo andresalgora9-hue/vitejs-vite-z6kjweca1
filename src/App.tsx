@@ -890,11 +890,10 @@ useEffect(()=>{
     if(inserted){
       setMsgs(prev=>prev.map(m=>m.id===tempId?(inserted as MessageRow):m));
     }
-    fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/send-push",{
-  method:"POST",
-  headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE"},
-  body:JSON.stringify({user_id:toUser.id,title:"💬 "+currentUser.name,body:txt.substring(0,80),url:"/"}),
-}).catch(()=>{});
+    fetch(`${SUPABASE_FUNCTIONS_URL}/send-push`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({user_id:toUser.id,title:"💬 "+currentUser.name,body:txt.substring(0,80),url:"/"})}).catch(()=>{});
+if(toUser.id==="00000000-0000-0000-0000-000000000002"){
+  fetch(`${SUPABASE_FUNCTIONS_URL}/notify-admin`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({type:"mensaje_admin",remitente:currentUser.name,texto:txt})}).catch(()=>{});
+}
     setSending(false);
     inputRef.current?.blur();
   };
@@ -1947,11 +1946,10 @@ const eligibles=((allPros||[]) as UserRow[]).filter(w=>norm(w.trade||"")===norm(
         read:false,
         is_lead_alert:true,
       });
-      fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/send-push",{
-        method:"POST",
-        headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE"},
-        body:JSON.stringify({user_id:pro.id,title:"🔴 Nuevo lead",body:"Un cliente necesita "+oficio+" en "+zona,url:"/"}),
-      }).catch(()=>{});
+      fetch(`${SUPABASE_FUNCTIONS_URL}/send-push`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({user_id:toUser.id,title:"💬 "+currentUser.name,body:txt.substring(0,80),url:"/"})}).catch(()=>{});
+if(toUser.id==="00000000-0000-0000-0000-000000000002"){
+  fetch(`${SUPABASE_FUNCTIONS_URL}/notify-admin`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({type:"mensaje_admin",remitente:currentUser.name,texto:txt})}).catch(()=>{});
+}
       notifiedIds.push(pro.id);
     }
     // Guardar quién fue notificado para la rotación
