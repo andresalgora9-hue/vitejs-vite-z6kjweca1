@@ -890,7 +890,7 @@ useEffect(()=>{
     if(inserted){
       setMsgs(prev=>prev.map(m=>m.id===tempId?(inserted as MessageRow):m));
     }
-    fetch(`${SUPABASE_FUNCTIONS_URL}/send-push`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({user_id:toUser.id,title:"💬 "+currentUser.name,body:txt.substring(0,80),url:"/"})}).catch(()=>{});
+    fetch(`${SUPABASE_FUNCTIONS_URL}/send-push`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({user_id:toUser.id,title:"💬 "+currentUser.name,body:txt.substring(0,80),url:"/chat?with="+currentUser.id})}).catch(()=>{});
 if(toUser.id==="00000000-0000-0000-0000-000000000002"){
   fetch(`${SUPABASE_FUNCTIONS_URL}/notify-admin`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({type:"mensaje_admin",remitente:currentUser.name,texto:txt})}).catch(()=>{});
 }
@@ -1946,7 +1946,7 @@ const eligibles=((allPros||[]) as UserRow[]).filter(w=>norm(w.trade||"")===norm(
         read:false,
         is_lead_alert:true,
       });
-      fetch(`${SUPABASE_FUNCTIONS_URL}/send-push`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({user_id:toUser.id,title:"💬 "+currentUser.name,body:txt.substring(0,80),url:"/"})}).catch(()=>{});
+      fetch(`${SUPABASE_FUNCTIONS_URL}/send-push`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({user_id:toUser.id,title:"💬 "+currentUser.name,body:txt.substring(0,80),url:"/chat?with="+currentUser.id})}).catch(()=>{});
 if(toUser.id==="00000000-0000-0000-0000-000000000002"){
   fetch(`${SUPABASE_FUNCTIONS_URL}/notify-admin`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({type:"mensaje_admin",remitente:currentUser.name,texto:txt})}).catch(()=>{});
 }
@@ -2181,7 +2181,7 @@ function DeleteAccountButton({user,onLogout}:{user:UserRow;onLogout:()=>void}){
 // Busca: "function ClientHome({user,onLogout}:" y reemplaza todo
 // ════════════════════════════════════════════════════════════════
 
-function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
+function ClientHome({user,onLogout,deepLinkChatWith}:{user:UserRow;onLogout:()=>void;deepLinkChatWith?:string|null}){
   const [tab,setTab]=useState<"buscar"|"ranking"|"chats"|"solicitudes"|"perfil">("buscar");
   const [zona,setZona]=useState("Todas");
   const [oficio,setOficio]=useState("Todos");
@@ -2193,6 +2193,12 @@ function ClientHome({user,onLogout}:{user:UserRow;onLogout:()=>void}){
   
   const [selectedWorker,setSelectedWorker]=useState<UserRow|null>(null);
   const [chatWorker,setChatWorker]=useState<UserRow|null>(null);
+  useEffect(()=>{
+    if(!deepLinkChatWith)return;
+    db.from("users").select("*").eq("id",deepLinkChatWith).single().then(({data})=>{
+      if(data){setTab("chats");setChatWorker(data as UserRow);}
+    });
+  },[deepLinkChatWith]);
   const [chatPartners,setChatPartners]=useState<UserRow[]>([]);
 const [loadingChats,setLoadingChats]=useState(true);
   const [toast,setToast]=useState<string|null>(null);
@@ -4582,6 +4588,10 @@ export default function App(){
     const m=path.match(/^\/pro\/(.+)$/);
     return m?m[1]:null;
   });
+  const [deepLinkChatWith,setDeepLinkChatWith]=useState<string|null>(()=>{
+    const params=new URLSearchParams(window.location.search);
+    return params.get("with");
+  });
   
   useEffect(()=>{
     const handler=(e:any)=>{
@@ -4605,9 +4615,13 @@ export default function App(){
     if('serviceWorker' in navigator){
       navigator.serviceWorker.register('/sw.js').then(()=>{}).catch(()=>{});
     }
-    const s=localStorage.getItem("oy_user");
+   const s=localStorage.getItem("oy_user");
     if(s){try{setUser(JSON.parse(s));}catch{localStorage.removeItem("oy_user");}}
     setReady(true);
+    // Limpiar el parámetro ?with= de la URL sin recargar
+    if(new URLSearchParams(window.location.search).get("with")){
+      window.history.replaceState({},"",window.location.pathname);
+    }
     const _lastVisit=sessionStorage.getItem("oy_visited");
 if(!_lastVisit){
   sessionStorage.setItem("oy_visited","1");
@@ -4717,7 +4731,7 @@ if(!_lastVisit){
     `}</style>
     {!user&&<Auth onLogin={login} />}
     {user&&user.type==="admin"&&<Admin onLogout={logout} />}
-    {user&&user.type==="profesional"&&<ProDashboard user={user} onLogout={logout} onUpdate={update} />}
-    {user&&user.type==="cliente"&&<ClientHome user={user} onLogout={logout} />}
+    {user&&user.type==="profesional"&&<ProDashboard user={user} onLogout={logout} onUpdate={update} deepLinkChatWith={deepLinkChatWith} />}
+{user&&user.type==="cliente"&&<ClientHome user={user} onLogout={logout} deepLinkChatWith={deepLinkChatWith} />}
 </Sentry.ErrorBoundary>);
 }
