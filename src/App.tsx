@@ -2922,19 +2922,6 @@ const handleForgot=async()=>{
         gtagEvent("sign_up",{method:"email",user_type:"cliente"});
         onLogin(result.user as UserRow);
 fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method:"POST",headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE"},body:JSON.stringify({type:"bienvenida_cliente",to:email.toLowerCase(),name:name.trim()})});
-      // Ofrecer guardar con biometría
-    if(window.PublicKeyCredential&&localStorage.getItem("oy_biometric")!=="declined"){
-      setTimeout(()=>{
-        const ok=confirm("¿Quieres entrar con huella o Face ID la próxima vez?");
-        if(ok){
-          localStorage.setItem("oy_biometric_email",email.toLowerCase());
-          localStorage.setItem("oy_biometric_pass",pass);
-          localStorage.setItem("oy_biometric","enabled");
-        } else {
-          localStorage.setItem("oy_biometric","declined");
-        }
-      },500);
-    }
     }catch{setLoading(false);setErr("Error de conexión.");}
   };
 
@@ -3067,37 +3054,6 @@ fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method
     </div>
   </div>
 )}
-            {localStorage.getItem("oy_biometric")==="enabled"&&(
-              <button onClick={async()=>{
-                try{
-                  const savedEmail=localStorage.getItem("oy_biometric_email")||"";
-                  const savedPass=localStorage.getItem("oy_biometric_pass")||"";
-                  if(!savedEmail||!savedPass){localStorage.removeItem("oy_biometric");return;}
-                  // Verificar biometría con WebAuthn
-                  const cred=await navigator.credentials.get({
-                    publicKey:{
-                      challenge:new Uint8Array(32),
-                      userVerification:"required",
-                      timeout:60000,
-                    }
-                  } as any);
-                  if(cred){
-                    setEmail(savedEmail);
-                    setPass(savedPass);
-                    setLoading(true);
-                    const {data,error}=await db.from("users").select("*").eq("email",savedEmail).eq("password",savedPass).single();
-                    setLoading(false);
-                    if(error||!data){setErr("Error de autenticación.");return;}
-                    localStorage.setItem("oy_user",JSON.stringify(data));
-                    onLogin(data as UserRow);
-                  }
-                }catch(e){
-                  setErr("Huella no reconocida. Introduce tu contraseña.");
-                }
-              }} style={{width:"100%",padding:"12px",background:"linear-gradient(135deg,#1a1a2e,#0d0d1a)",border:"1px solid "+C.accent+"44",borderRadius:10,color:C.accent,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:14,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginTop:8}}>
-                <span style={{fontSize:20}}>🔐</span> Entrar con huella / Face ID
-              </button>
-            )}
             <div style={{textAlign:"center",marginTop:16}}>
               <p style={{fontSize:13,color:C.muted}}>¿No tienes cuenta? <button onClick={()=>{setMode("pick");resetForm();}} style={{background:"none",border:"none",color:C.accent,cursor:"pointer",fontSize:13,fontWeight:700}}>Regístrate gratis</button></p>
             </div>
