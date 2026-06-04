@@ -3419,6 +3419,12 @@ function PresupuestoForm({msg,proId,proName,proPlan,proRating,onClose,onSent}:{m
         time_estimate:time,
         status:"pending",
       });
+      const newCount=(count||0)+1;
+      if(newCount>=3){
+        fetch(`${SUPABASE_FUNCTIONS_URL}/send-push`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({user_id:req.client_id,title:"🎉 ¡Ya tienes 3 presupuestos!",body:"Entra a ver las propuestas de los profesionales y elige la que más te convenga.",url:"/"})}).catch(()=>{});
+      } else {
+        fetch(`${SUPABASE_FUNCTIONS_URL}/send-push`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({user_id:req.client_id,title:"💼 Nuevo presupuesto de "+proName,body:"Ha enviado una propuesta por "+price+"€. ¡Entra a verla!",url:"/"})}).catch(()=>{});
+      }
     }
     setSending(false);
     onSent();
