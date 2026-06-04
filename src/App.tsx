@@ -2886,10 +2886,17 @@ const handleForgot=async()=>{
   const login=async()=>{
     if(!email||!pass){setErr("Introduce email y contraseña.");return;}
     setLoading(true);setErr("");
-    const {data,error}=await db.from("users").select("*").eq("email",email.toLowerCase()).eq("password",pass).single();
-    setLoading(false);
-    if(error||!data){setErr("Email o contraseña incorrectos.");return;}
-    localStorage.setItem("oy_user",JSON.stringify(data));onLogin(data as UserRow);
+    try{
+      const res=await fetch(`${SUPABASE_FUNCTIONS_URL}/auth-handler`,{
+        method:"POST",
+        headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":`Bearer ${SUPABASE_KEY}`},
+        body:JSON.stringify({action:"login",email:email.toLowerCase(),password:pass})
+      });
+      const result=await res.json();
+      setLoading(false);
+      if(!result.success){setErr(result.error||"Email o contraseña incorrectos.");return;}
+      localStorage.setItem("oy_user",JSON.stringify(result.user));onLogin(result.user as UserRow);
+    }catch{setLoading(false);setErr("Error de conexión.");}
   };
 
   const registerCliente=async()=>{
