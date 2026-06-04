@@ -2914,19 +2914,6 @@ const handleForgot=async()=>{
       gtagEvent("sign_up",{method:"email",user_type:"cliente"});
         onLogin(data as UserRow);
 fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY},body:JSON.stringify({type:"bienvenida_cliente",to:email.toLowerCase(),name:name.trim()})});
-      // Ofrecer guardar con biometría
-    if(window.PublicKeyCredential&&localStorage.getItem("oy_biometric")!=="declined"){
-      setTimeout(()=>{
-        const ok=confirm("¿Quieres entrar con huella o Face ID la próxima vez?");
-        if(ok){
-          localStorage.setItem("oy_biometric_email",email.toLowerCase());
-          localStorage.setItem("oy_biometric_pass",pass);
-          localStorage.setItem("oy_biometric","enabled");
-        } else {
-          localStorage.setItem("oy_biometric","declined");
-        }
-      },500);
-    }
     }catch{setLoading(false);setErr("Error de conexión.");}
   };
 
