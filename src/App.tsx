@@ -3609,7 +3609,7 @@ useEffect(()=>{
     } 
       else { 
       // Normal message
-      db.from("users").select("*").eq("id",m.from_id).single().then(({data}:any)=>{
+      db.from("users").select("id,name,email,phone,type,plan,bio,price,trade,zone,rating,reviews,jobs,verified,available,whatsapp,service_zones,schedule,response_time,free_quote,experience_years,specialties,trial_end,joined_at,avatar_url").eq("id",m.from_id).single().then(({data}:any)=>{
         const senderName=data?.name||"Cliente";
         // Actualizar notificación
         setInAppNotif({msg:m.text.substring(0,60)+(m.text.length>60?"...":""),from:senderName,fromId:m.from_id,isAdmin:false});
