@@ -2688,6 +2688,32 @@ return <GCard key={w.id} onClick={async()=>{
             <span style={{flex:1,fontSize:11,color:C.mutedL,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" as const}}>{getDeepLinkUrl(user)}</span>
           </div>
         </GCard>
+          <GCard style={{marginBottom:14}}>
+            <p style={{fontWeight:700,color:C.text,fontSize:13,marginBottom:12}}>🔒 Cambiar contraseña</p>
+            {(()=>{
+              const [cp1,setCp1]=React.useState("");
+              const [cp2,setCp2]=React.useState("");
+              const [cpMsg,setCpMsg]=React.useState("");
+              const [cpLoading,setCpLoading]=React.useState(false);
+              return(<>
+                <input value={cp1} onChange={e=>setCp1(e.target.value)} type="password" placeholder="Nueva contraseña" style={{width:"100%",padding:"10px 12px",background:C.surface,border:"1px solid "+C.border,borderRadius:8,color:C.text,fontFamily:"'DM Sans',sans-serif",fontSize:13,marginBottom:8,boxSizing:"border-box" as const}}/>
+                <input value={cp2} onChange={e=>setCp2(e.target.value)} type="password" placeholder="Repetir contraseña" style={{width:"100%",padding:"10px 12px",background:C.surface,border:"1px solid "+C.border,borderRadius:8,color:C.text,fontFamily:"'DM Sans',sans-serif",fontSize:13,marginBottom:10,boxSizing:"border-box" as const}}/>
+                {cpMsg&&<p style={{fontSize:12,color:cpMsg.startsWith("✅")?C.green:C.red,marginBottom:8}}>{cpMsg}</p>}
+                <button disabled={cpLoading} onClick={async()=>{
+                  if(cp1.length<6){setCpMsg("Mínimo 6 caracteres.");return;}
+                  if(cp1!==cp2){setCpMsg("Las contraseñas no coinciden.");return;}
+                  setCpLoading(true);setCpMsg("");
+                  const res=await fetch(`${SUPABASE_FUNCTIONS_URL}/auth-handler`,{method:"POST",headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":`Bearer ${SUPABASE_KEY}`},body:JSON.stringify({action:"reset_password",userId:user.id,password:cp1})});
+                  const result=await res.json();
+                  setCpLoading(false);
+                  if(result.success){setCpMsg("✅ Contraseña actualizada.");setCp1("");setCp2("");}
+                  else{setCpMsg("❌ Error al actualizar. Inténtalo de nuevo.");}
+                }} style={{width:"100%",padding:"10px",background:C.accent,border:"none",borderRadius:8,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,cursor:"pointer"}}>
+                  {cpLoading?"Guardando...":"Guardar contraseña"}
+                </button>
+              </>);
+            })()}
+          </GCard>
           <Btn full outline danger onClick={onLogout} color={C.red}>Cerrar sesión</Btn>
           <DeleteAccountButton user={user} onLogout={onLogout}/>
         </>)}
@@ -2866,7 +2892,7 @@ const handleForgot=async()=>{
     setForgotLoading(false);
     return;
   }
-  await db.from("users").update({password:nueva_pass}).eq("id",usr.id);
+  await fetch(`${SUPABASE_FUNCTIONS_URL}/auth-handler`,{method:"POST",headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":`Bearer ${SUPABASE_KEY}`},body:JSON.stringify({action:"reset_password",userId:usr.id,password:nueva_pass})});
   setForgotMsg("✅ ¡Enviado! Revisa tu correo con la nueva contraseña.");
   setForgotLoading(false);
 };
@@ -4339,6 +4365,32 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
           </div>
           <Btn full onClick={()=>{shareProfile(user);showToast("✓ Link copiado al portapapeles");}}>Compartir perfil</Btn>
         </GCard>
+          <GCard style={{marginBottom:14}}>
+            <p style={{fontWeight:700,color:C.text,fontSize:13,marginBottom:12}}>🔒 Cambiar contraseña</p>
+            {(()=>{
+              const [cp1,setCp1]=React.useState("");
+              const [cp2,setCp2]=React.useState("");
+              const [cpMsg,setCpMsg]=React.useState("");
+              const [cpLoading,setCpLoading]=React.useState(false);
+              return(<>
+                <input value={cp1} onChange={e=>setCp1(e.target.value)} type="password" placeholder="Nueva contraseña" style={{width:"100%",padding:"10px 12px",background:C.surface,border:"1px solid "+C.border,borderRadius:8,color:C.text,fontFamily:"'DM Sans',sans-serif",fontSize:13,marginBottom:8,boxSizing:"border-box" as const}}/>
+                <input value={cp2} onChange={e=>setCp2(e.target.value)} type="password" placeholder="Repetir contraseña" style={{width:"100%",padding:"10px 12px",background:C.surface,border:"1px solid "+C.border,borderRadius:8,color:C.text,fontFamily:"'DM Sans',sans-serif",fontSize:13,marginBottom:10,boxSizing:"border-box" as const}}/>
+                {cpMsg&&<p style={{fontSize:12,color:cpMsg.startsWith("✅")?C.green:C.red,marginBottom:8}}>{cpMsg}</p>}
+                <button disabled={cpLoading} onClick={async()=>{
+                  if(cp1.length<6){setCpMsg("Mínimo 6 caracteres.");return;}
+                  if(cp1!==cp2){setCpMsg("Las contraseñas no coinciden.");return;}
+                  setCpLoading(true);setCpMsg("");
+                  const res=await fetch(`${SUPABASE_FUNCTIONS_URL}/auth-handler`,{method:"POST",headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":`Bearer ${SUPABASE_KEY}`},body:JSON.stringify({action:"reset_password",userId:user.id,password:cp1})});
+                  const result=await res.json();
+                  setCpLoading(false);
+                  if(result.success){setCpMsg("✅ Contraseña actualizada.");setCp1("");setCp2("");}
+                  else{setCpMsg("❌ Error al actualizar. Inténtalo de nuevo.");}
+                }} style={{width:"100%",padding:"10px",background:C.accent,border:"none",borderRadius:8,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,cursor:"pointer"}}>
+                  {cpLoading?"Guardando...":"Guardar contraseña"}
+                </button>
+              </>);
+            })()}
+          </GCard>
         <Btn full outline danger onClick={onLogout} color={C.red}>Cerrar sesión</Btn>
           <ProDeleteAccountButton user={user} onLogout={onLogout}/>
             </>)}
