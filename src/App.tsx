@@ -798,6 +798,8 @@ function ChatPanel({toUser,currentUser,onClose,onViewProfile}:{toUser:UserRow;cu
   const [visitDesc,setVisitDesc]=useState("");
   const [sendingVisit,setSendingVisit]=useState(false);
   const [inputFocused,setInputFocused]=useState(false);
+  const [uploadingFile,setUploadingFile]=useState(false);
+const fileInputRef=useRef<HTMLInputElement>(null);
   const bottomRef=useRef<HTMLDivElement>(null);
   const inputRef=useRef<HTMLInputElement>(null);
   const col=wColor(toUser.id);
@@ -897,6 +899,32 @@ if(toUser.id==="00000000-0000-0000-0000-000000000002"){
     setSending(false);
     inputRef.current?.blur();
   };
+  setSending(false);
+    inputRef.current?.blur();
+  };
+
+  const sendFile=async(file:File)=>{
+    if(uploadingFile)return;
+    setUploadingFile(true);
+    try{
+      const ext=file.name.split(".").pop()?.toLowerCase()||"bin";
+      const isImage=["jpg","jpeg","png","gif","webp","heic"].includes(ext);
+      const isVideo=["mp4","mov","avi","mkv"].includes(ext);
+      const fileName=`chat/${currentUser.id}-${Date.now()}.${ext}`;
+      const toUpload=isImage?await compressImage(file):file;
+      const {error}=await db.storage.from("photos").upload(fileName,toUpload,{contentType:file.type,upsert:true});
+      if(error){console.error(error);return;}
+      const fileUrl=STORAGE_URL+fileName;
+      let msgText="";
+      if(isImage)msgText=`📎 IMAGEN:${fileUrl}`;
+      else if(isVideo)msgText=`📎 VIDEO:${fileUrl}`;
+      else msgText=`📎 ARCHIVO:${file.name}:${fileUrl}`;
+      await db.from("messages").insert({from_id:currentUser.id,to_id:toUser.id,text:msgText,read:false});
+      fetch(`${SUPABASE_FUNCTIONS_URL}/send-push`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({user_id:toUser.id,title:"📎 "+currentUser.name,body:isImage?"Te ha enviado una foto":isVideo?"Te ha enviado un vídeo":"Te ha enviado un archivo",url:"/chat?with="+currentUser.id})}).catch(()=>{});
+    }finally{setUploadingFile(false);}
+  };
+
+  const handleKeyDown=(e:React.KeyboardEvent)=>{
 
   const handleKeyDown=(e:React.KeyboardEvent)=>{
     if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send();}
