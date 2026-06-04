@@ -2957,11 +2957,18 @@ fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method
       } else {
         // Plan gratis → crear cuenta directamente
         const trial_end=new Date(Date.now()+30*86400000).toISOString().split("T")[0];
-        const insertData:any={name:name.trim(),email:email.toLowerCase().trim(),password:pass,phone:phone.trim(),type:"profesional",plan:"gratis",trade,zone,bio:"",price:30,available:true,verified:false,jobs:0,rating:0,reviews:0,trial_end,whatsapp:phone.trim(),free_quote:true,service_zones:[zone],schedule:"Lunes a Viernes",response_time:"24h",experience_years:0,specialties:[]};
-        const {data,error}=await db.from("users").insert(insertData).select().single();
-        if(error){setErr("Error: "+error.message);return;}
-        if(!data){setErr("Error creando cuenta.");return;}
-        localStorage.setItem("oy_user",JSON.stringify(data));
+        const res=await fetch(`${SUPABASE_FUNCTIONS_URL}/auth-handler`,{
+        method:"POST",
+        headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":`Bearer ${SUPABASE_KEY}`},
+        body:JSON.stringify({action:"register",email:email.toLowerCase().trim(),password:pass,name:name.trim(),type:"profesional",phone:phone.trim(),trial_end})
+      });
+      const result=await res.json();
+      setLoading(false);
+      if(!result.success){setErr(result.error||"Error creando cuenta.");return;}
+      await db.from("users").update({trade,zone,price:30,whatsapp:phone.trim(),free_quote:true,service_zones:[zone],schedule:"Lunes a Viernes",response_time:"24h",experience_years:0,specialties:[]}).eq("id",result.user.id);
+      const data={...result.user,trade,zone};
+      setPendingProFormData(null);
+      localStorage.setItem("oy_user",JSON.stringify(data));
         fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method:"POST",headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE"},body:JSON.stringify({type:"bienvenida_pro",to:email.toLowerCase().trim(),name:name.trim()})});
         resetForm();
         onLogin(data as UserRow);
