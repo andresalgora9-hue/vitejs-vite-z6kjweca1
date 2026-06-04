@@ -8,6 +8,6 @@
     { "source": "/limpieza-sevilla",     "destination": "/limpieza-sevilla.html" },
     { "source": "/reformas-sevilla",     "destination": "/reformas-sevilla.html" },
     { "source": "/climatizacion-sevilla","destination": "/climatizacion-sevilla.html" },
-    { "source": "/(.*)",                 "destination": "/index.html" }
+    { "source": "/pro/:slug",            "destination": "/pro/index.html" },     { "source": "/(.*)",                 "destination": "/index.html" }
   ]
 }
