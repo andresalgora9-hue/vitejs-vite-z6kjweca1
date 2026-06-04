@@ -3059,16 +3059,6 @@ fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{method
                       timeout:60000,
                     }
                   } as any);
-                  if(cred){
-                    setEmail(savedEmail);
-                    setPass(savedPass);
-                    setLoading(true);
-                    const {data,error}=await db.from("users").select("*").eq("email",savedEmail).eq("password",savedPass).single();
-                    setLoading(false);
-                    if(error||!data){setErr("Error de autenticación.");return;}
-                    localStorage.setItem("oy_user",JSON.stringify(data));
-                    onLogin(data as UserRow);
-                  }
                 }catch(e){
                   setErr("Huella no reconocida. Introduce tu contraseña.");
                 }
