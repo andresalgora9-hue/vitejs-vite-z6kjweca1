@@ -1213,7 +1213,17 @@ if(toUser.id==="00000000-0000-0000-0000-000000000002"){
                     boxShadow:isMe?"0 2px 8px "+displayColor+"33":"0 1px 4px rgba(0,0,0,0.3)",
                     transition:"all 0.15s",
                   }}>
-                    <p style={{fontSize:14,color:isMe?"#000":"#E8E8F0",lineHeight:1.55,wordBreak:"break-word"}}>{m.text}</p>
+                    <div style={{fontSize:14,color:isMe?"#000":"#E8E8F0",lineHeight:1.55,wordBreak:"break-word"}}>
+{m.text.startsWith("📎 IMAGEN:")?
+  <img src={m.text.replace("📎 IMAGEN:","")} style={{maxWidth:"100%",maxHeight:220,borderRadius:10,display:"block",cursor:"pointer"}} onClick={()=>window.open(m.text.replace("📎 IMAGEN:",""),"_blank")} />
+:m.text.startsWith("📎 VIDEO:")?
+  <video src={m.text.replace("📎 VIDEO:","")} controls style={{maxWidth:"100%",maxHeight:200,borderRadius:10,display:"block"}} />
+:m.text.startsWith("📎 ARCHIVO:")?
+  <a href={m.text.split(":")[2]} target="_blank" rel="noreferrer" style={{color:isMe?"#000":C.accent,fontSize:13,display:"flex",alignItems:"center",gap:6}}>
+    <span>📄</span>{m.text.split(":")[1]}
+  </a>
+:m.text}
+</div>
                   </div>
                 )}
                 {/* Timestamp — only for last in group */}
