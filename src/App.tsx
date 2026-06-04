@@ -1895,7 +1895,7 @@ function SolicitudesTab({user,workers,onWorkerSelect,onChat}:{user:UserRow;worke
 
   if(req){
     // Solo elite y pro, filtrados por oficio y zona
-    const {data:allPros}=await db.from("users").select("*").eq("type","profesional").eq("available",true).in("plan",["elite","pro"]);
+    const {data:allPros}=await db.from("users").select("id,name,email,phone,type,plan,bio,price,trade,zone,rating,reviews,jobs,verified,available,whatsapp,service_zones,schedule,response_time,free_quote,experience_years,specialties,trial_end,joined_at,avatar_url,map_lat,map_lng,show_on_map").eq("type","profesional").eq("available",true).in("plan",["elite","pro"]);
 const norm=(s:string)=>s?.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim()||"";
 const eligibles=((allPros||[]) as UserRow[]).filter(w=>norm(w.trade||"")===norm(oficio));
     // Separar y barajar aleatoriamente
@@ -2195,7 +2195,7 @@ const [loadingChats,setLoadingChats]=useState(true);
 
   const loadWorkers=useCallback(async()=>{
     setLoading(true);
-    const {data}=await db.from("users").select("*").eq("type","profesional");
+    const {data}=await db.from("users").select("id,name,email,phone,type,plan,bio,price,trade,zone,rating,reviews,jobs,verified,available,whatsapp,service_zones,schedule,response_time,free_quote,experience_years,specialties,trial_end,joined_at,avatar_url,map_lat,map_lng,show_on_map").eq("type","profesional");
     const sorted=(data||[]).sort((a:UserRow,b:UserRow)=>{
       const order:Record<Plan,number>={elite:3,pro:2,basico:1,gratis:0};
       return order[b.plan as Plan]-order[a.plan as Plan]||b.rating-a.rating;
