@@ -1250,6 +1250,10 @@ if(toUser.id==="00000000-0000-0000-0000-000000000002"){
         display:"flex",gap:8,alignItems:"flex-end",flexShrink:0,
         transition:"padding 0.2s",
       }}>
+        <input ref={fileInputRef} type="file" accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx" style={{display:"none"}} onChange={e=>{const f=e.target.files?.[0];if(f)sendFile(f);e.target.value="";}} />
+        <button onClick={()=>fileInputRef.current?.click()} disabled={uploadingFile} style={{width:40,height:40,flexShrink:0,background:C.surface,border:"1px solid "+C.border,borderRadius:"50%",color:uploadingFile?C.muted:C.accent,cursor:uploadingFile?"not-allowed":"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,transition:"all 0.2s"}}>
+          {uploadingFile?"⟳":"📎"}
+        </button>
         <div style={{
           flex:1,display:"flex",alignItems:"center",
           background:inputFocused?C.card+"EE":C.surface,
