@@ -3505,7 +3505,7 @@ function ProDeleteAccountButton({user,onLogout}:{user:UserRow;onLogout:()=>void}
   );
 }
 // ─── PRO DASHBOARD ───
-function ProDashboard({user,onLogout,onUpdate}:{user:UserRow;onLogout:()=>void;onUpdate:(u:UserRow)=>void}){
+function ProDashboard({user,onLogout,onUpdate,deepLinkChatWith}:{user:UserRow;onLogout:()=>void;onUpdate:(u:UserRow)=>void;deepLinkChatWith?:string|null}){
   const [tab,setTab]=useState<"inicio"|"chats"|"trabajos"|"perfil"|"planes">("inicio");
   const [toast,setToast]=useState<string|null>(null);
   const [saving,setSaving]=useState(false);
