@@ -3592,17 +3592,16 @@ const [chatUser,setChatUser]=useState<UserRow|null>(null);
       if(perm==="default"){
         await new Promise(r=>setTimeout(r,3000));
         perm=await Notification.requestPermission();
-      }
-      if(perm==="granted"){
-        await subscribeToPush(user.id);
-        // Notificación de confirmación solo si acaba de aceptar
-        if(Notification.permission==="granted"){
+        if(perm==="granted"){
+          await subscribeToPush(user.id);
           const reg=await navigator.serviceWorker.ready;
           reg.showNotification("🔔 OfficioYa activado",{
             body:"Recibirás alertas de nuevos clientes aunque el móvil esté bloqueado",
             icon:"/icon-192.png",
           });
         }
+      } else if(perm==="granted"){
+        await subscribeToPush(user.id);
       }
     };
     setupPush();
