@@ -1964,7 +1964,7 @@ function SolicitudesTab({user,workers,onWorkerSelect,onChat}:{user:UserRow;worke
 
   if(req){
     // Solo elite y pro, filtrados por oficio y zona
-    const {data:allPros}=await db.from("users").select("id,name,trade,zone,service_zones,rating,reviews,jobs,verified,available,plan,bio,price,phone,whatsapp,profile_views,leads_count,trial_end,joined_at,type,category,photos,specialties,experience_years,free_quote,schedule,response_time,company_name").eq("type","profesional").eq("available",true).in("plan",["elite","pro"]);
+    const {data:allPros}=await db.from("users").select("id,name,trade,zone,service_zones,rating,reviews,jobs,verified,available,plan,bio,price,phone,whatsapp,trial_end,joined_at,type,photos,specialties,experience_years,free_quote,schedule,response_time,company_name").eq("type","profesional").eq("available",true).in("plan",["elite","pro"]);
 const norm=(s:string)=>s?.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim()||"";
 const eligibles=((allPros||[]) as UserRow[]).filter(w=>norm(w.trade||"")===norm(oficio));
     // Separar y barajar aleatoriamente
@@ -2269,7 +2269,7 @@ const [loadingChats,setLoadingChats]=useState(true);
 
   const loadWorkers=useCallback(async()=>{
     setLoading(true);
-    const {data}=await db.from("users").select("id,name,trade,zone,service_zones,rating,reviews,jobs,verified,available,plan,bio,price,phone,whatsapp,profile_views,leads_count,trial_end,joined_at,type,category,photos,specialties,experience_years,free_quote,schedule,response_time,company_name").eq("type","profesional");
+    const {data}=await db.from("users").select("id,name,trade,zone,service_zones,rating,reviews,jobs,verified,available,plan,bio,price,phone,whatsapp,trial_end,joined_at,type,photos,specialties,experience_years,free_quote,schedule,response_time,company_name").eq("type","profesional");
     const sorted=(data||[]).sort((a:UserRow,b:UserRow)=>{
       const order:Record<Plan,number>={elite:3,pro:2,basico:1,gratis:0};
       return order[b.plan as Plan]-order[a.plan as Plan]||b.rating-a.rating;
