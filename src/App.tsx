@@ -4669,15 +4669,15 @@ if(!_lastVisit){
   setUser(u);
   localStorage.setItem("oy_user",JSON.stringify(u));
   try{
-    if(\"Notification\" in window){
-      if(Notification.permission===\"granted\"){
-        subscribeToPush(u.id);
-      } else if(Notification.permission===\"default\"){
-        Notification.requestPermission().then(perm=>{
-          if(perm===\"granted\") subscribeToPush(u.id);
-        }).catch(()=>{});
-      }
-    }
+   if("Notification" in window){
+  if(Notification.permission==="granted"){
+    subscribeToPush(u.id);
+  } else if(Notification.permission==="default"){
+    Notification.requestPermission().then(perm=>{
+      if(perm==="granted") subscribeToPush(u.id);
+    }).catch(()=>{});
+  }
+}
   }catch(e){}
 };
  const logout=()=>{setUser(null);localStorage.removeItem("oy_user");};
