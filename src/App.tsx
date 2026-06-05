@@ -899,9 +899,6 @@ if(toUser.id==="00000000-0000-0000-0000-000000000002"){
     setSending(false);
     inputRef.current?.blur();
   };
-  setSending(false);
-    inputRef.current?.blur();
-  };
 
   const sendFile=async(file:File)=>{
     if(uploadingFile)return;
@@ -923,8 +920,6 @@ if(toUser.id==="00000000-0000-0000-0000-000000000002"){
       fetch(`${SUPABASE_FUNCTIONS_URL}/send-push`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({user_id:toUser.id,title:"📎 "+currentUser.name,body:isImage?"Te ha enviado una foto":isVideo?"Te ha enviado un vídeo":"Te ha enviado un archivo",url:"/chat?with="+currentUser.id})}).catch(()=>{});
     }finally{setUploadingFile(false);}
   };
-
-  const handleKeyDown=(e:React.KeyboardEvent)=>{
 
   const handleKeyDown=(e:React.KeyboardEvent)=>{
     if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send();}
@@ -4674,10 +4669,14 @@ if(!_lastVisit){
   setUser(u);
   localStorage.setItem("oy_user",JSON.stringify(u));
   try{
-    if("Notification" in window){
-      Notification.requestPermission().then(perm=>{
-        if(perm==="granted") subscribeToPush(u.id);
-      }).catch(()=>{});
+    if(\"Notification\" in window){
+      if(Notification.permission===\"granted\"){
+        subscribeToPush(u.id);
+      } else if(Notification.permission===\"default\"){
+        Notification.requestPermission().then(perm=>{
+          if(perm===\"granted\") subscribeToPush(u.id);
+        }).catch(()=>{});
+      }
     }
   }catch(e){}
 };
