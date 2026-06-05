@@ -1964,7 +1964,7 @@ function SolicitudesTab({user,workers,onWorkerSelect,onChat}:{user:UserRow;worke
 
   if(req){
     // Solo elite y pro, filtrados por oficio y zona
-    const {data:allPros}=await db.from("users").select("*").eq("type","profesional").eq("available",true).in("plan",["elite","pro"]);
+    const {data:allPros}=await db.from("users").select("id,name,trade,zone,service_zones,rating,reviews,jobs,verified,available,plan,bio,price,phone,whatsapp,profile_views,leads_count,trial_end,joined_at,type,category,photos,specialties,experience_years,free_quote,schedule,response_time,company_name").eq("type","profesional").eq("available",true).in("plan",["elite","pro"]);
 const norm=(s:string)=>s?.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim()||"";
 const eligibles=((allPros||[]) as UserRow[]).filter(w=>norm(w.trade||"")===norm(oficio));
     // Separar y barajar aleatoriamente
@@ -2232,7 +2232,7 @@ function ClientHome({user,onLogout,deepLinkChatWith}:{user:UserRow;onLogout:()=>
   const [chatWorker,setChatWorker]=useState<UserRow|null>(null);
   useEffect(()=>{
     if(!deepLinkChatWith)return;
-    db.from("users").select("*").eq("id",deepLinkChatWith).single().then(({data})=>{
+    db.from("users").select("id,name,trade,zone,rating,reviews,jobs,verified,available,plan,bio,price,phone,whatsapp,type,photos,specialties,experience_years,free_quote,schedule,response_time,company_name,joined_at,trial_end").eq("id",deepLinkChatWith).single().then(({data})=>{
       if(data){setTab("chats");setChatWorker(data as UserRow);}
     });
   },[deepLinkChatWith]);
@@ -2269,7 +2269,7 @@ const [loadingChats,setLoadingChats]=useState(true);
 
   const loadWorkers=useCallback(async()=>{
     setLoading(true);
-    const {data}=await db.from("users").select("*").eq("type","profesional");
+    const {data}=await db.from("users").select("id,name,trade,zone,service_zones,rating,reviews,jobs,verified,available,plan,bio,price,phone,whatsapp,profile_views,leads_count,trial_end,joined_at,type,category,photos,specialties,experience_years,free_quote,schedule,response_time,company_name").eq("type","profesional");
     const sorted=(data||[]).sort((a:UserRow,b:UserRow)=>{
       const order:Record<Plan,number>={elite:3,pro:2,basico:1,gratis:0};
       return order[b.plan as Plan]-order[a.plan as Plan]||b.rating-a.rating;
@@ -2326,7 +2326,7 @@ db.from("users").select("name").eq("id",m.from_id).single().then(({data}:any)=>{
     .filter((id:string)=>id!=="00000000-0000-0000-0000-000000000001");
   if(!ids.length){setChatPartners([]);return;}
 const adminUser=ADMIN_USER;
-const {data:ws}=await db.from("users").select("*").in("id",ids);
+const {data:ws}=await db.from("users").select("id,name,trade,zone,rating,reviews,jobs,verified,available,plan,bio,price,phone,whatsapp,type,photos,specialties,experience_years,free_quote,schedule,response_time,company_name,joined_at,trial_end").in("id",ids);
 if(!ws)return;
 const wsFiltered=ws.filter((u:any)=>u.id!=="00000000-0000-0000-0000-000000000002");
 const allWs=ids.includes("00000000-0000-0000-0000-000000000002")?[...wsFiltered,adminUser]:wsFiltered;
@@ -3631,7 +3631,7 @@ const loadChats=useCallback(async()=>{
       .filter((id:string)=>id!=="00000000-0000-0000-0000-000000000001");
     if(!ids.length){setChatPartners([]);return;}
 
-const {data:ws}=await db.from("users").select("*").in("id",ids);
+const {data:ws}=await db.from("users").select("id,name,trade,zone,rating,reviews,jobs,verified,available,plan,bio,price,phone,whatsapp,type,photos,specialties,experience_years,free_quote,schedule,response_time,company_name,joined_at,trial_end").in("id",ids);
 if(!ws)return;
 const adminUser=ADMIN_USER;
 const wsFiltered=ws.filter((u:any)=>u.id!=="00000000-0000-0000-0000-000000000002");
@@ -3701,7 +3701,7 @@ useEffect(()=>{
     } 
       else { 
       // Normal message
-      db.from("users").select("*").eq("id",m.from_id).single().then(({data}:any)=>{
+      db.from("users").select("id,name,trade,zone,rating,reviews,jobs,verified,available,plan,bio,price,phone,whatsapp,type,photos,specialties,experience_years,free_quote,schedule,response_time,company_name,joined_at,trial_end").eq("id",m.from_id).single().then(({data}:any)=>{
         const senderName=data?.name||"Cliente";
         // Actualizar notificación
         setInAppNotif({msg:m.text.substring(0,60)+(m.text.length>60?"...":""),from:senderName,fromId:m.from_id,isAdmin:false});
@@ -3931,7 +3931,7 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
           .update({accepted_pros:[...yaAceptados,user.id]})
           .eq("id",requestId);
       }
-      const {data:cliente}=await db.from("users").select("*").eq("id",req.client_id).single();
+      const {data:cliente}=await db.from("users").select("id,name,phone,whatsapp,email,type,plan,zone,joined_at,trial_end").eq("id",req.client_id).single();
       if(cliente){
         await db.from("messages").insert({
           from_id:user.id,
@@ -3968,7 +3968,7 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
   } else {
     setUrgentLead(null);
     if(urgentLead.fromId&&urgentLead.fromId!=="00000000-0000-0000-0000-000000000001"){
-      const {data:cliente}=await db.from("users").select("*").eq("id",urgentLead.fromId).single();
+      const {data:cliente}=await db.from("users").select("id,name,phone,whatsapp,email,type,plan,zone,joined_at,trial_end").eq("id",urgentLead.fromId).single();
       setTab("chats");
       await loadChats();
       await new Promise(r=>setTimeout(r,200));
@@ -4021,7 +4021,7 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
               });
             } else {
               loadChats().then(()=>{
-                db.from("users").select("*").eq("id",fromId).single().then(({data}:any)=>{
+                db.from("users").select("id,name,phone,whatsapp,email,type,plan,zone,joined_at,trial_end").eq("id",fromId).single().then(({data}:any)=>{
                   if(data)setChatUser(data);
                   else setTab("chats");
                 });
@@ -4172,7 +4172,7 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
                     <button onClick={async()=>{
                       await updateJobStatus(j.id,"in_progress");
                       // Abrir chat con cliente
-                      const {data:cliente}=await db.from("users").select("*").eq("id",j.client_id).single();
+                      const {data:cliente}=await db.from("users").select("id,name,phone,whatsapp,email,type,plan,zone,joined_at,trial_end").eq("id",j.client_id).single();
                       if(cliente){
                         await db.from("messages").insert({
                           from_id:user.id,to_id:j.client_id,
