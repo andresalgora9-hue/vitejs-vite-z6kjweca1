@@ -16,6 +16,16 @@ const PLAN_COLORS:Record<Plan,string>={gratis:C.muted,basico:C.blue,pro:C.gold,e
 const ADMIN_ID="00000000-0000-0000-0000-000000000002";
 const BOT_ID="00000000-0000-0000-0000-000000000001";
 const TRADES=["Fontanero","Electricista","Pintor","Cerrajero","Albañil","Carpintero","Reformas","Limpieza","Jardinero","Mudanzas","Técnico","Otro"];
+const SUPABASE_URL="https://rjwojxwrsbvwwshwwpvq.supabase.co";
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE";
+const SB_HEADERS={"Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":`Bearer ${SUPABASE_KEY}`};
+
+async function sendPush(userId:string,title:string,body:string,url="/"){
+  try{await fetch(`${SUPABASE_URL}/functions/v1/send-push`,{method:"POST",headers:SB_HEADERS,body:JSON.stringify({user_id:userId,title,body,url})});}catch(_){}
+}
+async function sendAdminMsg(toId:string,text:string){
+  await db.from("messages").insert({from_id:ADMIN_ID,to_id:toId,text,read:false});
+}
 
 function timeAgo(iso:string){
   const d=(Date.now()-new Date(iso).getTime())/1000;
@@ -82,6 +92,31 @@ const NAV:{id:Section;icon:string;label:string;subs:{id:string;label:string}[]}[
   {id:"mensajes",icon:"◈",label:"Mensajes",subs:[{id:"chat",label:"Hub de chat"},{id:"soporte",label:"Enviados"}]},
   {id:"finanzas",icon:"◆",label:"Finanzas",subs:[{id:"mrr",label:"MRR"},{id:"planes",label:"Por plan"},{id:"ltv",label:"LTV pros"}]},
 ];
+
+// Reply box component used inside chat thread
+function AdminReplyBox({targetId,targetName,onSent,users}:{targetId:string;targetName:string;onSent:(m:any)=>void;users:any[]}){
+  const [text,setText]=React.useState("");
+  const [sending,setSending]=React.useState(false);
+  const SUPABASE_URL2="https://rjwojxwrsbvwwshwwpvq.supabase.co";
+  const SUPABASE_KEY2="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE";
+  const SB_H={"Content-Type":"application/json","apikey":SUPABASE_KEY2,"Authorization":`Bearer ${SUPABASE_KEY2}`};
+  const send=async()=>{
+    if(!text.trim())return;
+    setSending(true);
+    const{data:nm}=await db.from("messages").insert({from_id:"00000000-0000-0000-0000-000000000002",to_id:targetId,text:"[Soporte OfficioYa] "+text,read:false}).select().single();
+    try{await fetch(`${SUPABASE_URL2}/functions/v1/send-push`,{method:"POST",headers:SB_H,body:JSON.stringify({user_id:targetId,title:"👑 OfficioYa Soporte",body:text.substring(0,80),url:"/"})});}catch(_){}
+    if(nm)onSent(nm);
+    setText("");setSending(false);
+  };
+  return(
+    <div style={{display:"flex",gap:10}}>
+      <textarea value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send();}}} placeholder={`Mensaje a ${targetName}... (Enter para enviar)`} rows={2} style={{flex:1,background:"#07070f",border:"1px solid #1c1c32",borderRadius:8,padding:"8px 12px",color:"#EEEAF2",fontFamily:"inherit",fontSize:12,outline:"none",resize:"none"}}/>
+      <button onClick={send} disabled={sending||!text.trim()} style={{padding:"8px 16px",background:text.trim()?"#FFB80015":"#10101f",border:`1px solid ${text.trim()?"#FFB80044":"#1c1c32"}`,borderRadius:8,color:text.trim()?"#FFB800":"#44445a",cursor:text.trim()?"pointer":"default",fontWeight:700,fontSize:12,fontFamily:"inherit",alignSelf:"stretch"}}>
+        {sending?"...":"Enviar + Push"}
+      </button>
+    </div>
+  );
+}
 
 export default function Admin({onLogout}:{onLogout:()=>void}){
   const [section,setSection]=useState<Section>("monitor");
@@ -239,9 +274,10 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
     showToast("✓ Usuario desbloqueado");
   };
   const markThreadRead=async(userId:string)=>{
-    await db.from("messages").update({read:true}).eq("to_id",ADMIN_ID).eq("from_id",userId);
+    // Mark all messages in this thread as read
     await db.from("messages").update({read:true}).eq("from_id",userId);
-    setMsgs(prev=>prev.map(m=>m.from_id===userId||m.to_id===userId?{...m,read:true}:m));
+    await db.from("messages").update({read:true}).eq("to_id",userId);
+    setMsgs(prev=>prev.map(m=>(m.from_id===userId||m.to_id===userId)?{...m,read:true}:m));
     showToast("✓ Marcado como leído");
   };
   const approveReview=async(id:string)=>{
@@ -257,21 +293,53 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
     showToast("Reseña rechazada","err");
   };
   const updateReport=async(id:string,status:"pending"|"investigating"|"approved"|"closed")=>{
+    const rep=reports.find((r:any)=>r.id===id);
+    const proId=rep?.worker_id;
+    const clientId=rep?.from_id;
     const{error}=await db.from("reports").update({status}).eq("id",id);
     if(error){showToast("Error al actualizar denuncia","err");return;}
     setReports(p=>p.map((r:any)=>r.id===id?{...r,status}:r));
-    if(status==="approved"){
-      const rep=reports.find((r:any)=>r.id===id);
-      if(rep?.worker_id)await blockUser(rep.worker_id);
-      showToast("🚫 Denuncia aprobada — pro bloqueado","err");
-    }else if(status==="investigating")showToast("🔍 Marcado como en investigación","warn");
-    else if(status==="closed")showToast("✓ Denuncia cerrada");
-    else showToast("Denuncia reabierta","warn");
+    if(status==="investigating"){
+      if(proId){
+        await db.from("messages").insert({from_id:ADMIN_ID,to_id:proId,text:"[OfficioYa] Hemos recibido una denuncia relacionada con tu cuenta. Estamos revisando el caso y nos pondremos en contacto contigo en breve.",read:false});
+        await sendPush(proId,"⚠️ OfficioYa","Tu cuenta está siendo revisada por una denuncia.","/");
+      }
+      if(clientId&&clientId!==proId){
+        await db.from("messages").insert({from_id:ADMIN_ID,to_id:clientId,text:"[OfficioYa] Hemos recibido tu denuncia y estamos investigando el caso. Te mantendremos informado.",read:false});
+        await sendPush(clientId,"🔍 OfficioYa","Tu denuncia está siendo investigada.","/");
+      }
+      showToast("🔍 Investigando — ambos notificados","warn");
+    }else if(status==="approved"){
+      if(proId)await blockUser(proId);
+      if(proId){
+        await db.from("messages").insert({from_id:ADMIN_ID,to_id:proId,text:"[OfficioYa] Tu cuenta ha sido suspendida tras revisar la denuncia. Si crees que es un error, contáctanos.",read:false});
+        await sendPush(proId,"🚫 OfficioYa","Tu cuenta ha sido suspendida.","/");
+      }
+      if(clientId&&clientId!==proId){
+        await db.from("messages").insert({from_id:ADMIN_ID,to_id:clientId,text:"[OfficioYa] Hemos resuelto tu denuncia. El profesional ha sido bloqueado. Gracias por ayudarnos a mantener la calidad.",read:false});
+        await sendPush(clientId,"✅ OfficioYa","Tu denuncia ha sido resuelta.","/");
+      }
+      showToast("🚫 Pro bloqueado — ambos notificados","err");
+    }else if(status==="closed"){
+      if(proId){
+        await db.from("messages").insert({from_id:ADMIN_ID,to_id:proId,text:"[OfficioYa] La denuncia relacionada con tu cuenta ha sido revisada y cerrada sin penalización.",read:false});
+        await sendPush(proId,"✅ OfficioYa","Denuncia cerrada sin penalización.","/");
+      }
+      if(clientId&&clientId!==proId){
+        await db.from("messages").insert({from_id:ADMIN_ID,to_id:clientId,text:"[OfficioYa] Tras revisar tu denuncia hemos decidido cerrarla. Gracias por tu reporte.",read:false});
+        await sendPush(clientId,"✅ OfficioYa","Denuncia cerrada.","/");
+      }
+      showToast("✓ Cerrada — ambos notificados");
+    }else{
+      showToast("Denuncia reabierta","warn");
+    }
   };
   const sendSupport=async()=>{
     if(!selectedUser||!supportMsg.trim())return;
     setSendingMsg(true);
-    await db.from("messages").insert({from_id:ADMIN_ID,to_id:selectedUser.id,text:"[Soporte OfficioYa] "+supportMsg,read:false});
+    const{data:nm}=await db.from("messages").insert({from_id:ADMIN_ID,to_id:selectedUser.id,text:"[Soporte OfficioYa] "+supportMsg,read:false}).select().single();
+    if(nm)setMsgs(prev=>[nm as MessageRow,...prev]);
+    await sendPush(selectedUser.id,"👑 OfficioYa Soporte",supportMsg.substring(0,80),"/");
     setSupportMsg("");setSendingMsg(false);
     showToast("✓ Mensaje enviado a "+selectedUser.name);
   };
@@ -646,61 +714,104 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
     );
   };
 
+  const [newMsgTarget,setNewMsgTarget]=useState<string>("");
+  const [newMsgText,setNewMsgText]=useState<string>("");
+  const [sendingNew,setSendingNew]=useState(false);
+
+  const sendNewMsg=async()=>{
+    if(!newMsgTarget||!newMsgText.trim())return;
+    setSendingNew(true);
+    const target=users.find(u=>u.id===newMsgTarget);
+    await db.from("messages").insert({from_id:ADMIN_ID,to_id:newMsgTarget,text:"[Soporte OfficioYa] "+newMsgText,read:false});
+    if(target)await sendPush(newMsgTarget,"👑 OfficioYa Soporte",newMsgText.substring(0,80),"/");
+    setNewMsgText("");setSendingNew(false);
+    showToast("✓ Mensaje enviado a "+(target?.name||"usuario"));
+  };
+
   const renderMensajes=()=>{
-    const threadMap=new Map<string,{user1:UserRow;user2:UserRow;lastMsg:MessageRow;unread:number}>();
-    msgs.filter(m=>m.from_id!==BOT_ID&&m.from_id!==ADMIN_ID).forEach(m=>{
-      const u1=users.find(u=>u.id===m.from_id);
-      const u2=users.find(u=>u.id===m.to_id);
-      if(!u1||!u2)return;
-      const key=[m.from_id,m.to_id].sort().join("-");
+    // Build threads — include messages to/from ADMIN too
+    const threadMap=new Map<string,{uid:string;user:UserRow|null;lastMsg:MessageRow;unread:number}>();
+    msgs.filter(m=>m.from_id!==BOT_ID).forEach(m=>{
+      // For each message, the "other" party (not admin) is the thread key
+      const otherId=m.from_id===ADMIN_ID?m.to_id:m.to_id===ADMIN_ID?m.from_id:null;
+      // For user-to-user threads, key by sorted pair
+      const key=m.from_id===ADMIN_ID||m.to_id===ADMIN_ID
+        ?(otherId||"")
+        :[m.from_id,m.to_id].sort().join("|");
+      if(!key)return;
       const existing=threadMap.get(key);
-      const unread=!m.read?1:0;
+      const isUnread=!m.read&&m.from_id!==ADMIN_ID;
+      const otherUser=users.find(u=>u.id===key)||users.find(u=>u.id===m.from_id)||users.find(u=>u.id===m.to_id)||null;
       if(!existing||new Date(m.created_at)>new Date(existing.lastMsg.created_at)){
-        threadMap.set(key,{user1:u1,user2:u2,lastMsg:m,unread:(existing?.unread||0)+unread});
-      } else if(unread){
-        threadMap.set(key,{...existing,unread:existing.unread+unread});
+        threadMap.set(key,{uid:key,user:otherUser,lastMsg:m,unread:(existing?.unread||0)+(isUnread?1:0)});
+      }else if(isUnread){
+        threadMap.set(key,{...existing,unread:existing.unread+1});
       }
     });
-    const threads=[...threadMap.values()].sort((a,b)=>new Date(b.lastMsg.created_at).getTime()-new Date(a.lastMsg.created_at).getTime());
+    const threads=[...threadMap.values()]
+      .filter(t=>t.user!==null)
+      .sort((a,b)=>new Date(b.lastMsg.created_at).getTime()-new Date(a.lastMsg.created_at).getTime());
 
     if(chatThread){
-      const threadMsgs=getThreadMsgs(chatThread.user1.id,chatThread.user2.id);
+      const u1=chatThread.user1;
+      const u2=chatThread.user2;
+      const threadMsgs=msgs
+        .filter(m=>(m.from_id===u1.id&&m.to_id===u2.id)||(m.from_id===u2.id&&m.to_id===u1.id))
+        .sort((a,b)=>new Date(a.created_at).getTime()-new Date(b.created_at).getTime());
+      const [replyText,setReplyText]=[chatThread as any,(v:any)=>setChatThread({...chatThread,...v})];
       return(
         <div style={{display:"flex",flexDirection:"column",gap:16}}>
-          <div style={{display:"flex",gap:10,alignItems:"center"}}>
+          <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap" as const}}>
             <button onClick={()=>setChatThread(null)} style={{background:"none",border:`1px solid ${C.border}`,borderRadius:6,color:C.muted,cursor:"pointer",padding:"6px 12px",fontSize:11}}>← Volver</button>
-            <span style={{fontSize:13,fontWeight:700,color:C.text}}>{chatThread.user1.name} ↔ {chatThread.user2.name}</span>
-            <button onClick={()=>markThreadRead(chatThread.user1.id)} style={{marginLeft:"auto",fontSize:10,color:C.green,background:C.greenDim,border:`1px solid ${C.green}44`,borderRadius:6,padding:"5px 12px",cursor:"pointer"}}>✓ Marcar leído</button>
+            <div style={{display:"flex",gap:8,alignItems:"center"}}>
+              <Ava s={u1.name.substring(0,2).toUpperCase()} size={28} color={PLAN_COLORS[u1.plan as Plan]} imgUrl={(u1 as any).avatar_url||""}/>
+              <span style={{fontSize:13,fontWeight:700,color:C.text}}>{u1.name}</span>
+              <span style={{fontSize:11,color:C.muted}}>↔</span>
+              <Ava s={u2.name.substring(0,2).toUpperCase()} size={28} color={PLAN_COLORS[u2.plan as Plan]} imgUrl={(u2 as any).avatar_url||""}/>
+              <span style={{fontSize:13,fontWeight:700,color:C.text}}>{u2.name}</span>
+            </div>
+            <button onClick={async()=>{
+              await db.from("messages").update({read:true}).or(`from_id.eq.${u1.id},from_id.eq.${u2.id}`);
+              setMsgs(prev=>prev.map(m=>(m.from_id===u1.id||m.from_id===u2.id)?{...m,read:true}:m));
+              showToast("✓ Marcado como leído");
+            }} style={{marginLeft:"auto",fontSize:10,color:C.green,background:C.greenDim,border:`1px solid ${C.green}44`,borderRadius:6,padding:"5px 12px",cursor:"pointer"}}>✓ Marcar leído</button>
+            <button onClick={()=>setSelectedUser(u1)} style={{fontSize:10,color:C.accent,background:C.accentDim,border:`1px solid ${C.accent}44`,borderRadius:6,padding:"5px 10px",cursor:"pointer"}}>Ver {u1.name}</button>
           </div>
-          <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:16,maxHeight:500,overflowY:"auto",display:"flex",flexDirection:"column",gap:10}}>
+          <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:16,maxHeight:460,overflowY:"auto",display:"flex",flexDirection:"column",gap:10}}>
             {threadMsgs.map(m=>{
-              const isFrom1=m.from_id===chatThread.user1.id;
+              const isFromU1=m.from_id===u1.id;
+              const isAdmin=m.from_id===ADMIN_ID;
+              const senderName=isAdmin?"👑 Admin":isFromU1?u1.name:u2.name;
               const parsed=parseMsg(m.text);
               return(
-                <div key={m.id} style={{display:"flex",flexDirection:"column",alignItems:isFrom1?"flex-start":"flex-end",gap:4}}>
-                  <span style={{fontSize:9,color:C.muted,fontFamily:"monospace"}}>{isFrom1?chatThread.user1.name:chatThread.user2.name} · {timeAgo(m.created_at)}</span>
-                  <div style={{maxWidth:"75%",background:isFrom1?C.surface:C.accentDim,border:`1px solid ${isFrom1?C.border:C.accent+"44"}`,borderRadius:10,padding:"10px 14px"}}>
+                <div key={m.id} style={{display:"flex",flexDirection:"column",alignItems:isAdmin?"center":isFromU1?"flex-start":"flex-end",gap:3}}>
+                  <span style={{fontSize:9,color:C.muted,fontFamily:"monospace"}}>{senderName} · {timeAgo(m.created_at)}</span>
+                  <div style={{maxWidth:"75%",background:isAdmin?C.accentDim:isFromU1?C.surface:C.blueDim,border:`1px solid ${isAdmin?C.accent+"44":isFromU1?C.border:C.blue+"44"}`,borderRadius:10,padding:"10px 14px"}}>
                     {parsed.type==="image"&&parsed.url?(
                       <div>
                         <img src={parsed.url} style={{maxWidth:220,maxHeight:200,borderRadius:8,cursor:"zoom-in",display:"block"}} onClick={()=>setImageModal(parsed.url!)} onError={(e:any)=>{e.target.style.display="none";}}/>
-                        <span style={{fontSize:10,color:C.muted,marginTop:4,display:"block"}}>📎 Imagen — <button onClick={()=>setImageModal(parsed.url!)} style={{background:"none",border:"none",color:C.accent,cursor:"pointer",fontSize:10,padding:0}}>Ampliar</button></span>
+                        <button onClick={()=>setImageModal(parsed.url!)} style={{background:"none",border:"none",color:C.accent,cursor:"pointer",fontSize:10,padding:"4px 0"}}>🔍 Ampliar</button>
                       </div>
                     ):parsed.type==="video"&&parsed.url?(
                       <div>
                         <video src={parsed.url} controls style={{maxWidth:220,borderRadius:8}}/>
-                        <a href={parsed.url} target="_blank" rel="noreferrer" style={{fontSize:10,color:C.accent,display:"block",marginTop:4}}>📎 Ver vídeo</a>
                       </div>
                     ):parsed.type==="file"&&parsed.url?(
                       <a href={parsed.url} target="_blank" rel="noreferrer" style={{fontSize:12,color:C.accent,textDecoration:"none"}}>📎 {parsed.label}</a>
                     ):(
-                      <p style={{fontSize:12,color:C.text,lineHeight:1.5}}>{m.text}</p>
+                      <p style={{fontSize:12,color:C.text,lineHeight:1.5,margin:0}}>{m.text}</p>
                     )}
                   </div>
-                  {!m.read&&<span style={{fontSize:8,color:C.orange,fontFamily:"monospace"}}>NO LEÍDO</span>}
+                  {!m.read&&m.from_id!==ADMIN_ID&&<span style={{fontSize:8,color:C.orange,fontFamily:"monospace"}}>no leído</span>}
                 </div>
               );
             })}
             {threadMsgs.length===0&&<p style={{color:C.muted,fontSize:12,textAlign:"center"}}>Sin mensajes en este hilo</p>}
+          </div>
+          {/* Reply box */}
+          <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:16}}>
+            <p style={{fontSize:11,color:C.muted,fontFamily:"monospace",marginBottom:8}}>RESPONDER COMO ADMIN → {u1.id===ADMIN_ID?u2.name:u1.name}</p>
+            <AdminReplyBox targetId={u1.id===ADMIN_ID?u2.id:u1.id} targetName={u1.id===ADMIN_ID?u2.name:u1.name} onSent={(m)=>{setMsgs(prev=>[m,...prev]);showToast("✓ Enviado");}} users={users}/>
           </div>
         </div>
       );
@@ -714,24 +825,61 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
           <KpiCard label="No leídos" value={unreadMsgs} color={unreadMsgs>0?C.red:C.green}/>
           <KpiCard label="Total mensajes" value={msgs.length} color={C.muted}/>
         </div>
+
+        {/* Nuevo mensaje a cualquier usuario */}
+        <div style={{background:C.card,border:`1px solid ${C.accent}22`,borderRadius:12,padding:16}}>
+          <p style={{fontSize:11,color:C.accent,fontFamily:"monospace",letterSpacing:"0.1em",marginBottom:12}}>✉ NUEVO MENSAJE DE SOPORTE</p>
+          <div style={{display:"flex",gap:10,alignItems:"flex-start",flexWrap:"wrap" as const}}>
+            <select value={newMsgTarget} onChange={e=>setNewMsgTarget(e.target.value)} style={{flex:1,minWidth:200,background:C.surface,border:`1px solid ${C.border}`,borderRadius:8,padding:"8px 12px",color:newMsgTarget?C.text:C.muted,fontFamily:"inherit",fontSize:12,cursor:"pointer"}}>
+              <option value="">Seleccionar usuario...</option>
+              <optgroup label="PROFESIONALES">{pros.map(u=><option key={u.id} value={u.id}>{u.name} ({u.plan})</option>)}</optgroup>
+              <optgroup label="CLIENTES">{clients.map(u=><option key={u.id} value={u.id}>{u.name}</option>)}</optgroup>
+            </select>
+            <textarea value={newMsgText} onChange={e=>setNewMsgText(e.target.value)} placeholder="Escribe el mensaje..." rows={2} style={{flex:2,minWidth:200,background:C.surface,border:`1px solid ${C.border}`,borderRadius:8,padding:"8px 12px",color:C.text,fontFamily:"inherit",fontSize:12,outline:"none",resize:"none" as const}}/>
+            <button onClick={async()=>{
+              if(!newMsgTarget||!newMsgText.trim())return;
+              setSendingNew(true);
+              const target=users.find(u=>u.id===newMsgTarget);
+              const{data:nm}=await db.from("messages").insert({from_id:ADMIN_ID,to_id:newMsgTarget,text:"[Soporte OfficioYa] "+newMsgText,read:false}).select().single();
+              if(nm)setMsgs(prev=>[nm as MessageRow,...prev]);
+              if(target)await sendPush(newMsgTarget,"👑 OfficioYa Soporte",newMsgText.substring(0,80),"/");
+              setNewMsgText("");setNewMsgTarget("");setSendingNew(false);
+              showToast("✓ Mensaje enviado"+(target?" a "+target.name:""));
+            }} disabled={sendingNew||!newMsgTarget||!newMsgText.trim()} style={{padding:"8px 18px",background:newMsgTarget&&newMsgText.trim()?C.accentDim:C.card,border:`1px solid ${newMsgTarget&&newMsgText.trim()?C.accent+"44":C.border}`,borderRadius:8,color:newMsgTarget&&newMsgText.trim()?C.accent:C.muted,cursor:newMsgTarget&&newMsgText.trim()?"pointer":"default",fontWeight:700,fontSize:12,fontFamily:"inherit",flexShrink:0}}>
+              {sendingNew?"Enviando...":"Enviar + Push"}
+            </button>
+          </div>
+        </div>
+
         <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,overflow:"hidden"}}>
-          {threads.length===0?<div style={{padding:24,textAlign:"center",color:C.muted,fontSize:12}}>Sin conversaciones todavía</div>
-            :threads.map(({user1,user2,lastMsg,unread})=>{
+          {threads.length===0
+            ?<div style={{padding:24,textAlign:"center",color:C.muted,fontSize:12}}>Sin conversaciones todavía</div>
+            :threads.map(({uid,user,lastMsg,unread})=>{
+              if(!user)return null;
               const parsed=parseMsg(lastMsg.text);
               const preview=parsed.type==="image"?"📎 Imagen":parsed.type==="video"?"📎 Vídeo":parsed.type==="file"?`📎 ${parsed.label}`:lastMsg.text.substring(0,70);
+              const isAdminThread=lastMsg.from_id===ADMIN_ID||lastMsg.to_id===ADMIN_ID;
               return(
-                <div key={user1.id+user2.id} style={{padding:"14px 16px",borderBottom:`1px solid ${C.border}`,display:"flex",gap:12,alignItems:"center",cursor:"pointer",background:unread>0?C.accent+"08":"transparent"}}
-                  onClick={()=>setChatThread({user1,user2})}
+                <div key={uid} style={{padding:"12px 16px",borderBottom:`1px solid ${C.border}`,display:"flex",gap:12,alignItems:"center",cursor:"pointer",background:unread>0?C.accent+"08":"transparent"}}
+                  onClick={()=>{
+                    const otherUser=lastMsg.from_id===ADMIN_ID?users.find(u=>u.id===lastMsg.to_id):users.find(u=>u.id===lastMsg.from_id);
+                    const adminRow={id:ADMIN_ID,name:"Admin OfficioYa",email:"admin@oficioya.com",type:"admin",plan:"elite",verified:true,available:true} as UserRow;
+                    if(isAdminThread&&otherUser){setChatThread({user1:adminRow,user2:otherUser});}
+                    else{
+                      const u1=users.find(u=>u.id===lastMsg.from_id);
+                      const u2=users.find(u=>u.id===lastMsg.to_id);
+                      if(u1&&u2)setChatThread({user1:u1,user2:u2});
+                    }
+                  }}
                   onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background=C.cardHover;}}
                   onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background=unread>0?C.accent+"08":"transparent";}}>
-                  <div style={{display:"flex",gap:-8}}>
-                    <Ava s={user1.name.substring(0,2).toUpperCase()} size={32} color={PLAN_COLORS[user1.plan as Plan]} imgUrl={(user1 as any).avatar_url||""}/>
-                  </div>
+                  <Ava s={user.name.substring(0,2).toUpperCase()} size={34} color={PLAN_COLORS[user.plan as Plan]} imgUrl={(user as any).avatar_url||""}/>
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{display:"flex",gap:8,alignItems:"center",marginBottom:3}}>
-                      <span style={{fontSize:12,fontWeight:700,color:unread>0?C.accent:C.text}}>{user1.name}</span>
-                      <span style={{fontSize:10,color:C.muted}}>↔ {user2.name}</span>
-                      {unread>0&&<span style={{fontSize:8,color:C.accent,background:C.accentDim,padding:"1px 5px",borderRadius:3,fontFamily:"monospace",fontWeight:900}}>{unread} NUEVOS</span>}
+                      <span style={{fontSize:12,fontWeight:700,color:unread>0?C.accent:C.text}}>{user.name}</span>
+                      <span style={{fontSize:9,fontFamily:"monospace",color:user.type==="profesional"?C.accent:C.blue,background:(user.type==="profesional"?C.accent:C.blue)+"18",padding:"1px 5px",borderRadius:3}}>{user.type==="profesional"?"PRO":"CLI"}</span>
+                      {isAdminThread&&<span style={{fontSize:9,color:C.gold,fontFamily:"monospace"}}>↔ Admin</span>}
+                      {unread>0&&<span style={{fontSize:8,color:C.accent,background:C.accentDim,padding:"1px 5px",borderRadius:3,fontFamily:"monospace",fontWeight:900}}>{unread} nuevos</span>}
                       <span style={{fontSize:9,color:C.muted,marginLeft:"auto",fontFamily:"monospace"}}>{timeAgo(lastMsg.created_at)}</span>
                     </div>
                     <p style={{fontSize:11,color:C.muted,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{preview}</p>
@@ -745,6 +893,7 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
       </div>
     );
   };
+
 
   const renderMRR=()=>(
     <div style={{display:"flex",flexDirection:"column",gap:20}}>
