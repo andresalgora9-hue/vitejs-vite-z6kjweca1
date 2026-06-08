@@ -89,7 +89,7 @@ const NAV:{id:Section;icon:string;label:string;subs:{id:string;label:string}[]}[
   {id:"profesionales",icon:"🔨",label:"Profesionales",subs:[{id:"activos",label:"Activos"},{id:"trial",label:"En trial"},{id:"riesgo",label:"Riesgo churn"},{id:"sinleads",label:"Sin leads"}]},
   {id:"usuarios",icon:"👤",label:"Usuarios",subs:[{id:"todos",label:"Todos"},{id:"nuevos",label:"Nuevos 7d"}]},
   {id:"disputas",icon:"⚑",label:"Disputas",subs:[{id:"denuncias",label:"Denuncias"},{id:"resenas",label:"Reseñas"},{id:"sugerencias",label:"Sugerencias"}]},
-  {id:"mensajes",icon:"◈",label:"Mensajes",subs:[{id:"chat",label:"Hub de chat"},{id:"soporte",label:"Enviados"}]},
+  {id:"mensajes",icon:"◈",label:"Mensajes",subs:[{id:"chat",label:"Chats con usuarios"},{id:"soporte",label:"Buscar conversación"}]},
   {id:"finanzas",icon:"◆",label:"Finanzas",subs:[{id:"mrr",label:"MRR"},{id:"planes",label:"Por plan"},{id:"ltv",label:"LTV pros"}]},
 ];
 
@@ -160,7 +160,7 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
   const load=useCallback(async()=>{
     setLoading(true);
     const [u,m,j,r,ld,rp]=await Promise.all([
-      db.from("users").select("id,name,email,phone,whatsapp,type,plan,trade,zone,rating,reviews,jobs,verified,available,trial_end,joined_at,avatar_url,bio,price,banned,stripe_customer_id").order("joined_at",{ascending:false}),
+      db.from("users").select("id,name,email,phone,whatsapp,type,plan,trade,zone,rating,reviews,jobs,verified,available,trial_end,joined_at,avatar_url,bio,price,banned").order("joined_at",{ascending:false}),
       db.from("messages").select("id,from_id,to_id,text,read,created_at").order("created_at",{ascending:false}).limit(400),
       db.from("jobs").select("id,worker_id,client_id,client_name,title,status,created_at").order("created_at",{ascending:false}),
       db.from("reviews").select("id,worker_id,client_id,client_name,stars,text,approved,created_at").order("created_at",{ascending:false}),
@@ -182,7 +182,19 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
     const ch=db.channel("admin-rt3")
       .on("postgres_changes",{event:"INSERT",schema:"public",table:"users"},(p:any)=>{
         const u=p.new as UserRow;
-        if(u.type!=="admin"){setUsers(prev=>[u,...prev]);showToast(`🆕 Nuevo ${u.type}: ${u.name}`,"ok");}
+        if(u.type!=="admin"){
+          setUsers(prev=>[u,...prev]);
+          showToast(`🆕 Nuevo ${u.type}: ${u.name}`,"ok");
+          // Auto-welcome message
+          const welcomePro=`¡Hola ${u.name}! 👋 Bienvenido a OfficioYa. Soy Andrés, fundador de la plataforma. Estoy aquí para ayudarte a sacarle el máximo partido. Si tienes cualquier duda sobre cómo funciona, cómo recibir leads o configurar tu perfil, escríbeme aquí mismo. ¡Mucho éxito! 🚀`;
+          const welcomeClient=`¡Hola ${u.name}! 👋 Bienvenido a OfficioYa. Si necesitas ayuda para encontrar el profesional adecuado o tienes cualquier pregunta, escríbeme aquí. Estamos para ayudarte.`;
+          const welcomeMsg=u.type==="profesional"?welcomePro:welcomeClient;
+          setTimeout(async()=>{
+            const{data:nm}=await db.from("messages").insert({from_id:ADMIN_ID,to_id:u.id,text:welcomeMsg,read:false}).select().single();
+            if(nm)setMsgs(prev=>[nm as MessageRow,...prev]);
+            await sendPush(u.id,"👑 OfficioYa",u.type==="profesional"?"Bienvenido a OfficioYa 🚀":"Bienvenido a OfficioYa 👋","/");
+          },3000);
+        }
       })
       .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},(p:any)=>{
         const m=p.new as MessageRow;
@@ -225,7 +237,7 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
   const expiring=pros.filter(u=>u.trial_end&&(new Date(u.trial_end).getTime()-now.getTime())/86400000<=7&&(new Date(u.trial_end).getTime()-now.getTime())/86400000>0);
   const expired=pros.filter(u=>u.plan==="gratis"&&u.trial_end&&new Date(u.trial_end)<now);
   const sinFoto=pros.filter(u=>u.plan!=="gratis"&&!(u as any).avatar_url);
-  const sinCobro=pros.filter(u=>u.plan==="gratis"&&!(u as any).stripe_customer_id);
+  const sinCobro=pros.filter(u=>u.plan==="gratis"&&!u.trial_end);
   const newLast7=users.filter(u=>(now.getTime()-new Date(u.joined_at).getTime())/86400000<=7);
   const pendingReports=reports.filter((r:any)=>!r.status||r.status==="pending");
   const pendingReviews=reviews.filter((r:any)=>r.approved===null||r.approved===undefined);
@@ -549,7 +561,7 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
       {label:"Visitas estimadas",value:users.length*12,color:C.blue,pct:100},
       {label:"Formulario landing",value:leads.length,color:C.purple,pct:users.length*12>0?(leads.length/(users.length*12))*100:0},
       {label:"Registros completados",value:users.length,color:C.accent,pct:users.length*12>0?(users.length/(users.length*12))*100:0},
-      {label:"Trial con tarjeta",value:pros.filter(u=>(u as any).stripe_customer_id).length,color:C.yellow,pct:pros.length>0?(pros.filter(u=>(u as any).stripe_customer_id).length/pros.length)*100:0},
+      {label:"Trial con tarjeta",value:pros.filter(u=>u.plan!=="gratis"||u.trial_end).length,color:C.yellow,pct:pros.length>0?(pros.filter(u=>u.plan!=="gratis"||u.trial_end).length/pros.length)*100:0},
       {label:"Convirtieron a pago",value:paying.length,color:C.green,pct:users.length>0?(paying.length/users.length)*100:0},
     ];
     return(
@@ -717,179 +729,179 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
   const [newMsgTarget,setNewMsgTarget]=useState<string>("");
   const [newMsgText,setNewMsgText]=useState<string>("");
   const [sendingNew,setSendingNew]=useState(false);
+  const [activeThread,setActiveThread]=useState<string|null>(null); // userId of other party
+  const [replyText,setReplyText]=useState("");
+  const [sendingReply,setSendingReply]=useState(false);
+  const chatBottomRef=useRef<HTMLDivElement>(null);
 
-  const sendNewMsg=async()=>{
-    if(!newMsgTarget||!newMsgText.trim())return;
-    setSendingNew(true);
-    const target=users.find(u=>u.id===newMsgTarget);
-    await db.from("messages").insert({from_id:ADMIN_ID,to_id:newMsgTarget,text:"[Soporte OfficioYa] "+newMsgText,read:false});
-    if(target)await sendPush(newMsgTarget,"👑 OfficioYa Soporte",newMsgText.substring(0,80),"/");
-    setNewMsgText("");setSendingNew(false);
-    showToast("✓ Mensaje enviado a "+(target?.name||"usuario"));
+  const scrollToBottom=()=>{setTimeout(()=>{chatBottomRef.current?.scrollIntoView({behavior:"smooth"});},80);};
+
+  // Get all unique conversation partners (users who have msgs with admin OR with each other)
+  const getConversations=()=>{
+    const partnerMap=new Map<string,{user:UserRow;lastMsg:MessageRow;unread:number}>();
+    msgs.filter(m=>m.from_id!==BOT_ID).forEach(m=>{
+      const isToAdmin=m.to_id===ADMIN_ID;
+      const isFromAdmin=m.from_id===ADMIN_ID;
+      const partnerId=isFromAdmin?m.to_id:isToAdmin?m.from_id:null;
+      if(!partnerId)return;
+      const partner=users.find(u=>u.id===partnerId);
+      if(!partner)return;
+      const existing=partnerMap.get(partnerId);
+      const isUnread=!m.read&&m.from_id!==ADMIN_ID;
+      if(!existing||new Date(m.created_at)>new Date(existing.lastMsg.created_at)){
+        partnerMap.set(partnerId,{user:partner,lastMsg:m,unread:(existing?.unread||0)+(isUnread?1:0)});
+      }else if(isUnread){
+        partnerMap.set(partnerId,{...existing,unread:existing.unread+1});
+      }
+    });
+    return [...partnerMap.values()].sort((a,b)=>new Date(b.lastMsg.created_at).getTime()-new Date(a.lastMsg.created_at).getTime());
+  };
+
+  const getThreadMsgsAdmin=(partnerId:string)=>
+    msgs.filter(m=>(m.from_id===ADMIN_ID&&m.to_id===partnerId)||(m.from_id===partnerId&&m.to_id===ADMIN_ID))
+      .sort((a,b)=>new Date(a.created_at).getTime()-new Date(b.created_at).getTime());
+
+  const sendReply=async()=>{
+    if(!activeThread||!replyText.trim())return;
+    setSendingReply(true);
+    const partner=users.find(u=>u.id===activeThread);
+    const{data:nm}=await db.from("messages").insert({from_id:ADMIN_ID,to_id:activeThread,text:replyText,read:false}).select().single();
+    if(nm)setMsgs(prev=>[nm as MessageRow,...prev]);
+    await sendPush(activeThread,"👑 OfficioYa",replyText.substring(0,80),"/");
+    setReplyText("");setSendingReply(false);
+    scrollToBottom();
   };
 
   const renderMensajes=()=>{
-    // Build threads — include messages to/from ADMIN too
-    const threadMap=new Map<string,{uid:string;user:UserRow|null;lastMsg:MessageRow;unread:number}>();
-    msgs.filter(m=>m.from_id!==BOT_ID).forEach(m=>{
-      // For each message, the "other" party (not admin) is the thread key
-      const otherId=m.from_id===ADMIN_ID?m.to_id:m.to_id===ADMIN_ID?m.from_id:null;
-      // For user-to-user threads, key by sorted pair
-      const key=m.from_id===ADMIN_ID||m.to_id===ADMIN_ID
-        ?(otherId||"")
-        :[m.from_id,m.to_id].sort().join("|");
-      if(!key)return;
-      const existing=threadMap.get(key);
-      const isUnread=!m.read&&m.from_id!==ADMIN_ID;
-      const otherUser=users.find(u=>u.id===key)||users.find(u=>u.id===m.from_id)||users.find(u=>u.id===m.to_id)||null;
-      if(!existing||new Date(m.created_at)>new Date(existing.lastMsg.created_at)){
-        threadMap.set(key,{uid:key,user:otherUser,lastMsg:m,unread:(existing?.unread||0)+(isUnread?1:0)});
-      }else if(isUnread){
-        threadMap.set(key,{...existing,unread:existing.unread+1});
-      }
-    });
-    const threads=[...threadMap.values()]
-      .filter(t=>t.user!==null)
-      .sort((a,b)=>new Date(b.lastMsg.created_at).getTime()-new Date(a.lastMsg.created_at).getTime());
+    const conversations=getConversations();
+    const activeUser=activeThread?users.find(u=>u.id===activeThread):null;
+    const threadMsgs=activeThread?getThreadMsgsAdmin(activeThread):[];
 
-    if(chatThread){
-      const u1=chatThread.user1;
-      const u2=chatThread.user2;
-      const threadMsgs=msgs
-        .filter(m=>(m.from_id===u1.id&&m.to_id===u2.id)||(m.from_id===u2.id&&m.to_id===u1.id))
-        .sort((a,b)=>new Date(a.created_at).getTime()-new Date(b.created_at).getTime());
-      const [replyText,setReplyText]=[chatThread as any,(v:any)=>setChatThread({...chatThread,...v})];
-      return(
-        <div style={{display:"flex",flexDirection:"column",gap:16}}>
-          <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap" as const}}>
-            <button onClick={()=>setChatThread(null)} style={{background:"none",border:`1px solid ${C.border}`,borderRadius:6,color:C.muted,cursor:"pointer",padding:"6px 12px",fontSize:11}}>← Volver</button>
-            <div style={{display:"flex",gap:8,alignItems:"center"}}>
-              <Ava s={u1.name.substring(0,2).toUpperCase()} size={28} color={PLAN_COLORS[u1.plan as Plan]} imgUrl={(u1 as any).avatar_url||""}/>
-              <span style={{fontSize:13,fontWeight:700,color:C.text}}>{u1.name}</span>
-              <span style={{fontSize:11,color:C.muted}}>↔</span>
-              <Ava s={u2.name.substring(0,2).toUpperCase()} size={28} color={PLAN_COLORS[u2.plan as Plan]} imgUrl={(u2 as any).avatar_url||""}/>
-              <span style={{fontSize:13,fontWeight:700,color:C.text}}>{u2.name}</span>
-            </div>
-            <button onClick={async()=>{
-              await db.from("messages").update({read:true}).or(`from_id.eq.${u1.id},from_id.eq.${u2.id}`);
-              setMsgs(prev=>prev.map(m=>(m.from_id===u1.id||m.from_id===u2.id)?{...m,read:true}:m));
-              showToast("✓ Marcado como leído");
-            }} style={{marginLeft:"auto",fontSize:10,color:C.green,background:C.greenDim,border:`1px solid ${C.green}44`,borderRadius:6,padding:"5px 12px",cursor:"pointer"}}>✓ Marcar leído</button>
-            <button onClick={()=>setSelectedUser(u1)} style={{fontSize:10,color:C.accent,background:C.accentDim,border:`1px solid ${C.accent}44`,borderRadius:6,padding:"5px 10px",cursor:"pointer"}}>Ver {u1.name}</button>
+    return(
+      <div style={{display:"flex",gap:0,height:"calc(100vh - 140px)",background:C.card,border:`1px solid ${C.border}`,borderRadius:12,overflow:"hidden"}}>
+        
+        {/* LEFT: conversation list */}
+        <div style={{width:300,borderRight:`1px solid ${C.border}`,display:"flex",flexDirection:"column",flexShrink:0}}>
+          <div style={{padding:"14px 16px",borderBottom:`1px solid ${C.border}`}}>
+            <p style={{fontWeight:700,fontSize:13,color:C.text,marginBottom:10}}>💬 Chats Admin</p>
+            {/* New chat selector */}
+            <select value={newMsgTarget} onChange={e=>{setNewMsgTarget(e.target.value);if(e.target.value)setActiveThread(e.target.value);}} style={{width:"100%",background:C.surface,border:`1px solid ${C.border}`,borderRadius:8,padding:"7px 10px",color:newMsgTarget?C.text:C.muted,fontFamily:"inherit",fontSize:11,cursor:"pointer"}}>
+              <option value="">+ Nuevo chat con usuario...</option>
+              <optgroup label="PROFESIONALES">{pros.map(u=><option key={u.id} value={u.id}>{u.name}</option>)}</optgroup>
+              <optgroup label="CLIENTES">{clients.map(u=><option key={u.id} value={u.id}>{u.name}</option>)}</optgroup>
+            </select>
           </div>
-          <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:16,maxHeight:460,overflowY:"auto",display:"flex",flexDirection:"column",gap:10}}>
-            {threadMsgs.map(m=>{
-              const isFromU1=m.from_id===u1.id;
-              const isAdmin=m.from_id===ADMIN_ID;
-              const senderName=isAdmin?"👑 Admin":isFromU1?u1.name:u2.name;
-              const parsed=parseMsg(m.text);
+          <div style={{flex:1,overflowY:"auto"}}>
+            {conversations.length===0&&<p style={{padding:20,color:C.muted,fontSize:12,textAlign:"center"}}>Sin conversaciones todavía</p>}
+            {conversations.map(({user,lastMsg,unread})=>{
+              const isActive=activeThread===user.id;
+              const parsed=parseMsg(lastMsg.text);
+              const preview=parsed.type==="image"?"📎 Imagen":parsed.type==="video"?"📎 Vídeo":parsed.type==="file"?`📎 Archivo`:lastMsg.text.substring(0,50);
+              const isFromAdmin=lastMsg.from_id===ADMIN_ID;
               return(
-                <div key={m.id} style={{display:"flex",flexDirection:"column",alignItems:isAdmin?"center":isFromU1?"flex-start":"flex-end",gap:3}}>
-                  <span style={{fontSize:9,color:C.muted,fontFamily:"monospace"}}>{senderName} · {timeAgo(m.created_at)}</span>
-                  <div style={{maxWidth:"75%",background:isAdmin?C.accentDim:isFromU1?C.surface:C.blueDim,border:`1px solid ${isAdmin?C.accent+"44":isFromU1?C.border:C.blue+"44"}`,borderRadius:10,padding:"10px 14px"}}>
-                    {parsed.type==="image"&&parsed.url?(
-                      <div>
-                        <img src={parsed.url} style={{maxWidth:220,maxHeight:200,borderRadius:8,cursor:"zoom-in",display:"block"}} onClick={()=>setImageModal(parsed.url!)} onError={(e:any)=>{e.target.style.display="none";}}/>
-                        <button onClick={()=>setImageModal(parsed.url!)} style={{background:"none",border:"none",color:C.accent,cursor:"pointer",fontSize:10,padding:"4px 0"}}>🔍 Ampliar</button>
+                <div key={user.id} onClick={async()=>{
+                  setActiveThread(user.id);
+                  // mark as read
+                  await db.from("messages").update({read:true}).eq("from_id",user.id).eq("to_id",ADMIN_ID);
+                  setMsgs(prev=>prev.map(m=>m.from_id===user.id&&m.to_id===ADMIN_ID?{...m,read:true}:m));
+                  scrollToBottom();
+                }} style={{padding:"12px 16px",borderBottom:`1px solid ${C.border}`,cursor:"pointer",background:isActive?C.accentDim:unread>0?C.accent+"06":"transparent",borderLeft:isActive?`3px solid ${C.accent}`:"3px solid transparent"}}
+                  onMouseEnter={e=>{if(!isActive)(e.currentTarget as HTMLElement).style.background=C.cardHover;}}
+                  onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background=isActive?C.accentDim:unread>0?C.accent+"06":"transparent";}}>
+                  <div style={{display:"flex",gap:10,alignItems:"center"}}>
+                    <div style={{position:"relative",flexShrink:0}}>
+                      <Ava s={user.name.substring(0,2).toUpperCase()} size={36} color={PLAN_COLORS[user.plan as Plan]} imgUrl={(user as any).avatar_url||""}/>
+                      {unread>0&&<span style={{position:"absolute",top:-2,right:-2,background:C.red,color:"#fff",borderRadius:99,minWidth:14,height:14,display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,fontWeight:900}}>{unread>9?"9+":unread}</span>}
+                    </div>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:2}}>
+                        <span style={{fontSize:12,fontWeight:unread>0?700:600,color:isActive?C.accent:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user.name}</span>
+                        <span style={{fontSize:9,color:C.muted,fontFamily:"monospace",flexShrink:0,marginLeft:4}}>{timeAgo(lastMsg.created_at)}</span>
                       </div>
-                    ):parsed.type==="video"&&parsed.url?(
-                      <div>
-                        <video src={parsed.url} controls style={{maxWidth:220,borderRadius:8}}/>
-                      </div>
-                    ):parsed.type==="file"&&parsed.url?(
-                      <a href={parsed.url} target="_blank" rel="noreferrer" style={{fontSize:12,color:C.accent,textDecoration:"none"}}>📎 {parsed.label}</a>
-                    ):(
-                      <p style={{fontSize:12,color:C.text,lineHeight:1.5,margin:0}}>{m.text}</p>
-                    )}
+                      <p style={{fontSize:11,color:unread>0?C.mutedL:C.muted,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                        {isFromAdmin&&<span style={{color:C.accent,fontSize:10}}>Tú: </span>}{preview}
+                      </p>
+                    </div>
                   </div>
-                  {!m.read&&m.from_id!==ADMIN_ID&&<span style={{fontSize:8,color:C.orange,fontFamily:"monospace"}}>no leído</span>}
                 </div>
               );
             })}
-            {threadMsgs.length===0&&<p style={{color:C.muted,fontSize:12,textAlign:"center"}}>Sin mensajes en este hilo</p>}
-          </div>
-          {/* Reply box */}
-          <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:16}}>
-            <p style={{fontSize:11,color:C.muted,fontFamily:"monospace",marginBottom:8}}>RESPONDER COMO ADMIN → {u1.id===ADMIN_ID?u2.name:u1.name}</p>
-            <AdminReplyBox targetId={u1.id===ADMIN_ID?u2.id:u1.id} targetName={u1.id===ADMIN_ID?u2.name:u1.name} onSent={(m)=>{setMsgs(prev=>[m,...prev]);showToast("✓ Enviado");}} users={users}/>
-          </div>
-        </div>
-      );
-    }
-
-    return(
-      <div style={{display:"flex",flexDirection:"column",gap:16}}>
-        <SectionTitle>Hub de conversaciones</SectionTitle>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12}}>
-          <KpiCard label="Hilos activos" value={threads.length} color={C.blue}/>
-          <KpiCard label="No leídos" value={unreadMsgs} color={unreadMsgs>0?C.red:C.green}/>
-          <KpiCard label="Total mensajes" value={msgs.length} color={C.muted}/>
-        </div>
-
-        {/* Nuevo mensaje a cualquier usuario */}
-        <div style={{background:C.card,border:`1px solid ${C.accent}22`,borderRadius:12,padding:16}}>
-          <p style={{fontSize:11,color:C.accent,fontFamily:"monospace",letterSpacing:"0.1em",marginBottom:12}}>✉ NUEVO MENSAJE DE SOPORTE</p>
-          <div style={{display:"flex",gap:10,alignItems:"flex-start",flexWrap:"wrap" as const}}>
-            <select value={newMsgTarget} onChange={e=>setNewMsgTarget(e.target.value)} style={{flex:1,minWidth:200,background:C.surface,border:`1px solid ${C.border}`,borderRadius:8,padding:"8px 12px",color:newMsgTarget?C.text:C.muted,fontFamily:"inherit",fontSize:12,cursor:"pointer"}}>
-              <option value="">Seleccionar usuario...</option>
-              <optgroup label="PROFESIONALES">{pros.map(u=><option key={u.id} value={u.id}>{u.name} ({u.plan})</option>)}</optgroup>
-              <optgroup label="CLIENTES">{clients.map(u=><option key={u.id} value={u.id}>{u.name}</option>)}</optgroup>
-            </select>
-            <textarea value={newMsgText} onChange={e=>setNewMsgText(e.target.value)} placeholder="Escribe el mensaje..." rows={2} style={{flex:2,minWidth:200,background:C.surface,border:`1px solid ${C.border}`,borderRadius:8,padding:"8px 12px",color:C.text,fontFamily:"inherit",fontSize:12,outline:"none",resize:"none" as const}}/>
-            <button onClick={async()=>{
-              if(!newMsgTarget||!newMsgText.trim())return;
-              setSendingNew(true);
-              const target=users.find(u=>u.id===newMsgTarget);
-              const{data:nm}=await db.from("messages").insert({from_id:ADMIN_ID,to_id:newMsgTarget,text:"[Soporte OfficioYa] "+newMsgText,read:false}).select().single();
-              if(nm)setMsgs(prev=>[nm as MessageRow,...prev]);
-              if(target)await sendPush(newMsgTarget,"👑 OfficioYa Soporte",newMsgText.substring(0,80),"/");
-              setNewMsgText("");setNewMsgTarget("");setSendingNew(false);
-              showToast("✓ Mensaje enviado"+(target?" a "+target.name:""));
-            }} disabled={sendingNew||!newMsgTarget||!newMsgText.trim()} style={{padding:"8px 18px",background:newMsgTarget&&newMsgText.trim()?C.accentDim:C.card,border:`1px solid ${newMsgTarget&&newMsgText.trim()?C.accent+"44":C.border}`,borderRadius:8,color:newMsgTarget&&newMsgText.trim()?C.accent:C.muted,cursor:newMsgTarget&&newMsgText.trim()?"pointer":"default",fontWeight:700,fontSize:12,fontFamily:"inherit",flexShrink:0}}>
-              {sendingNew?"Enviando...":"Enviar + Push"}
-            </button>
           </div>
         </div>
 
-        <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,overflow:"hidden"}}>
-          {threads.length===0
-            ?<div style={{padding:24,textAlign:"center",color:C.muted,fontSize:12}}>Sin conversaciones todavía</div>
-            :threads.map(({uid,user,lastMsg,unread})=>{
-              if(!user)return null;
-              const parsed=parseMsg(lastMsg.text);
-              const preview=parsed.type==="image"?"📎 Imagen":parsed.type==="video"?"📎 Vídeo":parsed.type==="file"?`📎 ${parsed.label}`:lastMsg.text.substring(0,70);
-              const isAdminThread=lastMsg.from_id===ADMIN_ID||lastMsg.to_id===ADMIN_ID;
-              return(
-                <div key={uid} style={{padding:"12px 16px",borderBottom:`1px solid ${C.border}`,display:"flex",gap:12,alignItems:"center",cursor:"pointer",background:unread>0?C.accent+"08":"transparent"}}
-                  onClick={()=>{
-                    const otherUser=lastMsg.from_id===ADMIN_ID?users.find(u=>u.id===lastMsg.to_id):users.find(u=>u.id===lastMsg.from_id);
-                    const adminRow={id:ADMIN_ID,name:"Admin OfficioYa",email:"admin@oficioya.com",type:"admin",plan:"elite",verified:true,available:true} as UserRow;
-                    if(isAdminThread&&otherUser){setChatThread({user1:adminRow,user2:otherUser});}
-                    else{
-                      const u1=users.find(u=>u.id===lastMsg.from_id);
-                      const u2=users.find(u=>u.id===lastMsg.to_id);
-                      if(u1&&u2)setChatThread({user1:u1,user2:u2});
-                    }
-                  }}
-                  onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background=C.cardHover;}}
-                  onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background=unread>0?C.accent+"08":"transparent";}}>
-                  <Ava s={user.name.substring(0,2).toUpperCase()} size={34} color={PLAN_COLORS[user.plan as Plan]} imgUrl={(user as any).avatar_url||""}/>
-                  <div style={{flex:1,minWidth:0}}>
-                    <div style={{display:"flex",gap:8,alignItems:"center",marginBottom:3}}>
-                      <span style={{fontSize:12,fontWeight:700,color:unread>0?C.accent:C.text}}>{user.name}</span>
-                      <span style={{fontSize:9,fontFamily:"monospace",color:user.type==="profesional"?C.accent:C.blue,background:(user.type==="profesional"?C.accent:C.blue)+"18",padding:"1px 5px",borderRadius:3}}>{user.type==="profesional"?"PRO":"CLI"}</span>
-                      {isAdminThread&&<span style={{fontSize:9,color:C.gold,fontFamily:"monospace"}}>↔ Admin</span>}
-                      {unread>0&&<span style={{fontSize:8,color:C.accent,background:C.accentDim,padding:"1px 5px",borderRadius:3,fontFamily:"monospace",fontWeight:900}}>{unread} nuevos</span>}
-                      <span style={{fontSize:9,color:C.muted,marginLeft:"auto",fontFamily:"monospace"}}>{timeAgo(lastMsg.created_at)}</span>
-                    </div>
-                    <p style={{fontSize:11,color:C.muted,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{preview}</p>
-                  </div>
-                  <span style={{fontSize:10,color:C.accent,flexShrink:0}}>Ver →</span>
+        {/* RIGHT: chat window */}
+        {!activeThread||!activeUser?(
+          <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:12}}>
+            <p style={{fontSize:32}}>💬</p>
+            <p style={{color:C.muted,fontSize:13}}>Selecciona una conversación o inicia una nueva</p>
+          </div>
+        ):(
+          <div style={{flex:1,display:"flex",flexDirection:"column"}}>
+            {/* Chat header */}
+            <div style={{padding:"12px 16px",borderBottom:`1px solid ${C.border}`,display:"flex",gap:12,alignItems:"center",background:C.surface}}>
+              <Ava s={activeUser.name.substring(0,2).toUpperCase()} size={36} color={PLAN_COLORS[activeUser.plan as Plan]} imgUrl={(activeUser as any).avatar_url||""}/>
+              <div style={{flex:1}}>
+                <p style={{fontWeight:700,fontSize:13,color:C.text}}>{activeUser.name}</p>
+                <div style={{display:"flex",gap:6,alignItems:"center"}}>
+                  <Badge plan={activeUser.plan as Plan}/>
+                  <span style={{fontSize:10,color:C.muted}}>{activeUser.trade||""} {activeUser.zone?`· ${activeUser.zone}`:""}</span>
                 </div>
-              );
-            })
-          }
-        </div>
+              </div>
+              <div style={{display:"flex",gap:6}}>
+                {activeUser.phone&&<a href={"tel:"+activeUser.phone} style={{fontSize:10,padding:"5px 10px",background:C.greenDim,border:`1px solid ${C.green}44`,borderRadius:6,color:C.green,textDecoration:"none"}}>📞</a>}
+                {(activeUser as any).whatsapp&&<a href={"https://wa.me/"+((activeUser as any).whatsapp||"").replace(/\D/g,"")} target="_blank" rel="noreferrer" style={{fontSize:10,padding:"5px 10px",background:"#25D36618",border:"1px solid #25D36644",borderRadius:6,color:"#25D366",textDecoration:"none"}}>WA</a>}
+                <button onClick={()=>setSelectedUser(activeUser)} style={{fontSize:10,padding:"5px 10px",background:C.accentDim,border:`1px solid ${C.accent}44`,borderRadius:6,color:C.accent,cursor:"pointer"}}>Ver perfil</button>
+              </div>
+            </div>
+
+            {/* Messages */}
+            <div style={{flex:1,overflowY:"auto",padding:"16px",display:"flex",flexDirection:"column",gap:8}}>
+              {threadMsgs.length===0&&(
+                <div style={{textAlign:"center",color:C.muted,fontSize:12,padding:40}}>
+                  Sin mensajes todavía — escribe el primero
+                </div>
+              )}
+              {threadMsgs.map(m=>{
+                const isAdmin=m.from_id===ADMIN_ID;
+                const parsed=parseMsg(m.text);
+                return(
+                  <div key={m.id} style={{display:"flex",flexDirection:"column",alignItems:isAdmin?"flex-end":"flex-start",gap:3}}>
+                    <div style={{maxWidth:"70%",background:isAdmin?`linear-gradient(135deg,${C.accent}22,${C.orange}11)`:C.surface,border:`1px solid ${isAdmin?C.accent+"44":C.border}`,borderRadius:isAdmin?"12px 12px 4px 12px":"12px 12px 12px 4px",padding:"10px 14px"}}>
+                      {parsed.type==="image"&&parsed.url?(
+                        <div>
+                          <img src={parsed.url} style={{maxWidth:200,maxHeight:180,borderRadius:8,cursor:"zoom-in",display:"block"}} onClick={()=>setImageModal(parsed.url!)} onError={(e:any)=>{e.target.style.display="none";}}/>
+                          <button onClick={()=>setImageModal(parsed.url!)} style={{background:"none",border:"none",color:C.accent,cursor:"pointer",fontSize:10,padding:"4px 0",display:"block"}}>🔍 Ampliar</button>
+                        </div>
+                      ):parsed.type==="video"&&parsed.url?(
+                        <video src={parsed.url} controls style={{maxWidth:200,borderRadius:8}}/>
+                      ):parsed.type==="file"&&parsed.url?(
+                        <a href={parsed.url} target="_blank" rel="noreferrer" style={{fontSize:12,color:C.accent,textDecoration:"none"}}>📎 {parsed.label}</a>
+                      ):(
+                        <p style={{fontSize:12,color:C.text,lineHeight:1.5,margin:0,wordBreak:"break-word"}}>{m.text}</p>
+                      )}
+                    </div>
+                    <span style={{fontSize:9,color:C.muted,fontFamily:"monospace"}}>{isAdmin?"Tú":activeUser.name} · {timeAgo(m.created_at)}{isAdmin&&(m.read?<span style={{color:C.blue}}> ✓✓</span>:<span> ✓</span>)}</span>
+                  </div>
+                );
+              })}
+              <div ref={chatBottomRef}/>
+            </div>
+
+            {/* Reply input */}
+            <div style={{padding:"12px 16px",borderTop:`1px solid ${C.border}`,background:C.surface}}>
+              <div style={{display:"flex",gap:10,alignItems:"flex-end"}}>
+                <textarea value={replyText} onChange={e=>setReplyText(e.target.value)}
+                  onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendReply();}}}
+                  placeholder={`Mensaje a ${activeUser.name}... (Enter para enviar)`} rows={2}
+                  style={{flex:1,background:C.card,border:`1px solid ${C.border}`,borderRadius:10,padding:"10px 14px",color:C.text,fontFamily:"inherit",fontSize:12,outline:"none",resize:"none"}}/>
+                <button onClick={sendReply} disabled={sendingReply||!replyText.trim()} style={{padding:"10px 18px",background:replyText.trim()?C.accentDim:C.card,border:`1px solid ${replyText.trim()?C.accent+"44":C.border}`,borderRadius:10,color:replyText.trim()?C.accent:C.muted,cursor:replyText.trim()?"pointer":"default",fontWeight:700,fontSize:12,fontFamily:"inherit",flexShrink:0,height:52}}>
+                  {sendingReply?"...":"Enviar ↑"}
+                </button>
+              </div>
+              <p style={{fontSize:9,color:C.muted,marginTop:6,fontFamily:"monospace"}}>Enter para enviar · Shift+Enter nueva línea · Push automático al usuario</p>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
@@ -1104,8 +1116,8 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
       );
     }
     if(section==="mensajes"){
-      if(sub==="chat")return renderMensajes();
-      if(sub==="soporte")return(
+      if(sub==="chat"||sub==="soporte")return renderMensajes();
+      if(sub==="_soporte_legacy")return(
         <div style={{display:"flex",flexDirection:"column",gap:12}}>
           <SectionTitle>Mensajes de soporte enviados</SectionTitle>
           {msgs.filter(m=>m.from_id===ADMIN_ID).slice(0,30).map(m=>{
