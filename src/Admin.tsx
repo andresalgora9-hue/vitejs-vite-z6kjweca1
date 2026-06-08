@@ -2,1016 +2,1049 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { db } from "./supabase";
 import type { UserRow, MessageRow, JobRow, Plan } from "./supabase";
 
-// ── Paleta CEO Dark ──
+// ── Paleta ──────────────────────────────────────────────────────────────────
 const C = {
-  bg:"#080810", surface:"#0d0d1a", card:"#111120",
-  border:"#1a1a2e", borderBright:"#2a2a45",
-  accent:"#FFB800", accentDim:"#FFB80022",
-  gold:"#FFD700", orange:"#FF8C00",
-  red:"#FF3355", redDim:"#FF335518",
-  green:"#00E676", greenDim:"#00E67618",
-  blue:"#4488FF", blueDim:"#4488FF18",
-  yellow:"#FFB800", yellowDim:"#FFB80018",
-  text:"#F0EDE8", muted:"#4a4a6a", mutedL:"#6a6a8a",
-  cyan:"#00D4FF",
+  bg: "#07070f",
+  surface: "#0c0c18",
+  card: "#10101f",
+  cardHover: "#141428",
+  border: "#1c1c32",
+  borderBright: "#2a2a48",
+  accent: "#FFB800",
+  accentDim: "#FFB80015",
+  gold: "#FFD700",
+  orange: "#FF8C00",
+  red: "#FF3355",
+  redDim: "#FF335512",
+  green: "#00E676",
+  greenDim: "#00E67612",
+  blue: "#4488FF",
+  blueDim: "#4488FF12",
+  purple: "#AA66FF",
+  purpleDim: "#AA66FF12",
+  yellow: "#FFB800",
+  yellowDim: "#FFB80012",
+  text: "#EEEAF2",
+  muted: "#44445a",
+  mutedL: "#66667a",
+  cyan: "#00D4FF",
+  cyanDim: "#00D4FF12",
 };
 
-const PLAN_PRICES:Record<Plan,number> = {gratis:0,basico:9.99,pro:24.99,elite:49.99};
-const PLAN_COLORS:Record<Plan,string> = {gratis:C.muted,basico:C.blue,pro:C.gold,elite:C.orange};
+const PLAN_PRICES: Record<Plan, number> = { gratis: 0, basico: 9.99, pro: 24.99, elite: 49.99 };
+const PLAN_COLORS: Record<Plan, string> = { gratis: C.muted, basico: C.blue, pro: C.gold, elite: C.orange };
+const ADMIN_ID = "00000000-0000-0000-0000-000000000002";
+const BOT_ID = "00000000-0000-0000-0000-000000000001";
 
-function timeAgo(iso:string){
-  const d=(Date.now()-new Date(iso).getTime())/1000;
-  if(d<60)return"ahora";if(d<3600)return Math.floor(d/60)+"m";
-  if(d<86400)return Math.floor(d/3600)+"h";return Math.floor(d/86400)+"d";
+function timeAgo(iso: string) {
+  const d = (Date.now() - new Date(iso).getTime()) / 1000;
+  if (d < 60) return "ahora";
+  if (d < 3600) return Math.floor(d / 60) + "m";
+  if (d < 86400) return Math.floor(d / 3600) + "h";
+  return Math.floor(d / 86400) + "d";
 }
-function formatTime(iso:string){
-  return new Date(iso).toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"});
+function fmt(n: number) { return n.toLocaleString("es-ES"); }
+function fmtDate(iso: string) {
+  return new Date(iso).toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "2-digit" });
 }
-function fmt(n:number){return n.toLocaleString("es-ES");}
 
-// ── ATOMS ──
-function Spin({size=20,color=C.accent}:{size?:number;color?:string}){
-  return <div style={{width:size,height:size,border:`2px solid ${C.border}`,borderTop:`2px solid ${color}`,borderRadius:"50%",animation:"spin 0.8s linear infinite",flexShrink:0}} />;
+// ── ATOMS ────────────────────────────────────────────────────────────────────
+function Spin({ size = 18, color = C.accent }: { size?: number; color?: string }) {
+  return <div style={{ width: size, height: size, border: `2px solid ${C.border}`, borderTop: `2px solid ${color}`, borderRadius: "50%", animation: "spin 0.7s linear infinite", flexShrink: 0 }} />;
 }
-function Badge({plan}:{plan:Plan}){
-  const col=PLAN_COLORS[plan];
-  return <span style={{padding:"2px 8px",borderRadius:4,fontSize:9,fontWeight:800,letterSpacing:"0.08em",color:col,background:col+"22",border:`1px solid ${col}44`}}>{plan.toUpperCase()}</span>;
+
+function Badge({ plan }: { plan: Plan }) {
+  const col = PLAN_COLORS[plan];
+  return <span style={{ padding: "2px 7px", borderRadius: 3, fontSize: 9, fontWeight: 800, letterSpacing: "0.1em", color: col, background: col + "22", border: `1px solid ${col}33` }}>{plan.toUpperCase()}</span>;
 }
-function StatusPill({label,color}:{label:string;color:string}){
-  return <span style={{display:"inline-flex",alignItems:"center",gap:5,padding:"3px 9px",borderRadius:99,fontSize:10,fontWeight:700,color,background:color+"18",border:`1px solid ${color}33`}}>
-    <span style={{width:5,height:5,borderRadius:"50%",background:color,display:"inline-block"}} />{label}
+
+function Pill({ label, color, dot = true }: { label: string; color: string; dot?: boolean }) {
+  return <span style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "2px 8px", borderRadius: 99, fontSize: 10, fontWeight: 700, color, background: color + "18", border: `1px solid ${color}33` }}>
+    {dot && <span style={{ width: 5, height: 5, borderRadius: "50%", background: color, flexShrink: 0 }} />}
+    {label}
   </span>;
 }
-function Ava({s,size=36,color=C.accent,imgUrl=""}:{s:string;size?:number;color?:string;imgUrl?:string}){
+
+function Ava({ s, size = 32, color = C.accent, imgUrl = "" }: { s: string; size?: number; color?: string; imgUrl?: string }) {
   return imgUrl
-    ?<img src={imgUrl} style={{width:size,height:size,borderRadius:"50%",objectFit:"cover",border:`1px solid ${color}44`,flexShrink:0}} onError={(e:any)=>{e.target.style.display="none";}} />
-    :<div style={{width:size,height:size,borderRadius:"50%",background:`linear-gradient(135deg,${color}44,${color}11)`,display:"flex",alignItems:"center",justifyContent:"center",color,fontWeight:900,fontSize:Math.round(size*0.35),border:`1px solid ${color}33`,flexShrink:0}}>{s}</div>;
+    ? <img src={imgUrl} style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", border: `1px solid ${color}33`, flexShrink: 0 }} onError={(e: any) => { e.target.style.display = "none"; }} />
+    : <div style={{ width: size, height: size, borderRadius: "50%", background: `linear-gradient(135deg,${color}33,${color}11)`, display: "flex", alignItems: "center", justifyContent: "center", color, fontWeight: 900, fontSize: Math.round(size * 0.36), border: `1px solid ${color}33`, flexShrink: 0 }}>{s}</div>;
 }
 
-// ── MINI SPARKLINE ──
-function Sparkline({data,color=C.accent,height=40}:{data:number[];color?:string;height?:number}){
-  const max=Math.max(...data,1);
-  const pts=data.map((v,i)=>{
-    const x=(i/(data.length-1))*100;
-    const y=height-((v/max)*(height-4))-2;
-    return `${x},${y}`;
-  }).join(" ");
-  return(
-    <svg viewBox={`0 0 100 ${height}`} width="100%" height={height} style={{overflow:"visible"}}>
-      <defs>
-        <linearGradient id={`sg-${color.replace("#","")}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.3"/>
-          <stop offset="100%" stopColor={color} stopOpacity="0"/>
-        </linearGradient>
-      </defs>
-      <polygon points={`0,${height} ${pts} 100,${height}`} fill={`url(#sg-${color.replace("#","")})`}/>
-      <polyline points={pts} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-      {data.length>0&&<circle cx={(data.length-1)/(data.length-1)*100} cy={height-((data[data.length-1]/max)*(height-4))-2} r="2.5" fill={color}/>}
-    </svg>
-  );
+function KpiCard({ label, value, color, sub }: { label: string; value: string | number; color: string; sub?: string }) {
+  return <div style={{ background: C.card, border: `1px solid ${color}22`, borderRadius: 10, padding: "14px 16px", position: "relative", overflow: "hidden" }}>
+    <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: color, opacity: 0.6 }} />
+    <p style={{ fontSize: 9, color: C.muted, fontFamily: "monospace", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>{label}</p>
+    <p style={{ fontWeight: 900, fontSize: 26, color, letterSpacing: "-1px", lineHeight: 1 }}>{value}</p>
+    {sub && <p style={{ fontSize: 10, color: C.muted, marginTop: 4 }}>{sub}</p>}
+  </div>;
 }
 
-// ── SEMÁFORO KPI ──
-function TrafficLight({value,target,label,format="number"}:{value:number;target:number;label:string;format?:"number"|"percent"|"euro"}){
-  const ratio=value/target;
-  const color=ratio>=0.9?C.green:ratio>=0.7?C.yellow:C.red;
-  const status=ratio>=0.9?"✓ Objetivo":ratio>=0.7?"⚠ Alerta":"✗ Crítico";
-  const display=format==="euro"?value.toFixed(0)+"€":format==="percent"?value.toFixed(1)+"%":fmt(Math.round(value));
-  return(
-    <div style={{background:C.card,border:`1px solid ${color}33`,borderRadius:12,padding:"16px",position:"relative",overflow:"hidden"}}>
-      <div style={{position:"absolute",top:0,left:0,right:0,height:3,background:`linear-gradient(90deg,${color},${color}88)`}} />
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
-        <span style={{fontSize:10,color:C.muted,textTransform:"uppercase",letterSpacing:"0.1em",fontFamily:"monospace"}}>{label}</span>
-        <span style={{fontSize:9,color,fontWeight:700,background:color+"18",padding:"2px 7px",borderRadius:99}}>{status}</span>
-      </div>
-      <p style={{fontWeight:900,fontSize:28,color,letterSpacing:"-1px",lineHeight:1,marginBottom:4}}>{display}</p>
-      <div style={{display:"flex",alignItems:"center",gap:6}}>
-        <div style={{flex:1,height:4,background:C.border,borderRadius:99,overflow:"hidden"}}>
-          <div style={{height:"100%",width:Math.min(100,ratio*100)+"%",background:color,borderRadius:99,transition:"width 1s ease"}} />
-        </div>
-        <span style={{fontSize:9,color:C.muted,fontFamily:"monospace"}}>/{format==="euro"?target+"€":format==="percent"?target+"%":fmt(target)}</span>
-      </div>
-    </div>
-  );
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return <p style={{ fontSize: 11, color: C.muted, fontFamily: "monospace", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 14, display: "flex", alignItems: "center", gap: 8 }}>
+    <span style={{ display: "inline-block", width: 16, height: 1, background: C.border }} />
+    {children}
+    <span style={{ flex: 1, height: 1, background: C.border }} />
+  </p>;
 }
 
-// ── FUNNEL BAR ──
-function FunnelBar({label,value,total,color}:{label:string;value:number;total:number;color:string}){
-  const pct=total>0?Math.round((value/total)*100):0;
-  return(
-    <div style={{marginBottom:12}}>
-      <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}>
-        <span style={{fontSize:12,color:C.mutedL}}>{label}</span>
-        <span style={{fontSize:12,fontWeight:700,color,fontFamily:"monospace"}}>{fmt(value)} <span style={{color:C.muted,fontWeight:400}}>({pct}%)</span></span>
-      </div>
-      <div style={{height:6,background:C.border,borderRadius:99,overflow:"hidden"}}>
-        <div style={{height:"100%",width:pct+"%",background:`linear-gradient(90deg,${color},${color}88)`,borderRadius:99,transition:"width 1s ease"}} />
-      </div>
-    </div>
-  );
-}
+// ── NAV STRUCTURE ─────────────────────────────────────────────────────────────
+type Section = "monitor" | "usuarios" | "profesionales" | "flujo" | "disputas" | "mensajes" | "finanzas";
+type SubSection = string;
 
-export default function Admin({onLogout}:{onLogout:()=>void}){
-  type Window="ops"|"marketing"|"strategy"|"finance"|"mensajes";
-  const [win,setWin]=useState<Window>("strategy");
-  const [users,setUsers]=useState<UserRow[]>([]);
-  const [msgs,setMsgs]=useState<MessageRow[]>([]);
-  const [jobs,setJobs]=useState<JobRow[]>([]);
-  const [reviews,setReviews]=useState<any[]>([]);
-  const [leads,setLeads]=useState<any[]>([]);
-  const [reports,setReports]=useState<any[]>([]);
-  const [loading,setLoading]=useState(true);
-  const [toast,setToast]=useState<{msg:string;type:"ok"|"err"}|null>(null);
-  const [selectedUser,setSelectedUser]=useState<UserRow|null>(null);
-  const [supportMsg,setSupportMsg]=useState("");
-  const [sendingMsg,setSendingMsg]=useState(false);
-  const [filterOps,setFilterOps]=useState<"all"|"pro"|"cliente">("pro");
-  const [filterPlan,setFilterPlan]=useState<"all"|Plan>("all");
-  const [searchOps,setSearchOps]=useState("");
-  const [unread,setUnread]=useState(0);
-  const [refreshKey,setRefreshKey]=useState(0);
-  const [period,setPeriod]=useState<7|14|30>(7);
+const NAV: { id: Section; icon: string; label: string; subs: { id: string; label: string }[] }[] = [
+  { id: "monitor", icon: "◉", label: "Monitor", subs: [{ id: "salud", label: "Salud general" }, { id: "fuga", label: "Fuga y bloqueos" }, { id: "alertas", label: "Acción requerida" }] },
+  { id: "flujo", icon: "⟳", label: "Flujo", subs: [{ id: "funnel", label: "Funnel completo" }, { id: "trazabilidad", label: "Trazabilidad" }, { id: "leads", label: "Leads landing" }] },
+  { id: "profesionales", icon: "🔨", label: "Profesionales", subs: [{ id: "activos", label: "Activos" }, { id: "trial", label: "En trial" }, { id: "riesgo", label: "Riesgo churn" }, { id: "sinleads", label: "Sin leads" }] },
+  { id: "usuarios", icon: "👤", label: "Usuarios", subs: [{ id: "todos", label: "Todos" }, { id: "nuevos", label: "Nuevos 7d" }] },
+  { id: "disputas", icon: "⚑", label: "Disputas", subs: [{ id: "denuncias", label: "Denuncias" }, { id: "resenas", label: "Reseñas" }, { id: "sugerencias", label: "Sugerencias" }] },
+  { id: "mensajes", icon: "◈", label: "Mensajes", subs: [{ id: "chat", label: "Hub de chat" }, { id: "soporte", label: "Soporte" }] },
+  { id: "finanzas", icon: "◆", label: "Finanzas", subs: [{ id: "mrr", label: "MRR" }, { id: "planes", label: "Por plan" }, { id: "ltv", label: "LTV pros" }] },
+];
 
-  const showToast=(msg:string,type:"ok"|"err"="ok")=>{
-    setToast({msg,type});
-    setTimeout(()=>setToast(null),3000);
+// ── MAIN ─────────────────────────────────────────────────────────────────────
+export default function Admin({ onLogout }: { onLogout: () => void }) {
+  const [section, setSection] = useState<Section>("monitor");
+  const [sub, setSub] = useState<SubSection>("salud");
+  const [users, setUsers] = useState<UserRow[]>([]);
+  const [msgs, setMsgs] = useState<MessageRow[]>([]);
+  const [jobs, setJobs] = useState<JobRow[]>([]);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [leads, setLeads] = useState<any[]>([]);
+  const [reports, setReports] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState<{ msg: string; type: "ok" | "err" | "warn" } | null>(null);
+  const [notifs, setNotifs] = useState<{ id: string; msg: string; time: string; type: "ok" | "err" | "warn"; read: boolean }[]>([]);
+  const [bellOpen, setBellOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UserRow | null>(null);
+  const [searchQ, setSearchQ] = useState("");
+  const [supportMsg, setSupportMsg] = useState("");
+  const [sendingMsg, setSendingMsg] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const bellRef = useRef<HTMLDivElement>(null);
+
+  const now = new Date();
+
+  const showToast = (msg: string, type: "ok" | "err" | "warn" = "ok") => {
+    setToast({ msg, type });
+    const id = Date.now().toString();
+    setNotifs(prev => [{ id, msg, time: new Date().toISOString(), type, read: false }, ...prev.slice(0, 29)]);
+    setTimeout(() => setToast(null), 3500);
   };
 
-  const load=useCallback(async()=>{
+  const unreadNotifs = notifs.filter(n => !n.read).length;
+
+  const load = useCallback(async () => {
     setLoading(true);
-    const [u,m,j,r,ld,rp]=await Promise.all([
-      db.from("users").select("*").order("joined_at",{ascending:false}),
-      db.from("messages").select("*").order("created_at",{ascending:false}).limit(200),
-      db.from("jobs").select("*").order("created_at",{ascending:false}),
-      db.from("reviews").select("*").order("created_at",{ascending:false}),
-      db.from("leads_landing").select("*").order("created_at",{ascending:false}),
-      db.from("reports").select("*").order("created_at",{ascending:false}),
+    const [u, m, j, r, ld, rp] = await Promise.all([
+      db.from("users").select("id,name,email,phone,whatsapp,type,plan,trade,zone,rating,reviews,jobs,verified,available,trial_end,joined_at,avatar_url,bio,price,stripe_customer_id").order("joined_at", { ascending: false }),
+      db.from("messages").select("id,from_id,to_id,text,read,created_at").order("created_at", { ascending: false }).limit(300),
+      db.from("jobs").select("id,worker_id,client_id,client_name,title,status,created_at").order("created_at", { ascending: false }),
+      db.from("reviews").select("id,worker_id,client_id,client_name,stars,text,approved,created_at").order("created_at", { ascending: false }),
+      db.from("leads_landing").select("*").order("created_at", { ascending: false }),
+      db.from("reports").select("*").order("created_at", { ascending: false }),
     ]);
-    const allUsers=(u.data||[]).filter((x:any)=>x.type!=="admin"&&x.id!=="00000000-0000-0000-0000-000000000002");
+    const allUsers = (u.data || []).filter((x: any) => x.type !== "admin" && x.id !== ADMIN_ID);
     setUsers(allUsers as UserRow[]);
-    setMsgs((m.data||[]) as MessageRow[]);
-    setJobs((j.data||[]) as JobRow[]);
-    setReviews((r.data||[]) as any[]);
-    setLeads((ld.data||[]) as any[]);
-    setReports((rp.data||[]) as any[]);
-    const u2=(m.data||[]).filter((x:any)=>!x.read&&x.from_id!=="00000000-0000-0000-0000-000000000002").length;
-    setUnread(u2);
+    setMsgs((m.data || []) as MessageRow[]);
+    setJobs((j.data || []) as JobRow[]);
+    setReviews((r.data || []) as any[]);
+    setLeads((ld.data || []) as any[]);
+    setReports((rp.data || []) as any[]);
     setLoading(false);
-  },[]);
+  }, []);
 
-  useEffect(()=>{load();},[load,refreshKey]);
+  useEffect(() => { load(); }, [load, refreshKey]);
 
-  useEffect(()=>{
-    const ch=db.channel("admin-rt")
-      .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},(p:any)=>{
-        const m=p.new as MessageRow;
-        if(m.from_id!=="00000000-0000-0000-0000-000000000002"){
-          setMsgs(prev=>{if(prev.find((x:any)=>x.id===m.id))return prev;return [m,...prev];});
-          setUnread(c=>c+1);
+  // Realtime
+  useEffect(() => {
+    const ch = db.channel("admin-rt2")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "users" }, (p: any) => {
+        const u = p.new as UserRow;
+        if (u.type !== "admin") {
+          setUsers(prev => [u, ...prev]);
+          showToast(`🆕 Nuevo ${u.type}: ${u.name}`, "ok");
         }
       })
-      .on("postgres_changes",{event:"UPDATE",schema:"public",table:"messages"},(p:any)=>{
-        const m=p.new as MessageRow;
-        setMsgs(prev=>prev.map(x=>x.id===m.id?{...x,...m}:x));
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, (p: any) => {
+        const m = p.new as MessageRow;
+        if (m.from_id !== ADMIN_ID) setMsgs(prev => [m, ...prev]);
       })
-      .on("postgres_changes",{event:"INSERT",schema:"public",table:"users"},(p:any)=>{
-        const u=p.new as UserRow;
-        if(u.type!=="admin") setUsers(prev=>[u,...prev]);
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "reports" }, (p: any) => {
+        const r = p.new;
+        setReports(prev => [r, ...prev]);
+        showToast(`🚨 Nueva denuncia recibida`, "err");
       })
-      .on("postgres_changes",{event:"INSERT",schema:"public",table:"reviews"},(p:any)=>{
-        const r=p.new;
-        setReviews(prev=>{if(prev.find((x:any)=>x.id===r.id))return prev;return [r,...prev];});
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "reports" }, (p: any) => {
+        setReports(prev => prev.map((x: any) => x.id === p.new.id ? { ...x, ...p.new } : x));
       })
-      .on("postgres_changes",{event:"UPDATE",schema:"public",table:"reviews"},(p:any)=>{
-        const r=p.new;
-        if(r.approved===false){
-          setReviews(prev=>prev.filter((x:any)=>x.id!==r.id));
-        } else {
-          setReviews(prev=>prev.map((x:any)=>x.id===r.id?{...x,...r}:x));
-        }
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "reviews" }, (p: any) => {
+        setReviews(prev => [p.new, ...prev]);
+        showToast(`⭐ Nueva reseña pendiente de moderación`, "warn");
       })
-      .on("postgres_changes",{event:"INSERT",schema:"public",table:"reports"},(p:any)=>{
-        const r=p.new;
-        setReports(prev=>{if(prev.find((x:any)=>x.id===r.id))return prev;return [r,...prev];});
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "reviews" }, (p: any) => {
+        setReviews(prev => prev.map((x: any) => x.id === p.new.id ? { ...x, ...p.new } : x));
       })
-      .on("postgres_changes",{event:"UPDATE",schema:"public",table:"reports"},(p:any)=>{
-        const r=p.new;
-        setReports(prev=>prev.map((x:any)=>x.id===r.id?{...x,...r}:x));
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "jobs" }, (p: any) => {
+        setJobs(prev => [p.new, ...prev]);
       })
       .subscribe();
-    return()=>{db.removeChannel(ch);};
-  },[]);
+    return () => { db.removeChannel(ch); };
+  }, []);
 
-  // ── DERIVED DATA ──
-  const pros=users.filter(u=>u.type==="profesional");
-  const clients=users.filter(u=>u.type==="cliente");
-  const paying=pros.filter(u=>u.plan!=="gratis");
-  const mrr=paying.reduce((s,u)=>s+PLAN_PRICES[u.plan as Plan],0);
-  const mrrTarget=5000;
-  const now=new Date();
+  // Close bell on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (bellRef.current && !bellRef.current.contains(e.target as Node)) setBellOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
-  // Registros por día (últimos N días)
-  const dailyRegs=(days:number)=>{
-    const result:Record<string,number>={};
-    for(let i=days-1;i>=0;i--){
-      const d=new Date(Date.now()-i*86400000);
-      result[d.toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit"})]=0;
-    }
-    users.forEach(u=>{
-      const k=new Date(u.joined_at).toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit"});
-      if(k in result) result[k]++;
-    });
-    return Object.values(result);
-  };
+  // ── DERIVED ────────────────────────────────────────────────────────────────
+  const pros = users.filter(u => u.type === "profesional");
+  const clients = users.filter(u => u.type === "cliente");
+  const paying = pros.filter(u => u.plan !== "gratis");
+  const mrr = paying.reduce((s, u) => s + PLAN_PRICES[u.plan as Plan], 0);
+  const expiring = pros.filter(u => u.trial_end && (new Date(u.trial_end).getTime() - now.getTime()) / 86400000 <= 7 && (new Date(u.trial_end).getTime() - now.getTime()) / 86400000 > 0);
+  const expired = pros.filter(u => u.plan === "gratis" && u.trial_end && new Date(u.trial_end) < now);
+  const sinFoto = pros.filter(u => u.plan !== "gratis" && !(u as any).avatar_url);
+  const sinCobro = pros.filter(u => u.plan === "gratis" && !(u as any).stripe_customer_id);
+  const newLast7 = users.filter(u => (now.getTime() - new Date(u.joined_at).getTime()) / 86400000 <= 7);
+  const pendingReports = reports.filter((r: any) => !r.status || r.status === "pending");
+  const pendingReviews = reviews.filter((r: any) => r.approved === null || r.approved === undefined);
+  const leadsConverted = leads.filter((l: any) => l.convirtio).length;
+  const leadsAbandoned = leads.length - leadsConverted;
+  const unreadMsgs = msgs.filter(m => !m.read && m.from_id !== ADMIN_ID).length;
+  // Pros with 0 jobs in their jobs history
+  const proJobCount = (id: string) => jobs.filter(j => j.worker_id === id).length;
+  const sinLeads = pros.filter(u => u.plan !== "gratis" && proJobCount(u.id) === 0);
 
-  const weekData=dailyRegs(period);
-  const totalNewPeriod=weekData.reduce((a,b)=>a+b,0);
+  const navActions = (s: Section, sub: string) => { setSection(s); setSub(sub); setSelectedUser(null); };
 
-  // Conversion funnel
-  const visits=users.length*8; // proxy
-  const leadsCount=leads.length;
-  const converted=leads.filter((l:any)=>l.convirtio).length;
-  const convRate=leadsCount>0?((converted/leadsCount)*100):0;
-
-  // Churn / trial expiring
-  const expiring=pros.filter(u=>u.trial_end&&(new Date(u.trial_end).getTime()-now.getTime())/(86400000)<=7&&(new Date(u.trial_end).getTime()-now.getTime())/(86400000)>0);
-  const expired=pros.filter(u=>u.plan==="gratis"&&u.trial_end&&new Date(u.trial_end)<now);
-  const sinFoto=pros.filter(u=>u.plan!=="gratis"&&!u.avatar_url);
-  const sinCobro=pros.filter(u=>u.plan==="gratis"&&!(u as any).stripe_customer_id);
-
-  // Filtered ops table
-  const opsUsers=users.filter(u=>{
-    if(filterOps!=="all"&&u.type!==filterOps)return false;
-    if(filterPlan!=="all"&&u.plan!==filterPlan)return false;
-    if(searchOps){const s=searchOps.toLowerCase();return u.name.toLowerCase().includes(s)||u.email.toLowerCase().includes(s)||(u.trade||"").toLowerCase().includes(s);}
-    return true;
-  });
-
-  const sendSupport=async()=>{
-    if(!selectedUser||!supportMsg.trim())return;
-    setSendingMsg(true);
-    await db.from("messages").insert({from_id:"00000000-0000-0000-0000-000000000002",to_id:selectedUser.id,text:"[Soporte OfficioYa] "+supportMsg,read:false});
-    await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/send-push",{
-      method:"POST",
-      headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE"},
-      body:JSON.stringify({user_id:selectedUser.id,title:"👑 OfficioYa Soporte",body:supportMsg.substring(0,80),url:"/"}),
-    }).catch(()=>{});
-    setSupportMsg("");setSendingMsg(false);
-    showToast("✓ Mensaje enviado a "+selectedUser.name);
-  };
-
-  const verifyUser=async(id:string)=>{
-    await db.from("users").update({verified:true}).eq("id",id);
-    setUsers(prev=>prev.map(u=>u.id===id?{...u,verified:true}:u));
+  // ── ACTIONS ──────────────────────────────────────────────────────────────
+  const verifyUser = async (id: string) => {
+    await db.from("users").update({ verified: true }).eq("id", id);
+    setUsers(prev => prev.map(u => u.id === id ? { ...u, verified: true } : u));
     showToast("✓ Profesional verificado");
   };
-
-  const blockUser=async(id:string)=>{
-    await db.from("users").update({available:false}).eq("id",id);
-    setUsers(prev=>prev.map(u=>u.id===id?{...u,available:false}:u));
-    showToast("Usuario bloqueado","err");
+  const blockUser = async (id: string) => {
+    await db.from("users").update({ available: false }).eq("id", id);
+    setUsers(prev => prev.map(u => u.id === id ? { ...u, available: false } : u));
+    showToast("Usuario bloqueado", "err");
   };
-
-  const approveReview=async(id:string)=>{
-    await db.from("reviews").update({approved:true}).eq("id",id);
-    setReviews(p=>p.map((r:any)=>r.id===id?{...r,approved:true}:r));
-    showToast("✓ Reseña aprobada — visible en la app");
+  const unblockUser = async (id: string) => {
+    await db.from("users").update({ available: true }).eq("id", id);
+    setUsers(prev => prev.map(u => u.id === id ? { ...u, available: true } : u));
+    showToast("Usuario desbloqueado");
   };
-  const rejectReview=async(id:string)=>{
-    // Rechazar = approved:false — desaparece del perfil del pro
-    await db.from("reviews").update({approved:false}).eq("id",id);
-    setReviews(p=>p.filter((r:any)=>r.id!==id));
-    showToast("Reseña rechazada — eliminada de la app","err");
+  const approveReview = async (id: string) => {
+    await db.from("reviews").update({ approved: true }).eq("id", id);
+    setReviews(p => p.map((r: any) => r.id === id ? { ...r, approved: true } : r));
+    showToast("✓ Reseña aprobada");
   };
-  const deleteReview=async(id:string)=>{
-    await db.from("reviews").delete().eq("id",id);
-    setReviews(p=>p.filter((r:any)=>r.id!==id));
-    showToast("Reseña eliminada permanentemente","err");
+  const rejectReview = async (id: string) => {
+    await db.from("reviews").update({ approved: false }).eq("id", id);
+    setReviews(p => p.filter((r: any) => r.id !== id));
+    showToast("Reseña rechazada", "err");
   };
-  const updateReportStatus=async(id:string,status:"pending"|"investigating"|"approved")=>{
-    await db.from("reports").update({status}).eq("id",id);
-    setReports(p=>p.map((r:any)=>r.id===id?{...r,status}:r));
-    if(status==="approved"){
-      // Buscar el pro afectado y bloquearlo
-      const rep=reports.find((r:any)=>r.id===id);
-      if(rep?.worker_id){
-        await db.from("users").update({available:false}).eq("id",rep.worker_id);
-        setUsers(prev=>prev.map(u=>u.id===rep.worker_id?{...u,available:false}:u));
-        showToast("🚫 Reporte aprobado — profesional bloqueado","err");
-      } else {
-        showToast("✓ Reporte aprobado");
-      }
-    } else if(status==="investigating"){
-      showToast("🔍 Marcado como en investigación");
+  const updateReport = async (id: string, status: "pending" | "investigating" | "approved") => {
+    await db.from("reports").update({ status }).eq("id", id);
+    setReports(p => p.map((r: any) => r.id === id ? { ...r, status } : r));
+    if (status === "approved") {
+      const rep = reports.find((r: any) => r.id === id);
+      if (rep?.worker_id) { await blockUser(rep.worker_id); }
+      showToast("🚫 Reporte aprobado — pro bloqueado", "err");
+    } else {
+      showToast(status === "investigating" ? "🔍 Marcado como en investigación" : "Reporte reabierto", "warn");
     }
   };
+  const sendSupport = async () => {
+    if (!selectedUser || !supportMsg.trim()) return;
+    setSendingMsg(true);
+    await db.from("messages").insert({ from_id: ADMIN_ID, to_id: selectedUser.id, text: "[Soporte OfficioYa] " + supportMsg, read: false });
+    setSupportMsg(""); setSendingMsg(false);
+    showToast("✓ Mensaje enviado a " + selectedUser.name);
+  };
 
-  // ────────────────────────────────────────────
-  // RENDER
-  // ────────────────────────────────────────────
-  return(
-    <div style={{minHeight:"100dvh",background:C.bg,color:C.text,fontFamily:"'DM Sans',sans-serif",display:"flex",flexDirection:"column"}}>
+  // ── SEARCH RESULTS ────────────────────────────────────────────────────────
+  const searchResults = searchQ.length > 2 ? users.filter(u => {
+    const q = searchQ.toLowerCase();
+    return u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || u.id.includes(q) || (u.trade || "").toLowerCase().includes(q) || (u.phone || "").includes(q);
+  }).slice(0, 8) : [];
+
+  // ── RENDER SECTIONS ───────────────────────────────────────────────────────
+
+  // MONITOR / SALUD
+  const renderSalud = () => (
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      <SectionTitle>KPIs de salud en tiempo real</SectionTitle>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>
+        <KpiCard label="MRR actual" value={mrr.toFixed(0) + "€"} color={C.green} sub={`Objetivo 5.000€ · ${((mrr / 5000) * 100).toFixed(0)}%`} />
+        <KpiCard label="Profesionales activos" value={fmt(pros.filter(u => u.available).length)} color={C.accent} sub={`${pros.length} total registrados`} />
+        <KpiCard label="Clientes registrados" value={fmt(clients.length)} color={C.blue} sub={`+${newLast7.filter(u => u.type === "cliente").length} esta semana`} />
+        <KpiCard label="Conversión landing" value={leads.length > 0 ? ((leadsConverted / leads.length) * 100).toFixed(1) + "%" : "—"} color={C.purple} sub={`${leadsConverted} de ${leads.length} leads`} />
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>
+        <KpiCard label="Pagando ahora" value={fmt(paying.length)} color={C.gold} sub="plan activo ≠ gratis" />
+        <KpiCard label="En trial" value={fmt(pros.filter(u => u.plan === "gratis" && u.trial_end && new Date(u.trial_end) > now).length)} color={C.yellow} sub="primer mes gratis" />
+        <KpiCard label="Trial expirando 7d" value={fmt(expiring.length)} color={expiring.length > 0 ? C.orange : C.green} sub="riesgo de churn" />
+        <KpiCard label="Denuncias pendientes" value={fmt(pendingReports.length)} color={pendingReports.length > 0 ? C.red : C.green} sub="sin resolver" />
+      </div>
+
+      <SectionTitle>Dónde se pierde la confianza</SectionTitle>
+      {/* Trust breakdown */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+        {[
+          { label: "Pros sin foto de perfil", count: sinFoto.length, color: C.orange, desc: "Peor conversión — el cliente no confía sin cara", action: "Ver pros", onClick: () => navActions("profesionales", "activos") },
+          { label: "Sin tarjeta registrada", count: sinCobro.length, color: C.red, desc: "Entraron pero no completaron el registro de pago", action: "Llamar hoy", onClick: () => navActions("flujo", "leads") },
+          { label: "Trial expirado sin pagar", count: expired.length, color: C.red, desc: "Usaron el servicio y se fueron sin convertir", action: "Ver lista", onClick: () => navActions("profesionales", "riesgo") },
+          { label: "Reseñas sin moderar", count: pendingReviews.length, color: C.yellow, desc: "Visibles o bloqueadas — acción necesaria", action: "Moderar", onClick: () => navActions("disputas", "resenas") },
+          { label: "Pros pagando sin leads", count: sinLeads.length, color: C.orange, desc: "Pagan pero no ven retorno — riesgo de baja", action: "Actuar", onClick: () => navActions("profesionales", "sinleads") },
+          { label: "Denuncias sin resolver", count: pendingReports.length, color: C.red, desc: "Daño activo a la reputación de la plataforma", action: "Resolver", onClick: () => navActions("disputas", "denuncias") },
+        ].map(item => (
+          <div key={item.label} style={{ background: C.card, border: `1px solid ${item.count > 0 ? item.color + "33" : C.border}`, borderRadius: 12, padding: 16 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+              <p style={{ fontSize: 11, color: item.count > 0 ? item.color : C.mutedL, fontWeight: 700 }}>{item.label}</p>
+              <span style={{ fontWeight: 900, fontSize: 22, color: item.count > 0 ? item.color : C.green }}>{item.count > 0 ? item.count : "✓"}</span>
+            </div>
+            <p style={{ fontSize: 10, color: C.muted, lineHeight: 1.5, marginBottom: 12 }}>{item.desc}</p>
+            {item.count > 0 && <button onClick={item.onClick} style={{ fontSize: 10, color: item.color, background: item.color + "18", border: `1px solid ${item.color}33`, borderRadius: 6, padding: "5px 12px", cursor: "pointer", fontFamily: "monospace", fontWeight: 700 }}>{item.action} →</button>}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  // MONITOR / FUGA
+  const renderFuga = () => {
+    const stuckJobs = jobs.filter(j => j.status === "pending");
+    const inProgressJobs = jobs.filter(j => j.status === "in_progress");
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        <SectionTitle>Monitor de fuga y bloqueos</SectionTitle>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>
+          <KpiCard label="Jobs pendientes" value={stuckJobs.length} color={stuckJobs.length > 5 ? C.red : C.yellow} sub="esperando acción" />
+          <KpiCard label="En progreso" value={inProgressJobs.length} color={C.blue} sub="activos ahora" />
+          <KpiCard label="Abandonos landing" value={leadsAbandoned} color={C.orange} sub="sin convertir" />
+          <KpiCard label="Mensajes no leídos" value={unreadMsgs} color={unreadMsgs > 10 ? C.red : C.muted} sub="del sistema" />
+        </div>
+
+        <SectionTitle>Jobs atascados</SectionTitle>
+        {stuckJobs.length === 0
+          ? <div style={{ background: C.card, border: `1px solid ${C.green}22`, borderRadius: 10, padding: 20, textAlign: "center", color: C.green, fontSize: 13 }}>✓ Sin jobs pendientes</div>
+          : <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, overflow: "hidden" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead><tr style={{ borderBottom: `1px solid ${C.border}` }}>
+                {["Trabajo", "Cliente", "Profesional", "Estado", "Hace"].map(h => <th key={h} style={{ padding: "10px 14px", textAlign: "left", fontSize: 9, color: C.muted, fontFamily: "monospace", letterSpacing: "0.1em" }}>{h}</th>)}
+              </tr></thead>
+              <tbody>{stuckJobs.slice(0, 20).map((j: any) => {
+                const pro = users.find(u => u.id === j.worker_id);
+                return <tr key={j.id} style={{ borderBottom: `1px solid ${C.border}` }}>
+                  <td style={{ padding: "10px 14px", fontSize: 12, color: C.text, fontWeight: 600 }}>{j.title}</td>
+                  <td style={{ padding: "10px 14px", fontSize: 11, color: C.muted }}>{j.client_name}</td>
+                  <td style={{ padding: "10px 14px" }}>{pro ? <button onClick={() => setSelectedUser(pro)} style={{ fontSize: 11, color: C.accent, background: "none", border: `1px solid ${C.accent}33`, borderRadius: 4, padding: "2px 8px", cursor: "pointer" }}>{pro.name}</button> : <span style={{ color: C.muted, fontSize: 11 }}>—</span>}</td>
+                  <td style={{ padding: "10px 14px" }}><Pill label="Pendiente" color={C.yellow} /></td>
+                  <td style={{ padding: "10px 14px", fontSize: 10, color: C.muted, fontFamily: "monospace" }}>{timeAgo(j.created_at)}</td>
+                </tr>;
+              })}</tbody>
+            </table>
+          </div>
+        }
+      </div>
+    );
+  };
+
+  // MONITOR / ALERTAS
+  const renderAlertas = () => {
+    const urgent = [
+      ...pendingReports.map(r => ({ id: "r" + (r as any).id, type: "denuncia", msg: `Denuncia pendiente: "${(r as any).message?.slice(0, 60)}..."`, color: C.red, action: () => navActions("disputas", "denuncias") })),
+      ...expiring.map(u => ({ id: "e" + u.id, type: "trial", msg: `${u.name} — trial expira en ${Math.ceil((new Date(u.trial_end).getTime() - now.getTime()) / 86400000)}d`, color: C.yellow, action: () => setSelectedUser(u) })),
+      ...sinCobro.slice(0, 3).map(u => ({ id: "sc" + u.id, type: "pago", msg: `${u.name} — registrado sin tarjeta`, color: C.orange, action: () => setSelectedUser(u) })),
+      ...pendingReviews.slice(0, 3).map((r: any) => ({ id: "rv" + r.id, type: "reseña", msg: `Reseña de ${r.client_name} — ${r.stars}★ sin moderar`, color: C.purple, action: () => navActions("disputas", "resenas") })),
+    ];
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <SectionTitle>Acciones requeridas ahora</SectionTitle>
+        {urgent.length === 0
+          ? <div style={{ background: C.card, border: `1px solid ${C.green}22`, borderRadius: 12, padding: 24, textAlign: "center" }}>
+            <p style={{ fontSize: 24, marginBottom: 8 }}>✓</p>
+            <p style={{ color: C.green, fontSize: 14, fontWeight: 700 }}>Sin alertas pendientes</p>
+          </div>
+          : urgent.map(a => (
+            <div key={a.id} style={{ background: C.card, border: `1px solid ${a.color}33`, borderRadius: 10, padding: "14px 16px", display: "flex", alignItems: "center", gap: 14 }}>
+              <div style={{ width: 8, height: 8, borderRadius: "50%", background: a.color, flexShrink: 0, boxShadow: `0 0 8px ${a.color}88`, animation: "pulse 2s ease infinite" }} />
+              <div style={{ flex: 1 }}>
+                <span style={{ fontSize: 9, color: a.color, fontFamily: "monospace", fontWeight: 700, textTransform: "uppercase", marginRight: 8 }}>{a.type}</span>
+                <span style={{ fontSize: 12, color: C.text }}>{a.msg}</span>
+              </div>
+              <button onClick={a.action} style={{ fontSize: 10, color: a.color, background: a.color + "18", border: `1px solid ${a.color}44`, borderRadius: 6, padding: "5px 12px", cursor: "pointer", fontFamily: "monospace", fontWeight: 700, flexShrink: 0 }}>Revisar →</button>
+            </div>
+          ))
+        }
+      </div>
+    );
+  };
+
+  // FLUJO / FUNNEL
+  const renderFunnel = () => {
+    const funnelSteps = [
+      { label: "Visitas estimadas", value: users.length * 12, color: C.blue, pct: 100 },
+      { label: "Formulario landing relleno", value: leads.length, color: C.purple, pct: users.length * 12 > 0 ? (leads.length / (users.length * 12)) * 100 : 0 },
+      { label: "Registros completados", value: users.length, color: C.accent, pct: users.length * 12 > 0 ? (users.length / (users.length * 12)) * 100 : 0 },
+      { label: "Trial activado (con tarjeta)", value: pros.filter(u => (u as any).stripe_customer_id).length, color: C.yellow, pct: pros.length > 0 ? (pros.filter(u => (u as any).stripe_customer_id).length / pros.length) * 100 : 0 },
+      { label: "Convirtieron a pago", value: paying.length, color: C.green, pct: users.length > 0 ? (paying.length / users.length) * 100 : 0 },
+    ];
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        <SectionTitle>Funnel completo de conversión</SectionTitle>
+        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: 24 }}>
+          {funnelSteps.map((step, i) => (
+            <div key={step.label} style={{ marginBottom: i < funnelSteps.length - 1 ? 20 : 0 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                <span style={{ fontSize: 12, color: C.text, fontWeight: 600 }}>{step.label}</span>
+                <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                  <span style={{ fontSize: 11, color: step.color, fontFamily: "monospace", fontWeight: 700 }}>{step.pct.toFixed(1)}%</span>
+                  <span style={{ fontSize: 16, fontWeight: 900, color: step.color }}>{fmt(step.value)}</span>
+                </div>
+              </div>
+              <div style={{ height: 8, background: C.border, borderRadius: 99, overflow: "hidden" }}>
+                <div style={{ height: "100%", width: step.pct + "%", background: step.color, borderRadius: 99, transition: "width 1s ease" }} />
+              </div>
+              {i < funnelSteps.length - 1 && (
+                <div style={{ textAlign: "right", fontSize: 9, color: C.muted, fontFamily: "monospace", marginTop: 4 }}>
+                  ↓ Drop: {funnelSteps[i + 1] ? (100 - (funnelSteps[i + 1].value / Math.max(1, step.value) * 100)).toFixed(0) : 0}% se pierde aquí
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <SectionTitle>Dónde se abandona y por qué</SectionTitle>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+          {[
+            { step: "Visita → Landing", lost: leads.length > 0 ? (users.length * 12 - leads.length) : 0, why: "No ven valor suficiente para dejar su dato. Hook del anuncio poco claro.", color: C.blue },
+            { step: "Landing → Registro", lost: leads.length - users.length > 0 ? leads.length - users.length : 0, why: "Rellenaron el form pero no completaron. Fricción en el paso de tarjeta.", color: C.purple },
+            { step: "Trial → Pago", lost: pros.filter(u => u.plan === "gratis" && u.trial_end).length, why: "No percibieron suficiente valor durante el trial. Sin leads = sin razón para pagar.", color: C.red },
+          ].map(item => (
+            <div key={item.step} style={{ background: C.card, border: `1px solid ${item.color}22`, borderRadius: 12, padding: 16 }}>
+              <p style={{ fontSize: 9, color: item.color, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>{item.step}</p>
+              <p style={{ fontWeight: 900, fontSize: 28, color: item.color, letterSpacing: "-1px", marginBottom: 8 }}>{item.lost}</p>
+              <p style={{ fontSize: 11, color: C.muted, lineHeight: 1.5 }}>{item.why}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  // FLUJO / LEADS
+  const renderLeads = () => (
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      <SectionTitle>Leads landing — abandonos y conversiones</SectionTitle>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>
+        <KpiCard label="Total leads" value={leads.length} color={C.blue} />
+        <KpiCard label="Convirtieron" value={leadsConverted} color={C.green} />
+        <KpiCard label="Abandonaron" value={leadsAbandoned} color={C.orange} sub="llamar ahora" />
+        <KpiCard label="Tasa conversión" value={leads.length > 0 ? ((leadsConverted / leads.length) * 100).toFixed(1) + "%" : "—"} color={C.purple} />
+      </div>
+      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, overflow: "hidden" }}>
+        <div style={{ padding: "14px 16px", borderBottom: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between" }}>
+          <p style={{ fontWeight: 700, fontSize: 13, color: C.text }}>📋 Todos los leads</p>
+          <p style={{ fontSize: 11, color: C.muted }}>Prioridad: <span style={{ color: C.orange }}>Abandonos sin contactar</span></p>
+        </div>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead><tr style={{ borderBottom: `1px solid ${C.border}` }}>
+              {["Nombre", "Oficio", "Email", "Teléfono", "Estado", "Fecha", "Acción"].map(h => <th key={h} style={{ padding: "10px 14px", textAlign: "left", fontSize: 9, color: C.muted, fontFamily: "monospace", letterSpacing: "0.1em" }}>{h}</th>)}
+            </tr></thead>
+            <tbody>
+              {[...leads].sort((a: any, b: any) => a.convirtio ? 1 : -1).map((l: any) => (
+                <tr key={l.id} style={{ borderBottom: `1px solid ${C.border}`, background: !l.convirtio ? C.orange + "06" : "transparent" }}>
+                  <td style={{ padding: "10px 14px", fontSize: 12, color: C.text, fontWeight: 600 }}>{l.nombre}</td>
+                  <td style={{ padding: "10px 14px" }}><span style={{ fontSize: 10, color: C.accent, fontFamily: "monospace" }}>{l.oficio}</span></td>
+                  <td style={{ padding: "10px 14px", fontSize: 11, color: C.muted }}>{l.email}</td>
+                  <td style={{ padding: "10px 14px" }}>{l.telefono && <a href={"tel:" + l.telefono} style={{ fontSize: 11, color: C.green, textDecoration: "none", fontWeight: 700 }}>📞 {l.telefono}</a>}</td>
+                  <td style={{ padding: "10px 14px" }}><Pill label={l.convirtio ? "Convirtió" : "Abandonó"} color={l.convirtio ? C.green : C.orange} /></td>
+                  <td style={{ padding: "10px 14px", fontSize: 10, color: C.muted, fontFamily: "monospace" }}>{fmtDate(l.created_at)}</td>
+                  <td style={{ padding: "10px 14px" }}>
+                    {!l.convirtio && l.telefono && <a href={"https://wa.me/" + l.telefono.replace(/\D/g, "")} target="_blank" rel="noreferrer" style={{ fontSize: 10, color: "#25D366", background: "#25D36618", border: "1px solid #25D36644", borderRadius: 4, padding: "4px 8px", textDecoration: "none" }}>WA</a>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+
+  // PROFESIONALES base table
+  const renderProsTable = (list: UserRow[], title: string, emptyMsg: string) => (
+    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, overflow: "hidden" }}>
+      <div style={{ padding: "14px 16px", borderBottom: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between" }}>
+        <p style={{ fontWeight: 700, fontSize: 13, color: C.text }}>{title}</p>
+        <Pill label={`${list.length} pros`} color={C.accent} dot={false} />
+      </div>
+      {list.length === 0
+        ? <div style={{ padding: 24, textAlign: "center", color: C.muted, fontSize: 12 }}>{emptyMsg}</div>
+        : <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead><tr style={{ borderBottom: `1px solid ${C.border}` }}>
+              {["Pro", "Plan", "Oficio", "Jobs", "Rating", "Trial", "Acciones"].map(h => <th key={h} style={{ padding: "10px 14px", textAlign: "left", fontSize: 9, color: C.muted, fontFamily: "monospace", letterSpacing: "0.1em" }}>{h}</th>)}
+            </tr></thead>
+            <tbody>{list.slice(0, 50).map(u => {
+              const daysLeft = u.trial_end ? Math.max(0, Math.ceil((new Date(u.trial_end).getTime() - now.getTime()) / 86400000)) : null;
+              const isExpiring = daysLeft !== null && daysLeft <= 7 && daysLeft > 0;
+              const isExpired = daysLeft !== null && daysLeft <= 0 && u.plan === "gratis";
+              const jobCount = proJobCount(u.id);
+              return <tr key={u.id} style={{ borderBottom: `1px solid ${C.border}` }}>
+                <td style={{ padding: "10px 14px" }}>
+                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                    <Ava s={u.name.substring(0, 2).toUpperCase()} size={28} color={PLAN_COLORS[u.plan as Plan]} imgUrl={(u as any).avatar_url || ""} />
+                    <div>
+                      <p style={{ fontSize: 12, fontWeight: 700, color: C.text }}>{u.name}</p>
+                      <p style={{ fontSize: 10, color: C.muted }}>{u.email}</p>
+                    </div>
+                  </div>
+                </td>
+                <td style={{ padding: "10px 14px" }}><Badge plan={u.plan as Plan} /></td>
+                <td style={{ padding: "10px 14px", fontSize: 11, color: C.accent }}>{u.trade || "—"}</td>
+                <td style={{ padding: "10px 14px" }}><span style={{ fontSize: 13, fontWeight: 700, color: jobCount === 0 ? C.red : C.green }}>{jobCount}</span></td>
+                <td style={{ padding: "10px 14px", fontSize: 11, color: C.yellow }}>{u.rating ? u.rating.toFixed(1) + "★" : "—"}</td>
+                <td style={{ padding: "10px 14px" }}>
+                  {daysLeft !== null ? <span style={{ fontSize: 10, fontFamily: "monospace", color: isExpired ? C.red : isExpiring ? C.yellow : C.muted }}>{isExpired ? "⛔ Expirado" : isExpiring ? `⚠ ${daysLeft}d` : `${daysLeft}d`}</span> : <span style={{ color: C.muted, fontSize: 10 }}>—</span>}
+                </td>
+                <td style={{ padding: "10px 14px" }}>
+                  <div style={{ display: "flex", gap: 5 }}>
+                    <button onClick={() => setSelectedUser(u)} style={{ fontSize: 10, padding: "4px 8px", background: C.accentDim, border: `1px solid ${C.accent}44`, borderRadius: 4, color: C.accent, cursor: "pointer" }}>Ver</button>
+                    {!u.verified && <button onClick={() => verifyUser(u.id)} style={{ fontSize: 10, padding: "4px 8px", background: C.greenDim, border: `1px solid ${C.green}44`, borderRadius: 4, color: C.green, cursor: "pointer" }}>✓ Verificar</button>}
+                    {u.phone && <a href={"tel:" + u.phone} style={{ fontSize: 10, padding: "4px 8px", background: C.greenDim, border: `1px solid ${C.green}44`, borderRadius: 4, color: C.green, textDecoration: "none" }}>📞</a>}
+                    {(u as any).whatsapp && <a href={"https://wa.me/" + ((u as any).whatsapp || "").replace(/\D/g, "")} target="_blank" rel="noreferrer" style={{ fontSize: 10, padding: "4px 8px", background: "#25D36618", border: "1px solid #25D36644", borderRadius: 4, color: "#25D366", textDecoration: "none" }}>WA</a>}
+                  </div>
+                </td>
+              </tr>;
+            })}</tbody>
+          </table>
+        </div>
+      }
+    </div>
+  );
+
+  // DISPUTAS / DENUNCIAS
+  const renderDenuncias = () => (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <SectionTitle>Centro de disputas</SectionTitle>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12 }}>
+        <KpiCard label="Pendientes" value={pendingReports.length} color={pendingReports.length > 0 ? C.red : C.green} />
+        <KpiCard label="En investigación" value={reports.filter((r: any) => r.status === "investigating").length} color={C.yellow} />
+        <KpiCard label="Resueltos" value={reports.filter((r: any) => r.status === "approved").length} color={C.green} />
+      </div>
+      {reports.length === 0
+        ? <div style={{ background: C.card, border: `1px solid ${C.green}22`, borderRadius: 12, padding: 24, textAlign: "center", color: C.green, fontSize: 13 }}>✓ Sin denuncias</div>
+        : reports.map((r: any) => {
+          const pro = users.find(u => u.id === r.worker_id);
+          const from = users.find(u => u.id === r.from_id);
+          const statusColor = r.status === "approved" ? C.green : r.status === "investigating" ? C.yellow : C.red;
+          const isUrgent = !r.status || r.status === "pending";
+          return (
+            <div key={r.id} style={{ background: C.card, border: `1px solid ${statusColor}33`, borderRadius: 12, padding: 16 }}>
+              <div style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 12 }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginBottom: 6 }}>
+                    {isUrgent && <span style={{ fontSize: 8, background: C.red + "22", color: C.red, border: `1px solid ${C.red}44`, borderRadius: 3, padding: "2px 6px", fontFamily: "monospace", fontWeight: 900 }}>URGENTE</span>}
+                    <span style={{ fontSize: 9, fontFamily: "monospace", color: C.red, background: C.redDim, padding: "2px 7px", borderRadius: 3, fontWeight: 700 }}>{r.type || "reporte"}</span>
+                    <Pill label={r.status === "approved" ? "✓ Resuelto" : r.status === "investigating" ? "🔍 Investigando" : "⏳ Pendiente"} color={statusColor} />
+                    <span style={{ fontSize: 9, color: C.muted, fontFamily: "monospace", marginLeft: "auto" }}>{fmtDate(r.created_at)}</span>
+                  </div>
+                  <p style={{ fontSize: 12, color: C.text, lineHeight: 1.6, marginBottom: 8 }}>{r.message}</p>
+                  <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                    {from && <span style={{ fontSize: 11, color: C.muted }}>👤 De: <span style={{ color: C.text, fontWeight: 600 }}>{from.name || r.from_name}</span></span>}
+                    {pro && <button onClick={() => setSelectedUser(pro)} style={{ fontSize: 11, color: C.accent, background: "none", border: `1px solid ${C.accent}33`, borderRadius: 4, padding: "2px 8px", cursor: "pointer" }}>🔨 {pro.name} → Ver perfil</button>}
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                {(!r.status || r.status === "pending") && <button onClick={() => updateReport(r.id, "investigating")} style={{ fontSize: 11, padding: "6px 14px", background: C.yellowDim, border: `1px solid ${C.yellow}44`, borderRadius: 6, color: C.yellow, cursor: "pointer", fontWeight: 600 }}>🔍 Investigar</button>}
+                {r.status === "investigating" && <>
+                  <button onClick={() => updateReport(r.id, "approved")} style={{ fontSize: 11, padding: "6px 14px", background: C.redDim, border: `1px solid ${C.red}44`, borderRadius: 6, color: C.red, cursor: "pointer", fontWeight: 700 }}>🚫 Aprobar y bloquear pro</button>
+                  <button onClick={() => updateReport(r.id, "pending")} style={{ fontSize: 11, padding: "6px 14px", background: C.card, border: `1px solid ${C.border}`, borderRadius: 6, color: C.muted, cursor: "pointer" }}>Reabrir</button>
+                </>}
+                {r.status === "approved" && pro && <span style={{ fontSize: 11, color: C.red, fontFamily: "monospace", display: "flex", alignItems: "center" }}>✓ Pro bloqueado · {pro.name}</span>}
+              </div>
+            </div>
+          );
+        })}
+    </div>
+  );
+
+  // DISPUTAS / RESEÑAS
+  const renderResenas = () => {
+    const pendientes = reviews.filter((r: any) => r.approved === null || r.approved === undefined);
+    const aprobadas = reviews.filter((r: any) => r.approved === true);
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <SectionTitle>Moderación de reseñas</SectionTitle>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12 }}>
+          <KpiCard label="Pendientes" value={pendientes.length} color={pendientes.length > 0 ? C.yellow : C.green} />
+          <KpiCard label="Aprobadas" value={aprobadas.length} color={C.green} />
+          <KpiCard label="Media general" value={reviews.length > 0 ? (reviews.reduce((s, r: any) => s + r.stars, 0) / reviews.length).toFixed(1) + "★" : "—"} color={C.gold} />
+        </div>
+        {pendientes.length === 0
+          ? <div style={{ background: C.card, border: `1px solid ${C.green}22`, borderRadius: 10, padding: 20, textAlign: "center", color: C.green, fontSize: 13 }}>✓ Sin reseñas pendientes de moderación</div>
+          : pendientes.map((r: any) => {
+            const pro = users.find(u => u.id === r.worker_id);
+            return (
+              <div key={r.id} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16 }}>
+                <div style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 12 }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4 }}>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: C.text }}>{r.client_name}</span>
+                      <span style={{ fontSize: 10, color: C.muted }}>→</span>
+                      {pro && <button onClick={() => setSelectedUser(pro)} style={{ fontSize: 11, color: C.accent, background: "none", border: `1px solid ${C.accent}33`, borderRadius: 3, padding: "1px 6px", cursor: "pointer" }}>{pro.name}</button>}
+                      <span style={{ fontSize: 12, color: C.yellow }}>{r.stars}★</span>
+                      <span style={{ fontSize: 9, color: C.muted, fontFamily: "monospace", marginLeft: "auto" }}>{fmtDate(r.created_at)}</span>
+                    </div>
+                    <p style={{ fontSize: 12, color: C.mutedL, lineHeight: 1.5 }}>{r.text}</p>
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button onClick={() => approveReview(r.id)} style={{ flex: 1, fontSize: 11, padding: "7px", background: C.greenDim, border: `1px solid ${C.green}44`, borderRadius: 6, color: C.green, cursor: "pointer", fontWeight: 700 }}>✓ Aprobar — publicar</button>
+                  <button onClick={() => rejectReview(r.id)} style={{ flex: 1, fontSize: 11, padding: "7px", background: C.redDim, border: `1px solid ${C.red}44`, borderRadius: 6, color: C.red, cursor: "pointer", fontWeight: 700 }}>✗ Rechazar — ocultar</button>
+                </div>
+              </div>
+            );
+          })}
+      </div>
+    );
+  };
+
+  // MENSAJES HUB
+  const renderMensajes = () => (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <SectionTitle>Hub de mensajes</SectionTitle>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12 }}>
+        <KpiCard label="Total mensajes" value={msgs.length} color={C.blue} />
+        <KpiCard label="No leídos" value={unreadMsgs} color={unreadMsgs > 0 ? C.red : C.green} />
+        <KpiCard label="De soporte" value={msgs.filter(m => m.from_id === ADMIN_ID).length} color={C.accent} />
+      </div>
+      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, overflow: "hidden" }}>
+        <div style={{ maxHeight: 520, overflowY: "auto" }}>
+          {msgs.filter(m => m.from_id !== BOT_ID).slice(0, 60).map(m => {
+            const fromUser = users.find(u => u.id === m.from_id);
+            const toUser = users.find(u => u.id === m.to_id);
+            const isAdmin = m.from_id === ADMIN_ID;
+            const isUnread = !m.read && !isAdmin;
+            return (
+              <div key={m.id} onClick={() => setSelectedUser(fromUser || toUser || null)} style={{ padding: "12px 16px", borderBottom: `1px solid ${C.border}`, background: isUnread ? C.accent + "08" : "transparent", cursor: "pointer" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = C.cardHover; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = isUnread ? C.accent + "08" : "transparent"; }}>
+                <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                  <div style={{ width: 32, height: 32, borderRadius: 8, background: isAdmin ? C.accent + "22" : C.blue + "22", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0 }}>
+                    {isAdmin ? "👑" : isUnread ? "🔴" : "💬"}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 3 }}>
+                      <span style={{ fontSize: 12, color: isUnread ? C.accent : C.text, fontWeight: 700 }}>{isAdmin ? "Admin" : (fromUser?.name || "—")}</span>
+                      <span style={{ fontSize: 10, color: C.muted }}>→ {toUser?.name || "—"}</span>
+                      {isUnread && <span style={{ fontSize: 8, color: C.accent, background: C.accentDim, padding: "1px 5px", borderRadius: 3, fontFamily: "monospace", fontWeight: 900 }}>NUEVO</span>}
+                      <span style={{ fontSize: 9, color: C.muted, marginLeft: "auto", fontFamily: "monospace" }}>{timeAgo(m.created_at)}</span>
+                    </div>
+                    <p style={{ fontSize: 11, color: C.muted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.text.substring(0, 90)}</p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+
+  // FINANZAS / MRR
+  const renderMRR = () => {
+    const proj6 = mrr * 1.15 * 6; // rough 15% monthly growth
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        <SectionTitle>MRR y proyecciones</SectionTitle>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>
+          <KpiCard label="MRR actual" value={mrr.toFixed(0) + "€"} color={C.green} sub="ingresos recurrentes" />
+          <KpiCard label="ARPU" value={paying.length > 0 ? (mrr / paying.length).toFixed(2) + "€" : "—"} color={C.blue} sub="por pro pagante" />
+          <KpiCard label="Proyección 6m" value={(proj6).toFixed(0) + "€"} color={C.purple} sub="+15%/mes estimado" />
+          <KpiCard label="Break-even" value={mrr > 0 ? (mrr >= 500 ? "✓" : `${((500 / mrr) * 100 - 100).toFixed(0)}% más`) : "—"} color={mrr >= 500 ? C.green : C.yellow} sub="objetivo mínimo 500€/m" />
+        </div>
+        <SectionTitle>LTV por profesional</SectionTitle>
+        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, overflow: "hidden" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead><tr style={{ borderBottom: `1px solid ${C.border}` }}>
+              {["Pro", "Plan", "€/mes", "Jobs generados", "Rating", "LTV estimado", "Riesgo"].map(h => <th key={h} style={{ padding: "10px 14px", textAlign: "left", fontSize: 9, color: C.muted, fontFamily: "monospace", letterSpacing: "0.1em" }}>{h}</th>)}
+            </tr></thead>
+            <tbody>{paying.map(u => {
+              const monthlyRevenue = PLAN_PRICES[u.plan as Plan];
+              const ltv = monthlyRevenue * 12;
+              const jobCount = proJobCount(u.id);
+              const riskColor = jobCount === 0 ? C.red : (u.rating || 0) < 3 ? C.yellow : C.green;
+              const riskLabel = jobCount === 0 ? "Alto" : (u.rating || 0) < 3 ? "Medio" : "Bajo";
+              return <tr key={u.id} style={{ borderBottom: `1px solid ${C.border}` }}>
+                <td style={{ padding: "10px 14px" }}>
+                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                    <Ava s={u.name.substring(0, 2).toUpperCase()} size={26} color={PLAN_COLORS[u.plan as Plan]} imgUrl={(u as any).avatar_url || ""} />
+                    <div>
+                      <p style={{ fontSize: 12, fontWeight: 700, color: C.text }}>{u.name}</p>
+                      <p style={{ fontSize: 10, color: C.muted }}>{u.trade || "—"}</p>
+                    </div>
+                  </div>
+                </td>
+                <td style={{ padding: "10px 14px" }}><Badge plan={u.plan as Plan} /></td>
+                <td style={{ padding: "10px 14px", fontSize: 12, color: C.green, fontFamily: "monospace", fontWeight: 700 }}>{monthlyRevenue}€</td>
+                <td style={{ padding: "10px 14px" }}><span style={{ fontSize: 13, fontWeight: 700, color: jobCount === 0 ? C.red : C.green }}>{jobCount}</span></td>
+                <td style={{ padding: "10px 14px", fontSize: 11, color: C.yellow }}>{u.rating ? u.rating.toFixed(1) + "★" : "—"}</td>
+                <td style={{ padding: "10px 14px", fontSize: 12, color: C.purple, fontFamily: "monospace", fontWeight: 700 }}>~{ltv}€</td>
+                <td style={{ padding: "10px 14px" }}><Pill label={riskLabel} color={riskColor} /></td>
+              </tr>;
+            })}</tbody>
+          </table>
+        </div>
+      </div>
+    );
+  };
+
+  // PANEL LATERAL USUARIO
+  const renderUserPanel = () => {
+    if (!selectedUser) return null;
+    const u = selectedUser;
+    const userJobs = jobs.filter(j => j.worker_id === u.id || j.client_id === u.id);
+    const userMsgs = msgs.filter(m => m.from_id === u.id || m.to_id === u.id);
+    const userReviews = reviews.filter((r: any) => r.worker_id === u.id);
+    const daysLeft = u.trial_end ? Math.max(0, Math.ceil((new Date(u.trial_end).getTime() - now.getTime()) / 86400000)) : null;
+    return (
+      <div style={{ position: "fixed", top: 0, right: 0, width: 340, height: "100dvh", background: C.surface, borderLeft: `1px solid ${C.border}`, zIndex: 500, overflowY: "auto", boxShadow: "-20px 0 60px rgba(0,0,0,0.6)" }}>
+        <div style={{ padding: 20 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+            <p style={{ fontWeight: 800, fontSize: 13, color: C.text }}>Perfil de usuario</p>
+            <button onClick={() => setSelectedUser(null)} style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 6, color: C.muted, cursor: "pointer", padding: "4px 10px", fontSize: 12 }}>✕</button>
+          </div>
+
+          <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 20 }}>
+            <Ava s={u.name.substring(0, 2).toUpperCase()} size={48} color={PLAN_COLORS[u.plan as Plan]} imgUrl={(u as any).avatar_url || ""} />
+            <div>
+              <p style={{ fontWeight: 800, fontSize: 15, color: C.text }}>{u.name}</p>
+              <p style={{ fontSize: 11, color: C.muted }}>{u.email}</p>
+              <div style={{ display: "flex", gap: 6, marginTop: 4 }}><Badge plan={u.plan as Plan} />{u.verified && <Pill label="Verificado" color={C.green} />}</div>
+            </div>
+          </div>
+
+          {/* Stats */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 16 }}>
+            {[
+              { l: "Jobs", v: proJobCount(u.id), c: C.accent },
+              { l: "Reseñas", v: userReviews.length, c: C.blue },
+              { l: "Msgs", v: userMsgs.length, c: C.purple },
+            ].map(s => <div key={s.l} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, padding: "10px 12px", textAlign: "center" }}>
+              <p style={{ fontWeight: 900, fontSize: 20, color: s.c }}>{s.v}</p>
+              <p style={{ fontSize: 9, color: C.muted, fontFamily: "monospace" }}>{s.l}</p>
+            </div>)}
+          </div>
+
+          {/* Info */}
+          {[
+            { l: "Teléfono", v: u.phone },
+            { l: "Oficio", v: u.trade },
+            { l: "Zona", v: u.zone },
+            { l: "Trial", v: daysLeft !== null ? (daysLeft <= 0 ? "⛔ Expirado" : `${daysLeft}d restantes`) : "—" },
+            { l: "Alta", v: fmtDate(u.joined_at) },
+          ].filter(i => i.v).map(i => <div key={i.l} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${C.border}` }}>
+            <span style={{ fontSize: 11, color: C.muted }}>{i.l}</span>
+            <span style={{ fontSize: 11, color: C.text, fontWeight: 600 }}>{i.v}</span>
+          </div>)}
+
+          {/* Trazabilidad: últimos jobs */}
+          {userJobs.length > 0 && <>
+            <p style={{ fontSize: 10, color: C.muted, fontFamily: "monospace", letterSpacing: "0.1em", textTransform: "uppercase", marginTop: 16, marginBottom: 8 }}>Historial de trabajos</p>
+            {userJobs.slice(0, 5).map(j => <div key={j.id} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 10px", marginBottom: 6 }}>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ fontSize: 11, color: C.text, fontWeight: 600 }}>{j.title}</span>
+                <Pill label={j.status} color={j.status === "done" ? C.green : j.status === "pending" ? C.yellow : C.muted} />
+              </div>
+              <p style={{ fontSize: 10, color: C.muted, marginTop: 3 }}>{fmtDate(j.created_at)}</p>
+            </div>)}
+          </>}
+
+          {/* Mensajes recientes */}
+          {userMsgs.length > 0 && <>
+            <p style={{ fontSize: 10, color: C.muted, fontFamily: "monospace", letterSpacing: "0.1em", textTransform: "uppercase", marginTop: 16, marginBottom: 8 }}>Últimos mensajes</p>
+            {userMsgs.slice(0, 4).map(m => <div key={m.id} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 10px", marginBottom: 6 }}>
+              <p style={{ fontSize: 11, color: C.mutedL, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.text.substring(0, 60)}</p>
+              <p style={{ fontSize: 9, color: C.muted, fontFamily: "monospace", marginTop: 2 }}>{timeAgo(m.created_at)}</p>
+            </div>)}
+          </>}
+
+          {/* Acciones */}
+          <p style={{ fontSize: 10, color: C.muted, fontFamily: "monospace", letterSpacing: "0.1em", textTransform: "uppercase", marginTop: 16, marginBottom: 8 }}>Acciones rápidas</p>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
+            {!u.verified && <button onClick={() => verifyUser(u.id)} style={{ fontSize: 11, padding: "7px 12px", background: C.greenDim, border: `1px solid ${C.green}44`, borderRadius: 6, color: C.green, cursor: "pointer", fontWeight: 700 }}>✓ Verificar</button>}
+            {u.available
+              ? <button onClick={() => blockUser(u.id)} style={{ fontSize: 11, padding: "7px 12px", background: C.redDim, border: `1px solid ${C.red}44`, borderRadius: 6, color: C.red, cursor: "pointer", fontWeight: 700 }}>🚫 Bloquear</button>
+              : <button onClick={() => unblockUser(u.id)} style={{ fontSize: 11, padding: "7px 12px", background: C.greenDim, border: `1px solid ${C.green}44`, borderRadius: 6, color: C.green, cursor: "pointer", fontWeight: 700 }}>✓ Desbloquear</button>}
+            {u.phone && <a href={"tel:" + u.phone} style={{ fontSize: 11, padding: "7px 12px", background: C.greenDim, border: `1px solid ${C.green}44`, borderRadius: 6, color: C.green, textDecoration: "none", fontWeight: 700 }}>📞 Llamar</a>}
+          </div>
+
+          {/* Mensaje directo */}
+          <p style={{ fontSize: 10, color: C.muted, fontFamily: "monospace", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>Mensaje de soporte</p>
+          <textarea value={supportMsg} onChange={e => setSupportMsg(e.target.value)} placeholder="Escribe un mensaje directo al usuario..." rows={3} style={{ width: "100%", background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, padding: "10px 12px", color: C.text, fontFamily: "inherit", fontSize: 12, outline: "none", resize: "none", boxSizing: "border-box" }} />
+          <button onClick={sendSupport} disabled={sendingMsg || !supportMsg.trim()} style={{ width: "100%", marginTop: 8, padding: "10px", background: supportMsg.trim() ? C.accentDim : C.card, border: `1px solid ${supportMsg.trim() ? C.accent + "44" : C.border}`, borderRadius: 8, color: supportMsg.trim() ? C.accent : C.muted, cursor: supportMsg.trim() ? "pointer" : "default", fontWeight: 700, fontSize: 12, fontFamily: "inherit" }}>
+            {sendingMsg ? "Enviando..." : "Enviar mensaje"}
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  // ── SECTION ROUTER ───────────────────────────────────────────────────────
+  const renderContent = () => {
+    if (section === "monitor") {
+      if (sub === "salud") return renderSalud();
+      if (sub === "fuga") return renderFuga();
+      if (sub === "alertas") return renderAlertas();
+    }
+    if (section === "flujo") {
+      if (sub === "funnel") return renderFunnel();
+      if (sub === "trazabilidad") return (
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <SectionTitle>Buscador universal</SectionTitle>
+          <input value={searchQ} onChange={e => setSearchQ(e.target.value)} placeholder="Buscar por nombre, email, ID, teléfono, oficio..." style={{ width: "100%", background: C.card, border: `1px solid ${C.borderBright}`, borderRadius: 10, padding: "12px 16px", color: C.text, fontFamily: "inherit", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
+          {searchResults.length > 0 && searchResults.map(u => (
+            <div key={u.id} onClick={() => setSelectedUser(u)} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", cursor: "pointer", display: "flex", gap: 12, alignItems: "center" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = C.cardHover; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = C.card; }}>
+              <Ava s={u.name.substring(0, 2).toUpperCase()} size={36} color={PLAN_COLORS[u.plan as Plan]} imgUrl={(u as any).avatar_url || ""} />
+              <div style={{ flex: 1 }}>
+                <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4 }}>
+                  <span style={{ fontWeight: 700, color: C.text, fontSize: 13 }}>{u.name}</span>
+                  <Badge plan={u.plan as Plan} />
+                  <span style={{ fontSize: 9, color: u.type === "profesional" ? C.accent : C.blue, fontFamily: "monospace", fontWeight: 700 }}>{u.type.toUpperCase()}</span>
+                </div>
+                <span style={{ fontSize: 11, color: C.muted }}>{u.email} · {u.trade || "—"} · {u.zone || "—"}</span>
+              </div>
+              <span style={{ fontSize: 11, color: C.accent }}>Ver trazabilidad →</span>
+            </div>
+          ))}
+          {searchQ.length > 2 && searchResults.length === 0 && <p style={{ color: C.muted, fontSize: 12, textAlign: "center", padding: 24 }}>Sin resultados para "{searchQ}"</p>}
+          {searchQ.length <= 2 && <p style={{ color: C.muted, fontSize: 12, textAlign: "center", padding: 24 }}>Escribe al menos 3 caracteres para buscar</p>}
+        </div>
+      );
+      if (sub === "leads") return renderLeads();
+    }
+    if (section === "profesionales") {
+      if (sub === "activos") return renderProsTable(pros.filter(u => u.available), "Profesionales activos", "Sin profesionales activos");
+      if (sub === "trial") return renderProsTable(pros.filter(u => u.plan === "gratis" && u.trial_end && new Date(u.trial_end) > now), "Profesionales en trial", "Sin profesionales en trial actualmente");
+      if (sub === "riesgo") return renderProsTable([...expiring, ...expired], "Pros en riesgo de churn", "Sin pros en riesgo ✓");
+      if (sub === "sinleads") return renderProsTable(sinLeads, "Pros pagando sin leads recibidos", "Todos los pros pagantes tienen leads ✓");
+    }
+    if (section === "usuarios") {
+      if (sub === "todos") return renderProsTable(users, "Todos los usuarios", "Sin usuarios registrados");
+      if (sub === "nuevos") return renderProsTable(newLast7, "Nuevos últimos 7 días", "Sin nuevos registros esta semana");
+    }
+    if (section === "disputas") {
+      if (sub === "denuncias") return renderDenuncias();
+      if (sub === "resenas") return renderResenas();
+      if (sub === "sugerencias") return (
+        <div>
+          <SectionTitle>Sugerencias de usuarios</SectionTitle>
+          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 24, textAlign: "center", color: C.muted, fontSize: 13 }}>
+            Las sugerencias enviadas desde la app aparecerán aquí.<br />
+            <span style={{ fontSize: 11, marginTop: 8, display: "block" }}>Se guardan en la tabla <code style={{ color: C.accent, fontFamily: "monospace" }}>reports</code> con tipo "sugerencia".</span>
+          </div>
+          {reports.filter((r: any) => r.type === "sugerencia").map((r: any) => (
+            <div key={r.id} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", marginTop: 12 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                <span style={{ fontSize: 11, color: C.purple, fontFamily: "monospace", fontWeight: 700 }}>SUGERENCIA</span>
+                <span style={{ fontSize: 10, color: C.muted }}>{fmtDate(r.created_at)}</span>
+              </div>
+              <p style={{ fontSize: 12, color: C.text, lineHeight: 1.6 }}>{r.message}</p>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    if (section === "mensajes") {
+      if (sub === "chat") return renderMensajes();
+      if (sub === "soporte") return (
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <SectionTitle>Historial de mensajes de soporte enviados</SectionTitle>
+          {msgs.filter(m => m.from_id === ADMIN_ID).slice(0, 30).map(m => {
+            const toUser = users.find(u => u.id === m.to_id);
+            return <div key={m.id} style={{ background: C.card, border: `1px solid ${C.accent}22`, borderRadius: 10, padding: "12px 16px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                <span style={{ fontSize: 11, color: C.accent, fontWeight: 700 }}>→ {toUser?.name || m.to_id}</span>
+                <span style={{ fontSize: 10, color: C.muted, fontFamily: "monospace" }}>{timeAgo(m.created_at)}</span>
+              </div>
+              <p style={{ fontSize: 12, color: C.mutedL }}>{m.text}</p>
+            </div>;
+          })}
+          {msgs.filter(m => m.from_id === ADMIN_ID).length === 0 && <p style={{ color: C.muted, fontSize: 12, textAlign: "center", padding: 24 }}>Sin mensajes de soporte enviados todavía</p>}
+        </div>
+      );
+    }
+    if (section === "finanzas") {
+      if (sub === "mrr" || sub === "ltv") return renderMRR();
+      if (sub === "planes") return (
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <SectionTitle>Distribución por plan</SectionTitle>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>
+            {(["gratis", "basico", "pro", "elite"] as Plan[]).map(pl => {
+              const count = pros.filter(u => u.plan === pl).length;
+              const revenue = count * PLAN_PRICES[pl];
+              const col = PLAN_COLORS[pl];
+              return <div key={pl} style={{ background: C.card, border: `1px solid ${col}33`, borderRadius: 12, padding: 20 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}><Badge plan={pl} /><span style={{ fontSize: 9, color: C.muted, fontFamily: "monospace" }}>{PLAN_PRICES[pl]}€/m</span></div>
+                <p style={{ fontWeight: 900, fontSize: 32, color: col, letterSpacing: "-1px" }}>{count}</p>
+                <p style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>pros · <span style={{ color: col, fontWeight: 700 }}>{revenue.toFixed(0)}€/m</span></p>
+                <div style={{ height: 3, background: C.border, borderRadius: 99, overflow: "hidden", marginTop: 12 }}>
+                  <div style={{ height: "100%", width: pros.length > 0 ? (count / pros.length * 100) + "%" : "0%", background: col }} />
+                </div>
+              </div>;
+            })}
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const toastColor = toast?.type === "ok" ? C.green : toast?.type === "warn" ? C.yellow : C.red;
+
+  return (
+    <div style={{ minHeight: "100dvh", background: C.bg, color: C.text, fontFamily: "'DM Sans',sans-serif", display: "flex" }}>
       <style>{`
         @keyframes spin{to{transform:rotate(360deg);}}
-        @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
-        @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
-        .win-content{animation:fadeIn 0.2s ease;}
-        ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:${C.border};border-radius:99px;}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+        @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+        .content-area{animation:fadeIn 0.2s ease;}
+        ::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:${C.border};border-radius:99px;}
       `}</style>
 
-      {/* ── TOPBAR ── */}
-      <header style={{background:C.surface,borderBottom:`1px solid ${C.border}`,position:"sticky",top:0,zIndex:200,flexShrink:0}}>
-        <div style={{maxWidth:1400,margin:"0 auto",padding:"0 20px",height:52,display:"flex",alignItems:"center",gap:16}}>
-          <div style={{display:"flex",alignItems:"center",gap:10,marginRight:"auto"}}>
-            <div style={{width:30,height:30,borderRadius:8,background:`linear-gradient(135deg,${C.accent},${C.orange})`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}}>⚙</div>
+      {/* ── SIDEBAR ── */}
+      <aside style={{ width: 220, background: C.surface, borderRight: `1px solid ${C.border}`, display: "flex", flexDirection: "column", flexShrink: 0, position: "sticky", top: 0, height: "100dvh", overflowY: "auto" }}>
+        {/* Logo */}
+        <div style={{ padding: "20px 18px 16px", borderBottom: `1px solid ${C.border}` }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ width: 28, height: 28, borderRadius: 7, background: `linear-gradient(135deg,${C.accent},${C.orange})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>⚙</div>
             <div>
-              <span style={{fontWeight:900,fontSize:14,letterSpacing:"-0.5px"}}><span style={{color:C.text}}>Oficio</span><span style={{color:C.accent}}>Ya</span></span>
-              <span style={{fontSize:9,color:C.muted,marginLeft:6,fontFamily:"monospace",letterSpacing:"0.1em"}}>CEO PANEL</span>
+              <span style={{ fontWeight: 900, fontSize: 14, letterSpacing: "-0.5px" }}><span style={{ color: C.text }}>Oficio</span><span style={{ color: C.accent }}>Ya</span></span>
+              <div style={{ fontSize: 8, color: C.muted, fontFamily: "monospace", letterSpacing: "0.12em" }}>CEO PANEL</div>
             </div>
           </div>
+          <div style={{ marginTop: 12, padding: "6px 10px", background: C.greenDim, border: `1px solid ${C.green}33`, borderRadius: 7, display: "flex", justifyContent: "space-between" }}>
+            <span style={{ fontSize: 10, color: C.muted, fontFamily: "monospace" }}>MRR</span>
+            <span style={{ fontSize: 11, fontWeight: 800, color: C.green, fontFamily: "monospace" }}>{mrr.toFixed(0)}€</span>
+          </div>
+        </div>
 
-          {/* Nav windows */}
-          {([
-            ["strategy","🎯","Estrategia"],
-            ["ops","⚙","Operaciones"],
-            ["marketing","📈","Marketing"],
-            ["finance","💰","Finanzas"],
-            ["mensajes","💬","Mensajes"],
-          ] as const).map(([id,icon,label])=>(
-            <button key={id} onClick={()=>setWin(id)} style={{
-              display:"flex",alignItems:"center",gap:6,padding:"6px 12px",borderRadius:8,
-              background:win===id?C.accent+"18":"transparent",
-              border:`1px solid ${win===id?C.accent+"44":C.border}`,
-              color:win===id?C.accent:C.muted,
-              cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:win===id?700:400,
-              position:"relative",transition:"all 0.15s",
-            }}>
-              <span style={{fontSize:13}}>{icon}</span>
-              <span style={{display:"none" as any}}>{label}</span>
-              {id==="mensajes"&&unread>0&&win!=="mensajes"&&(
-                <span style={{position:"absolute",top:-4,right:-4,background:C.red,color:"#fff",borderRadius:99,minWidth:14,height:14,display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,fontWeight:900,border:`1px solid ${C.bg}`}}>
-                  {unread>9?"9+":unread}
-                </span>
+        {/* Nav */}
+        <nav style={{ flex: 1, padding: "12px 10px" }}>
+          {NAV.map(nav => (
+            <div key={nav.id} style={{ marginBottom: 4 }}>
+              <button onClick={() => { navActions(nav.id, nav.subs[0].id); }} style={{
+                width: "100%", display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", borderRadius: 8,
+                background: section === nav.id ? C.accentDim : "transparent",
+                border: `1px solid ${section === nav.id ? C.accent + "44" : "transparent"}`,
+                color: section === nav.id ? C.accent : C.mutedL, cursor: "pointer",
+                fontFamily: "inherit", fontSize: 12, fontWeight: section === nav.id ? 700 : 400,
+                textAlign: "left", transition: "all 0.12s",
+              }}>
+                <span style={{ fontSize: 12, opacity: 0.8 }}>{nav.icon}</span>
+                <span>{nav.label}</span>
+                {nav.id === "disputas" && pendingReports.length > 0 && <span style={{ marginLeft: "auto", background: C.red, color: "#fff", borderRadius: 99, minWidth: 16, height: 16, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, fontWeight: 900 }}>{pendingReports.length}</span>}
+                {nav.id === "mensajes" && unreadMsgs > 0 && <span style={{ marginLeft: "auto", background: C.accent, color: C.bg, borderRadius: 99, minWidth: 16, height: 16, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, fontWeight: 900 }}>{unreadMsgs > 9 ? "9+" : unreadMsgs}</span>}
+              </button>
+              {section === nav.id && (
+                <div style={{ marginLeft: 10, marginTop: 2, borderLeft: `1px solid ${C.border}`, paddingLeft: 10 }}>
+                  {nav.subs.map(s => (
+                    <button key={s.id} onClick={() => setSub(s.id)} style={{
+                      width: "100%", textAlign: "left", padding: "6px 8px", borderRadius: 6,
+                      background: sub === s.id ? C.card : "transparent",
+                      border: `1px solid ${sub === s.id ? C.border : "transparent"}`,
+                      color: sub === s.id ? C.text : C.muted, cursor: "pointer",
+                      fontFamily: "inherit", fontSize: 11, fontWeight: sub === s.id ? 600 : 400,
+                      marginBottom: 1, transition: "all 0.1s",
+                    }}>
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
               )}
-            </button>
+            </div>
           ))}
+        </nav>
 
-          <div style={{display:"flex",gap:8,alignItems:"center",marginLeft:"auto"}}>
-            <div style={{fontFamily:"monospace",fontSize:11,color:C.green,background:C.greenDim,padding:"3px 10px",borderRadius:4,border:`1px solid ${C.green}33`}}>
-              MRR {mrr.toFixed(0)}€
-            </div>
-            <button onClick={()=>setRefreshKey(k=>k+1)} style={{background:"none",border:`1px solid ${C.border}`,borderRadius:6,color:C.muted,cursor:"pointer",padding:"5px 10px",fontSize:11,fontFamily:"monospace"}}>↻</button>
-            <button onClick={onLogout} style={{background:"none",border:`1px solid ${C.border}`,borderRadius:6,color:C.muted,cursor:"pointer",padding:"5px 10px",fontSize:11}}>Salir</button>
-          </div>
+        {/* Bottom */}
+        <div style={{ padding: "12px 10px", borderTop: `1px solid ${C.border}` }}>
+          <button onClick={() => setRefreshKey(k => k + 1)} style={{ width: "100%", padding: "7px", background: "none", border: `1px solid ${C.border}`, borderRadius: 7, color: C.muted, cursor: "pointer", fontSize: 11, fontFamily: "monospace", marginBottom: 6 }}>↻ Actualizar datos</button>
+          <button onClick={onLogout} style={{ width: "100%", padding: "7px", background: "none", border: `1px solid ${C.border}`, borderRadius: 7, color: C.muted, cursor: "pointer", fontSize: 11 }}>Cerrar sesión</button>
         </div>
+      </aside>
 
-        {/* Window labels below nav */}
-        <div style={{maxWidth:1400,margin:"0 auto",padding:"0 20px",paddingBottom:8}}>
-          {([
-            ["strategy","🎯 Semáforos de Salud · Análisis Causa-Efecto · KPIs Clave"],
-            ["ops","⚙ Gestión de Profesionales · Leads · Alertas de Calidad"],
-            ["marketing","📈 Funnel Completo · Conversión · Registros · Tendencias"],
-            ["finance","💰 MRR · Suscripciones · Stripe · Proyección"],
-            ["mensajes","💬 Conversaciones · Soporte · Mensajes No Leídos"],
-          ] as const).find(([id])=>id===win)?.[1] &&
-            <span style={{fontSize:10,color:C.muted,fontFamily:"monospace"}}>
-              {([
-                ["strategy","🎯 Semáforos de Salud · Análisis Causa-Efecto · KPIs Clave"],
-                ["ops","⚙ Gestión de Profesionales · Leads · Alertas de Calidad"],
-                ["marketing","📈 Funnel Completo · Conversión · Registros · Tendencias"],
-                ["finance","💰 MRR · Suscripciones · Stripe · Proyección"],
-                ["mensajes","💬 Conversaciones · Soporte · Mensajes No Leídos"],
-              ] as const).find(([id])=>id===win)?.[1]}
-            </span>
-          }
-        </div>
-      </header>
+      {/* ── MAIN ── */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
+        {/* Topbar */}
+        <header style={{ background: C.surface, borderBottom: `1px solid ${C.border}`, padding: "0 24px", height: 52, display: "flex", alignItems: "center", gap: 12, flexShrink: 0, position: "sticky", top: 0, zIndex: 100 }}>
+          <div style={{ flex: 1 }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: C.text }}>{NAV.find(n => n.id === section)?.label}</span>
+            <span style={{ fontSize: 12, color: C.muted, marginLeft: 8 }}>/ {NAV.find(n => n.id === section)?.subs.find(s => s.id === sub)?.label}</span>
+          </div>
 
-      {/* ── TOAST ── */}
-      {toast&&(
-        <div style={{position:"fixed",bottom:24,left:"50%",transform:"translateX(-50%)",background:toast.type==="ok"?`linear-gradient(135deg,${C.green}22,${C.green}11)`:`linear-gradient(135deg,${C.red}22,${C.red}11)`,border:`1px solid ${toast.type==="ok"?C.green:C.red}44`,borderRadius:10,padding:"10px 20px",color:toast.type==="ok"?C.green:C.red,fontWeight:700,fontSize:13,zIndex:9999,whiteSpace:"nowrap",boxShadow:`0 4px 20px ${toast.type==="ok"?C.green:C.red}22`}}>
-          {toast.msg}
-        </div>
-      )}
-
-      {/* ── SIDE PANEL ── */}
-      {selectedUser&&(
-        <div style={{position:"fixed",top:0,right:0,width:300,height:"100dvh",background:C.surface,borderLeft:`1px solid ${C.border}`,zIndex:300,overflowY:"auto",padding:20,boxShadow:"-10px 0 40px rgba(0,0,0,0.5)"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
-            <span style={{fontWeight:800,fontSize:14,color:C.accent}}>USUARIO</span>
-            <button onClick={()=>setSelectedUser(null)} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:18}}>✕</button>
-          </div>
-          <div style={{textAlign:"center",marginBottom:16}}>
-            <Ava s={selectedUser.name.substring(0,2).toUpperCase()} size={52} color={selectedUser.type==="profesional"?C.accent:C.blue} imgUrl={selectedUser.avatar_url||""} />
-            <p style={{fontWeight:800,color:C.text,fontSize:16,marginTop:10}}>{selectedUser.name}</p>
-            <p style={{fontSize:11,color:C.muted}}>{selectedUser.email}</p>
-            {selectedUser.phone&&<a href={"tel:"+selectedUser.phone} style={{fontSize:12,color:C.green,textDecoration:"none",display:"block",marginTop:4}}>📞 {selectedUser.phone}</a>}
-            {selectedUser.whatsapp&&<a href={"https://wa.me/"+selectedUser.whatsapp.replace(/\D/g,"")} target="_blank" rel="noreferrer" style={{fontSize:12,color:"#25D366",textDecoration:"none",display:"block",marginTop:2}}>💬 WhatsApp</a>}
-          </div>
-          <div style={{display:"flex",flexDirection:"column",gap:4,marginBottom:16,background:C.card,borderRadius:10,padding:12}}>
-            {[
-              {l:"Tipo",v:selectedUser.type.toUpperCase()},
-              {l:"Plan",v:<Badge plan={selectedUser.plan as Plan}/>},
-              {l:"Oficio",v:selectedUser.trade||"—"},
-              {l:"Zona",v:selectedUser.zone||"—"},
-              {l:"Rating",v:selectedUser.rating>0?selectedUser.rating.toFixed(1)+"★":"—"},
-              {l:"Trabajos",v:String(selectedUser.jobs||0)},
-              {l:"Registro",v:new Date(selectedUser.joined_at).toLocaleDateString("es-ES",{day:"2-digit",month:"short",year:"2-digit"})},
-            ].map(r=>(
-              <div key={r.l} style={{display:"flex",justifyContent:"space-between",padding:"4px 0",borderBottom:`1px solid ${C.border}`}}>
-                <span style={{fontSize:11,color:C.muted}}>{r.l}</span>
-                <span style={{fontSize:11,color:C.text,fontWeight:600}}>{r.v as any}</span>
-              </div>
-            ))}
-          </div>
-          <div style={{display:"flex",gap:8,marginBottom:16}}>
-            <button onClick={()=>verifyUser(selectedUser.id)} style={{flex:1,padding:"9px",background:C.greenDim,border:`1px solid ${C.green}44`,borderRadius:8,color:C.green,fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:700,cursor:"pointer"}}>✓ Verificar</button>
-            <button onClick={()=>blockUser(selectedUser.id)} style={{flex:1,padding:"9px",background:C.redDim,border:`1px solid ${C.red}44`,borderRadius:8,color:C.red,fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:700,cursor:"pointer"}}>✗ Bloquear</button>
-          </div>
-          <div>
-            <p style={{fontSize:10,color:C.muted,fontFamily:"monospace",letterSpacing:"0.1em",marginBottom:6}}>ENVIAR MENSAJE</p>
-            <textarea value={supportMsg} onChange={e=>setSupportMsg(e.target.value)} placeholder="Mensaje de soporte..." rows={3} style={{width:"100%",background:C.card,border:`1px solid ${C.border}`,borderRadius:8,color:C.text,fontFamily:"inherit",fontSize:12,padding:"8px 10px",resize:"none",outline:"none",marginBottom:8,boxSizing:"border-box"}} />
-            <button disabled={sendingMsg||!supportMsg.trim()} onClick={sendSupport} style={{width:"100%",padding:"9px",background:sendingMsg||!supportMsg.trim()?"transparent":`linear-gradient(135deg,${C.accent},${C.orange})`,border:`1px solid ${C.accent}44`,borderRadius:8,color:sendingMsg||!supportMsg.trim()?C.muted:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:12,cursor:sendingMsg||!supportMsg.trim()?"not-allowed":"pointer"}}>
-              {sendingMsg?"Enviando...":"Enviar →"}
+          {/* Campana */}
+          <div ref={bellRef} style={{ position: "relative" }}>
+            <button onClick={() => { setBellOpen(o => !o); setNotifs(prev => prev.map(n => ({ ...n, read: true }))); }} style={{ background: unreadNotifs > 0 ? C.accent + "18" : "none", border: `1px solid ${unreadNotifs > 0 ? C.accent + "44" : C.border}`, borderRadius: 8, color: unreadNotifs > 0 ? C.accent : C.muted, cursor: "pointer", padding: "6px 10px", fontSize: 15, position: "relative" }}>
+              🔔
+              {unreadNotifs > 0 && <span style={{ position: "absolute", top: -4, right: -4, background: C.red, color: "#fff", borderRadius: 99, minWidth: 14, height: 14, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, fontWeight: 900, border: `2px solid ${C.bg}` }}>{unreadNotifs > 9 ? "9+" : unreadNotifs}</span>}
             </button>
-            <div style={{marginTop:14,maxHeight:200,overflowY:"auto",display:"flex",flexDirection:"column",gap:6}}>
-              {msgs.filter(m=>(m.from_id===selectedUser.id&&m.to_id==="00000000-0000-0000-0000-000000000002")||(m.from_id==="00000000-0000-0000-0000-000000000002"&&m.to_id===selectedUser.id))
-                .sort((a,b)=>new Date(a.created_at).getTime()-new Date(b.created_at).getTime())
-                .map(m=>{
-                  const isAdmin=m.from_id==="00000000-0000-0000-0000-000000000002";
-                  return(
-                    <div key={m.id} style={{display:"flex",justifyContent:isAdmin?"flex-end":"flex-start"}}>
-                      <div style={{maxWidth:"85%",padding:"7px 10px",borderRadius:isAdmin?"10px 10px 2px 10px":"10px 10px 10px 2px",background:isAdmin?`linear-gradient(135deg,${C.accent},${C.orange})`:`${C.card}`,border:isAdmin?"none":`1px solid ${C.border}`,color:isAdmin?"#000":C.text}}>
-                        <p style={{fontSize:11,margin:0,lineHeight:1.4}}>{m.text.replace("[Soporte OfficioYa] ","")}</p>
-                        <p style={{fontSize:8,margin:"3px 0 0",opacity:0.5,textAlign:"right"}}>{formatTime(m.created_at)}</p>
-                      </div>
-                    </div>
-                  );
-                })}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── MAIN CONTENT ── */}
-      <main style={{flex:1,maxWidth:selectedUser?1100:1400,margin:"0 auto",width:"100%",padding:"20px",overflowX:"hidden"}}>
-        {loading&&<div style={{display:"flex",justifyContent:"center",padding:60}}><Spin size={32}/></div>}
-        {!loading&&(
-          <div className="win-content">
-
-            {/* ══════════════════════════════════
-                VENTANA 1: ESTRATEGIA CEO
-                ══════════════════════════════════ */}
-            {win==="strategy"&&(<>
-              <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:14,marginBottom:20}}>
-                <TrafficLight value={mrr} target={mrrTarget} label="MRR Mensual" format="euro"/>
-                <TrafficLight value={convRate} target={25} label="Conversión Landing" format="percent"/>
-                <TrafficLight value={paying.length} target={50} label="Pros Pagando" />
-                <TrafficLight value={clients.length} target={200} label="Clientes Activos" />
-              </div>
-
-              <div style={{display:"grid",gridTemplateColumns:"2fr 1fr",gap:14,marginBottom:20}}>
-                {/* Tendencia */}
-                <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:20}}>
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-                    <div>
-                      <p style={{fontWeight:700,fontSize:14,color:C.text,marginBottom:2}}>Tendencia de Registros</p>
-                      <p style={{fontSize:11,color:C.muted,fontFamily:"monospace"}}>{totalNewPeriod} nuevos en {period} días</p>
-                    </div>
-                    <div style={{display:"flex",gap:6}}>
-                      {([7,14,30] as const).map(d=>(
-                        <button key={d} onClick={()=>setPeriod(d)} style={{padding:"3px 8px",borderRadius:4,border:`1px solid ${period===d?C.accent:C.border}`,background:period===d?C.accent+"18":"transparent",color:period===d?C.accent:C.muted,cursor:"pointer",fontSize:10,fontFamily:"monospace"}}>{d}d</button>
-                      ))}
-                    </div>
-                  </div>
-                  <Sparkline data={weekData} color={C.accent} height={60}/>
-                  <div style={{display:"flex",justifyContent:"space-between",marginTop:6}}>
-                    <span style={{fontSize:9,color:C.muted,fontFamily:"monospace"}}>hace {period} días</span>
-                    <span style={{fontSize:9,color:C.muted,fontFamily:"monospace"}}>hoy</span>
-                  </div>
+            {bellOpen && (
+              <div style={{ position: "absolute", top: 44, right: 0, width: 320, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, zIndex: 600, overflow: "hidden", boxShadow: "0 10px 40px rgba(0,0,0,0.5)" }}>
+                <div style={{ padding: "12px 16px", borderBottom: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: C.text }}>Notificaciones</span>
+                  <button onClick={() => setNotifs([])} style={{ fontSize: 10, color: C.muted, background: "none", border: "none", cursor: "pointer" }}>Limpiar</button>
                 </div>
-
-                {/* Causa-Efecto */}
-                <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:20}}>
-                  <p style={{fontWeight:700,fontSize:14,color:C.text,marginBottom:14}}>🔬 Análisis Causa-Efecto</p>
-                  {[
-                    {label:"Problema de demanda",desc:"Pocos leads de clientes",value:clients.length<50,color:clients.length<50?C.red:C.green},
-                    {label:"Problema de oferta",desc:"Pocos pros disponibles",value:pros.filter(u=>u.available).length<20,color:pros.filter(u=>u.available).length<20?C.red:C.green},
-                    {label:"Riesgo de churn",desc:expiring.length+" pros con trial expirando",value:expiring.length>0,color:expiring.length>3?C.red:expiring.length>0?C.yellow:C.green},
-                    {label:"Perfiles incompletos",desc:sinFoto.length+" sin foto",value:sinFoto.length>0,color:sinFoto.length>5?C.yellow:C.green},
-                  ].map(item=>(
-                    <div key={item.label} style={{display:"flex",gap:8,alignItems:"center",padding:"8px 0",borderBottom:`1px solid ${C.border}`}}>
-                      <div style={{width:8,height:8,borderRadius:"50%",background:item.color,flexShrink:0}} />
-                      <div style={{flex:1}}>
-                        <p style={{fontSize:12,color:item.value?item.color:C.mutedL,fontWeight:item.value?700:400}}>{item.label}</p>
-                        <p style={{fontSize:10,color:C.muted}}>{item.desc}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Alertas críticas */}
-              {(sinCobro.length>0||expiring.length>0||sinFoto.length>0)&&(
-                <div style={{background:`linear-gradient(135deg,${C.redDim},${C.yellowDim})`,border:`1px solid ${C.red}33`,borderRadius:12,padding:16,marginBottom:20}}>
-                  <p style={{fontWeight:800,fontSize:12,color:C.red,marginBottom:10,fontFamily:"monospace",letterSpacing:"0.08em"}}>🚨 ACCIONES INMEDIATAS</p>
-                  <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10}}>
-                    {sinCobro.length>0&&(
-                      <div style={{background:C.card,borderRadius:8,padding:12,border:`1px solid ${C.red}44`}}>
-                        <p style={{fontSize:22,fontWeight:900,color:C.red}}>{sinCobro.length}</p>
-                        <p style={{fontSize:11,color:C.mutedL}}>pros sin tarjeta</p>
-                        <button onClick={()=>{setWin("ops");setFilterOps("pro");}} style={{marginTop:8,fontSize:10,color:C.red,background:"none",border:`1px solid ${C.red}33`,borderRadius:4,padding:"3px 8px",cursor:"pointer",fontFamily:"monospace"}}>Llamar hoy →</button>
-                      </div>
-                    )}
-                    {expiring.length>0&&(
-                      <div style={{background:C.card,borderRadius:8,padding:12,border:`1px solid ${C.yellow}44`}}>
-                        <p style={{fontSize:22,fontWeight:900,color:C.yellow}}>{expiring.length}</p>
-                        <p style={{fontSize:11,color:C.mutedL}}>trial expira en 7d</p>
-                        <button onClick={()=>setWin("ops")} style={{marginTop:8,fontSize:10,color:C.yellow,background:"none",border:`1px solid ${C.yellow}33`,borderRadius:4,padding:"3px 8px",cursor:"pointer",fontFamily:"monospace"}}>Retener →</button>
-                      </div>
-                    )}
-                    {sinFoto.length>0&&(
-                      <div style={{background:C.card,borderRadius:8,padding:12,border:`1px solid ${C.orange}44`}}>
-                        <p style={{fontSize:22,fontWeight:900,color:C.orange}}>{sinFoto.length}</p>
-                        <p style={{fontSize:11,color:C.mutedL}}>sin foto ni bio</p>
-                        <button onClick={()=>setWin("ops")} style={{marginTop:8,fontSize:10,color:C.orange,background:"none",border:`1px solid ${C.orange}33`,borderRadius:4,padding:"3px 8px",cursor:"pointer",fontFamily:"monospace"}}>Ayudar →</button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* KPI grid */}
-              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))",gap:10}}>
-                {[
-                  {l:"Total usuarios",v:fmt(users.length),c:C.blue},
-                  {l:"Profesionales",v:fmt(pros.length),c:C.accent},
-                  {l:"Clientes",v:fmt(clients.length),c:C.green},
-                  {l:"Disponibles",v:fmt(pros.filter(u=>u.available).length),c:C.cyan},
-                  {l:"Verificados",v:fmt(pros.filter(u=>u.verified).length),c:C.gold},
-                  {l:"Expirados",v:fmt(expired.length),c:C.red},
-                  {l:"Trabajos",v:fmt(jobs.length),c:C.orange},
-                  {l:"Reseñas",v:fmt(reviews.length),c:C.blue},
-                ].map(s=>(
-                  <div key={s.l} style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:10,padding:"12px 14px"}}>
-                    <p style={{fontWeight:900,fontSize:22,color:s.c,letterSpacing:"-1px"}}>{s.v}</p>
-                    <p style={{fontSize:10,color:C.muted,fontFamily:"monospace"}}>{s.l}</p>
-                  </div>
-                ))}
-              </div>
-            </>)}
-
-            {/* ══════════════════════════════════
-                VENTANA 2: OPERACIONES
-                ══════════════════════════════════ */}
-            {win==="ops"&&(<>
-              {/* Filtros */}
-              <div style={{display:"flex",gap:10,marginBottom:16,flexWrap:"wrap",alignItems:"center"}}>
-                <input value={searchOps} onChange={e=>setSearchOps(e.target.value)} placeholder="🔍 Buscar nombre, email, oficio..." style={{flex:1,minWidth:200,background:C.card,border:`1px solid ${C.border}`,borderRadius:8,padding:"8px 12px",color:C.text,fontFamily:"inherit",fontSize:12,outline:"none"}} />
-                <div style={{display:"flex",gap:6}}>
-                  {([["all","Todos"],["pro","Profesionales"],["cliente","Clientes"]] as const).map(([v,l])=>(
-                    <button key={v} onClick={()=>setFilterOps(v)} style={{padding:"6px 12px",borderRadius:6,border:`1px solid ${filterOps===v?C.accent:C.border}`,background:filterOps===v?C.accent+"18":"transparent",color:filterOps===v?C.accent:C.muted,cursor:"pointer",fontSize:11,fontFamily:"monospace"}}>{l}</button>
-                  ))}
-                </div>
-                <div style={{display:"flex",gap:6}}>
-                  {(["all","gratis","basico","pro","elite"] as const).map(v=>(
-                    <button key={v} onClick={()=>setFilterPlan(v)} style={{padding:"6px 10px",borderRadius:6,border:`1px solid ${filterPlan===v?C.gold:C.border}`,background:filterPlan===v?C.gold+"18":"transparent",color:filterPlan===v?C.gold:C.muted,cursor:"pointer",fontSize:10,fontFamily:"monospace"}}>{v==="all"?"ALL":v.toUpperCase()}</button>
-                  ))}
-                </div>
-                <span style={{fontSize:11,color:C.muted,fontFamily:"monospace"}}>{opsUsers.length} resultados</span>
-              </div>
-
-              {/* Tabla */}
-              <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,overflow:"hidden",marginBottom:20}}>
-                <div style={{overflowX:"auto"}}>
-                  <table style={{width:"100%",borderCollapse:"collapse"}}>
-                    <thead>
-                      <tr style={{borderBottom:`1px solid ${C.border}`}}>
-                        {["Usuario","Tipo","Plan","Oficio/Zona","Estado","Trial","Acciones"].map(h=>(
-                          <th key={h} style={{padding:"10px 14px",textAlign:"left",fontSize:9,color:C.muted,fontFamily:"monospace",letterSpacing:"0.1em",textTransform:"uppercase",fontWeight:600,whiteSpace:"nowrap"}}>{h}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {opsUsers.slice(0,50).map(u=>{
-                        const daysLeft=u.trial_end?Math.max(0,Math.ceil((new Date(u.trial_end).getTime()-now.getTime())/86400000)):null;
-                        const isExpiring=daysLeft!==null&&daysLeft<=7&&daysLeft>0;
-                        const isExpired=daysLeft!==null&&daysLeft<=0&&u.plan==="gratis";
-                        return(
-                          <tr key={u.id} style={{borderBottom:`1px solid ${C.border}`,transition:"background 0.1s"}} onMouseEnter={e=>(e.currentTarget.style.background=C.surface)} onMouseLeave={e=>(e.currentTarget.style.background="transparent")}>
-                            <td style={{padding:"10px 14px"}}>
-                              <div style={{display:"flex",gap:8,alignItems:"center"}}>
-                                <Ava s={u.name.substring(0,2).toUpperCase()} size={28} color={u.type==="profesional"?C.accent:C.blue} imgUrl={u.avatar_url||""} />
-                                <div>
-                                  <p style={{fontSize:12,fontWeight:700,color:C.text,whiteSpace:"nowrap"}}>{u.name}</p>
-                                  <p style={{fontSize:10,color:C.muted}}>{u.email}</p>
-                                </div>
-                              </div>
-                            </td>
-                            <td style={{padding:"10px 14px"}}>
-                              <span style={{fontSize:9,fontFamily:"monospace",color:u.type==="profesional"?C.accent:C.blue,background:(u.type==="profesional"?C.accent:C.blue)+"18",padding:"2px 7px",borderRadius:3,fontWeight:700}}>{u.type==="profesional"?"PRO":"CLI"}</span>
-                            </td>
-                            <td style={{padding:"10px 14px"}}><Badge plan={u.plan as Plan}/></td>
-                            <td style={{padding:"10px 14px"}}>
-                              <p style={{fontSize:11,color:C.accent}}>{u.trade||"—"}</p>
-                              <p style={{fontSize:10,color:C.muted}}>{u.zone||"—"}</p>
-                            </td>
-                            <td style={{padding:"10px 14px"}}>
-                              {u.verified?<StatusPill label="Verificado" color={C.green}/>:u.available?<StatusPill label="Activo" color={C.blue}/>:<StatusPill label="Inactivo" color={C.muted}/>}
-                            </td>
-                            <td style={{padding:"10px 14px"}}>
-                              {daysLeft!==null?(
-                                <span style={{fontSize:10,fontFamily:"monospace",color:isExpired?C.red:isExpiring?C.yellow:C.muted}}>
-                                  {isExpired?"⛔ Expirado":isExpiring?`⚠ ${daysLeft}d`:`${daysLeft}d`}
-                                </span>
-                              ):<span style={{color:C.muted,fontSize:10}}>—</span>}
-                            </td>
-                            <td style={{padding:"10px 14px"}}>
-                              <div style={{display:"flex",gap:6}}>
-                                <button onClick={()=>setSelectedUser(u)} style={{fontSize:10,padding:"4px 8px",background:C.accent+"18",border:`1px solid ${C.accent}44`,borderRadius:4,color:C.accent,cursor:"pointer",fontFamily:"monospace"}}>Ver</button>
-                                {!u.verified&&<button onClick={()=>verifyUser(u.id)} style={{fontSize:10,padding:"4px 8px",background:C.greenDim,border:`1px solid ${C.green}44`,borderRadius:4,color:C.green,cursor:"pointer",fontFamily:"monospace"}}>✓</button>}
-                                {u.phone&&<a href={"tel:"+u.phone} style={{fontSize:10,padding:"4px 8px",background:C.greenDim,border:`1px solid ${C.green}44`,borderRadius:4,color:C.green,textDecoration:"none",fontFamily:"monospace"}}>📞</a>}
-                                {u.whatsapp&&<a href={"https://wa.me/"+u.whatsapp.replace(/\D/g,"")} target="_blank" rel="noreferrer" style={{fontSize:10,padding:"4px 8px",background:"#25D36618",border:"1px solid #25D36644",borderRadius:4,color:"#25D366",textDecoration:"none",fontFamily:"monospace"}}>WA</a>}
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Alertas de calidad */}
-              <div style={{display:"flex",flexDirection:"column",gap:14}}>
-
-                {/* REPORTES Y DENUNCIAS */}
-                <div style={{background:C.card,border:`1px solid ${C.red}33`,borderRadius:12,padding:16}}>
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-                    <p style={{fontWeight:700,fontSize:13,color:C.text}}>🚩 Reportes y Denuncias</p>
-                    <div style={{display:"flex",gap:6}}>
-                      <StatusPill label={`${reports.filter((r:any)=>r.status==="pending"||!r.status).length} pendientes`} color={C.red}/>
-                      <StatusPill label={`${reports.filter((r:any)=>r.status==="investigating").length} investigando`} color={C.yellow}/>
-                      <StatusPill label={`${reports.filter((r:any)=>r.status==="approved").length} aprobados`} color={C.green}/>
-                    </div>
-                  </div>
-                  {reports.length===0&&<p style={{fontSize:12,color:C.muted}}>Sin reportes todavía</p>}
-                  {reports.map((r:any)=>{
-                    const pro=users.find(u=>u.id===r.worker_id);
-                    const from=users.find(u=>u.id===r.from_id);
-                    const statusColor=r.status==="approved"?C.green:r.status==="investigating"?C.yellow:C.red;
-                    return(
-                      <div key={r.id} style={{background:C.surface,borderRadius:10,padding:"12px 14px",marginBottom:10,border:`1px solid ${statusColor}33`}}>
-                        <div style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:10}}>
-                          <div style={{flex:1}}>
-                            <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap",marginBottom:4}}>
-                              <span style={{fontSize:9,fontFamily:"monospace",color:r.type==="denuncia"?C.red:C.orange,background:(r.type==="denuncia"?C.red:C.orange)+"18",padding:"2px 7px",borderRadius:3,fontWeight:700,textTransform:"uppercase"}}>
-                                {r.type||"reporte"}
-                              </span>
-                              <StatusPill label={r.status==="approved"?"✓ Aprobado":r.status==="investigating"?"🔍 Investigando":"⏳ Pendiente"} color={statusColor}/>
-                              <span style={{fontSize:9,color:C.muted,fontFamily:"monospace",marginLeft:"auto"}}>{new Date(r.created_at).toLocaleDateString("es-ES")}</span>
-                            </div>
-                            <p style={{fontSize:12,color:C.mutedL,lineHeight:1.5,marginBottom:6}}>{r.message}</p>
-                            <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
-                              {from&&<span style={{fontSize:11,color:C.muted}}>👤 De: <span style={{color:C.text,fontWeight:600}}>{from.name||r.from_name}</span></span>}
-                              {pro&&<button onClick={()=>setSelectedUser(pro)} style={{fontSize:11,color:C.accent,background:"none",border:`1px solid ${C.accent}33`,borderRadius:4,padding:"2px 8px",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>
-                                🔨 {pro.name||r.worker_name} → Ver perfil
-                              </button>}
-                              {!pro&&r.worker_name&&<span style={{fontSize:11,color:C.muted}}>🔨 Pro: <span style={{color:C.accent}}>{r.worker_name}</span></span>}
-                            </div>
-                          </div>
-                        </div>
-                        <div style={{display:"flex",gap:8}}>
-                          {(r.status==="pending"||!r.status)&&(
-                            <button onClick={()=>updateReportStatus(r.id,"investigating")} style={{fontSize:11,padding:"5px 12px",background:C.yellowDim,border:`1px solid ${C.yellow}44`,borderRadius:6,color:C.yellow,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontWeight:600}}>
-                              🔍 Investigar
-                            </button>
-                          )}
-                          {r.status==="investigating"&&(
-                            <button onClick={()=>updateReportStatus(r.id,"approved")} style={{fontSize:11,padding:"5px 12px",background:C.redDim,border:`1px solid ${C.red}44`,borderRadius:6,color:C.red,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontWeight:700}}>
-                              🚫 Aprobar y bloquear pro
-                            </button>
-                          )}
-                          {r.status==="approved"&&pro&&(
-                            <span style={{fontSize:11,color:C.red,fontFamily:"monospace"}}>✓ Pro bloqueado · {pro.name}</span>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
-                  {/* RESEÑAS */}
-                  <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:16}}>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-                      <p style={{fontWeight:700,fontSize:13,color:C.text}}>⭐ Reseñas · Moderación</p>
-                      <StatusPill label={`${reviews.filter((r:any)=>r.approved===null||r.approved===undefined).length} pendientes`} color={C.orange}/>
-                    </div>
-                    {reviews.filter((r:any)=>r.approved===null||r.approved===undefined).slice(0,8).map((r:any)=>{
-                      const pro=users.find(u=>u.id===r.worker_id);
-                      return(
-                        <div key={r.id} style={{background:C.surface,borderRadius:8,padding:"10px 12px",marginBottom:8,border:`1px solid ${C.border}`}}>
-                          <div style={{display:"flex",gap:8,alignItems:"flex-start",marginBottom:8}}>
-                            <div style={{flex:1}}>
-                              <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:3,flexWrap:"wrap"}}>
-                                <span style={{fontSize:12,fontWeight:700,color:C.text}}>{r.client_name}</span>
-                                <span style={{fontSize:10,color:C.muted}}>→</span>
-                                {pro&&<button onClick={()=>setSelectedUser(pro)} style={{fontSize:11,color:C.accent,background:"none",border:`1px solid ${C.accent}33`,borderRadius:3,padding:"1px 6px",cursor:"pointer"}}>
-                                  {pro.name}
-                                </button>}
-                                <span style={{fontSize:11,color:C.yellow}}>{"★".repeat(r.stars)}{"☆".repeat(5-r.stars)}</span>
-                              </div>
-                              <p style={{fontSize:11,color:C.mutedL,lineHeight:1.4}}>{r.text}</p>
-                            </div>
-                          </div>
-                          <div style={{display:"flex",gap:6}}>
-                            <button onClick={()=>approveReview(r.id)} style={{flex:1,fontSize:11,padding:"5px",background:C.greenDim,border:`1px solid ${C.green}44`,borderRadius:6,color:C.green,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontWeight:700}}>
-                              ✓ Aprobar (visible)
-                            </button>
-                            <button onClick={()=>rejectReview(r.id)} style={{flex:1,fontSize:11,padding:"5px",background:C.yellowDim,border:`1px solid ${C.yellow}44`,borderRadius:6,color:C.yellow,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontWeight:700}}>
-                              ✗ Rechazar (ocultar)
-                            </button>
-                            <button onClick={()=>deleteReview(r.id)} style={{fontSize:11,padding:"5px 8px",background:C.redDim,border:`1px solid ${C.red}44`,borderRadius:6,color:C.red,cursor:"pointer"}}>
-                              🗑
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                    {reviews.filter((r:any)=>r.approved===null||r.approved===undefined).length===0&&<p style={{fontSize:12,color:C.muted}}>Sin reseñas pendientes ✓</p>}
-                  </div>
-
-                  {/* PROS EN RIESGO */}
-                  <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:16}}>
-                    <p style={{fontWeight:700,fontSize:13,color:C.text,marginBottom:12}}>🔔 Pros con riesgo de cancelación</p>
-                    {expiring.slice(0,5).map(u=>(
-                      <div key={u.id} style={{display:"flex",gap:10,alignItems:"center",padding:"8px 0",borderBottom:`1px solid ${C.border}`}}>
-                        <Ava s={u.name.substring(0,2).toUpperCase()} size={28} color={C.yellow} imgUrl={u.avatar_url||""}/>
-                        <div style={{flex:1}}>
-                          <p style={{fontSize:12,color:C.text,fontWeight:600}}>{u.name}</p>
-                          <p style={{fontSize:10,color:C.yellow}}>Trial expira en {Math.ceil((new Date(u.trial_end).getTime()-now.getTime())/86400000)}d</p>
-                        </div>
-                        <div style={{display:"flex",gap:5}}>
-                          {u.phone&&<a href={"tel:"+u.phone} style={{fontSize:10,padding:"4px 8px",background:C.greenDim,border:`1px solid ${C.green}44`,borderRadius:4,color:C.green,textDecoration:"none"}}>📞</a>}
-                          <button onClick={()=>setSelectedUser(u)} style={{fontSize:10,padding:"4px 8px",background:C.accentDim,border:`1px solid ${C.accent}44`,borderRadius:4,color:C.accent,cursor:"pointer"}}>Ver</button>
+                <div style={{ maxHeight: 360, overflowY: "auto" }}>
+                  {notifs.length === 0
+                    ? <p style={{ padding: 20, textAlign: "center", color: C.muted, fontSize: 12 }}>Sin notificaciones</p>
+                    : notifs.map(n => (
+                      <div key={n.id} style={{ padding: "10px 16px", borderBottom: `1px solid ${C.border}`, display: "flex", gap: 10, alignItems: "flex-start" }}>
+                        <div style={{ width: 6, height: 6, borderRadius: "50%", background: n.type === "ok" ? C.green : n.type === "warn" ? C.yellow : C.red, flexShrink: 0, marginTop: 4 }} />
+                        <div style={{ flex: 1 }}>
+                          <p style={{ fontSize: 12, color: C.text }}>{n.msg}</p>
+                          <p style={{ fontSize: 9, color: C.muted, fontFamily: "monospace", marginTop: 2 }}>{timeAgo(n.time)}</p>
                         </div>
                       </div>
                     ))}
-                    {expiring.length===0&&<p style={{fontSize:12,color:C.muted}}>Sin pros en riesgo esta semana ✓</p>}
-                  </div>
                 </div>
               </div>
-            </>)}
-
-            {/* ══════════════════════════════════
-                VENTANA 3: MARKETING
-                ══════════════════════════════════ */}
-            {win==="marketing"&&(<>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:20}}>
-                {/* Funnel */}
-                <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:20}}>
-                  <p style={{fontWeight:700,fontSize:14,color:C.text,marginBottom:16}}>📊 Funnel de Conversión</p>
-                  <FunnelBar label="Visitas estimadas" value={visits} total={visits} color={C.blue}/>
-                  <FunnelBar label="Registros totales" value={users.length} total={visits} color={C.accent}/>
-                  <FunnelBar label="Leads landing" value={leadsCount} total={visits} color={C.orange}/>
-                  <FunnelBar label="Convirtieron a pago" value={paying.length} total={users.length} color={C.green}/>
-                  <div style={{marginTop:16,padding:"10px 14px",background:C.greenDim,borderRadius:8,border:`1px solid ${C.green}33`}}>
-                    <span style={{fontSize:11,color:C.green,fontWeight:700,fontFamily:"monospace"}}>
-                      Conversión global: {users.length>0?((paying.length/users.length)*100).toFixed(1):0}%
-                    </span>
-                  </div>
-                </div>
-
-                {/* Tendencia por tipo */}
-                <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:20}}>
-                  <p style={{fontWeight:700,fontSize:14,color:C.text,marginBottom:16}}>📈 Altas vs Bajas</p>
-                  <div style={{marginBottom:16}}>
-                    <p style={{fontSize:11,color:C.muted,marginBottom:8,fontFamily:"monospace"}}>PROFESIONALES {period}d</p>
-                    <Sparkline data={dailyRegs(period).map((_,i)=>pros.filter(u=>Math.floor((now.getTime()-new Date(u.joined_at).getTime())/86400000)===period-1-i).length)} color={C.accent} height={40}/>
-                  </div>
-                  <div>
-                    <p style={{fontSize:11,color:C.muted,marginBottom:8,fontFamily:"monospace"}}>CLIENTES {period}d</p>
-                    <Sparkline data={dailyRegs(period).map((_,i)=>clients.filter(u=>Math.floor((now.getTime()-new Date(u.joined_at).getTime())/86400000)===period-1-i).length)} color={C.green} height={40}/>
-                  </div>
-                  <div style={{display:"flex",gap:12,marginTop:10}}>
-                    <span style={{fontSize:10,color:C.accent,fontFamily:"monospace"}}>■ Pros ({pros.length})</span>
-                    <span style={{fontSize:10,color:C.green,fontFamily:"monospace"}}>■ Clientes ({clients.length})</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Leads landing */}
-              <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:20,marginBottom:20}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-                  <p style={{fontWeight:700,fontSize:14,color:C.text}}>🎯 Leads Landing Elite</p>
-                  <div style={{display:"flex",gap:10}}>
-                    <StatusPill label={`${converted} convirtieron`} color={C.green}/>
-                    <StatusPill label={`${leadsCount-converted} abandonaron`} color={C.orange}/>
-                  </div>
-                </div>
-                <div style={{overflowX:"auto"}}>
-                  <table style={{width:"100%",borderCollapse:"collapse"}}>
-                    <thead>
-                      <tr style={{borderBottom:`1px solid ${C.border}`}}>
-                        {["Nombre","Oficio","Email","Teléfono","Estado","Fecha"].map(h=>(
-                          <th key={h} style={{padding:"8px 12px",textAlign:"left",fontSize:9,color:C.muted,fontFamily:"monospace",letterSpacing:"0.1em",textTransform:"uppercase"}}>{h}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {leads.slice(0,20).map((l:any)=>(
-                        <tr key={l.id} style={{borderBottom:`1px solid ${C.border}`}}>
-                          <td style={{padding:"8px 12px",fontSize:12,color:C.text,fontWeight:600}}>{l.nombre}</td>
-                          <td style={{padding:"8px 12px"}}><span style={{fontSize:10,color:C.accent,fontFamily:"monospace"}}>{l.oficio}</span></td>
-                          <td style={{padding:"8px 12px",fontSize:11,color:C.muted}}>{l.email}</td>
-                          <td style={{padding:"8px 12px"}}>{l.telefono&&<a href={"tel:"+l.telefono} style={{fontSize:11,color:C.green,textDecoration:"none"}}>📞 {l.telefono}</a>}</td>
-                          <td style={{padding:"8px 12px"}}><StatusPill label={l.convirtio?"Convirtió":"Abandonó"} color={l.convirtio?C.green:C.orange}/></td>
-                          <td style={{padding:"8px 12px",fontSize:10,color:C.muted,fontFamily:"monospace"}}>{new Date(l.created_at).toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"2-digit"})}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* KPIs ads */}
-              <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
-                {[
-                  {l:"CPL estimado",v:leadsCount>0?"~"+(300/leadsCount).toFixed(2)+"€":"—",c:C.accent},
-                  {l:"CPA (pago)",v:paying.length>0?"~"+(300/paying.length).toFixed(2)+"€":"—",c:C.green},
-                  {l:"Leads/día",v:(leadsCount/30).toFixed(1),c:C.blue},
-                  {l:"Tasa conversión",v:convRate.toFixed(1)+"%",c:C.orange},
-                ].map(s=>(
-                  <div key={s.l} style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:10,padding:"14px"}}>
-                    <p style={{fontWeight:900,fontSize:20,color:s.c,letterSpacing:"-1px"}}>{s.v}</p>
-                    <p style={{fontSize:10,color:C.muted,fontFamily:"monospace"}}>{s.l}</p>
-                  </div>
-                ))}
-              </div>
-            </>)}
-
-            {/* ══════════════════════════════════
-                VENTANA 4: FINANZAS
-                ══════════════════════════════════ */}
-            {win==="finance"&&(<>
-              <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:14,marginBottom:20}}>
-                <div style={{background:C.card,border:`1px solid ${C.green}33`,borderRadius:12,padding:20,gridColumn:"span 1"}}>
-                  <p style={{fontSize:10,color:C.muted,fontFamily:"monospace",letterSpacing:"0.1em",marginBottom:8}}>MRR ACTUAL</p>
-                  <p style={{fontWeight:900,fontSize:40,color:C.green,letterSpacing:"-2px",lineHeight:1}}>{mrr.toFixed(0)}€</p>
-                  <p style={{fontSize:11,color:C.muted,marginTop:4}}>de {mrrTarget}€ objetivo · {((mrr/mrrTarget)*100).toFixed(0)}%</p>
-                  <div style={{height:4,background:C.border,borderRadius:99,overflow:"hidden",marginTop:10}}>
-                    <div style={{height:"100%",width:Math.min(100,(mrr/mrrTarget)*100)+"%",background:`linear-gradient(90deg,${C.green},${C.accent})`,borderRadius:99}} />
-                  </div>
-                </div>
-                <div style={{background:C.card,border:`1px solid ${C.accent}33`,borderRadius:12,padding:20}}>
-                  <p style={{fontSize:10,color:C.muted,fontFamily:"monospace",letterSpacing:"0.1em",marginBottom:8}}>PROYECCIÓN 3M</p>
-                  <p style={{fontWeight:900,fontSize:40,color:C.accent,letterSpacing:"-2px",lineHeight:1}}>{(mrr*3).toFixed(0)}€</p>
-                  <p style={{fontSize:11,color:C.muted,marginTop:4}}>asumiendo misma base</p>
-                </div>
-                <div style={{background:C.card,border:`1px solid ${C.blue}33`,borderRadius:12,padding:20}}>
-                  <p style={{fontSize:10,color:C.muted,fontFamily:"monospace",letterSpacing:"0.1em",marginBottom:8}}>ARPU</p>
-                  <p style={{fontWeight:900,fontSize:40,color:C.blue,letterSpacing:"-2px",lineHeight:1}}>{paying.length>0?(mrr/paying.length).toFixed(2):"0"}€</p>
-                  <p style={{fontSize:11,color:C.muted,marginTop:4}}>ingreso medio por pro</p>
-                </div>
-              </div>
-
-              {/* Desglose por plan */}
-              <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:20,marginBottom:20}}>
-                <p style={{fontWeight:700,fontSize:14,color:C.text,marginBottom:16}}>💳 Desglose por Plan</p>
-                <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
-                  {(["gratis","basico","pro","elite"] as Plan[]).map(pl=>{
-                    const count=pros.filter(u=>u.plan===pl).length;
-                    const revenue=count*PLAN_PRICES[pl];
-                    const col=PLAN_COLORS[pl];
-                    return(
-                      <div key={pl} style={{background:C.surface,border:`1px solid ${col}33`,borderRadius:10,padding:"14px"}}>
-                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
-                          <Badge plan={pl}/>
-                          <span style={{fontSize:9,color:C.muted,fontFamily:"monospace"}}>{PLAN_PRICES[pl]}€/m</span>
-                        </div>
-                        <p style={{fontWeight:900,fontSize:24,color:col,letterSpacing:"-1px"}}>{count}</p>
-                        <p style={{fontSize:10,color:C.muted}}>pros · <span style={{color:col,fontWeight:700}}>{revenue.toFixed(0)}€/m</span></p>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Estado Stripe */}
-              <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:20}}>
-                <p style={{fontWeight:700,fontSize:14,color:C.text,marginBottom:16}}>🔌 Estado Stripe / Suscripciones</p>
-                <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:16}}>
-                  <div style={{background:C.surface,borderRadius:10,padding:14,border:`1px solid ${C.green}22`}}>
-                    <p style={{fontSize:10,color:C.muted,fontFamily:"monospace",marginBottom:4}}>PAGANDO ACTIVO</p>
-                    <p style={{fontWeight:900,fontSize:28,color:C.green}}>{paying.length}</p>
-                  </div>
-                  <div style={{background:C.surface,borderRadius:10,padding:14,border:`1px solid ${C.yellow}22`}}>
-                    <p style={{fontSize:10,color:C.muted,fontFamily:"monospace",marginBottom:4}}>EN TRIAL</p>
-                    <p style={{fontWeight:900,fontSize:28,color:C.yellow}}>{pros.filter(u=>u.plan==="gratis"&&u.trial_end&&new Date(u.trial_end)>now).length}</p>
-                  </div>
-                  <div style={{background:C.surface,borderRadius:10,padding:14,border:`1px solid ${C.red}22`}}>
-                    <p style={{fontSize:10,color:C.muted,fontFamily:"monospace",marginBottom:4}}>EXPIRADOS</p>
-                    <p style={{fontWeight:900,fontSize:28,color:C.red}}>{expired.length}</p>
-                  </div>
-                </div>
-                <div style={{overflowX:"auto"}}>
-                  <table style={{width:"100%",borderCollapse:"collapse"}}>
-                    <thead>
-                      <tr style={{borderBottom:`1px solid ${C.border}`}}>
-                        {["Pro","Plan","€/mes","Trial expira","Estado"].map(h=>(
-                          <th key={h} style={{padding:"8px 12px",textAlign:"left",fontSize:9,color:C.muted,fontFamily:"monospace",letterSpacing:"0.1em"}}>{h}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {paying.map(u=>{
-                        const daysLeft=u.trial_end?Math.max(0,Math.ceil((new Date(u.trial_end).getTime()-now.getTime())/86400000)):null;
-                        return(
-                          <tr key={u.id} style={{borderBottom:`1px solid ${C.border}`}}>
-                            <td style={{padding:"8px 12px"}}>
-                              <div style={{display:"flex",gap:8,alignItems:"center"}}>
-                                <Ava s={u.name.substring(0,2).toUpperCase()} size={24} color={PLAN_COLORS[u.plan as Plan]} imgUrl={u.avatar_url||""}/>
-                                <span style={{fontSize:12,color:C.text,fontWeight:600}}>{u.name}</span>
-                              </div>
-                            </td>
-                            <td style={{padding:"8px 12px"}}><Badge plan={u.plan as Plan}/></td>
-                            <td style={{padding:"8px 12px",fontSize:12,color:C.green,fontFamily:"monospace",fontWeight:700}}>{PLAN_PRICES[u.plan as Plan]}€</td>
-                            <td style={{padding:"8px 12px",fontSize:11,color:daysLeft!==null&&daysLeft<=7?C.yellow:C.muted,fontFamily:"monospace"}}>{daysLeft!==null?daysLeft+"d":"—"}</td>
-                            <td style={{padding:"8px 12px"}}><StatusPill label="Activo" color={C.green}/></td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </>)}
-
-            {/* ══════════════════════════════════
-                VENTANA 5: MENSAJES
-                ══════════════════════════════════ */}
-            {win==="mensajes"&&(<>
-              <div style={{display:"grid",gridTemplateColumns:selectedUser?"1fr":"2fr 1fr",gap:14}}>
-                <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,overflow:"hidden"}}>
-                  <div style={{padding:"14px 16px",borderBottom:`1px solid ${C.border}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                    <p style={{fontWeight:700,fontSize:14,color:C.text}}>Mensajes · {msgs.length}</p>
-                    <span style={{fontSize:10,color:C.red,fontFamily:"monospace"}}>{unread} no leídos</span>
-                  </div>
-                  <div style={{maxHeight:600,overflowY:"auto"}}>
-                    {msgs.filter(m=>m.from_id!=="00000000-0000-0000-0000-000000000001").slice(0,50).map(m=>{
-                      const fromUser=users.find(u=>u.id===m.from_id);
-                      const toUser=users.find(u=>u.id===m.to_id);
-                      const isAdminMsg=m.from_id==="00000000-0000-0000-0000-000000000002";
-                      const isUnread=!m.read&&!isAdminMsg;
-                      return(
-                        <div key={m.id} onClick={()=>setSelectedUser(fromUser||toUser||null)} style={{padding:"12px 16px",borderBottom:`1px solid ${C.border}`,background:isUnread?C.yellowDim:"transparent",cursor:"pointer",transition:"background 0.1s"}} onMouseEnter={e=>{if(!isUnread)(e.currentTarget as HTMLElement).style.background=C.surface;}} onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background=isUnread?C.yellowDim:"transparent";}}>
-                          <div style={{display:"flex",gap:10,alignItems:"flex-start"}}>
-                            <div style={{width:32,height:32,borderRadius:8,background:isAdminMsg?C.accent+"22":C.blue+"22",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,flexShrink:0}}>{isAdminMsg?"👑":isUnread?"🔴":"💬"}</div>
-                            <div style={{flex:1,minWidth:0}}>
-                              <div style={{display:"flex",gap:8,alignItems:"center",marginBottom:3}}>
-                                <span style={{fontSize:12,color:isUnread?C.accent:C.text,fontWeight:700}}>{isAdminMsg?"Admin":(fromUser?.name||"—")}</span>
-                                <span style={{fontSize:10,color:C.muted}}>→ {toUser?.name||"—"}</span>
-                                {isUnread&&<span style={{fontSize:8,color:C.accent,background:C.accentDim,padding:"1px 5px",borderRadius:3,fontFamily:"monospace",fontWeight:900}}>NUEVO</span>}
-                                <span style={{fontSize:9,color:C.muted,marginLeft:"auto",fontFamily:"monospace"}}>{timeAgo(m.created_at)}</span>
-                              </div>
-                              <p style={{fontSize:11,color:isUnread?C.mutedL:C.muted,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{m.text.substring(0,80)}</p>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {!selectedUser&&(
-                  <div style={{display:"flex",flexDirection:"column",gap:10}}>
-                    <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:16}}>
-                      <p style={{fontWeight:700,fontSize:13,color:C.text,marginBottom:12}}>📊 Estadísticas</p>
-                      {[
-                        {l:"Total mensajes",v:msgs.length,c:C.blue},
-                        {l:"No leídos",v:unread,c:C.red},
-                        {l:"De admin",v:msgs.filter(m=>m.from_id==="00000000-0000-0000-0000-000000000002").length,c:C.accent},
-                        {l:"Lead alerts",v:msgs.filter(m=>m.from_id==="00000000-0000-0000-0000-000000000001").length,c:C.orange},
-                      ].map(s=>(
-                        <div key={s.l} style={{display:"flex",justifyContent:"space-between",padding:"6px 0",borderBottom:`1px solid ${C.border}`}}>
-                          <span style={{fontSize:11,color:C.muted}}>{s.l}</span>
-                          <span style={{fontSize:12,color:s.c,fontWeight:700,fontFamily:"monospace"}}>{s.v}</span>
-                        </div>
-                      ))}
-                    </div>
-                    <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:16}}>
-                      <p style={{fontWeight:700,fontSize:13,color:C.text,marginBottom:8}}>🔍 Selecciona un mensaje</p>
-                      <p style={{fontSize:11,color:C.muted}}>Pulsa en cualquier mensaje para ver el detalle y responder al usuario.</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </>)}
-
+            )}
           </div>
-        )}
-      </main>
+
+          <div style={{ fontSize: 10, color: C.muted, fontFamily: "monospace" }}>{pros.length} pros · {clients.length} clientes</div>
+        </header>
+
+        {/* Content */}
+        <main style={{ flex: 1, padding: 24, overflowY: "auto" }}>
+          {loading
+            ? <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: 200 }}><Spin size={28} /></div>
+            : <div className="content-area">{renderContent()}</div>
+          }
+        </main>
+      </div>
+
+      {/* Panel lateral usuario */}
+      {selectedUser && renderUserPanel()}
+
+      {/* Toast */}
+      {toast && (
+        <div style={{ position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)", background: C.surface, border: `1px solid ${toastColor}44`, borderRadius: 10, padding: "10px 20px", color: toastColor, fontWeight: 700, fontSize: 13, zIndex: 9999, whiteSpace: "nowrap", boxShadow: `0 4px 20px ${toastColor}22`, display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ width: 6, height: 6, borderRadius: "50%", background: toastColor }} />
+          {toast.msg}
+        </div>
+      )}
     </div>
   );
 }
