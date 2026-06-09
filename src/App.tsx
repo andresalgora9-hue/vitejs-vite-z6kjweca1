@@ -2509,8 +2509,8 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
               }}>
                 <div style={{width:34,height:34,borderRadius:10,background:"rgba(0,0,0,0.18)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:17,flexShrink:0}}>⚡</div>
                 <div style={{flex:1}}>
-                  <p style={{fontWeight:900,color:"#000",fontSize:14,lineHeight:1}}>¿Necesitas un profesional ahora?</p>
-                  <p style={{fontSize:11,color:"rgba(0,0,0,0.55)",marginTop:2}}>Te conectamos con el más adecuado en segundos</p>
+                  <p style={{fontWeight:900,color:"#000",fontSize:13,lineHeight:1.15,whiteSpace:"nowrap" as const}}>¿Necesitas un profesional ahora?</p>
+                  <p style={{fontSize:10,color:"rgba(0,0,0,0.55)",marginTop:2,lineHeight:1.2}}>Te conectamos con el más adecuado en segundos</p>
                 </div>
                 <div style={{background:"rgba(0,0,0,0.15)",borderRadius:10,padding:"8px 14px",color:"#000",fontWeight:900,fontSize:14,flexShrink:0,whiteSpace:"nowrap" as const}}>Buscar →</div>
               </div>
