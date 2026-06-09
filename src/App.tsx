@@ -2667,7 +2667,7 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
           {loading?<Spin/>:(
             <>
               {filteredWorkers.length===0&&<div style={{textAlign:"center" as const,padding:"32px 20px",color:C.muted}}><p style={{fontSize:32,marginBottom:8}}>🔍</p><p style={{fontWeight:700,color:C.text,fontSize:16,marginBottom:6}}>Sin resultados</p><p style={{fontSize:13}}>Prueba con otra búsqueda o zona</p></div>}
-              <div style={{display:"flex",flexDirection:"column" as const,gap:10}}>
+              <div id="lista-profesionales" style={{display:"flex",flexDirection:"column" as const,gap:10}}>
                 {loading?<SkeletonList n={5} />:filteredWorkers.map(w=><WorkerCardIdealista key={w.id} w={w} onChat={()=>handleChat(w)} onSelect={()=>setSelectedWorker(w)} />)}
               </div>
             </>
