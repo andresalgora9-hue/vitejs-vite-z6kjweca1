@@ -1998,6 +1998,7 @@ if(toUser.id==="00000000-0000-0000-0000-000000000002"){
   setDesc("");setMaxBudget("");setShowForm(false);
   loadSolicitudes();
   setSending(false);
+  showToast("✅ Solicitud enviada · Recibirás respuesta en menos de 5 min");
 };
 
   return(
