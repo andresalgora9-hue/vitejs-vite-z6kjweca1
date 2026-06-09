@@ -4743,6 +4743,10 @@ if(!_lastVisit){
         color: #E8EDF5;
         font-family: 'DM Sans', sans-serif;
         -webkit-font-smoothing: antialiased;
+        touch-action: pan-y;
+        overscroll-behavior-x: none;
+        position: fixed;
+        width: 100%;
      #root {
         min-height: 100vh;
         min-height: 100dvh;
@@ -4750,6 +4754,8 @@ if(!_lastVisit){
         overflow-x: hidden;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
+        overscroll-behavior-x: none;
+        touch-action: pan-y;
         max-width: 100vw;
       }
       input,textarea,select{box-sizing:border-box;}
