@@ -2374,6 +2374,10 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
   const handleWizardResult=async(oficio:string,zonaResult:string,urgency:string)=>{
     if(oficio)setOficio(oficio);
     setShowWizard(false);
+    setTimeout(()=>{
+      const el=document.getElementById("lista-profesionales");
+      if(el)el.scrollIntoView({behavior:"smooth",block:"start"});
+    },300);
 
     // Insertar solicitud en tabla requests
     await db.from("requests").insert({
