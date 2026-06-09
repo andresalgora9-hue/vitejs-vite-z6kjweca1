@@ -3842,6 +3842,28 @@ useEffect(()=>{
     await db.from("jobs").update({status,updated_at:new Date().toISOString()}).eq("id",jobId);
     setJobs(p=>p.map(j=>j.id===jobId?{...j,status:status as any}:j));
     showToast("✓ Estado actualizado");
+    if(status==="done"){
+      const job=jobs.find(j=>j.id===jobId);
+      if(job?.client_id){
+        fetch(`${SUPABASE_FUNCTIONS_URL}/send-push`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({
+          user_id:job.client_id,
+          title:"✅ Trabajo completado",
+          body:user.name+" ha marcado el trabajo como finalizado. ¿Todo correcto? Deja tu valoración.",
+          url:"/",
+        })}).catch(()=>{});
+      }
+    }
+    if(status==="in_progress"){
+      const job=jobs.find(j=>j.id===jobId);
+      if(job?.client_id){
+        fetch(`${SUPABASE_FUNCTIONS_URL}/send-push`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({
+          user_id:job.client_id,
+          title:"🔧 Trabajo en progreso",
+          body:user.name+" ha comenzado tu trabajo. Te avisará cuando esté listo.",
+          url:"/",
+        })}).catch(()=>{});
+      }
+    }
   };
 const SPECIALTIES_BY_TRADE:Record<string,string[]>={
     "Electricista":["Domótica","Fotovoltaica","Cuadros eléctricos","Instalación industrial","LED y iluminación","Cargadores VE","Mantenimiento","Averías urgentes"],
