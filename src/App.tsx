@@ -4745,7 +4745,6 @@ if(!_lastVisit){
         -webkit-font-smoothing: antialiased;
         touch-action: pan-y;
         overscroll-behavior-x: none;
-        position: fixed;
         width: 100%;
       }
       #root {
