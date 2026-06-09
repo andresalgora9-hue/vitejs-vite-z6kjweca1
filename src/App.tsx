@@ -4747,7 +4747,8 @@ if(!_lastVisit){
         overscroll-behavior-x: none;
         position: fixed;
         width: 100%;
-     #root {
+      }
+      #root {
         min-height: 100vh;
         min-height: 100dvh;
         background: #0F1117;
