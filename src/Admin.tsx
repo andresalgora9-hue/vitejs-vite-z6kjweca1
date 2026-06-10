@@ -103,8 +103,8 @@ function AdminReplyBox({targetId,targetName,onSent,users}:{targetId:string;targe
   const send=async()=>{
     if(!text.trim())return;
     setSending(true);
-    const{data:nm}=await db.from("messages").insert({from_id:"00000000-0000-0000-0000-000000000002",to_id:targetId,text:"[Soporte OfficioYa] "+text,read:false}).select().single();
-    try{await fetch(`${SUPABASE_URL2}/functions/v1/send-push`,{method:"POST",headers:SB_H,body:JSON.stringify({user_id:targetId,title:"👑 OfficioYa Soporte",body:text.substring(0,80),url:"/"})});}catch(_){}
+    const{data:nm}=await db.from("messages").insert({from_id:"00000000-0000-0000-0000-000000000002",to_id:targetId,text:"[Soporte oficioya] "+text,read:false}).select().single();
+    try{await fetch(`${SUPABASE_URL2}/functions/v1/send-push`,{method:"POST",headers:SB_H,body:JSON.stringify({user_id:targetId,title:"👑 oficioya Soporte",body:text.substring(0,80),url:"/"})});}catch(_){}
     if(nm)onSent(nm);
     setText("");setSending(false);
   };
@@ -186,13 +186,13 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
           setUsers(prev=>[u,...prev]);
           showToast(`🆕 Nuevo ${u.type}: ${u.name}`,"ok");
           // Auto-welcome message
-          const welcomePro=`¡Hola ${u.name}! 👋 Bienvenido a OfficioYa. Soy Andrés, fundador de la plataforma. Estoy aquí para ayudarte a sacarle el máximo partido. Si tienes cualquier duda sobre cómo funciona, cómo recibir leads o configurar tu perfil, escríbeme aquí mismo. ¡Mucho éxito! 🚀`;
-          const welcomeClient=`¡Hola ${u.name}! 👋 Bienvenido a OfficioYa. Si necesitas ayuda para encontrar el profesional adecuado o tienes cualquier pregunta, escríbeme aquí. Estamos para ayudarte.`;
+          const welcomePro=`¡Hola ${u.name}! 👋 Bienvenido a oficioya. Soy Andrés, fundador de la plataforma. Estoy aquí para ayudarte a sacarle el máximo partido. Si tienes cualquier duda sobre cómo funciona, cómo recibir leads o configurar tu perfil, escríbeme aquí mismo. ¡Mucho éxito! 🚀`;
+          const welcomeClient=`¡Hola ${u.name}! 👋 Bienvenido a oficioya. Si necesitas ayuda para encontrar el profesional adecuado o tienes cualquier pregunta, escríbeme aquí. Estamos para ayudarte.`;
           const welcomeMsg=u.type==="profesional"?welcomePro:welcomeClient;
           setTimeout(async()=>{
             const{data:nm}=await db.from("messages").insert({from_id:ADMIN_ID,to_id:u.id,text:welcomeMsg,read:false}).select().single();
             if(nm)setMsgs(prev=>[nm as MessageRow,...prev]);
-            await sendPush(u.id,"👑 OfficioYa",u.type==="profesional"?"Bienvenido a OfficioYa 🚀":"Bienvenido a OfficioYa 👋","/");
+            await sendPush(u.id,"👑 oficioya",u.type==="profesional"?"Bienvenido a oficioya 🚀":"Bienvenido a oficioya 👋","/");
           },3000);
         }
       })
@@ -313,33 +313,33 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
     setReports(p=>p.map((r:any)=>r.id===id?{...r,status}:r));
     if(status==="investigating"){
       if(proId){
-        await db.from("messages").insert({from_id:ADMIN_ID,to_id:proId,text:"[OfficioYa] Hemos recibido una denuncia relacionada con tu cuenta. Estamos revisando el caso y nos pondremos en contacto contigo en breve.",read:false});
-        await sendPush(proId,"⚠️ OfficioYa","Tu cuenta está siendo revisada por una denuncia.","/");
+        await db.from("messages").insert({from_id:ADMIN_ID,to_id:proId,text:"[oficioya] Hemos recibido una denuncia relacionada con tu cuenta. Estamos revisando el caso y nos pondremos en contacto contigo en breve.",read:false});
+        await sendPush(proId,"⚠️ oficioya","Tu cuenta está siendo revisada por una denuncia.","/");
       }
       if(clientId&&clientId!==proId){
-        await db.from("messages").insert({from_id:ADMIN_ID,to_id:clientId,text:"[OfficioYa] Hemos recibido tu denuncia y estamos investigando el caso. Te mantendremos informado.",read:false});
-        await sendPush(clientId,"🔍 OfficioYa","Tu denuncia está siendo investigada.","/");
+        await db.from("messages").insert({from_id:ADMIN_ID,to_id:clientId,text:"[oficioya] Hemos recibido tu denuncia y estamos investigando el caso. Te mantendremos informado.",read:false});
+        await sendPush(clientId,"🔍 oficioya","Tu denuncia está siendo investigada.","/");
       }
       showToast("🔍 Investigando — ambos notificados","warn");
     }else if(status==="approved"){
       if(proId)await blockUser(proId);
       if(proId){
-        await db.from("messages").insert({from_id:ADMIN_ID,to_id:proId,text:"[OfficioYa] Tu cuenta ha sido suspendida tras revisar la denuncia. Si crees que es un error, contáctanos.",read:false});
-        await sendPush(proId,"🚫 OfficioYa","Tu cuenta ha sido suspendida.","/");
+        await db.from("messages").insert({from_id:ADMIN_ID,to_id:proId,text:"[oficioya] Tu cuenta ha sido suspendida tras revisar la denuncia. Si crees que es un error, contáctanos.",read:false});
+        await sendPush(proId,"🚫 oficioya","Tu cuenta ha sido suspendida.","/");
       }
       if(clientId&&clientId!==proId){
-        await db.from("messages").insert({from_id:ADMIN_ID,to_id:clientId,text:"[OfficioYa] Hemos resuelto tu denuncia. El profesional ha sido bloqueado. Gracias por ayudarnos a mantener la calidad.",read:false});
-        await sendPush(clientId,"✅ OfficioYa","Tu denuncia ha sido resuelta.","/");
+        await db.from("messages").insert({from_id:ADMIN_ID,to_id:clientId,text:"[oficioya] Hemos resuelto tu denuncia. El profesional ha sido bloqueado. Gracias por ayudarnos a mantener la calidad.",read:false});
+        await sendPush(clientId,"✅ oficioya","Tu denuncia ha sido resuelta.","/");
       }
       showToast("🚫 Pro bloqueado — ambos notificados","err");
     }else if(status==="closed"){
       if(proId){
-        await db.from("messages").insert({from_id:ADMIN_ID,to_id:proId,text:"[OfficioYa] La denuncia relacionada con tu cuenta ha sido revisada y cerrada sin penalización.",read:false});
-        await sendPush(proId,"✅ OfficioYa","Denuncia cerrada sin penalización.","/");
+        await db.from("messages").insert({from_id:ADMIN_ID,to_id:proId,text:"[oficioya] La denuncia relacionada con tu cuenta ha sido revisada y cerrada sin penalización.",read:false});
+        await sendPush(proId,"✅ oficioya","Denuncia cerrada sin penalización.","/");
       }
       if(clientId&&clientId!==proId){
-        await db.from("messages").insert({from_id:ADMIN_ID,to_id:clientId,text:"[OfficioYa] Tras revisar tu denuncia hemos decidido cerrarla. Gracias por tu reporte.",read:false});
-        await sendPush(clientId,"✅ OfficioYa","Denuncia cerrada.","/");
+        await db.from("messages").insert({from_id:ADMIN_ID,to_id:clientId,text:"[oficioya] Tras revisar tu denuncia hemos decidido cerrarla. Gracias por tu reporte.",read:false});
+        await sendPush(clientId,"✅ oficioya","Denuncia cerrada.","/");
       }
       showToast("✓ Cerrada — ambos notificados");
     }else{
@@ -349,9 +349,9 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
   const sendSupport=async()=>{
     if(!selectedUser||!supportMsg.trim())return;
     setSendingMsg(true);
-    const{data:nm}=await db.from("messages").insert({from_id:ADMIN_ID,to_id:selectedUser.id,text:"[Soporte OfficioYa] "+supportMsg,read:false}).select().single();
+    const{data:nm}=await db.from("messages").insert({from_id:ADMIN_ID,to_id:selectedUser.id,text:"[Soporte oficioya] "+supportMsg,read:false}).select().single();
     if(nm)setMsgs(prev=>[nm as MessageRow,...prev]);
-    await sendPush(selectedUser.id,"👑 OfficioYa Soporte",supportMsg.substring(0,80),"/");
+    await sendPush(selectedUser.id,"👑 oficioya Soporte",supportMsg.substring(0,80),"/");
     setSupportMsg("");setSendingMsg(false);
     showToast("✓ Mensaje enviado a "+selectedUser.name);
   };
@@ -767,7 +767,7 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
     const partner=users.find(u=>u.id===activeThread);
     const{data:nm}=await db.from("messages").insert({from_id:ADMIN_ID,to_id:activeThread,text:replyText,read:false}).select().single();
     if(nm)setMsgs(prev=>[nm as MessageRow,...prev]);
-    await sendPush(activeThread,"👑 OfficioYa",replyText.substring(0,80),"/");
+    await sendPush(activeThread,"👑 oficioya",replyText.substring(0,80),"/");
     setReplyText("");setSendingReply(false);
     scrollToBottom();
   };
