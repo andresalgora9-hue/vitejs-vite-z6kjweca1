@@ -3,18 +3,18 @@ const C = { bg:"#0A0A0F", text:"#F0F0FA", muted:"#7777AA", border:"#1E1E30", acc
 export default function Terminos() {
   return (
     <div style={{ minHeight:"100vh", background:C.bg, color:C.text, fontFamily:"'DM Sans',sans-serif", padding:"40px 24px", maxWidth:760, margin:"0 auto" }}>
-      <a href="/" style={{ color:C.accent, fontSize:13, textDecoration:"none", display:"block", marginBottom:32 }}>← Volver a OfficioYa</a>
+      <a href="/" style={{ color:C.accent, fontSize:13, textDecoration:"none", display:"block", marginBottom:32 }}>← Volver a oficioya</a>
       <h1 style={{ fontSize:28, fontWeight:900, marginBottom:8 }}>Términos y Condiciones de Uso</h1>
       <p style={{ color:C.muted, fontSize:13, marginBottom:40 }}>Última actualización: {new Date().toLocaleDateString("es-ES",{day:"numeric",month:"long",year:"numeric"})}</p>
 
       <Section title="1. Objeto y Naturaleza del Servicio">
-        <P>OfficioYa es una plataforma digital de intermediación que conecta a particulares y empresas que necesitan servicios profesionales ("Clientes") con profesionales autónomos o empresas que ofrecen dichos servicios ("Profesionales"). OfficioYa actúa exclusivamente como plataforma de puesta en contacto entre las partes.</P>
-        <Alert>OfficioYa NO es parte de ningún contrato de prestación de servicios entre Cliente y Profesional. OfficioYa no ejecuta trabajos, no gestiona presupuestos entre particulares y no interviene en la relación laboral o mercantil entre las partes. OfficioYa no asume responsabilidad alguna por la calidad, legalidad, puntualidad o resultado de los servicios prestados por los Profesionales.</Alert>
+        <P>oficioya es una plataforma digital de intermediación que conecta a particulares y empresas que necesitan servicios profesionales ("Clientes") con profesionales autónomos o empresas que ofrecen dichos servicios ("Profesionales"). oficioya actúa exclusivamente como plataforma de puesta en contacto entre las partes.</P>
+        <Alert>oficioya NO es parte de ningún contrato de prestación de servicios entre Cliente y Profesional. oficioya no ejecuta trabajos, no gestiona presupuestos entre particulares y no interviene en la relación laboral o mercantil entre las partes. oficioya no asume responsabilidad alguna por la calidad, legalidad, puntualidad o resultado de los servicios prestados por los Profesionales.</Alert>
       </Section>
 
       <Section title="2. Registro y Acceso">
-        <P>Para utilizar OfficioYa es necesario registrarse y crear una cuenta. El usuario garantiza que los datos proporcionados son verídicos, que es mayor de 18 años, que dispone de capacidad legal para aceptar estos Términos y que mantendrá la confidencialidad de sus credenciales de acceso.</P>
-        <P>OfficioYa se reserva el derecho de verificar la identidad y la cualificación profesional declarada por los Profesionales, así como de suspender o cancelar cuentas en cualquier momento si detecta uso fraudulento, datos falsos o incumplimiento de estos Términos.</P>
+        <P>Para utilizar oficioya es necesario registrarse y crear una cuenta. El usuario garantiza que los datos proporcionados son verídicos, que es mayor de 18 años, que dispone de capacidad legal para aceptar estos Términos y que mantendrá la confidencialidad de sus credenciales de acceso.</P>
+        <P>oficioya se reserva el derecho de verificar la identidad y la cualificación profesional declarada por los Profesionales, así como de suspender o cancelar cuentas en cualquier momento si detecta uso fraudulento, datos falsos o incumplimiento de estos Términos.</P>
       </Section>
 
       <Section title="3. Planes de Suscripción y Pagos">
@@ -24,18 +24,18 @@ export default function Terminos() {
         <P>• Plan Pro: 24,99 EUR/mes. Contactos ilimitados, posicionamiento destacado y estadísticas avanzadas.</P>
         <P>• Plan Elite: 49,99 EUR/mes. Todas las funcionalidades, posicionamiento prioritario garantizado, badge Elite y soporte preferente.</P>
         <Sub>3.2 Período de prueba</Sub>
-        <Alert>El Plan Elite incluye un período de prueba gratuito de 30 días. Al activarlo, el usuario debe facilitar un método de pago válido. El usuario dispone de los primeros 15 días naturales para cancelar sin cargo alguno. Las cancelaciones realizadas a partir del día 16 del período de prueba devengarán el cobro del primer mes de suscripción (49,99€) al vencimiento de los 30 días. OfficioYa informa expresamente de esta condición en el momento de facilitar los datos de pago.</Alert>
+        <Alert>El Plan Elite incluye un período de prueba gratuito de 30 días. Al activarlo, el usuario debe facilitar un método de pago válido. El usuario dispone de los primeros 15 días naturales para cancelar sin cargo alguno. Las cancelaciones realizadas a partir del día 16 del período de prueba devengarán el cobro del primer mes de suscripción (49,99€) al vencimiento de los 30 días. oficioya informa expresamente de esta condición en el momento de facilitar los datos de pago.</Alert>
         <Sub>3.3 Facturación y renovación automática</Sub>
         <P>Las suscripciones se facturan mensualmente de manera anticipada mediante cargo automático al método de pago facilitado. La renovación es automática. La cancelación debe solicitarse con al menos 15 días naturales de antelación a la fecha de renovación para evitar el cargo del período siguiente.</P>
       </Section>
 
       <Section title="4. Responsabilidad de los Profesionales">
-        <P>Los Profesionales declaran contar con la titulación, licencias y permisos necesarios, estar dados de alta en la Seguridad Social, publicar información veraz y actuar de forma independiente, sin relación laboral con OfficioYa. Son los únicos responsables de la ejecución de los trabajos contratados directamente con los Clientes.</P>
-        <Alert>OfficioYa no es empleador de ningún Profesional y no asume responsabilidad alguna derivada de la relación entre el Profesional y el Cliente.</Alert>
+        <P>Los Profesionales declaran contar con la titulación, licencias y permisos necesarios, estar dados de alta en la Seguridad Social, publicar información veraz y actuar de forma independiente, sin relación laboral con oficioya. Son los únicos responsables de la ejecución de los trabajos contratados directamente con los Clientes.</P>
+        <Alert>oficioya no es empleador de ningún Profesional y no asume responsabilidad alguna derivada de la relación entre el Profesional y el Cliente.</Alert>
       </Section>
 
       <Section title="5. Limitación de Responsabilidad">
-        <P>OfficioYa no será responsable de la calidad de los servicios prestados por los Profesionales, interrupciones técnicas, conductas fraudulentas de usuarios, pérdida de datos o lucro cesante. La responsabilidad máxima de OfficioYa no excederá del importe abonado durante los 3 meses anteriores al evento que da lugar a la reclamación.</P>
+        <P>oficioya no será responsable de la calidad de los servicios prestados por los Profesionales, interrupciones técnicas, conductas fraudulentas de usuarios, pérdida de datos o lucro cesante. La responsabilidad máxima de oficioya no excederá del importe abonado durante los 3 meses anteriores al evento que da lugar a la reclamación.</P>
       </Section>
 
       <Section title="6. Legislación Aplicable">
