@@ -570,7 +570,7 @@ export default function EliteLanding() {
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:36 }}>
             <div style={{ display:"flex", alignItems:"center", gap:8 }}>
               <div style={{ width:32, height:32, borderRadius:8, background:C.gold, display:"flex", alignItems:"center", justifyContent:"center", fontSize:16 }}>🔨</div>
-              <span style={{ fontWeight:900, fontSize:18 }}>OfficioYa</span>
+              <span style={{ fontWeight:900, fontSize:18 }}>oficioya</span>
             </div>
             {step < 3 && <button onClick={()=>setStep(0)} style={{ background:"none", border:`1px solid ${C.border}`, borderRadius:8, color:C.muted, fontSize:12, padding:"6px 12px", cursor:"pointer" }}>Cancelar</button>}
           </div>
@@ -593,7 +593,7 @@ export default function EliteLanding() {
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"18px 24px", borderBottom:`1px solid ${C.border}` }}>
           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
             <div style={{ width:34, height:34, borderRadius:8, background:C.gold, display:"flex", alignItems:"center", justifyContent:"center", fontSize:18 }}>🔨</div>
-            <span style={{ fontWeight:900, fontSize:18 }}>OfficioYa</span>
+            <span style={{ fontWeight:900, fontSize:18 }}>oficioya</span>
             <span style={{ background:"#1a1a1a", border:`1px solid ${C.border}`, borderRadius:6, padding:"2px 8px", fontSize:10, color:C.muted, letterSpacing:1 }}>SEVILLA</span>
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:7 }}>
@@ -665,10 +665,10 @@ export default function EliteLanding() {
           <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
             {[
               { emoji:"🔧", oficio:"Fontanero / Electricista / Cerrajero", pain:"Cuando me avisan, el trabajo ya está cogido. Siempre llego tarde.", fix:"Las alertas urgentes del plan Élite te avisan antes que a nadie. Primero en ver, primero en ganar." },
-              { emoji:"🎨", oficio:"Pintor / Albañil / Carpintero", pain:"Paso días haciendo presupuestos que no cierran. Tiempo perdido.", fix:"Los clientes de OfficioYa ya saben lo que quieren y piden presupuesto directo a ti. Sin reuniones innecesarias." },
-              { emoji:"❄️", oficio:"Instalador A/C / Técnico", pain:"El boca a boca ya no es suficiente. Los meses flojos me matan.", fix:"Tu perfil Élite trabaja por ti 24/7. Cuando no estás buscando, OfficioYa busca por ti." },
+              { emoji:"🎨", oficio:"Pintor / Albañil / Carpintero", pain:"Paso días haciendo presupuestos que no cierran. Tiempo perdido.", fix:"Los clientes de oficioya ya saben lo que quieren y piden presupuesto directo a ti. Sin reuniones innecesarias." },
+              { emoji:"❄️", oficio:"Instalador A/C / Técnico", pain:"El boca a boca ya no es suficiente. Los meses flojos me matan.", fix:"Tu perfil Élite trabaja por ti 24/7. Cuando no estás buscando, oficioya busca por ti." },
               { emoji:"🏗️", oficio:"Techador / Cristalero / Soldador", pain:"Compito por precio con cualquiera y acabo cobrando menos de lo que vale mi trabajo.", fix:"Un badge verificado y reseñas reales te convierten en la opción premium. Los clientes pagan más por confianza." },
-              { emoji:"🏠", oficio:"Cualquier profesional", pain:"Termino la semana sin saber si el mes siguiente tendré trabajo.", fix:"Agenda llena = menos estrés. OfficioYa te da visibilidad constante sin que tengas que hacer nada." },
+              { emoji:"🏠", oficio:"Cualquier profesional", pain:"Termino la semana sin saber si el mes siguiente tendré trabajo.", fix:"Agenda llena = menos estrés. oficioya te da visibilidad constante sin que tengas que hacer nada." },
             ].map((p,i)=>(
               <div key={i} style={{ background:C.card, border:`1px solid ${C.border}`, borderLeft:`3px solid ${C.gold}`, borderRadius:16, padding:"20px 18px", animation:`fadeUp 0.6s ease both ${i*0.08}s` }}>
                 <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
