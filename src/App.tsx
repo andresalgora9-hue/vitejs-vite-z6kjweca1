@@ -105,7 +105,7 @@ function getDeepLinkUrl(user:UserRow){
 function shareProfile(user:UserRow){
   const url=getDeepLinkUrl(user);
   if(navigator.share){
-    navigator.share({title:user.name+" — OfficioYa",text:"Mira el perfil de "+user.name+" en OfficioYa",url});
+    navigator.share({title:user.name+" — oficioya",text:"Mira el perfil de "+user.name+" en oficioya",url});
   } else {
     navigator.clipboard.writeText(url);
   }
@@ -443,7 +443,7 @@ function InstallBanner(){
       <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
         <div style={{width:36,height:36,borderRadius:10,background:"linear-gradient(135deg,#FFD700,#FF8C00)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>🔨</div>
         <div style={{flex:1}}>
-          <p style={{fontWeight:800,color:"#F0F0FA",fontSize:14,margin:0}}>Instala OfficioYa en tu iPhone</p>
+          <p style={{fontWeight:800,color:"#F0F0FA",fontSize:14,margin:0}}>Instala oficioya en tu iPhone</p>
           <p style={{fontSize:11,color:"#7777AA",margin:"2px 0 0"}}>Accede más rápido y recibe alertas</p>
         </div>
         <button onClick={dismiss} style={{background:"none",border:"none",color:"#44445A",cursor:"pointer",fontSize:20,padding:"0 2px",flexShrink:0}}>✕</button>
@@ -467,7 +467,7 @@ function InstallBanner(){
         <p style={{fontSize:12,color:"#E8EDF5",margin:0,lineHeight:1.6,textAlign:"center" as const}}>
           {step===0&&<>En Safari pulsa el botón <strong style={{color:"#FFD700"}}>⬆ Compartir</strong> que está en la barra de abajo</>}
           {step===1&&<>En el menú desplázate hacia abajo hasta encontrar <strong style={{color:"#FFD700"}}>"Añadir a pantalla de inicio"</strong> y tócalo</>}
-          {step===2&&<>Pulsa <strong style={{color:"#FFD700"}}>"Añadir"</strong> arriba a la derecha. ¡Listo! OfficioYa aparecerá en tu inicio</>}
+          {step===2&&<>Pulsa <strong style={{color:"#FFD700"}}>"Añadir"</strong> arriba a la derecha. ¡Listo! oficioya aparecerá en tu inicio</>}
         </p>
       </div>
 
@@ -493,7 +493,7 @@ function InstallBanner(){
     }}>
       <div style={{width:40,height:40,borderRadius:10,background:"linear-gradient(135deg,#FFD700,#FF8C00)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>🔨</div>
       <div style={{flex:1,minWidth:0}}>
-        <p style={{fontWeight:800,color:"#F0F0FA",fontSize:13,margin:0}}>Instala OfficioYa</p>
+        <p style={{fontWeight:800,color:"#F0F0FA",fontSize:13,margin:0}}>Instala oficioya</p>
         <p style={{fontSize:11,color:"#7777AA",margin:"2px 0 0"}}>Recibe alertas aunque el móvil esté bloqueado</p>
       </div>
       <button onClick={install} style={{background:"linear-gradient(135deg,#FFD700,#FF8C00)",border:"none",borderRadius:8,padding:"8px 14px",color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:800,fontSize:12,cursor:"pointer",whiteSpace:"nowrap" as const,flexShrink:0}}>
@@ -507,7 +507,7 @@ function InstallBanner(){
 function LegalFooter(){
   return(
     <div style={{padding:"24px 20px",borderTop:"1px solid #1E1E30",textAlign:"center" as const,background:"#080810",marginTop:40}}>
-      <p style={{fontSize:12,color:"#44445A",marginBottom:10}}>© {new Date().getFullYear()} OfficioYa. Todos los derechos reservados.</p>
+      <p style={{fontSize:12,color:"#44445A",marginBottom:10}}>© {new Date().getFullYear()} oficioya. Todos los derechos reservados.</p>
       <div style={{display:"flex",justifyContent:"center",gap:16,flexWrap:"wrap" as const}}>
         {[["Términos y Condiciones","/terminos"],["Política de Privacidad","/privacidad"],["Política de Cancelación","/cancelacion"]].map(([l,h])=>(
           <a key={l} href={h} style={{color:"#44445A",fontSize:11,textDecoration:"none"}}>{l}</a>
@@ -770,11 +770,11 @@ if(url){
               <span style={{fontSize:16}}>✅</span>
               <div>
                 <p style={{fontSize:12,fontWeight:700,color:"#00D68F",margin:0}}>Pago confirmado</p>
-                <p style={{fontSize:10,color:"#5A6A8A",margin:0}}>OfficioYa garantiza este servicio</p>
+                <p style={{fontSize:10,color:"#5A6A8A",margin:0}}>oficioya garantiza este servicio</p>
               </div>
             </div>
           )}
-          {!pagado&&<div style={{display:"flex",alignItems:"center",gap:6,marginTop:10}}><span style={{fontSize:11,color:"#5A6A8A"}}>🔒</span><p style={{fontSize:10,color:"#5A6A8A",margin:0}}>Pago seguro · Stripe · Garantía OfficioYa</p></div>}
+          {!pagado&&<div style={{display:"flex",alignItems:"center",gap:6,marginTop:10}}><span style={{fontSize:11,color:"#5A6A8A"}}>🔒</span><p style={{fontSize:10,color:"#5A6A8A",margin:0}}>Pago seguro · Stripe · Garantía oficioya</p></div>}
           <p style={{fontSize:9,color:"#2D3A52",margin:"8px 0 0",textAlign:"right" as const}}>{formatTime(m.created_at)}</p>
         </div>
       </div>
@@ -964,7 +964,7 @@ if(toUser.id==="00000000-0000-0000-0000-000000000002"){
               :<Ava s={toUser.name.substring(0,2).toUpperCase()} size={34} color={displayColor} online={toUser.available} imgUrl={toUser.avatar_url||""} />
             }
           </div>
-          <p style={{fontWeight:700,fontSize:14,color:C.text,lineHeight:1}}>{isSystem?"OfficioYa Soporte":toUser.name}</p>
+          <p style={{fontWeight:700,fontSize:14,color:C.text,lineHeight:1}}>{isSystem?"oficioya Soporte":toUser.name}</p>
           <p style={{fontSize:10,color:isTyping?C.green:toUser.available?C.green:C.muted,transition:"color 0.3s"}}>
             {isTyping?"escribiendo...":(isSystem?"Soporte oficial":toUser.available?"En línea":"Última vez "+timeAgo(new Date().toISOString()))}
           </p>
@@ -1145,9 +1145,9 @@ if(toUser.id==="00000000-0000-0000-0000-000000000002"){
                 <div style={{background:"linear-gradient(135deg,"+C.orange+"18,"+C.orange+"08)",border:"1px solid "+C.orange+"44",borderRadius:14,padding:"10px 14px",maxWidth:"85%"}}>
                   <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:4}}>
                     <span style={{fontSize:12}}>👑</span>
-                    <p style={{fontSize:10,fontWeight:800,color:C.orange}}>OfficioYa Soporte</p>
+                    <p style={{fontSize:10,fontWeight:800,color:C.orange}}>oficioya Soporte</p>
                   </div>
-                  <p style={{fontSize:13,color:C.text,lineHeight:1.6}}>{m.text.replace("[Soporte OfficioYa] ","")}</p>
+                  <p style={{fontSize:13,color:C.text,lineHeight:1.6}}>{m.text.replace("[Soporte oficioya] ","")}</p>
                   <p style={{fontSize:9,color:C.muted,marginTop:4,textAlign:"right"}}>{formatTime(m.created_at)}</p>
                 </div>
               </div>
@@ -2299,8 +2299,8 @@ const [loadingChats,setLoadingChats]=useState(true);
         const m=p.new;
         const isAdmin=m.from_id==="00000000-0000-0000-0000-000000000002"||m.from_id==="00000000-0000-0000-0000-000000000001";
 if(isAdmin){
-  setInAppNotif({msg:m.text.replace("[Soporte OfficioYa] ","").substring(0,60),from:"👑 OfficioYa Soporte",fromId:m.from_id,isAdmin:true});
-  showPushNotification("👑 OfficioYa Soporte",m.text.replace("[Soporte OfficioYa] ","").substring(0,80));
+  setInAppNotif({msg:m.text.replace("[Soporte oficioya] ","").substring(0,60),from:"👑 oficioya Soporte",fromId:m.from_id,isAdmin:true});
+  showPushNotification("👑 oficioya Soporte",m.text.replace("[Soporte oficioya] ","").substring(0,80));
   loadChats();
   setUnreadChats(c=>c+1);
 }else{
@@ -3135,7 +3135,7 @@ fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEA
         )}
         {mode==="pick"&&(
           <div>
-            <p style={{fontWeight:800,fontSize:18,color:C.text,marginBottom:6,textAlign:"center"}}>¿Cómo quieres usar OfficioYa?</p>
+            <p style={{fontWeight:800,fontSize:18,color:C.text,marginBottom:6,textAlign:"center"}}>¿Cómo quieres usar oficioya?</p>
             <p style={{fontSize:13,color:C.muted,marginBottom:20,textAlign:"center"}}>Es gratis registrarse.</p>
             <div style={{display:"flex",flexDirection:"column",gap:12,marginBottom:20}}>
               <div onClick={()=>setMode("register_cliente")} style={{padding:"20px 18px",borderRadius:14,border:"2px solid "+C.blue+"44",background:"linear-gradient(135deg,"+C.blue+"12,"+C.surface+")",cursor:"pointer"}}>
@@ -3600,7 +3600,7 @@ const [chatUser,setChatUser]=useState<UserRow|null>(null);
         if(perm==="granted"){
           await subscribeToPush(user.id);
           const reg=await navigator.serviceWorker.ready;
-          reg.showNotification("🔔 OfficioYa activado",{
+          reg.showNotification("🔔 oficioya activado",{
             body:"Recibirás alertas de nuevos clientes aunque el móvil esté bloqueado",
             icon:"/icon-192.png",
           });
@@ -3694,15 +3694,15 @@ useEffect(()=>{
   setUrgentLead({msg:msgClean,desc:desc||undefined,fromId:m.from_id,isNuevoLead,requestId});
   setUnreadMsgs(c=>c+1);
   showPushNotification(
-    "🔴 Nuevo trabajo — OfficioYa",
+    "🔴 Nuevo trabajo — oficioya",
     "Un cliente necesita tus servicios ahora. Toca para aceptar."
   );
 }
     else if(isAdmin){ 
       // ── Admin notification ── 
-      setInAppNotif({msg:m.text.replace("[Soporte OfficioYa] ",""),from:"👑 OfficioYa Soporte",fromId:m.from_id,isAdmin:true}); 
+      setInAppNotif({msg:m.text.replace("[Soporte oficioya] ",""),from:"👑 oficioya Soporte",fromId:m.from_id,isAdmin:true}); 
       setUnreadMsgs(c=>c+1); 
-      showPushNotification("👑 OfficioYa Soporte",m.text.replace("[Soporte OfficioYa] ","").substring(0,80)); 
+      showPushNotification("👑 oficioya Soporte",m.text.replace("[Soporte oficioya] ","").substring(0,80)); 
     } 
       else { 
       // Normal message
@@ -3746,7 +3746,7 @@ useEffect(()=>{
     const req=p.new;
     if(req.oficio===user.trade&&req.urgency==="urgente"){
       setUrgentLead({msg:"🔴 "+req.client_name+" busca un "+req.oficio+" urgente en "+req.zona,fromId:req.id});
-        showPushNotification("🔴 Cliente urgente — OfficioYa","Un cliente necesita tus servicios ahora. Toca para responder.");
+        showPushNotification("🔴 Cliente urgente — oficioya","Un cliente necesita tus servicios ahora. Toca para responder.");
     }
   })
   .subscribe();
@@ -3921,7 +3921,7 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
   const availableSpecialties=SPECIALTIES_BY_TRADE[user.trade||""]||["Especialidad 1","Especialidad 2","Especialidad 3"];
 
   // Build a fake "system" user object for lead alert chats
-  const systemUser:UserRow={id:"00000000-0000-0000-0000-000000000001",name:"Clientes OfficioYa",email:"",password:"",phone:"",type:"cliente",plan:"gratis",bio:"",price:0,trade:"",zone:"",rating:0,reviews:0,jobs:0,verified:true,available:true,whatsapp:"",service_zones:[],schedule:"",response_time:"",free_quote:false,experience_years:0,specialties:[],trial_end:"",joined_at:""};
+  const systemUser:UserRow={id:"00000000-0000-0000-0000-000000000001",name:"Clientes oficioya",email:"",password:"",phone:"",type:"cliente",plan:"gratis",bio:"",price:0,trade:"",zone:"",rating:0,reviews:0,jobs:0,verified:true,available:true,whatsapp:"",service_zones:[],schedule:"",response_time:"",free_quote:false,experience_years:0,specialties:[],trial_end:"",joined_at:""};
 
   return(
     <div data-scroll style={{minHeight:"100dvh",background:C.bg,backgroundImage:"radial-gradient(ellipse at 70% 0%,#2a0a3a18,transparent 50%)",paddingBottom:120,overflowY:"auto",height:"100dvh"}}>
@@ -4734,7 +4734,7 @@ if(!_lastVisit){
       <div style={{minHeight:"100dvh",background:C.bg,display:"flex",flexDirection:"column"}}>
         <div style={{background:"linear-gradient(180deg,#1E2536,#0F1117)",padding:"48px 24px 32px",textAlign:"center",borderBottom:"1px solid "+C.border}}>
           <img src="/icon-192.png" style={{width:56,height:56,borderRadius:16,marginBottom:16,boxShadow:"0 4px 20px rgba(0,0,0,0.4)"}} />
-          <p style={{fontWeight:900,fontSize:22,color:C.text,marginBottom:6,letterSpacing:"-0.02em"}}>OfficioYa</p>
+          <p style={{fontWeight:900,fontSize:22,color:C.text,marginBottom:6,letterSpacing:"-0.02em"}}>oficioya</p>
           <p style={{fontSize:13,color:C.muted}}>Inicia sesión para ver este perfil</p>
         </div>
         <div style={{flex:1,padding:"0 0 40px"}}>
