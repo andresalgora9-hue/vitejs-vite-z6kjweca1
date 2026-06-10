@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title id="page-title">Profesional verificado en Sevilla | OfficioYa</title>
-  <meta id="page-desc" name="description" content="Profesional verificado en Sevilla con reseñas reales de clientes. Contacta directamente desde OfficioYa."/>
+  <title id="page-title">Profesional verificado en Sevilla | oficioya</title>
+  <meta id="page-desc" name="description" content="Profesional verificado en Sevilla con reseñas reales de clientes. Contacta directamente desde oficioya."/>
   <meta name="robots" content="index, follow"/>
   <link id="canonical" rel="canonical" href="https://www.aficioya.com/pro/"/>
 
   <!-- Open Graph -->
-  <meta id="og-title" property="og:title" content="Profesional verificado | OfficioYa"/>
+  <meta id="og-title" property="og:title" content="Profesional verificado | oficioya"/>
   <meta id="og-desc" property="og:description" content="Profesional verificado en Sevilla con reseñas reales."/>
   <meta id="og-image" property="og:image" content="https://www.aficioya.com/icon-512.png"/>
   <meta property="og:type" content="profile"/>
@@ -398,7 +398,7 @@
 
 <!-- LOADING -->
 <div id="loading">
-  <div class="loader-logo">🔨 OfficioYa</div>
+  <div class="loader-logo">🔨 oficioya</div>
   <div class="loader-dots"><span></span><span></span><span></span></div>
 </div>
 
@@ -541,7 +541,7 @@
   <div class="fade-in" style="margin-top:32px;background:linear-gradient(135deg,#111118,#0D0D16);border:1px solid var(--gold-mid);border-radius:20px;padding:28px 24px;text-align:center">
     <div style="font-size:32px;margin-bottom:12px">💬</div>
     <h3 style="font-family:'Sora',sans-serif;font-size:18px;font-weight:800;margin-bottom:8px">¿Te interesa este profesional?</h3>
-    <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.7">Escríbele directamente a través de OfficioYa.<br>Gratis para clientes · Respuesta en tiempo real.</p>
+    <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.7">Escríbele directamente a través de oficioya.<br>Gratis para clientes · Respuesta en tiempo real.</p>
     <button onclick="handleContact()" style="background:linear-gradient(135deg,var(--gold),#FF8C00);color:#000;font-weight:800;font-size:15px;padding:14px 36px;border-radius:12px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;box-shadow:0 4px 20px rgba(255,184,0,.3)">
       Escribir mensaje →
     </button>
@@ -549,7 +549,7 @@
 
   <!-- FOOTER -->
   <footer class="page-footer">
-    <p>© 2026 OfficioYa · Profesionales verificados en Sevilla</p>
+    <p>© 2026 oficioya · Profesionales verificados en Sevilla</p>
     <div class="foot-links">
       <a href="/terminos">Términos</a>
       <a href="/privacidad">Privacidad</a>
@@ -574,12 +574,12 @@
 <div id="install-modal">
   <div class="modal-box">
     <div class="modal-handle"></div>
-    <h2 class="modal-title">Instala OfficioYa para chatear</h2>
+    <h2 class="modal-title">Instala oficioya para chatear</h2>
     <p class="modal-sub">Es gratis y solo tarda 10 segundos. Podrás hablar directamente con <span id="modal-pro-name">este profesional</span> y recibir sus respuestas en tiempo real.</p>
     <div class="modal-steps" id="modal-steps-android">
       <div class="modal-step">
         <div class="step-num">1</div>
-        <div class="step-text">Pulsa el botón de abajo para instalar OfficioYa</div>
+        <div class="step-text">Pulsa el botón de abajo para instalar oficioya</div>
       </div>
       <div class="modal-step">
         <div class="step-num">2</div>
@@ -604,7 +604,7 @@
         <div class="step-text">Abre la app y regístrate gratis</div>
       </div>
     </div>
-    <button class="btn-install" id="install-btn" onclick="doInstall()">Instalar OfficioYa gratis →</button>
+    <button class="btn-install" id="install-btn" onclick="doInstall()">Instalar oficioya gratis →</button>
     <button class="btn-dismiss" onclick="closeModal()">Ahora no</button>
   </div>
 </div>
@@ -680,8 +680,8 @@ async function loadProfile() {
 
 function renderProfile(pro, reviews, photos) {
   // Meta tags dinámicos
-  const title = `${pro.name} — ${pro.trade} en ${pro.zone} | OfficioYa`;
-  const desc = `${pro.name}, ${pro.trade} verificado en ${pro.zone}. ${pro.rating > 0 ? pro.rating + "★ con " + pro.reviews + " reseñas." : ""} ${pro.bio ? pro.bio.substring(0, 100) + "..." : "Contacta directamente en OfficioYa."}`;
+  const title = `${pro.name} — ${pro.trade} en ${pro.zone} | oficioya`;
+  const desc = `${pro.name}, ${pro.trade} verificado en ${pro.zone}. ${pro.rating > 0 ? pro.rating + "★ con " + pro.reviews + " reseñas." : ""} ${pro.bio ? pro.bio.substring(0, 100) + "..." : "Contacta directamente en oficioya."}`;
   document.title = title;
   document.getElementById("page-title").content = title;
   document.getElementById("page-desc").setAttribute("content", desc);
