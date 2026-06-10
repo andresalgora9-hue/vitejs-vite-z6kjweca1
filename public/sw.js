@@ -1,5 +1,5 @@
 const VAPID_PUBLIC_KEY = "BMrAW5LQ8VwjrILPDpsnq98IodkFOoA0p7eUJV0uXN6UdXX83MNVlb9fXpXbZR30rIv5IFKYqs_QjFoKh9KlpvQ";
-const CACHE_NAME = "officioya-v3";
+const CACHE_NAME = "oficioya-v3";
 const SHELL = ["/icon-192.png", "/icon-512.png", "/manifest.json"];
 
 // INSTALL — solo cachea assets estáticos, NO rutas de la app
@@ -58,7 +58,7 @@ self.addEventListener('fetch', e => {
 // PUSH
 self.addEventListener('push', function(event) {
   const data = event.data ? event.data.json() : {};
-  const title = data.title || 'OfficioYa';
+  const title = data.title || 'oficioya';
   const options = {
     body: data.body || 'Nueva notificación',
     icon: '/icon-192.png',
@@ -66,7 +66,7 @@ self.addEventListener('push', function(event) {
     vibrate: [200, 100, 200],
     data: { url: data.url || '/' },
     requireInteraction: true,
-    tag: 'officioya-notif',
+    tag: 'oficioya-notif',
   };
   event.waitUntil(self.registration.showNotification(title, options));
 });
