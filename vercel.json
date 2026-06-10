@@ -93,6 +93,10 @@
       "destination": "/climatizacion-sevilla.html"
     },
     {
+      "source": "/conseguir-clientes-profesional-sevilla",
+      "destination": "/conseguir-clientes-profesional-sevilla.html"
+    },
+    {
       "source": "/electricista-alcala-de-guadaira",
       "destination": "/electricista-alcala-de-guadaira.html"
     },
@@ -231,6 +235,22 @@
     {
       "source": "/reformas-sevilla",
       "destination": "/reformas-sevilla.html"
+    },
+    {
+      "source": "/trabajo-cerrajero-sevilla",
+      "destination": "/trabajo-cerrajero-sevilla.html"
+    },
+    {
+      "source": "/trabajo-electricista-sevilla",
+      "destination": "/trabajo-electricista-sevilla.html"
+    },
+    {
+      "source": "/trabajo-fontanero-sevilla",
+      "destination": "/trabajo-fontanero-sevilla.html"
+    },
+    {
+      "source": "/trabajo-pintor-sevilla",
+      "destination": "/trabajo-pintor-sevilla.html"
     },
     {
       "source": "/pro/:slug",
