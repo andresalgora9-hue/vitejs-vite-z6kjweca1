@@ -1,5 +1,5 @@
 {
-  "name": "OfficioYa — Profesionales de confianza en Sevilla",
+  "name": "oficioya— Profesionales de confianza en Sevilla",
   "short_name": "OfficioYa",
   "description": "Fontaneros, electricistas, cerrajeros y pintores verificados en Sevilla. Reseñas reales de vecinos. Disponibilidad en tiempo real.",
   "start_url": "/",
@@ -44,7 +44,7 @@
       "sizes": "512x512",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "OfficioYa — Profesionales verificados en Sevilla"
+      "label": "oficioya— Profesionales verificados en Sevilla"
     }
   ],
   "shortcuts": [
