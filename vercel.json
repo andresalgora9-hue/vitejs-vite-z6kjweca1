@@ -1,13 +1,244 @@
 {
   "rewrites": [
-    { "source": "/fontanero-sevilla",    "destination": "/fontanero-sevilla.html" },
-    { "source": "/electricista-sevilla", "destination": "/electricista-sevilla.html" },
-    { "source": "/cerrajero-sevilla",    "destination": "/cerrajero-sevilla.html" },
-    { "source": "/pintor-sevilla",       "destination": "/pintor-sevilla.html" },
-    { "source": "/albanil-sevilla",      "destination": "/albanil-sevilla.html" },
-    { "source": "/limpieza-sevilla",     "destination": "/limpieza-sevilla.html" },
-    { "source": "/reformas-sevilla",     "destination": "/reformas-sevilla.html" },
-    { "source": "/climatizacion-sevilla","destination": "/climatizacion-sevilla.html" },
-    { "source": "/pro/:slug",            "destination": "/pro/index.html" },     { "source": "/(.*)",                 "destination": "/index.html" }
+    {
+      "source": "/albanil-alcala-de-guadaira",
+      "destination": "/albanil-alcala-de-guadaira.html"
+    },
+    {
+      "source": "/albanil-centro",
+      "destination": "/albanil-centro.html"
+    },
+    {
+      "source": "/albanil-cerro-amate",
+      "destination": "/albanil-cerro-amate.html"
+    },
+    {
+      "source": "/albanil-dos-hermanas",
+      "destination": "/albanil-dos-hermanas.html"
+    },
+    {
+      "source": "/albanil-los-remedios",
+      "destination": "/albanil-los-remedios.html"
+    },
+    {
+      "source": "/albanil-macarena",
+      "destination": "/albanil-macarena.html"
+    },
+    {
+      "source": "/albanil-mairena-del-aljarafe",
+      "destination": "/albanil-mairena-del-aljarafe.html"
+    },
+    {
+      "source": "/albanil-nervion",
+      "destination": "/albanil-nervion.html"
+    },
+    {
+      "source": "/albanil-san-pablo",
+      "destination": "/albanil-san-pablo.html"
+    },
+    {
+      "source": "/albanil-sevilla",
+      "destination": "/albanil-sevilla.html"
+    },
+    {
+      "source": "/albanil-triana",
+      "destination": "/albanil-triana.html"
+    },
+    {
+      "source": "/cerrajero-alcala-de-guadaira",
+      "destination": "/cerrajero-alcala-de-guadaira.html"
+    },
+    {
+      "source": "/cerrajero-centro",
+      "destination": "/cerrajero-centro.html"
+    },
+    {
+      "source": "/cerrajero-cerro-amate",
+      "destination": "/cerrajero-cerro-amate.html"
+    },
+    {
+      "source": "/cerrajero-dos-hermanas",
+      "destination": "/cerrajero-dos-hermanas.html"
+    },
+    {
+      "source": "/cerrajero-los-remedios",
+      "destination": "/cerrajero-los-remedios.html"
+    },
+    {
+      "source": "/cerrajero-macarena",
+      "destination": "/cerrajero-macarena.html"
+    },
+    {
+      "source": "/cerrajero-mairena-del-aljarafe",
+      "destination": "/cerrajero-mairena-del-aljarafe.html"
+    },
+    {
+      "source": "/cerrajero-nervion",
+      "destination": "/cerrajero-nervion.html"
+    },
+    {
+      "source": "/cerrajero-san-pablo",
+      "destination": "/cerrajero-san-pablo.html"
+    },
+    {
+      "source": "/cerrajero-sevilla",
+      "destination": "/cerrajero-sevilla.html"
+    },
+    {
+      "source": "/cerrajero-triana",
+      "destination": "/cerrajero-triana.html"
+    },
+    {
+      "source": "/climatizacion-sevilla",
+      "destination": "/climatizacion-sevilla.html"
+    },
+    {
+      "source": "/electricista-alcala-de-guadaira",
+      "destination": "/electricista-alcala-de-guadaira.html"
+    },
+    {
+      "source": "/electricista-centro",
+      "destination": "/electricista-centro.html"
+    },
+    {
+      "source": "/electricista-cerro-amate",
+      "destination": "/electricista-cerro-amate.html"
+    },
+    {
+      "source": "/electricista-dos-hermanas",
+      "destination": "/electricista-dos-hermanas.html"
+    },
+    {
+      "source": "/electricista-los-remedios",
+      "destination": "/electricista-los-remedios.html"
+    },
+    {
+      "source": "/electricista-macarena",
+      "destination": "/electricista-macarena.html"
+    },
+    {
+      "source": "/electricista-mairena-del-aljarafe",
+      "destination": "/electricista-mairena-del-aljarafe.html"
+    },
+    {
+      "source": "/electricista-nervion",
+      "destination": "/electricista-nervion.html"
+    },
+    {
+      "source": "/electricista-san-pablo",
+      "destination": "/electricista-san-pablo.html"
+    },
+    {
+      "source": "/electricista-sevilla",
+      "destination": "/electricista-sevilla.html"
+    },
+    {
+      "source": "/electricista-triana",
+      "destination": "/electricista-triana.html"
+    },
+    {
+      "source": "/fontanero-alcala-de-guadaira",
+      "destination": "/fontanero-alcala-de-guadaira.html"
+    },
+    {
+      "source": "/fontanero-centro",
+      "destination": "/fontanero-centro.html"
+    },
+    {
+      "source": "/fontanero-cerro-amate",
+      "destination": "/fontanero-cerro-amate.html"
+    },
+    {
+      "source": "/fontanero-dos-hermanas",
+      "destination": "/fontanero-dos-hermanas.html"
+    },
+    {
+      "source": "/fontanero-los-remedios",
+      "destination": "/fontanero-los-remedios.html"
+    },
+    {
+      "source": "/fontanero-macarena",
+      "destination": "/fontanero-macarena.html"
+    },
+    {
+      "source": "/fontanero-mairena-del-aljarafe",
+      "destination": "/fontanero-mairena-del-aljarafe.html"
+    },
+    {
+      "source": "/fontanero-nervion",
+      "destination": "/fontanero-nervion.html"
+    },
+    {
+      "source": "/fontanero-san-pablo",
+      "destination": "/fontanero-san-pablo.html"
+    },
+    {
+      "source": "/fontanero-sevilla",
+      "destination": "/fontanero-sevilla.html"
+    },
+    {
+      "source": "/fontanero-triana",
+      "destination": "/fontanero-triana.html"
+    },
+    {
+      "source": "/limpieza-sevilla",
+      "destination": "/limpieza-sevilla.html"
+    },
+    {
+      "source": "/pintor-alcala-de-guadaira",
+      "destination": "/pintor-alcala-de-guadaira.html"
+    },
+    {
+      "source": "/pintor-centro",
+      "destination": "/pintor-centro.html"
+    },
+    {
+      "source": "/pintor-cerro-amate",
+      "destination": "/pintor-cerro-amate.html"
+    },
+    {
+      "source": "/pintor-dos-hermanas",
+      "destination": "/pintor-dos-hermanas.html"
+    },
+    {
+      "source": "/pintor-los-remedios",
+      "destination": "/pintor-los-remedios.html"
+    },
+    {
+      "source": "/pintor-macarena",
+      "destination": "/pintor-macarena.html"
+    },
+    {
+      "source": "/pintor-mairena-del-aljarafe",
+      "destination": "/pintor-mairena-del-aljarafe.html"
+    },
+    {
+      "source": "/pintor-nervion",
+      "destination": "/pintor-nervion.html"
+    },
+    {
+      "source": "/pintor-san-pablo",
+      "destination": "/pintor-san-pablo.html"
+    },
+    {
+      "source": "/pintor-sevilla",
+      "destination": "/pintor-sevilla.html"
+    },
+    {
+      "source": "/pintor-triana",
+      "destination": "/pintor-triana.html"
+    },
+    {
+      "source": "/reformas-sevilla",
+      "destination": "/reformas-sevilla.html"
+    },
+    {
+      "source": "/pro/:slug",
+      "destination": "/pro/index.html"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
   ]
 }
