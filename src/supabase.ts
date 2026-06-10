@@ -113,7 +113,7 @@ export interface LeadLogRow {
 }
 export const ADMIN_USER: UserRow = {
   id: "00000000-0000-0000-0000-000000000002",
-  name: "OfficioYa Soporte",
+  name: "oficioya Soporte",
   email: "admin@oficioya.com",
   password: "",
   phone: "",
