@@ -252,6 +252,11 @@
       "source": "/trabajo-pintor-sevilla",
       "destination": "/trabajo-pintor-sevilla.html"
     },
+    { "source": "/alternativa-habitissimo-sevilla", "destination": "/alternativa-habitissimo-sevilla.html" },
+{ "source": "/alternativa-cronoshare-sevilla", "destination": "/alternativa-cronoshare-sevilla.html" },
+{ "source": "/alternativa-webel-sevilla", "destination": "/alternativa-webel-sevilla.html" },
+{ "source": "/alternativa-zaask-sevilla", "destination": "/alternativa-zaask-sevilla.html" },
+{ "source": "/alternativa-wolly-sevilla", "destination": "/alternativa-wolly-sevilla.html" },
     {
       "source": "/pro/:slug",
       "destination": "/pro/index.html"
