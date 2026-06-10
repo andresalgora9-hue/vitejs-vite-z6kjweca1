@@ -17,7 +17,7 @@ import type { Layer, LeafletMouseEvent } from "leaflet";
 import L from "leaflet";
 import { SEVILLA_GEOJSON } from "./sevillaGeoJSON";
 
-// ── Paleta de colores OfficioYa ──
+// ── Paleta de colores oficioya ──
 const C = {
   bg:"#0A0A0F", surface:"#111118", card:"#16161F",
   border:"#1E1E30", accent:"#FFD700", orange:"#FF8C00",
