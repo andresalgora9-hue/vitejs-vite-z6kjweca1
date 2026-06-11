@@ -2227,7 +2227,7 @@ function ClientHome({user,onLogout,deepLinkChatWith}:{user:UserRow;onLogout:()=>
   const [zona,setZona]=useState("Todas");
   const [oficio,setOficio]=useState("Todos");
   const [search,setSearch]=useState("");
-  const [soloDisp,setSoloDisp]=useState(false);
+  const [soloDisp,setSoloDisp]=useState(true);
   const [showWizard,setShowWizard]=useState(false);
   const [workers,setWorkers]=useState<UserRow[]>([]);
   const [loading,setLoading]=useState(false);
@@ -2541,84 +2541,7 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
               </div>
 
               {/* ── Pills scroll TODAS las profesiones ── */}
-              <div style={{marginBottom:10}}>
-                <p style={{fontSize:10,color:C.muted,fontWeight:700,letterSpacing:"0.06em",textTransform:"uppercase" as const,marginBottom:7}}>Profesión</p>
-                <div style={{position:"relative"}}>
-                  <div style={{
-                    display:"flex",
-                    gap:6,
-                    overflowX:"auto",
-                    paddingBottom:6,
-                    paddingTop:2,
-                    scrollbarWidth:"none",
-                  } as any}>
-                    {/* Todos */}
-                    <button
-                      onClick={()=>setOficio("Todos")}
-                      style={{
-                        flexShrink:0,
-                        padding:"7px 14px",
-                        borderRadius:99,
-                        border:"1.5px solid "+(oficio==="Todos"?C.accent:C.border+"88"),
-                        background:oficio==="Todos"?"linear-gradient(135deg,"+C.accent+"22,"+C.orange+"11)":"rgba(255,255,255,0.02)",
-                        color:oficio==="Todos"?C.accent:C.mutedL,
-                        cursor:"pointer",
-                        fontSize:12,
-                        fontFamily:"'DM Sans',sans-serif",
-                        fontWeight:oficio==="Todos"?800:500,
-                        whiteSpace:"nowrap" as const,
-                        transition:"all 0.15s",
-                        boxShadow:oficio==="Todos"?"0 2px 8px "+C.accent+"22":"none",
-                      }}
-                    >
-                      Todos
-                    </button>
-
-                    {/* Todas las profesiones */}
-                    {OFICIOS.map(o=>(
-                      <button
-                        key={o}
-                        onClick={()=>setOficio(oficio===o?"Todos":o)}
-                        style={{
-                          flexShrink:0,
-                          display:"flex",
-                          alignItems:"center",
-                          gap:5,
-                          padding:"7px 12px",
-                          borderRadius:99,
-                          border:"1.5px solid "+(oficio===o?C.accent:C.border+"66"),
-                          background:oficio===o
-                            ?"linear-gradient(135deg,"+C.accent+"22,"+C.orange+"11)"
-                            :"rgba(255,255,255,0.025)",
-                          color:oficio===o?C.accent:C.mutedL,
-                          cursor:"pointer",
-                          fontSize:11,
-                          fontFamily:"'DM Sans',sans-serif",
-                          fontWeight:oficio===o?700:400,
-                          whiteSpace:"nowrap" as const,
-                          transition:"all 0.15s",
-                          boxShadow:oficio===o?"0 2px 8px "+C.accent+"22":"none",
-                        }}
-                      >
-                        <span style={{fontSize:12}}>{OFICIO_ICONS[o]||"🔧"}</span>
-                        <span>{o}</span>
-                      </button>
-                    ))}
-                  </div>
-                  {/* Fade derecha */}
-                  <div style={{position:"absolute",top:0,right:0,bottom:6,width:36,background:"linear-gradient(to right,transparent,"+C.card+")",pointerEvents:"none"}} />
-                </div>
-              </div>
-
-              {/* Solo disponibles + count */}
-              <div style={{display:"flex",gap:8,alignItems:"center"}}>
-                <button onClick={()=>setSoloDisp(!soloDisp)} style={{display:"flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:99,border:"1px solid "+(soloDisp?C.green:C.border),background:soloDisp?C.green+"15":"transparent",color:soloDisp?C.green:C.muted,cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:soloDisp?700:400,transition:"all 0.15s"}}>
-                  <span style={{width:6,height:6,borderRadius:"50%",background:soloDisp?C.green:C.muted,display:"inline-block"}} />
-                  Solo disponibles
-                </button>
-                <span style={{fontSize:12,color:C.muted,marginLeft:"auto"}}>{filteredWorkers.length} profesionales</span>
-              </div>
-            </div>
+        
 
             {/* Stats */}
             <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginBottom:16}}>
