@@ -2530,17 +2530,17 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
               </div>
 
               {/* Zona */}
-              <div style={{marginBottom:11}}>
-                <p style={{fontSize:10,color:C.muted,fontWeight:700,letterSpacing:"0.06em",textTransform:"uppercase" as const,marginBottom:7}}>Zona</p>
-                <div style={{position:"relative"}}>
-                  <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:4,scrollbarWidth:"none"} as any}>
-                    {["Todas","Sevilla",...SEVILLA_ZONAS,...ZONAS.filter(z=>z!=="Sevilla")].map(z=>(
-                      <button key={z} onClick={()=>setZona(z)} style={{flexShrink:0,padding:"7px 12px",borderRadius:99,border:"1.5px solid "+(zona===z?C.accent:C.border+"88"),background:zona===z?"linear-gradient(135deg,"+C.accent+"22,"+C.orange+"11)":"rgba(255,255,255,0.02)",color:zona===z?C.accent:C.mutedL,cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:zona===z?700:400,whiteSpace:"nowrap" as const,transition:"all 0.15s"}}>
-                        {z}
-                      </button>
-                    ))}
+              <div style={{display:"flex",alignItems:"center",gap:4}}>
+                    <button onClick={()=>{const el=document.getElementById("zona-scroll-main");if(el)el.scrollLeft-=150;}} style={{flexShrink:0,background:C.surface,border:"1px solid "+C.border,borderRadius:8,color:C.muted,cursor:"pointer",fontSize:14,padding:"4px 8px"}}>‹</button>
+                    <div id="zona-scroll-main" style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:4,scrollbarWidth:"none",flex:1} as any}>
+                      {["Todas","Sevilla",...SEVILLA_ZONAS,...ZONAS.filter(z=>z!=="Sevilla")].map(z=>(
+                        <button key={z} onClick={()=>setZona(z)} style={{flexShrink:0,padding:"7px 12px",borderRadius:99,border:"1.5px solid "+(zona===z?C.accent:C.border+"88"),background:zona===z?"linear-gradient(135deg,"+C.accent+"22,"+C.orange+"11)":"rgba(255,255,255,0.02)",color:zona===z?C.accent:C.mutedL,cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:zona===z?700:400,whiteSpace:"nowrap" as const,transition:"all 0.15s"}}>
+                          {z}
+                        </button>
+                      ))}
+                    </div>
+                    <button onClick={()=>{const el=document.getElementById("zona-scroll-main");if(el)el.scrollLeft+=150;}} style={{flexShrink:0,background:C.surface,border:"1px solid "+C.border,borderRadius:8,color:C.muted,cursor:"pointer",fontSize:14,padding:"4px 8px"}}>›</button>
                   </div>
-                  <div style={{position:"absolute",top:0,right:0,bottom:4,width:36,background:"linear-gradient(to right,transparent,"+C.card+")",pointerEvents:"none"}} />
                 </div>
               </div>
 
