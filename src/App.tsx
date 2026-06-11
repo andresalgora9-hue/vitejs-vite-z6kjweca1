@@ -2541,7 +2541,7 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
               </div>
 
               {/* ── Pills scroll TODAS las profesiones ── */}
-        
+        </div>
 
             {/* Stats */}
             <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginBottom:16}}>
