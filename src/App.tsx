@@ -2493,7 +2493,7 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
 
               {/* Botón pedir presupuesto pequeño */}
               <button
-                onClick={()=>{setAutoOpenSolicitud(true);setView("solicitudes");}}
+                onClick={(e)=>{e.stopPropagation();setAutoOpenSolicitud(true);setTab("solicitudes");}}
                 style={{width:"100%",padding:"12px 16px",background:"transparent",border:"1.5px solid "+C.accent+"66",borderRadius:12,color:C.accent,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,cursor:"pointer",textAlign:"left" as const,display:"flex",alignItems:"center",gap:8}}
               >
                 <span style={{fontSize:15}}>📋</span>
