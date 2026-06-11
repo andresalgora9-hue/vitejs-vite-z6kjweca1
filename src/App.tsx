@@ -1923,10 +1923,10 @@ function RankingSection({workers,onSelect}:{workers:UserRow[];onSelect:(w:UserRo
   );
 }
 // ─── SOLICITUDES TAB ───
-function SolicitudesTab({user,workers,onWorkerSelect,onChat}:{user:UserRow;workers:UserRow[];onWorkerSelect:(w:UserRow)=>void;onChat:(w:UserRow)=>void}){
+function SolicitudesTab({user,workers,onWorkerSelect,onChat,autoOpen=false}:{user:UserRow;workers:UserRow[];onWorkerSelect:(w:UserRow)=>void;onChat:(w:UserRow)=>void;autoOpen?:boolean}){
   const [solicitudes,setSolicitudes]=useState<any[]>([]);
   const [ofertas,setOfertas]=useState<Record<string,any[]>>({});
-  const [showForm,setShowForm]=useState(false);
+  const [showForm,setShowForm]=useState(autoOpen);
   const [oficio,setOficio]=useState(OFICIOS[0]);
   const [zona,setZona]=useState("Sevilla");
   const [desc,setDesc]=useState("");
@@ -2218,6 +2218,7 @@ function DeleteAccountButton({user,onLogout}:{user:UserRow;onLogout:()=>void}){
 
 function ClientHome({user,onLogout,deepLinkChatWith}:{user:UserRow;onLogout:()=>void;deepLinkChatWith?:string|null}){
   const [tab,setTab]=useState<"buscar"|"ranking"|"chats"|"solicitudes"|"perfil">("buscar");
+  const [autoOpenSolicitud,setAutoOpenSolicitud]=useState(false);
   const [zona,setZona]=useState("Todas");
   const [oficio,setOficio]=useState("Todos");
   const [search,setSearch]=useState("");
@@ -2494,7 +2495,7 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
 
               {/* Botón pedir presupuesto pequeño */}
               <button
-                onClick={()=>{setView("solicitudes");setTimeout(()=>setShowForm(true),50);}}
+                onClick={()=>{setAutoOpenSolicitud(true);setView("solicitudes");}}
                 style={{width:"100%",padding:"12px 16px",background:"transparent",border:"1.5px solid "+C.accent+"66",borderRadius:12,color:C.accent,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,cursor:"pointer",textAlign:"left" as const,display:"flex",alignItems:"center",gap:8}}
               >
                 <span style={{fontSize:15}}>📋</span>
@@ -2633,8 +2634,7 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
         </>)}
 
         {tab==="ranking"&&<RankingSection workers={workers} onSelect={setSelectedWorker} />}
-        {tab==="solicitudes"&&<SolicitudesTab user={user} workers={workers} onWorkerSelect={setSelectedWorker} onChat={handleChat} />}
-
+        {tab==="solicitudes"&&<SolicitudesTab user={user} workers={workers} onWorkerSelect={setSelectedWorker} onChat={handleChat} autoOpen={tab==="solicitudes"&&autoOpenSolicitud} />}
         {tab==="chats"&&(<>
           <div style={{padding:"22px 0 16px"}}><h2 style={{fontWeight:800,fontSize:22,color:C.text}}>Mis conversaciones</h2></div>
           {loadingChats?<SkeletonMsgList n={5} />:chatPartners.length===0?<div style={{textAlign:"center" as const,padding:48,color:C.muted}}>
