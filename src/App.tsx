@@ -2542,7 +2542,6 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
                     <button onClick={()=>{const el=document.getElementById("zona-scroll-main");if(el)el.scrollLeft+=150;}} style={{flexShrink:0,background:C.surface,border:"1px solid "+C.border,borderRadius:8,color:C.muted,cursor:"pointer",fontSize:14,padding:"4px 8px"}}>›</button>
                   </div>
                 </div>
-              </div>
 
               {/* ── Pills scroll TODAS las profesiones ── */}
         </div>
