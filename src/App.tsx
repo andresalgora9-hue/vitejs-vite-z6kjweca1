@@ -2527,12 +2527,17 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
 
               {/* Zona */}
               <div style={{marginBottom:11}}>
-                <select value={zona} onChange={e=>setZona(e.target.value)} style={{width:"100%",padding:"10px 13px",background:C.surface,border:"1px solid "+C.border,borderRadius:10,color:C.text,fontFamily:"'DM Sans',sans-serif",fontSize:13,cursor:"pointer",outline:"none"}}>
-                  <option style={{background:C.surface}}>Todas</option>
-                  {ZONAS.map(z=><option key={z} style={{background:C.surface}}>{z}</option>)}
-                  <option disabled style={{background:C.surface}}>── Barrios Sevilla ──</option>
-                  {SEVILLA_ZONAS.map(z=><option key={z} style={{background:C.surface}}>{z}</option>)}
-                </select>
+                <p style={{fontSize:10,color:C.muted,fontWeight:700,letterSpacing:"0.06em",textTransform:"uppercase" as const,marginBottom:7}}>Zona</p>
+                <div style={{position:"relative"}}>
+                  <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:4,scrollbarWidth:"none"} as any}>
+                    {["Todas","Sevilla",...SEVILLA_ZONAS,...ZONAS.filter(z=>z!=="Sevilla")].map(z=>(
+                      <button key={z} onClick={()=>setZona(z)} style={{flexShrink:0,padding:"7px 12px",borderRadius:99,border:"1.5px solid "+(zona===z?C.accent:C.border+"88"),background:zona===z?"linear-gradient(135deg,"+C.accent+"22,"+C.orange+"11)":"rgba(255,255,255,0.02)",color:zona===z?C.accent:C.mutedL,cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:zona===z?700:400,whiteSpace:"nowrap" as const,transition:"all 0.15s"}}>
+                        {z}
+                      </button>
+                    ))}
+                  </div>
+                  <div style={{position:"absolute",top:0,right:0,bottom:4,width:36,background:"linear-gradient(to right,transparent,"+C.card+")",pointerEvents:"none"}} />
+                </div>
               </div>
 
               {/* ── Pills scroll TODAS las profesiones ── */}
@@ -3162,9 +3167,16 @@ fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEA
               </div>
               <div style={{marginBottom:14}}>
                 <p style={{fontSize:11,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.08em",marginBottom:8,fontWeight:700}}>Ciudad principal *</p>
-                <select value={zone} onChange={e=>setZone(e.target.value)} style={{width:"100%",background:C.surface,border:"1px solid "+C.border,borderRadius:8,padding:"11px 14px",color:C.text,fontFamily:"'DM Sans',sans-serif",fontSize:14,outline:"none",cursor:"pointer"}}>
-                  {ZONAS.map(z=><option key={z} style={{background:C.card}}>{z}</option>)}
-                </select>
+                <div style={{position:"relative"}}>
+                  <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:4,scrollbarWidth:"none"} as any}>
+                    {["Sevilla",...SEVILLA_ZONAS,...ZONAS.filter(z=>z!=="Sevilla")].map(z=>(
+                      <button key={z} onClick={()=>setZona(z)} style={{flexShrink:0,padding:"7px 12px",borderRadius:99,border:"1.5px solid "+(zona===z?C.accent:C.border+"88"),background:zona===z?"linear-gradient(135deg,"+C.accent+"22,"+C.orange+"11)":"rgba(255,255,255,0.02)",color:zona===z?C.accent:C.mutedL,cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:zona===z?700:400,whiteSpace:"nowrap" as const,transition:"all 0.15s"}}>
+                        {z}
+                      </button>
+                    ))}
+                  </div>
+                  <div style={{position:"absolute",top:0,right:0,bottom:4,width:36,background:"linear-gradient(to right,transparent,"+C.card+")",pointerEvents:"none"}} />
+                </div>
               </div>
               <Btn full onClick={()=>{setErr("");setProStep(3);}}>Elegir plan →</Btn>
             </>)}
