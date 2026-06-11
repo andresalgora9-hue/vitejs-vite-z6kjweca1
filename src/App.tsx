@@ -305,7 +305,7 @@ async function notifyProOfNewLead(proId:string, clientName:string, oficio:string
   });
 }
 
-function showPushNotification(title:string, body:string):void{
+function showPushNotification(title:string, body:string, url:string="/"):void{
   // 1. Si tiene permiso → notificación nativa del sistema
   if("Notification" in window && Notification.permission==="granted"){
     // Intentar via Service Worker primero (funciona con móvil bloqueado)
@@ -318,14 +318,12 @@ function showPushNotification(title:string, body:string):void{
           vibrate:[200,100,200],
           requireInteraction:true,
           tag:"msg-"+Date.now(),
+          data:{url},
         } as any).catch(()=>{
           new Notification(title,{body,icon:"/icon-192.png"});
         });
       }).catch(()=>{
         new Notification(title,{body,icon:"/icon-192.png"});
-      });
-    } else {
-      new Notification(title,{body,icon:"/icon-192.png"});
     }
   }
 }
@@ -3534,6 +3532,12 @@ const [chatUser,setChatUser]=useState<UserRow|null>(null);
   const [unreadByUser,setUnreadByUser]=useState<Record<string,number>>({});
   const daysLeft=trialDaysLeft(user.trial_end);
   const showToast=(m:string)=>{setToast(m);setTimeout(()=>setToast(null),3000);};
+  useEffect(()=>{
+    if(!deepLinkChatWith)return;
+    db.from("users").select("id,name,trade,zone,rating,reviews,jobs,verified,available,plan,bio,price,phone,whatsapp,type,photos,specialties,experience_years,free_quote,schedule,response_time,company_name,joined_at,trial_end").eq("id",deepLinkChatWith).single().then(({data})=>{
+      if(data){setTab("chats");setChatUser(data as UserRow);}
+    });
+  },[deepLinkChatWith]);
   const photoInputRef=useRef<HTMLInputElement>(null);
   const [photoFile,setPhotoFile]=useState<File|null>(null);
   const [photoPreview,setPhotoPreview]=useState<string>("");
@@ -3651,7 +3655,8 @@ useEffect(()=>{
   setUnreadMsgs(c=>c+1);
   showPushNotification(
     "🔴 Nuevo trabajo — oficioya",
-    "Un cliente necesita tus servicios ahora. Toca para aceptar."
+    "Un cliente necesita tus servicios ahora. Toca para aceptar.",
+    "/?with="+m.from_id
   );
 }
     else if(isAdmin){ 
@@ -3668,7 +3673,7 @@ useEffect(()=>{
         setInAppNotif({msg:m.text.substring(0,60)+(m.text.length>60?"...":""),from:senderName,fromId:m.from_id,isAdmin:false});
         setUnreadMsgs(c=>c+1);
         setUnreadByUser(p=>({...p,[m.from_id]:(p[m.from_id]||0)+1}));
-        showPushNotification("💬 "+senderName,m.text.substring(0,80));
+        showPushNotification("💬 "+senderName,m.text.substring(0,80),"/?with="+m.from_id);
         // Actualizar último mensaje visible en la lista
         setLastMsgByUser(p=>({...p,[m.from_id]:m}));
         // Añadir el cliente a chatPartners si no existe
