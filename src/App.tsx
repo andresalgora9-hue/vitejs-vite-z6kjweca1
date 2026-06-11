@@ -324,6 +324,9 @@ function showPushNotification(title:string, body:string, url:string="/"):void{
         });
       }).catch(()=>{
         new Notification(title,{body,icon:"/icon-192.png"});
+      });
+    } else {
+      new Notification(title,{body,icon:"/icon-192.png"});
     }
   }
 }
