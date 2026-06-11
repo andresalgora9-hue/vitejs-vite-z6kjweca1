@@ -74,12 +74,17 @@ self.addEventListener('push', function(event) {
 // NOTIFICATION CLICK
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
+  const targetUrl = event.notification.data?.url || '/';
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
       for (const client of clientList) {
-        if (client.url && 'focus' in client) return client.focus();
+        if ('focus' in client) {
+          client.focus();
+          if ('navigate' in client) return client.navigate(targetUrl);
+          return;
+        }
       }
-      if (clients.openWindow) return clients.openWindow(event.notification.data?.url || '/');
+      if (clients.openWindow) return clients.openWindow(targetUrl);
     })
   );
 });
