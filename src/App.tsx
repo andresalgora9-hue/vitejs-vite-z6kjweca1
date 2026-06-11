@@ -2530,30 +2530,14 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
                   {SEVILLA_ZONAS.map(z=><option key={z} style={{background:C.surface}}>{z}</option>)}
                 </select>
 
-                {/* Botón mapa — dorado pulsante */}
-                <button
-                  onClick={()=>setShowMapa(true)}
-                  style={{
-                    padding:"10px 14px",
-                    background:"linear-gradient(135deg,#1C1A0A,#141208)",
-                    border:"1.5px solid "+C.accent+"55",
-                    borderRadius:10,
-                    color:C.accent,
-                    cursor:"pointer",
-                    display:"flex",
-                    alignItems:"center",
-                    gap:6,
-                    fontFamily:"'DM Sans',sans-serif",
-                    fontWeight:700,
-                    fontSize:12,
-                    flexShrink:0,
-                    boxShadow:"0 0 14px "+C.accent+"22",
-                    animation:"mapPulse 2.5s ease-in-out infinite",
-                  }}
-                >
-                  <span style={{fontSize:16}}>🗺️</span>
-                  <span style={{whiteSpace:"nowrap" as const}}>Ver en mapa</span>
-                </button>
+               {/* Zona */}
+              <div style={{marginBottom:11}}>
+                <select value={zona} onChange={e=>setZona(e.target.value)} style={{width:"100%",padding:"10px 13px",background:C.surface,border:"1px solid "+C.border,borderRadius:10,color:C.text,fontFamily:"'DM Sans',sans-serif",fontSize:13,cursor:"pointer",outline:"none"}}>
+                  <option style={{background:C.surface}}>Todas</option>
+                  {ZONAS.map(z=><option key={z} style={{background:C.surface}}>{z}</option>)}
+                  <option disabled style={{background:C.surface}}>── Barrios Sevilla ──</option>
+                  {SEVILLA_ZONAS.map(z=><option key={z} style={{background:C.surface}}>{z}</option>)}
+                </select>
               </div>
 
               {/* ── Pills scroll TODAS las profesiones ── */}
