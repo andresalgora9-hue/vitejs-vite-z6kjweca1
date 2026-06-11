@@ -2529,22 +2529,22 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
                 {search&&<button onClick={()=>setSearch("")} style={{padding:"0 13px",background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:14}}>✕</button>}
               </div>
 
-              {/* Zona */}
-              <div style={{display:"flex",alignItems:"center",gap:4}}>
-                    <button onClick={()=>{const el=document.getElementById("zona-scroll-main");if(el)el.scrollLeft-=150;}} style={{flexShrink:0,background:C.surface,border:"1px solid "+C.border,borderRadius:8,color:C.muted,cursor:"pointer",fontSize:14,padding:"4px 8px"}}>‹</button>
-                    <div id="zona-scroll-main" style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:4,scrollbarWidth:"none",flex:1} as any}>
-                      {["Todas","Sevilla",...SEVILLA_ZONAS,...ZONAS.filter(z=>z!=="Sevilla")].map(z=>(
-                        <button key={z} onClick={()=>setZona(z)} style={{flexShrink:0,padding:"7px 12px",borderRadius:99,border:"1.5px solid "+(zona===z?C.accent:C.border+"88"),background:zona===z?"linear-gradient(135deg,"+C.accent+"22,"+C.orange+"11)":"rgba(255,255,255,0.02)",color:zona===z?C.accent:C.mutedL,cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:zona===z?700:400,whiteSpace:"nowrap" as const,transition:"all 0.15s"}}>
-                          {z}
-                        </button>
-                      ))}
-                    </div>
-                    <button onClick={()=>{const el=document.getElementById("zona-scroll-main");if(el)el.scrollLeft+=150;}} style={{flexShrink:0,background:C.surface,border:"1px solid "+C.border,borderRadius:8,color:C.muted,cursor:"pointer",fontSize:14,padding:"4px 8px"}}>›</button>
+             {/* Zona */}
+              <div style={{marginBottom:11}}>
+                <p style={{fontSize:10,color:C.muted,fontWeight:700,letterSpacing:"0.06em",textTransform:"uppercase" as const,marginBottom:7}}>Zona</p>
+                <div style={{display:"flex",alignItems:"center",gap:4}}>
+                  <button onClick={()=>{const el=document.getElementById("zona-scroll-main");if(el)el.scrollLeft-=150;}} style={{flexShrink:0,background:C.surface,border:"1px solid "+C.border,borderRadius:8,color:C.muted,cursor:"pointer",fontSize:14,padding:"4px 8px"}}>‹</button>
+                  <div id="zona-scroll-main" style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:4,scrollbarWidth:"none",flex:1} as any}>
+                    {["Todas","Sevilla",...SEVILLA_ZONAS,...ZONAS.filter(z=>z!=="Sevilla")].map(z=>(
+                      <button key={z} onClick={()=>setZona(z)} style={{flexShrink:0,padding:"7px 12px",borderRadius:99,border:"1.5px solid "+(zona===z?C.accent:C.border+"88"),background:zona===z?"linear-gradient(135deg,"+C.accent+"22,"+C.orange+"11)":"rgba(255,255,255,0.02)",color:zona===z?C.accent:C.mutedL,cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:zona===z?700:400,whiteSpace:"nowrap" as const,transition:"all 0.15s"}}>
+                        {z}
+                      </button>
+                    ))}
                   </div>
+                  <button onClick={()=>{const el=document.getElementById("zona-scroll-main");if(el)el.scrollLeft+=150;}} style={{flexShrink:0,background:C.surface,border:"1px solid "+C.border,borderRadius:8,color:C.muted,cursor:"pointer",fontSize:14,padding:"4px 8px"}}>›</button>
                 </div>
-
-              {/* ── Pills scroll TODAS las profesiones ── */}
-        </div>
+              </div>
+            </div>
 
             {/* Stats */}
             <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginBottom:16}}>
@@ -2556,7 +2556,6 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
               ))}
             </div>
           </div>
-
           {loading?<Spin/>:(
             <>
               {filteredWorkers.length===0&&<div style={{textAlign:"center" as const,padding:"32px 20px",color:C.muted}}><p style={{fontSize:32,marginBottom:8}}>🔍</p><p style={{fontWeight:700,color:C.text,fontSize:16,marginBottom:6}}>Sin resultados</p><p style={{fontSize:13}}>Prueba con otra búsqueda o zona</p></div>}
@@ -2566,6 +2565,7 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
             </>
           )}
         </>)}
+              
 
         {tab==="ranking"&&<RankingSection workers={workers} onSelect={setSelectedWorker} />}
         {tab==="solicitudes"&&<SolicitudesTab key={autoOpenSolicitud?"open":"closed"} user={user} workers={workers} onWorkerSelect={setSelectedWorker} onChat={handleChat} autoOpen={autoOpenSolicitud} />}
