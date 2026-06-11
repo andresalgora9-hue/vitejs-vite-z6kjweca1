@@ -1966,7 +1966,7 @@ function SolicitudesTab({user,workers,onWorkerSelect,onChat}:{user:UserRow;worke
     // Solo elite y pro, filtrados por oficio y zona
     const {data:allPros}=await db.from("users").select("id,name,trade,zone,service_zones,rating,reviews,jobs,verified,available,plan,bio,price,phone,whatsapp,trial_end,joined_at,type,photos,specialties,experience_years,free_quote,schedule,response_time,company_name").eq("type","profesional").eq("available",true).in("plan",["elite","pro"]);
 const norm=(s:string)=>s?.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim()||"";
-const eligibles=((allPros||[]) as UserRow[]).filter(w=>norm(w.trade||"")===norm(oficio));
+const eligibles=((allPros||[]) as UserRow[]).filter(w=>norm(w.trade||"")===norm(oficio)&&(norm(w.zone||"")===norm(zona)||(w.service_zones||[]).some((z:string)=>norm(z)===norm(zona))));
     // Separar y barajar aleatoriamente
     const shuffle=(arr:UserRow[])=>[...arr].sort(()=>Math.random()-0.5);
     const elites=shuffle(eligibles.filter(w=>w.plan==="elite"));
@@ -1983,10 +1983,7 @@ const eligibles=((allPros||[]) as UserRow[]).filter(w=>norm(w.trade||"")===norm(
         read:false,
         is_lead_alert:true,
       });
-      fetch(`${SUPABASE_FUNCTIONS_URL}/send-push`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({user_id:toUser.id,title:"💬 "+currentUser.name,body:txt.substring(0,80),url:"/chat?with="+currentUser.id})}).catch(()=>{});
-if(toUser.id==="00000000-0000-0000-0000-000000000002"){
-  fetch(`${SUPABASE_FUNCTIONS_URL}/notify-admin`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({type:"mensaje_admin",remitente:currentUser.name,texto:txt})}).catch(()=>{});
-}
+      fetch(`${SUPABASE_FUNCTIONS_URL}/send-push`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({user_id:pro.id,title:"🔴 Nuevo lead · "+oficio,body:user.name+" necesita "+oficio+" en "+zona,url:"/"})}).catch(()=>{});
       notifiedIds.push(pro.id);
     }
     // Guardar quién fue notificado para la rotación
@@ -2279,11 +2276,6 @@ const [loadingChats,setLoadingChats]=useState(true);
   },[]);
 
   useEffect(()=>{loadWorkers();},[loadWorkers]);
-
-  useEffect(()=>{
-    if("Notification" in window && Notification.permission==="default"){
-      setTimeout(()=>{Notification.requestPermission();},3000);
-    }
   },[]);
 
   const countUnread=useCallback(async()=>{
