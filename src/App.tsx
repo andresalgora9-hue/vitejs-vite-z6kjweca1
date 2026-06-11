@@ -2492,24 +2492,17 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
               </h1>
               <p style={{fontSize:12,color:C.mutedL,marginBottom:22}}>Presupuesto gratis · Sin compromiso · Pago directo al profesional</p>
 
-              {/* Botón CTA interno */}
-              <div style={{
-                background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",
-                borderRadius:14,
-                padding:"15px 20px",
-                display:"flex",
-                alignItems:"center",
-                gap:12,
-                boxShadow:"0 6px 22px "+C.accent+"44",
-              }}>
-                <div style={{width:34,height:34,borderRadius:10,background:"rgba(0,0,0,0.18)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:17,flexShrink:0}}>⚡</div>
-                <div style={{flex:1}}>
-                  <p style={{fontWeight:900,color:"#000",fontSize:13,lineHeight:1.15,whiteSpace:"nowrap" as const}}>¿Necesitas un profesional ahora?</p>
-                  <p style={{fontSize:10,color:"rgba(0,0,0,0.55)",marginTop:2,lineHeight:1.2}}>Te conectamos con el más adecuado en segundos</p>
-                </div>
-                <div style={{background:"rgba(0,0,0,0.15)",borderRadius:10,padding:"8px 14px",color:"#000",fontWeight:900,fontSize:14,flexShrink:0,whiteSpace:"nowrap" as const}}>Buscar →</div>
-              </div>
+              {/* Botón pedir presupuesto pequeño */}
+              <button
+                onClick={()=>setView("solicitudes")}
+                style={{width:"100%",padding:"12px 16px",background:"transparent",border:"1.5px solid "+C.accent+"66",borderRadius:12,color:C.accent,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,cursor:"pointer",textAlign:"left" as const,display:"flex",alignItems:"center",gap:8}}
+              >
+                <span style={{fontSize:15}}>📋</span>
+                <span>Pedir presupuesto a varios profesionales</span>
+                <span style={{marginLeft:"auto"}}>→</span>
+              </button>
             </div>
+              
 
             {/* ════════════════════════════════════════════
                 BUSCADOR con scroll de TODAS las profesiones
