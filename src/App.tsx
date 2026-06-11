@@ -2019,9 +2019,13 @@ const eligibles=((allPros||[]) as UserRow[]).filter(w=>norm(w.trade||"")===norm(
           </div>
           <div style={{marginBottom:12}}>
             <p style={{fontSize:11,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.08em",marginBottom:6,fontWeight:700}}>Zona</p>
-            <select value={zona} onChange={e=>setZona(e.target.value)} style={{width:"100%",background:C.surface,border:"1px solid "+C.border,borderRadius:8,padding:"10px 12px",color:C.text,fontFamily:"'DM Sans',sans-serif",fontSize:13,outline:"none"}}>
-              {[...ZONAS,...SEVILLA_ZONAS].map(z=><option key={z} style={{background:C.card}}>{z}</option>)}
-            </select>
+            <div style={{overflowX:"auto",display:"flex",gap:6,paddingBottom:4,scrollbarWidth:"none"} as any}>
+              {["Sevilla",...SEVILLA_ZONAS,...ZONAS.filter(z=>z!=="Sevilla")].map(z=>(
+                <button key={z} onClick={()=>setZona(z)} style={{flexShrink:0,padding:"7px 12px",borderRadius:99,border:"1.5px solid "+(zona===z?C.accent:C.border+"88"),background:zona===z?"linear-gradient(135deg,"+C.accent+"22,"+C.orange+"11)":"rgba(255,255,255,0.02)",color:zona===z?C.accent:C.mutedL,cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:zona===z?700:400,whiteSpace:"nowrap" as const}}>
+                  {z}
+                </button>
+              ))}
+            </div>
           </div>
           <Inp label="Describe el trabajo *" value={desc} onChange={setDesc} placeholder="Ej: Pintar salón de 40m², paredes blancas, incluir material..." multiline />
           <Inp label="Presupuesto máximo (opcional)" value={maxBudget} onChange={setMaxBudget} type="number" placeholder="Ej: 500" />
