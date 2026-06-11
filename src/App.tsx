@@ -2460,13 +2460,11 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
                 HERO CTA — rectángulo grande
                 ════════════════════════════ */}
             <div
-              onClick={()=>setShowWizard(true)}
               style={{
                 background:"linear-gradient(135deg,#0d0d1a,#131320)",
                 borderRadius:20,
                 border:"1.5px solid "+C.accent+"55",
                 padding:"24px 22px",
-                cursor:"pointer",
                 boxShadow:"0 8px 40px rgba(255,215,0,0.12),0 0 0 1px "+C.accent+"0A",
                 transition:"all 0.2s",
                 marginBottom:16,
