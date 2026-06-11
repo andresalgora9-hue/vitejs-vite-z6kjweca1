@@ -2634,7 +2634,7 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
         </>)}
 
         {tab==="ranking"&&<RankingSection workers={workers} onSelect={setSelectedWorker} />}
-        {tab==="solicitudes"&&<SolicitudesTab user={user} workers={workers} onWorkerSelect={setSelectedWorker} onChat={handleChat} autoOpen={tab==="solicitudes"&&autoOpenSolicitud} />}
+        {tab==="solicitudes"&&<SolicitudesTab key={autoOpenSolicitud?"open":"closed"} user={user} workers={workers} onWorkerSelect={setSelectedWorker} onChat={handleChat} autoOpen={autoOpenSolicitud} />}
         {tab==="chats"&&(<>
           <div style={{padding:"22px 0 16px"}}><h2 style={{fontWeight:800,fontSize:22,color:C.text}}>Mis conversaciones</h2></div>
           {loadingChats?<SkeletonMsgList n={5} />:chatPartners.length===0?<div style={{textAlign:"center" as const,padding:48,color:C.muted}}>
