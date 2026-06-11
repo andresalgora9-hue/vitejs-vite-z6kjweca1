@@ -2276,8 +2276,6 @@ const [loadingChats,setLoadingChats]=useState(true);
   },[]);
 
   useEffect(()=>{loadWorkers();},[loadWorkers]);
-  },[]);
-
   const countUnread=useCallback(async()=>{
     const {count}=await db.from("messages").select("id",{count:"exact"} as any).eq("to_id",user.id).eq("read",false);
     setUnreadChats(count||0);
