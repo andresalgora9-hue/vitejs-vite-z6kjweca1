@@ -2494,7 +2494,7 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
 
               {/* Botón pedir presupuesto pequeño */}
               <button
-                onClick={()=>setView("solicitudes")}
+                onClick={()=>{setView("solicitudes");setTimeout(()=>setShowForm(true),50);}}
                 style={{width:"100%",padding:"12px 16px",background:"transparent",border:"1.5px solid "+C.accent+"66",borderRadius:12,color:C.accent,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,cursor:"pointer",textAlign:"left" as const,display:"flex",alignItems:"center",gap:8}}
               >
                 <span style={{fontSize:15}}>📋</span>
@@ -2521,16 +2521,7 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
                 {search&&<button onClick={()=>setSearch("")} style={{padding:"0 13px",background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:14}}>✕</button>}
               </div>
 
-              {/* Zona + botón mapa */}
-              <div style={{display:"grid",gridTemplateColumns:"1fr auto",gap:8,marginBottom:11}}>
-                <select value={zona} onChange={e=>setZona(e.target.value)} style={{padding:"10px 13px",background:C.surface,border:"1px solid "+C.border,borderRadius:10,color:C.text,fontFamily:"'DM Sans',sans-serif",fontSize:13,cursor:"pointer",outline:"none"}}>
-                  <option style={{background:C.surface}}>Todas</option>
-                  {ZONAS.map(z=><option key={z} style={{background:C.surface}}>{z}</option>)}
-                  <option disabled style={{background:C.surface}}>── Barrios Sevilla ──</option>
-                  {SEVILLA_ZONAS.map(z=><option key={z} style={{background:C.surface}}>{z}</option>)}
-                </select>
-
-               {/* Zona */}
+              {/* Zona */}
               <div style={{marginBottom:11}}>
                 <select value={zona} onChange={e=>setZona(e.target.value)} style={{width:"100%",padding:"10px 13px",background:C.surface,border:"1px solid "+C.border,borderRadius:10,color:C.text,fontFamily:"'DM Sans',sans-serif",fontSize:13,cursor:"pointer",outline:"none"}}>
                   <option style={{background:C.surface}}>Todas</option>
