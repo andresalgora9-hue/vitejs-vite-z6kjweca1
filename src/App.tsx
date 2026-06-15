@@ -2798,7 +2798,7 @@ return <GCard key={w.id} onClick={async()=>{
   }
 // ─── AUTH ───
 function Auth({onLogin}:{onLogin:(u:UserRow)=>void}){
-  const [mode,setMode]=useState<"login"|"pick"|"register_cliente"|"register_pro">("login");
+  const initMode=(()=>{const p=new URLSearchParams(window.location.search).get("tipo");if(p==="cliente")return "register_cliente";if(p==="pro")return "register_pro";return "login";})(); const [mode,setMode]=useState<"login"|"pick"|"register_cliente"|"register_pro">(initMode);
   const [proStep,setProStep]=useState(1);
   const [loading,setLoading]=useState(false);
   const [showForgot,setShowForgot]=useState(false);
