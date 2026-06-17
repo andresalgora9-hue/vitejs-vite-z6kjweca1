@@ -4765,24 +4765,24 @@ export default function App(){
       const access_token=params.get("access_token");
       if(access_token){
         window.history.replaceState({},document.title,window.location.pathname);
-        fetch("https://www.googleapis.com/oauth2/v3/userinfo",{headers:{Authorization:"Bearer "+access_token}})
-          .then(r=>r.json())
-          .then(async(info)=>{
+        db.auth.getUser(access_token).then(async({data:authData})=>{
+            if(!authData?.user) return;
+            const info=authData.user;
             const pendingType=localStorage.getItem("oy_google_type")||"cliente";
             localStorage.removeItem("oy_google_type");
             const res=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/auth-handler",{
               method:"POST",
               headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI"},
-              body:JSON.stringify({action:"google_auth",email:info.email,name:info.name,avatar_url:info.picture,type:pendingType})
+              body:JSON.stringify({action:"google_auth",email:info.email,name:info.user_metadata?.full_name||info.email,avatar_url:info.user_metadata?.avatar_url||"",type:pendingType})
             });
             const data=await res.json();
             if(data.success){
               localStorage.setItem("oy_user",JSON.stringify(data.user));
-                    setUser(data.user);
-                    if(data.isNew){
-                      window.gtag?.("event","sign_up",{method:"google",user_type:data.user.type});
-                      window.fbq?.("track","Lead",{content_name:"google_"+data.user.type});
-                    }
+              setUser(data.user);
+              if(data.isNew){
+                window.gtag?.("event","sign_up",{method:"google",user_type:data.user.type});
+                window.fbq?.("track","Lead",{content_name:"google_"+data.user.type});
+              }
             }
           }).catch(()=>{});
       }
