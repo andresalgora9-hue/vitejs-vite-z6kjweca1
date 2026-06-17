@@ -2962,6 +2962,19 @@ const [forgotMsg,setForgotMsg]=useState("");
 const [forgotLoading,setForgotLoading]=useState(false);
 const [showForgot,setShowForgot]=useState(false);
   useEffect(()=>{
+  setTimeout(()=>{
+    const el=document.getElementById("google-signin-btn");
+    if(!el||(window as any).google?.accounts?.id===undefined) return;
+    (window as any).google.accounts.id.initialize({
+      client_id:"616004854667-tmqmecrr4536qcdsfmfn316n1rlg3lpe.apps.googleusercontent.com",
+      callback:(window as any).handleGoogleCredential,
+    });
+    (window as any).google.accounts.id.renderButton(el,{
+      type:"standard",theme:"outline",size:"large",text:"continue_with",width:358,
+    });
+  },1000);
+},[]);
+  useEffect(()=>{
     const googlePro=localStorage.getItem("oy_google_pro");
     if(googlePro){
       const gp=JSON.parse(googlePro);
@@ -3157,7 +3170,7 @@ fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEA
             {err&&<div style={{color:C.red,fontSize:13,marginBottom:12,padding:"10px 12px",background:C.red+"15",borderRadius:8,border:"1px solid "+C.red+"33"}}>{err}</div>}
             <Inp label="Email" value={email} onChange={setEmail} type="email" placeholder="tu@email.com" />
             <Inp label="Contraseña" value={pass} onChange={setPass} type="password" placeholder="••••••••" />
-            <Btn full disabled={loading} onClick={login}>{loading?"Entrando...":"Entrar →"}</Btn>             <div style={{display:"flex",alignItems:"center",gap:8,margin:"12px 0"}}>               <div style={{flex:1,height:1,background:"rgba(255,255,255,0.08)"}} />               <span style={{fontSize:11,color:C.muted}}>o</span>               <div style={{flex:1,height:1,background:"rgba(255,255,255,0.08)"}} />             </div>             <div id="g_id_onload" data-client_id="616004854667-tmqmecrr4536qcdsfmfn316n1rlg3lpe.apps.googleusercontent.com" data-callback="handleGoogleCredential" data-auto_prompt="false"></div> <div onClick={()=>localStorage.setItem("oy_google_type","cliente")} class="g_id_signin" data-type="standard" data-theme="outline" data-text="continue_with" data-shape="rectangular" data-width="358"></div>
+            <Btn full disabled={loading} onClick={login}>{loading?"Entrando...":"Entrar →"}</Btn>             <div style={{display:"flex",alignItems:"center",gap:8,margin:"12px 0"}}>               <div style={{flex:1,height:1,background:"rgba(255,255,255,0.08)"}} />               <span style={{fontSize:11,color:C.muted}}>o</span>               <div style={{flex:1,height:1,background:"rgba(255,255,255,0.08)"}} />             </div>             <div id="google-signin-btn" onClick={()=>localStorage.setItem("oy_google_type","cliente")} style={{width:"100%",marginTop:4}} /></div>
             {!showForgot?(
   <button onClick={()=>setShowForgot(true)} style={{background:"none",border:"none",color:"#7B5EA7",cursor:"pointer",fontSize:12,marginTop:4,textDecoration:"underline",fontFamily:"'DM Sans',sans-serif"}}>
     ¿Olvidaste tu contraseña?
