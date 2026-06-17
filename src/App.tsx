@@ -2033,6 +2033,20 @@ const eligibles=((allPros||[]) as UserRow[]).filter(w=>norm(w.trade||"")===norm(
       notified_pros:notifiedIds,
       last_notified_at:new Date().toISOString(),
     }).eq("id",req.id);
+
+    // Si no hay profesionales disponibles → notificar admin
+    if(toNotify.length===0){
+      fetch(`${SUPABASE_FUNCTIONS_URL}/notify-admin`,{
+        method:"POST",headers:SUPABASE_HEADERS,
+        body:JSON.stringify({
+          type:"sin_profesional",
+          cliente:user.name,
+          oficio,zona,
+          descripcion:desc,
+          request_id:req.id,
+        })
+      }).catch(()=>{});
+    }
   }
   setDesc("");setMaxBudget("");setShowForm(false);
   loadSolicitudes();
