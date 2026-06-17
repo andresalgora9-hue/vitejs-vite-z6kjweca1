@@ -2956,12 +2956,20 @@ function Auth({onLogin}:{onLogin:(u:UserRow)=>void}){
   const initMode=(()=>{const p=new URLSearchParams(window.location.search).get("tipo");if(p==="cliente")return "register_cliente";if(p==="pro")return "register_pro";return "login";})(); const [mode,setMode]=useState<"login"|"pick"|"register_cliente"|"register_pro">(initMode);
   const [proStep,setProStep]=useState(1);
   const [loading,setLoading]=useState(false);
-  const [showForgot,setShowForgot]=useState(false);
 const [forgotEmail,setForgotEmail]=useState("");
 const [forgotPhone,setForgotPhone]=useState("");
 const [forgotMsg,setForgotMsg]=useState("");
 const [forgotLoading,setForgotLoading]=useState(false);
-
+  useEffect(()=>{
+    const googlePro=localStorage.getItem("oy_google_pro");
+    if(googlePro){
+      const gp=JSON.parse(googlePro);
+      localStorage.removeItem("oy_google_pro");
+      setPendingProFormData({...gp,password:"",phone:""});
+      setMode("register_pro");
+      setProStep(2);
+    }
+  },[]);
 const handleForgot=async()=>{
   if(!forgotEmail||!forgotPhone){setForgotMsg("Introduce email y teléfono.");return;}
   setForgotLoading(true);setForgotMsg("");
@@ -4775,18 +4783,13 @@ export default function App(){
             });
             const data=await res.json();
             if(data.success){
-              if(data.isNew && data.user.type==="profesional"){
-                // Profesional nuevo — completar perfil
-                setPendingProFormData({
+             if(data.isNew && data.user.type==="profesional"){
+                localStorage.setItem("oy_google_pro",JSON.stringify({
                   name:data.user.name,
                   email:data.user.email,
-                  password:"",
-                  phone:"",
                   id:data.user.id,
                   fromGoogle:true,
-                });
-                setMode("register_pro");
-                setProStep(2);
+                }));
                 window.gtag?.("event","sign_up",{method:"google",user_type:"profesional"});
                 window.fbq?.("track","Lead",{content_name:"google_profesional"});
               } else {
