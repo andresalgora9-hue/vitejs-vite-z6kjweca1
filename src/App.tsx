@@ -4762,7 +4762,11 @@ export default function App(){
             const data=await res.json();
             if(data.success){
               localStorage.setItem("oy_user",JSON.stringify(data.user));
-              setUser(data.user);
+                    setUser(data.user);
+                    if(data.isNew){
+                      window.gtag?.("event","sign_up",{method:"google",user_type:data.user.type});
+                      window.fbq?.("track","Lead",{content_name:"google_"+data.user.type});
+                    }
             }
           }).catch(()=>{});
       }
