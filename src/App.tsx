@@ -4771,28 +4771,23 @@ export default function App(){
    const s=localStorage.getItem("oy_user");
     if(s){try{setUser(JSON.parse(s));}catch{localStorage.removeItem("oy_user");}}
     
-    // ── Google One Tap callback ──
-    (window as any).handleGoogleCredential=async(response:any)=>{
+   (window as any).handleGoogleCredential=async(response:any)=>{
       const payload=JSON.parse(atob(response.credential.split(".")[1]));
-      const pendingType=localStorage.getItem("oy_google_type")||"cliente";
       localStorage.removeItem("oy_google_type");
-      const res=await fetch(`${SUPABASE_FUNCTIONS_URL}/auth-handler`,{
+      // Primero comprobar si ya existe
+      const checkRes=await fetch(`${SUPABASE_FUNCTIONS_URL}/auth-handler`,{
         method:"POST",headers:SUPABASE_HEADERS,
-        body:JSON.stringify({action:"google_auth",email:payload.email,name:payload.name,avatar_url:payload.picture,type:pendingType})
+        body:JSON.stringify({action:"google_auth",email:payload.email,name:payload.name,avatar_url:payload.picture,type:"check"})
       });
-      const data=await res.json();
-      if(data.success){
-        if(data.isNew && data.user.type==="profesional"){
-          localStorage.setItem("oy_google_pro",JSON.stringify({name:data.user.name,email:data.user.email,id:data.user.id,fromGoogle:true}));
-          window.location.reload();
-        } else {
-          localStorage.setItem("oy_user",JSON.stringify(data.user));
-          setUser(data.user);
-          if(data.isNew){
-            window.gtag?.("event","sign_up",{method:"google",user_type:data.user.type});
-            window.fbq?.("track","Lead",{content_name:"google_"+data.user.type});
-          }
-        }
+      const checkData=await checkRes.json();
+      if(checkData.success && !checkData.isNew){
+        // Usuario existente → login directo
+        localStorage.setItem("oy_user",JSON.stringify(checkData.user));
+        setUser(checkData.user);
+      } else {
+        // Usuario nuevo → guardar datos de Google y mostrar picker
+        localStorage.setItem("oy_google_data",JSON.stringify({name:payload.name,email:payload.email,avatar_url:payload.picture}));
+        setGooglePendingData({name:payload.name,email:payload.email,avatar_url:payload.picture});
       }
     };
     setReady(true);
