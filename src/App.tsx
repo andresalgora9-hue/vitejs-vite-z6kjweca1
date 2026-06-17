@@ -2951,6 +2951,30 @@ return <GCard key={w.id} onClick={async()=>{
     </div>
   );
   }
+// ─── GOOGLE PICKER ───
+function GooglePickerScreen({data,onPick}:{data:{name:string,email:string,avatar_url:string},onPick:(type:string)=>void}){
+  return(
+    <div style={{minHeight:"100dvh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center",padding:"0 24px"}}>
+      <div style={{background:"rgba(22,27,39,0.92)",border:"1px solid rgba(255,215,0,0.15)",borderRadius:28,padding:"40px 32px",maxWidth:380,width:"100%",textAlign:"center"}}>
+        {data.avatar_url&&<img src={data.avatar_url} style={{width:64,height:64,borderRadius:32,margin:"0 auto 16px"}} />}
+        <p style={{fontSize:20,fontWeight:800,color:C.text,marginBottom:6}}>Hola, {data.name.split(" ")[0]} 👋</p>
+        <p style={{fontSize:14,color:C.muted,marginBottom:32}}>{data.email}</p>
+        <p style={{fontSize:15,fontWeight:700,color:C.text,marginBottom:20}}>¿Cómo quieres usar OficioYa?</p>
+        <div style={{display:"flex",flexDirection:"column" as const,gap:12}}>
+          <button onClick={()=>onPick("cliente")} style={{padding:"16px",background:"linear-gradient(135deg,"+C.accent+"22,"+C.orange+"11)",border:"2px solid "+C.accent+"44",borderRadius:16,cursor:"pointer",textAlign:"left" as const}}>
+            <p style={{fontSize:16,fontWeight:800,color:C.accent,marginBottom:4}}>🔍 Soy cliente</p>
+            <p style={{fontSize:13,color:C.muted}}>Busco profesionales para mis trabajos</p>
+          </button>
+          <button onClick={()=>onPick("profesional")} style={{padding:"16px",background:"rgba(255,255,255,0.03)",border:"2px solid rgba(255,255,255,0.08)",borderRadius:16,cursor:"pointer",textAlign:"left" as const}}>
+            <p style={{fontSize:16,fontWeight:800,color:C.text,marginBottom:4}}>🔧 Soy profesional</p>
+            <p style={{fontSize:13,color:C.muted}}>Ofrezco mis servicios y busco clientes</p>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── AUTH ───
 function Auth({onLogin}:{onLogin:(u:UserRow)=>void}){
   const initMode=(()=>{const p=new URLSearchParams(window.location.search).get("tipo");if(p==="cliente")return "register_cliente";if(p==="pro")return "register_pro";return "login";})(); const [mode,setMode]=useState<"login"|"pick"|"register_cliente"|"register_pro">(initMode);
@@ -4912,7 +4936,29 @@ if(!_lastVisit){
 @keyframes shimmer{0%{background-position:-200% center;}100%{background-position:200% center;}}
 @keyframes fadeSlideUp{from{transform:translateY(12px);opacity:0;}to{transform:translateY(0);opacity:1;}}
     `}</style>
-    {!user&&<Auth onLogin={login} />}
+    {!user&&googlePendingData&&<GooglePickerScreen data={googlePendingData} onPick={async(type)=>{
+  const res=await fetch(`${SUPABASE_FUNCTIONS_URL}/auth-handler`,{
+    method:"POST",headers:SUPABASE_HEADERS,
+    body:JSON.stringify({action:"google_auth",email:googlePendingData.email,name:googlePendingData.name,avatar_url:googlePendingData.avatar_url,type})
+  });
+  const data=await res.json();
+  if(data.success){
+    if(data.isNew && type==="profesional"){
+      localStorage.setItem("oy_google_pro",JSON.stringify({name:data.user.name,email:data.user.email,id:data.user.id,fromGoogle:true}));
+      setGooglePendingData(null);
+      window.location.reload();
+    } else {
+      localStorage.setItem("oy_user",JSON.stringify(data.user));
+      setGooglePendingData(null);
+      setUser(data.user);
+      if(data.isNew){
+        window.gtag?.("event","sign_up",{method:"google",user_type:type});
+        window.fbq?.("track","Lead",{content_name:"google_"+type});
+      }
+    }
+  }
+}} />}
+    {!user&&!googlePendingData&&<Auth onLogin={login} />}
     {user&&user.type==="admin"&&<Admin onLogout={logout} />}
     {user&&user.type==="profesional"&&<ProDashboard user={user} onLogout={logout} onUpdate={update} deepLinkChatWith={deepLinkChatWith} />}
 {user&&user.type==="cliente"&&<ClientHome user={user} onLogout={logout} deepLinkChatWith={deepLinkChatWith} />}
