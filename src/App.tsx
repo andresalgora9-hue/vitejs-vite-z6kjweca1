@@ -3031,7 +3031,7 @@ const handleForgot=async()=>{
       const res=await fetch(`${SUPABASE_FUNCTIONS_URL}/auth-handler`,{
         method:"POST",
         headers:SUPABASE_HEADERS,
-        body:JSON.stringify({action:"register",email:email.toLowerCase().trim(),password:pass,name:name.trim(),type:"cliente",phone:phone?phone.trim():"",trial_end})
+        body:JSON.stringify({action:"register",email:email.toLowerCase().trim(),password:pass,name:name.trim(),type:"cliente",phone:phone?phone.trim():""})
       });
       const result=await res.json();
       setLoading(false);
@@ -3067,7 +3067,7 @@ fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEA
         const res=await fetch(`${SUPABASE_FUNCTIONS_URL}/auth-handler`,{
         method:"POST",
         headers:SUPABASE_HEADERS,
-        body:JSON.stringify({action:"register",email:email.toLowerCase().trim(),password:pass,name:name.trim(),type:"profesional",phone:phone.trim(),trial_end})
+        body:JSON.stringify({action:"register",email:email.toLowerCase().trim(),password:pass,name:name.trim(),type:"profesional",phone:phone.trim()})
       });
       const result=await res.json();
       setLoading(false);
