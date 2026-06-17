@@ -3418,6 +3418,7 @@ function StripePayModal({user,priceId,plan,onClose,onSuccess,isRegistration=fals
     fbqEvent("AddPaymentInfo",{content_name:"suscripcion_"+plan,currency:"EUR",value:PLAN_PRICES[plan]});
     gtagEvent("add_payment_info",{currency:"EUR",value:PLAN_PRICES[plan],payment_type:"card"});
     try{
+      console.log("ANTES DEL FETCH");
       const res=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/dynamic-handler",{
         method:"POST",
         headers:{
