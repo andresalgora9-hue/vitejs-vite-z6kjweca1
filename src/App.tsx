@@ -2429,7 +2429,7 @@ const [loadingChats,setLoadingChats]=useState(true);
 
   const loadWorkers=useCallback(async()=>{
     setLoading(true);
-    const {data}=await db.from("users").select("id,name,trade,zone,service_zones,rating,reviews,jobs,verified,available,plan,bio,price,phone,whatsapp,trial_end,joined_at,type,photos,specialties,experience_years,free_quote,schedule,response_time,company_name").eq("type","profesional");
+    const {data}=await db.from("users").select("id,name,trade,zone,service_zones,rating,reviews,jobs,verified,available,plan,bio,price,phone,whatsapp,trial_end,joined_at,type,photos,specialties,experience_years,free_quote,schedule,response_time,company_name,avatar_url").eq("type","profesional");
     const sorted=(data||[]).sort((a:UserRow,b:UserRow)=>{
       const order:Record<Plan,number>={elite:3,pro:2,basico:1,gratis:0};
       return order[b.plan as Plan]-order[a.plan as Plan]||b.rating-a.rating;
