@@ -4765,7 +4765,7 @@ export default function App(){
       const access_token=params.get("access_token");
       if(access_token){
         window.history.replaceState({},document.title,window.location.pathname);
-        db.auth.getUser(access_token).then(async({data:authData})=>{
+        db.auth.setSession({access_token,refresh_token:params.get("refresh_token")||""}).then(async({data:authData})=>{
             if(!authData?.user) return;
             const info=authData.user;
             const pendingType=localStorage.getItem("oy_google_type")||"cliente";
