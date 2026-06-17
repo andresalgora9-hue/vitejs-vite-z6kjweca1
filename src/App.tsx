@@ -3429,7 +3429,7 @@ function StripePayModal({user,priceId,plan,onClose,onSuccess,isRegistration=fals
       });
       const result=await res.json();
       if(result.ok){if(result.customerId&&setPendingProFormData)setPendingProFormData((prev:any)=>prev?{...prev,stripeCustomerId:result.customerId}:prev);onSuccess(plan);}
-      else{setErr(result.error||"Error al procesar");setLoading(false);}
+      else{console.log("RESULT ERROR:",result);setErr(result.error||"Error al procesar");setLoading(false);}
     }catch{setErr("Error de conexión");setLoading(false);}
   };
 
