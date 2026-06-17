@@ -3408,10 +3408,12 @@ function StripePayModal({user,priceId,plan,onClose,onSuccess,isRegistration=fals
   const pay=async()=>{
     if(!ready||loading)return;
     setLoading(true);setErr(null);
-    console.log("STRIPE REF:",stripeRef.current);     const {paymentMethod,error}=await stripeRef.current.createPaymentMethod({
+    console.log("STRIPE REF:",stripeRef.current);
+    const {paymentMethod,error}=await stripeRef.current.createPaymentMethod({
       type:"card",card:cardEl.current,
       billing_details:{name:user.name,email:user.email,phone:user.phone||""},
     });
+    console.log("PM:",paymentMethod,"ERR:",error);
     if(error){setErr(error.message);setLoading(false);return;}
     fbqEvent("AddPaymentInfo",{content_name:"suscripcion_"+plan,currency:"EUR",value:PLAN_PRICES[plan]});
     gtagEvent("add_payment_info",{currency:"EUR",value:PLAN_PRICES[plan],payment_type:"card"});
