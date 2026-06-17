@@ -2440,7 +2440,7 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
       client_id:user.id,
       client_name:user.name,
       oficio,
-      zona:zonaResult||zona,
+      zona:zonaResult||(zonas.length>0?zonas.join(", "):"Sevilla"),
       urgency,
       status:"open",
     }).catch(()=>{});
@@ -2467,7 +2467,7 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
         .catch(()=>({data:[]}));
 
       if(pros&&pros.length>0){
-        const alertTxt="🔴 *NUEVO CLIENTE INTERESADO*\n\n👤 "+user.name+" busca un "+oficio+" con urgencia en "+(zonaResult||zona)+".\n\n⚡ Responde cuanto antes para no perder este lead.";
+        const alertTxt="🔴 *NUEVO CLIENTE INTERESADO*\n\n👤 "+user.name+" busca un "+oficio+" con urgencia en "+(zonaResult||(zonas.length>0?zonas.join(", "):"Sevilla"))+".\n\n⚡ Responde cuanto antes para no perder este lead.";
         const inserts=(pros as {id:string}[]).map((p:{id:string})=>({
           from_id:"00000000-0000-0000-0000-000000000001",
           to_id:p.id,
