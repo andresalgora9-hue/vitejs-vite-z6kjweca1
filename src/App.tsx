@@ -4002,6 +4002,7 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
   return(
     <div data-scroll style={{minHeight:"100dvh",background:C.bg,backgroundImage:"radial-gradient(ellipse at 70% 0%,#2a0a3a18,transparent 50%)",paddingBottom:120,overflowY:"auto",height:"100dvh"}}>
 <ScrollToTop />
+      {showOnboarding&&<OnboardingModal tipo="profesional" onClose={handleCloseOnboarding} />}
 
       {/* ── URGENT LEAD BANNER ── */}
 {urgentLead&&(
