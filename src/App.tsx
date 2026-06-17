@@ -3174,7 +3174,7 @@ fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEA
   </div>
 )}
             <div style={{textAlign:"center",marginTop:16}}>
-              <p style={{fontSize:13,color:C.muted}}>¿No tienes cuenta? <button onClick={()=>{setMode("pick");resetForm();}} style={{background:"none",border:"none",color:C.accent,cursor:"pointer",fontSize:13,fontWeight:700}}>Regístrate gratis</button></p>
+              <p style={{fontSize:13,color:C.muted}}>¿No tienes cuenta? <button onClick={()=>{setMode("pick");}} style={{background:"none",border:"none",color:C.accent,cursor:"pointer",fontSize:13,fontWeight:700}}>Regístrate gratis</button></p>
             </div>
           </GCard>
         )}
