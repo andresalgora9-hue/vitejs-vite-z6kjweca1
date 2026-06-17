@@ -2323,7 +2323,7 @@ const [loadingChats,setLoadingChats]=useState(true);
       const wz=[w.zone,...(w.service_zones||[])].filter(Boolean);
       if(!mapaZones.some(z=>wz.includes(z)))return false;
     } else if(zona!=="Todas"){
-      if(w.zone!==zona&&!(w.service_zones||[]).includes(zona))return false;
+      if(w.zone!==zona&&!(w.service_zones||[]).includes(zona)&&w.zone!=="Sevilla")return false;
     }
     if(oficio!=="Todos"&&w.trade!==oficio)return false;
     if(search){const s=search.toLowerCase();if(!w.name.toLowerCase().includes(s)&&!(w.trade||"").toLowerCase().includes(s)&&!(w.bio||"").toLowerCase().includes(s))return false;}
