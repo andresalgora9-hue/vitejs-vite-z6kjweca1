@@ -3157,7 +3157,7 @@ fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEA
             {err&&<div style={{color:C.red,fontSize:13,marginBottom:12,padding:"10px 12px",background:C.red+"15",borderRadius:8,border:"1px solid "+C.red+"33"}}>{err}</div>}
             <Inp label="Email" value={email} onChange={setEmail} type="email" placeholder="tu@email.com" />
             <Inp label="Contraseña" value={pass} onChange={setPass} type="password" placeholder="••••••••" />
-            <Btn full disabled={loading} onClick={login}>{loading?"Entrando...":"Entrar →"}</Btn>             <div style={{display:"flex",alignItems:"center",gap:8,margin:"12px 0"}}>               <div style={{flex:1,height:1,background:"rgba(255,255,255,0.08)"}} />               <span style={{fontSize:11,color:C.muted}}>o</span>               <div style={{flex:1,height:1,background:"rgba(255,255,255,0.08)"}} />             </div>             <div id="g_id_onload" data-client_id="616004854667-tmqmecrr4536qcdsfmfn316n1rlg3lpe.apps.googleusercontent.com" data-callback="handleGoogleCredential" data-auto_prompt="false"></div> <div onClick={()=>localStorage.setItem("oy_google_type","cliente")} className="g_id_signin" data-type="standard" data-theme="outline" data-text="continue_with" data-shape="rectangular" data-width="358"></div>
+            <Btn full disabled={loading} onClick={login}>{loading?"Entrando...":"Entrar →"}</Btn>             <div style={{display:"flex",alignItems:"center",gap:8,margin:"12px 0"}}>               <div style={{flex:1,height:1,background:"rgba(255,255,255,0.08)"}} />               <span style={{fontSize:11,color:C.muted}}>o</span>               <div style={{flex:1,height:1,background:"rgba(255,255,255,0.08)"}} />             </div>             <div id="g_id_onload" data-client_id="616004854667-tmqmecrr4536qcdsfmfn316n1rlg3lpe.apps.googleusercontent.com" data-callback="handleGoogleCredential" data-auto_prompt="false"></div> <div onClick={()=>localStorage.setItem("oy_google_type","cliente")} class="g_id_signin" data-type="standard" data-theme="outline" data-text="continue_with" data-shape="rectangular" data-width="358"></div>
             {!showForgot?(
   <button onClick={()=>setShowForgot(true)} style={{background:"none",border:"none",color:"#7B5EA7",cursor:"pointer",fontSize:12,marginTop:4,textDecoration:"underline",fontFamily:"'DM Sans',sans-serif"}}>
     ¿Olvidaste tu contraseña?
@@ -3207,7 +3207,7 @@ fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEA
                 </div>
               </div>
             </div>
-            <div style={{display:"flex",alignItems:"center",gap:8,margin:"12px 0"}}>   <div style={{flex:1,height:1,background:"rgba(255,255,255,0.08)"}} />   <span style={{fontSize:11,color:C.muted}}>o</span>   <div style={{flex:1,height:1,background:"rgba(255,255,255,0.08)"}} /> </div> <div onClick={()=>localStorage.setItem("oy_google_type","cliente")} className="g_id_signin" data-type="standard" data-theme="outline" data-text="signup_with" data-shape="rectangular" data-width="358"></div> <p style={{textAlign:"center",fontSize:13,color:C.muted,marginTop:12}}>¿Ya tienes cuenta? <button onClick={()=>setMode("login")} style={{background:"none",border:"none",color:C.accent,cursor:"pointer",fontSize:13,fontWeight:700}}>Inicia sesión</button></p>
+            <div style={{display:"flex",alignItems:"center",gap:8,margin:"12px 0"}}>   <div style={{flex:1,height:1,background:"rgba(255,255,255,0.08)"}} />   <span style={{fontSize:11,color:C.muted}}>o</span>   <div style={{flex:1,height:1,background:"rgba(255,255,255,0.08)"}} /> </div> <div onClick={()=>localStorage.setItem("oy_google_type","cliente")} class="g_id_signin" data-type="standard" data-theme="outline" data-text="signup_with" data-shape="rectangular" data-width="358"></div> <p style={{textAlign:"center",fontSize:13,color:C.muted,marginTop:12}}>¿Ya tienes cuenta? <button onClick={()=>setMode("login")} style={{background:"none",border:"none",color:C.accent,cursor:"pointer",fontSize:13,fontWeight:700}}>Inicia sesión</button></p>
           </div>
         )}
         {mode==="register_cliente"&&(
@@ -3248,7 +3248,7 @@ fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEA
                 <span style={{fontSize:11,color:C.muted}}>o</span>
                 <div style={{flex:1,height:1,background:"rgba(255,255,255,0.08)"}} />
               </div>
-              <div onClick={()=>localStorage.setItem("oy_google_type","profesional")} className="g_id_signin" data-type="standard" data-theme="outline" data-text="signup_with" data-shape="rectangular" data-width="358"></div>
+              <div onClick={()=>localStorage.setItem("oy_google_type","profesional")} class="g_id_signin" data-type="standard" data-theme="outline" data-text="signup_with" data-shape="rectangular" data-width="358"></div>
             </>)}
             {proStep===2&&(<>
               <p style={{fontWeight:800,fontSize:16,color:C.text,marginBottom:4}}>Tu oficio y zona</p>
