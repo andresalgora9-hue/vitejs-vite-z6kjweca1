@@ -2951,29 +2951,6 @@ return <GCard key={w.id} onClick={async()=>{
     </div>
   );
   }
-// ─── GOOGLE PICKER ───
-function GooglePickerScreen({data,onPick}:{data:{name:string,email:string,avatar_url:string},onPick:(type:string)=>void}){
-  return(
-    <div style={{minHeight:"100dvh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center",padding:"0 24px"}}>
-      <div style={{background:"rgba(22,27,39,0.92)",border:"1px solid rgba(255,215,0,0.15)",borderRadius:28,padding:"40px 32px",maxWidth:380,width:"100%",textAlign:"center"}}>
-        {data.avatar_url&&<img src={data.avatar_url} style={{width:64,height:64,borderRadius:32,margin:"0 auto 16px"}} />}
-        <p style={{fontSize:20,fontWeight:800,color:C.text,marginBottom:6}}>Hola, {data.name.split(" ")[0]} 👋</p>
-        <p style={{fontSize:14,color:C.muted,marginBottom:32}}>{data.email}</p>
-        <p style={{fontSize:15,fontWeight:700,color:C.text,marginBottom:20}}>¿Cómo quieres usar OficioYa?</p>
-        <div style={{display:"flex",flexDirection:"column" as const,gap:12}}>
-          <button onClick={()=>onPick("cliente")} style={{padding:"16px",background:"linear-gradient(135deg,"+C.accent+"22,"+C.orange+"11)",border:"2px solid "+C.accent+"44",borderRadius:16,cursor:"pointer",textAlign:"left" as const}}>
-            <p style={{fontSize:16,fontWeight:800,color:C.accent,marginBottom:4}}>🔍 Soy cliente</p>
-            <p style={{fontSize:13,color:C.muted}}>Busco profesionales para mis trabajos</p>
-          </button>
-          <button onClick={()=>onPick("profesional")} style={{padding:"16px",background:"rgba(255,255,255,0.03)",border:"2px solid rgba(255,255,255,0.08)",borderRadius:16,cursor:"pointer",textAlign:"left" as const}}>
-            <p style={{fontSize:16,fontWeight:800,color:C.text,marginBottom:4}}>🔧 Soy profesional</p>
-            <p style={{fontSize:13,color:C.muted}}>Ofrezco mis servicios y busco clientes</p>
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ─── AUTH ───
 function Auth({onLogin}:{onLogin:(u:UserRow)=>void}){
@@ -2985,6 +2962,18 @@ const [forgotPhone,setForgotPhone]=useState("");
 const [forgotMsg,setForgotMsg]=useState("");
 const [forgotLoading,setForgotLoading]=useState(false);
 const [showForgot,setShowForgot]=useState(false);
+  useEffect(()=>{
+    const handler=()=>{
+      const raw=localStorage.getItem("oy_google_fill");
+      if(!raw) return;
+      const gd=JSON.parse(raw);
+      localStorage.removeItem("oy_google_fill");
+      setName(gd.name||"");
+      setEmail(gd.email||"");
+    };
+    window.addEventListener("google_fill",handler);
+    return()=>window.removeEventListener("google_fill",handler);
+  },[]);
   useEffect(()=>{
   setTimeout(()=>{
     const el=document.getElementById("google-signin-btn");
@@ -3194,7 +3183,7 @@ fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEA
             {err&&<div style={{color:C.red,fontSize:13,marginBottom:12,padding:"10px 12px",background:C.red+"15",borderRadius:8,border:"1px solid "+C.red+"33"}}>{err}</div>}
             <Inp label="Email" value={email} onChange={setEmail} type="email" placeholder="tu@email.com" />
             <Inp label="Contraseña" value={pass} onChange={setPass} type="password" placeholder="••••••••" />
-            <Btn full disabled={loading} onClick={login}>{loading?"Entrando...":"Entrar →"}</Btn>             <div style={{display:"flex",alignItems:"center",gap:8,margin:"12px 0"}}>               <div style={{flex:1,height:1,background:"rgba(255,255,255,0.08)"}} />               <span style={{fontSize:11,color:C.muted}}>o</span>               <div style={{flex:1,height:1,background:"rgba(255,255,255,0.08)"}} />             </div>             <div id="google-signin-btn" onClick={()=>localStorage.setItem("oy_google_type","cliente")} style={{width:"100%",marginTop:4}} />
+            <Btn full disabled={loading} onClick={login}>{loading?"Entrando...":"Entrar →"}</Btn>             <div style={{display:"flex",alignItems:"center",gap:8,margin:"12px 0"}}>               <div style={{flex:1,height:1,background:"rgba(255,255,255,0.08)"}} />               <span style={{fontSize:11,color:C.muted}}>o</span>               <div style={{flex:1,height:1,background:"rgba(255,255,255,0.08)"}} />             </div>             <div id="google-signin-btn" style={{width:"100%",marginTop:4}} />
             {!showForgot?(
   <button onClick={()=>setShowForgot(true)} style={{background:"none",border:"none",color:"#7B5EA7",cursor:"pointer",fontSize:12,marginTop:4,textDecoration:"underline",fontFamily:"'DM Sans',sans-serif"}}>
     ¿Olvidaste tu contraseña?
@@ -3244,7 +3233,7 @@ fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEA
                 </div>
               </div>
             </div>
-            <div style={{display:"flex",alignItems:"center",gap:8,margin:"12px 0"}}>   <div style={{flex:1,height:1,background:"rgba(255,255,255,0.08)"}} />   <span style={{fontSize:11,color:C.muted}}>o</span>   <div style={{flex:1,height:1,background:"rgba(255,255,255,0.08)"}} /> </div> <div onClick={()=>localStorage.setItem("oy_google_type","cliente")} class="g_id_signin" data-type="standard" data-theme="outline" data-text="signup_with" data-shape="rectangular" data-width="358"></div> <p style={{textAlign:"center",fontSize:13,color:C.muted,marginTop:12}}>¿Ya tienes cuenta? <button onClick={()=>setMode("login")} style={{background:"none",border:"none",color:C.accent,cursor:"pointer",fontSize:13,fontWeight:700}}>Inicia sesión</button></p>
+            <p style={{textAlign:"center",fontSize:13,color:C.muted,marginTop:12}}>¿Ya tienes cuenta? <button onClick={()=>setMode("login")} style={{background:"none",border:"none",color:C.accent,cursor:"pointer",fontSize:13,fontWeight:700}}>Inicia sesión</button></p>
           </div>
         )}
         {mode==="register_cliente"&&(
@@ -3285,7 +3274,6 @@ fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEA
                 <span style={{fontSize:11,color:C.muted}}>o</span>
                 <div style={{flex:1,height:1,background:"rgba(255,255,255,0.08)"}} />
               </div>
-              <div onClick={()=>localStorage.setItem("oy_google_type","profesional")} class="g_id_signin" data-type="standard" data-theme="outline" data-text="signup_with" data-shape="rectangular" data-width="358"></div>
             </>)}
             {proStep===2&&(<>
               <p style={{fontWeight:800,fontSize:16,color:C.text,marginBottom:4}}>Tu oficio y zona</p>
@@ -4756,7 +4744,7 @@ function ConfirmarBaja(){
 }
 // ─── ROOT ───
 export default function App(){
-  const [user,setUser]=useState<UserRow|null>(null); const [googlePendingData,setGooglePendingData]=useState<{name:string,email:string,avatar_url:string}|null>(null);
+  const [user,setUser]=useState<UserRow|null>(null);
   const [ready,setReady]=useState(false);
   const [installPrompt,setInstallPrompt]=useState<any>(null);
   const [showInstall,setShowInstall]=useState(false);
@@ -4795,24 +4783,10 @@ export default function App(){
    const s=localStorage.getItem("oy_user");
     if(s){try{setUser(JSON.parse(s));}catch{localStorage.removeItem("oy_user");}}
     
-   (window as any).handleGoogleCredential=async(response:any)=>{
+  (window as any).handleGoogleCredential=async(response:any)=>{
       const payload=JSON.parse(atob(response.credential.split(".")[1]));
-      localStorage.removeItem("oy_google_type");
-      // Primero comprobar si ya existe
-      const checkRes=await fetch(`${SUPABASE_FUNCTIONS_URL}/auth-handler`,{
-        method:"POST",headers:SUPABASE_HEADERS,
-        body:JSON.stringify({action:"google_auth",email:payload.email,name:payload.name,avatar_url:payload.picture,type:"check"})
-      });
-      const checkData=await checkRes.json();
-      if(checkData.success && !checkData.isNew){
-        // Usuario existente → login directo
-        localStorage.setItem("oy_user",JSON.stringify(checkData.user));
-        setUser(checkData.user);
-      } else {
-        // Usuario nuevo → guardar datos de Google y mostrar picker
-        localStorage.setItem("oy_google_data",JSON.stringify({name:payload.name,email:payload.email,avatar_url:payload.picture}));
-        setGooglePendingData({name:payload.name,email:payload.email,avatar_url:payload.picture});
-      }
+      localStorage.setItem("oy_google_fill",JSON.stringify({name:payload.name,email:payload.email,avatar_url:payload.picture}));
+      window.dispatchEvent(new Event("google_fill"));
     };
     setReady(true);
     // Limpiar el parámetro ?with= de la URL sin recargar
@@ -4936,29 +4910,7 @@ if(!_lastVisit){
 @keyframes shimmer{0%{background-position:-200% center;}100%{background-position:200% center;}}
 @keyframes fadeSlideUp{from{transform:translateY(12px);opacity:0;}to{transform:translateY(0);opacity:1;}}
     `}</style>
-    {!user&&googlePendingData&&<GooglePickerScreen data={googlePendingData} onPick={async(type)=>{
-  const res=await fetch(`${SUPABASE_FUNCTIONS_URL}/auth-handler`,{
-    method:"POST",headers:SUPABASE_HEADERS,
-    body:JSON.stringify({action:"google_auth",email:googlePendingData.email,name:googlePendingData.name,avatar_url:googlePendingData.avatar_url,type})
-  });
-  const data=await res.json();
-  if(data.success){
-    if(data.isNew && type==="profesional"){
-      localStorage.setItem("oy_google_pro",JSON.stringify({name:data.user.name,email:data.user.email,id:data.user.id,fromGoogle:true}));
-      setGooglePendingData(null);
-      setUser(null);
-    } else {
-      localStorage.setItem("oy_user",JSON.stringify(data.user));
-      setGooglePendingData(null);
-      setUser(data.user);
-      if(data.isNew){
-        window.gtag?.("event","sign_up",{method:"google",user_type:type});
-        window.fbq?.("track","Lead",{content_name:"google_"+type});
-      }
-    }
-  }
-}} />}
-    {!user&&!googlePendingData&&<Auth onLogin={login} />}
+    {!user&&<Auth onLogin={login} />}
     {user&&user.type==="admin"&&<Admin onLogout={logout} />}
     {user&&user.type==="profesional"&&<ProDashboard user={user} onLogout={logout} onUpdate={update} deepLinkChatWith={deepLinkChatWith} />}
 {user&&user.type==="cliente"&&<ClientHome user={user} onLogout={logout} deepLinkChatWith={deepLinkChatWith} />}
