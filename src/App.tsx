@@ -4765,48 +4765,30 @@ export default function App(){
    const s=localStorage.getItem("oy_user");
     if(s){try{setUser(JSON.parse(s));}catch{localStorage.removeItem("oy_user");}}
     
-    // ── Google OAuth callback ──
-    const hash=window.location.hash;
-    console.log("HASH:",hash);
-    if(hash.includes("access_token")){
-      const params=new URLSearchParams(hash.replace("#",""));
-      const access_token=params.get("access_token");
-      if(access_token){
-        window.history.replaceState({},document.title,window.location.pathname);
-        db.auth.setSession({access_token,refresh_token:params.get("refresh_token")||""}).then(async({data:authData})=>{
-            if(!authData?.user) return;
-            const info=authData.user;
-            const pendingType=localStorage.getItem("oy_google_type")||"cliente";
-            localStorage.removeItem("oy_google_type");
-            const res=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/auth-handler",{
-              method:"POST",
-              headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI"},
-              body:JSON.stringify({action:"google_auth",email:info.email,name:info.user_metadata?.full_name||info.email,avatar_url:info.user_metadata?.avatar_url||"",type:pendingType})
-            });
-            const data=await res.json();
-            if(data.success){
-             if(data.isNew && data.user.type==="profesional"){
-                localStorage.setItem("oy_google_pro",JSON.stringify({
-                  name:data.user.name,
-                  email:data.user.email,
-                  id:data.user.id,
-                  fromGoogle:true,
-                }));
-                window.gtag?.("event","sign_up",{method:"google",user_type:"profesional"});
-                window.fbq?.("track","Lead",{content_name:"google_profesional"});
-              } else {
-                localStorage.setItem("oy_user",JSON.stringify(data.user));
-                setUser(data.user);
-                if(data.isNew){
-                  window.gtag?.("event","sign_up",{method:"google",user_type:data.user.type});
-                  window.fbq?.("track","Lead",{content_name:"google_"+data.user.type});
-                }
-              }
-            }
-          }).catch(()=>{});
+    // ── Google One Tap callback ──
+    (window as any).handleGoogleCredential=async(response:any)=>{
+      const payload=JSON.parse(atob(response.credential.split(".")[1]));
+      const pendingType=localStorage.getItem("oy_google_type")||"cliente";
+      localStorage.removeItem("oy_google_type");
+      const res=await fetch(`${SUPABASE_FUNCTIONS_URL}/auth-handler`,{
+        method:"POST",headers:SUPABASE_HEADERS,
+        body:JSON.stringify({action:"google_auth",email:payload.email,name:payload.name,avatar_url:payload.picture,type:pendingType})
+      });
+      const data=await res.json();
+      if(data.success){
+        if(data.isNew && data.user.type==="profesional"){
+          localStorage.setItem("oy_google_pro",JSON.stringify({name:data.user.name,email:data.user.email,id:data.user.id,fromGoogle:true}));
+          window.location.reload();
+        } else {
+          localStorage.setItem("oy_user",JSON.stringify(data.user));
+          setUser(data.user);
+          if(data.isNew){
+            window.gtag?.("event","sign_up",{method:"google",user_type:data.user.type});
+            window.fbq?.("track","Lead",{content_name:"google_"+data.user.type});
+          }
+        }
       }
-    }
-
+    };
     setReady(true);
     // Limpiar el parámetro ?with= de la URL sin recargar
     if(new URLSearchParams(window.location.search).get("with")){
