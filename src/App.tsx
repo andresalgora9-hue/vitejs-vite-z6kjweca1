@@ -3408,7 +3408,7 @@ function StripePayModal({user,priceId,plan,onClose,onSuccess,isRegistration=fals
   const pay=async()=>{
     if(!ready||loading)return;
     setLoading(true);setErr(null);
-    const {paymentMethod,error}=await stripeRef.current.createPaymentMethod({
+    console.log("STRIPE REF:",stripeRef.current);     const {paymentMethod,error}=await stripeRef.current.createPaymentMethod({
       type:"card",card:cardEl.current,
       billing_details:{name:user.name,email:user.email,phone:user.phone||""},
     });
