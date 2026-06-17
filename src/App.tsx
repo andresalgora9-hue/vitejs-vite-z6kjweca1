@@ -845,7 +845,7 @@ function AnticipoCard({m,isMe,currentUser,toUser,showToast}:any){
               try{
                 const res=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/super-handler",{
                   method:"POST",
-                  headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE"},
+                  headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE"},
                   body:JSON.stringify({client_id:currentUser.id,pro_id:m.from_id,pro_name:toUser.name,client_name:currentUser.name,amount:parseInt(amount),session_user_id:currentUser.id}),
                 });
                const data=await res.json();
@@ -1134,8 +1134,8 @@ if(toUser.id==="00000000-0000-0000-0000-000000000002"){
             method:"POST",
             headers:{
               "Content-Type":"application/json",
-              "apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE",
-              "Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE",
+              "apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI",
+              "Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI",
             },
             body:JSON.stringify({client_id:currentUser.id,pro_id:toUser.id,pro_name:toUser.name,client_name:currentUser.name,amount:15,session_user_id:currentUser.id}),
           });
@@ -1152,8 +1152,8 @@ if(toUser.id==="00000000-0000-0000-0000-000000000002"){
             method:"POST",
             headers:{
               "Content-Type":"application/json",
-              "apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE",
-              "Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE",
+              "apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI",
+              "Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI",
             },
             body:JSON.stringify({client_id:currentUser.id,pro_id:toUser.id,pro_name:toUser.name,client_name:currentUser.name,amount:50,session_user_id:currentUser.id}),
           });
@@ -3010,8 +3010,8 @@ const handleForgot=async()=>{
     method:"POST",
     headers:{
       "Content-Type":"application/json",
-      "apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE",
-      "Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE",
+      "apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI",
+      "Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI",
     },
     body:JSON.stringify({type:"recuperar_password",to:usr.email,name:usr.name,extra:{nueva_pass}}),
   });
@@ -3420,8 +3420,8 @@ function StripePayModal({user,priceId,plan,onClose,onSuccess,isRegistration=fals
         method:"POST",
         headers:{
           "Content-Type":"application/json",
-          "apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE",
-          "Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE",
+          "apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI",
+          "Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI",
         },
         body:JSON.stringify({paymentMethodId:paymentMethod.id,email:user.email,nombre:user.name,telefono:user.phone||"",priceId,userId:user.id}),
       });
