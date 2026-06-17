@@ -3121,7 +3121,7 @@ fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEA
             const res=await fetch(`${SUPABASE_FUNCTIONS_URL}/auth-handler`,{
         method:"POST",
         headers:SUPABASE_HEADERS,
-        body:JSON.stringify({action:"register",email:pendingProFormData.email,password:pendingProFormData.password,name:pendingProFormData.name,type:"profesional",phone:pendingProFormData.phone,trial_end})
+        body:JSON.stringify(pendingProFormData.fromGoogle?{action:"google_auth",email:pendingProFormData.email,name:pendingProFormData.name,avatar_url:"",type:"profesional"}:{action:"register",email:pendingProFormData.email,password:pendingProFormData.password,name:pendingProFormData.name,type:"profesional",phone:pendingProFormData.phone})
       });
       const result=await res.json();
       const error=result.success?null:result;
@@ -3132,7 +3132,6 @@ fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEA
             fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({type:"bienvenida_pro",to:pendingProFormData.email,name:pendingProFormData.name})});
             setShowRegisterStripe(false);
             setPendingProFormData(null);
-            resetForm();
             fbqEvent("Purchase",{value:PLAN_PRICES[pl],currency:"EUR",content_name:"suscripcion_"+pl});
             fbqEvent("CompleteRegistration",{content_name:"pro_"+pl});
             gtagEvent("purchase",{value:PLAN_PRICES[pl],currency:"EUR",transaction_id:data.id,user_type:"pro",plan:pl});
