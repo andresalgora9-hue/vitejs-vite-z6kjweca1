@@ -4767,6 +4767,7 @@ export default function App(){
     
     // ── Google OAuth callback ──
     const hash=window.location.hash;
+    console.log("HASH:",hash);
     if(hash.includes("access_token")){
       const params=new URLSearchParams(hash.replace("#",""));
       const access_token=params.get("access_token");
