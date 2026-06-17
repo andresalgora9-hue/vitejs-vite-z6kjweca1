@@ -2283,7 +2283,7 @@ function DeleteAccountButton({user,onLogout}:{user:UserRow;onLogout:()=>void}){
 function ClientHome({user,onLogout,deepLinkChatWith}:{user:UserRow;onLogout:()=>void;deepLinkChatWith?:string|null}){
   const [tab,setTab]=useState<"buscar"|"ranking"|"chats"|"solicitudes"|"perfil">("buscar");
   const [autoOpenSolicitud,setAutoOpenSolicitud]=useState(false);
-  const [zona,setZona]=useState("Todas");
+  const [zonas,setZonas]=useState<string[]>([]);
   const [oficio,setOficio]=useState("Todos");
   const [search,setSearch]=useState("");
   const [soloDisp,setSoloDisp]=useState(true);
@@ -2322,9 +2322,10 @@ const [loadingChats,setLoadingChats]=useState(true);
     if(mapaZones.length>0){
       const wz=[w.zone,...(w.service_zones||[])].filter(Boolean);
       if(!mapaZones.some(z=>wz.includes(z)))return false;
-    } else if(zona!=="Todas"){
-      if(w.zone!==zona&&!(w.service_zones||[]).includes(zona)&&w.zone!=="Sevilla")return false;
-    }
+    } else if(zonas.length>0){
+  const wz=[w.zone,...(w.service_zones||[])].filter(Boolean);
+  if(!zonas.some(z=>wz.includes(z))&&!wz.includes("Sevilla"))return false;
+}
     if(oficio!=="Todos"&&w.trade!==oficio)return false;
     if(search){const s=search.toLowerCase();if(!w.name.toLowerCase().includes(s)&&!(w.trade||"").toLowerCase().includes(s)&&!(w.bio||"").toLowerCase().includes(s))return false;}
     return true;
@@ -2591,7 +2592,7 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
                   <button onClick={()=>{const el=document.getElementById("zona-scroll-main");if(el)el.scrollLeft-=150;}} style={{flexShrink:0,background:C.surface,border:"1px solid "+C.border,borderRadius:8,color:C.muted,cursor:"pointer",fontSize:14,padding:"4px 8px"}}>‹</button>
                   <div id="zona-scroll-main" style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:4,scrollbarWidth:"none",flex:1} as any}>
                     {["Todas","Sevilla",...SEVILLA_ZONAS,...ZONAS.filter(z=>z!=="Sevilla")].map(z=>(
-                      <button key={z} onClick={()=>setZona(z)} style={{flexShrink:0,padding:"7px 12px",borderRadius:99,border:"1.5px solid "+(zona===z?C.accent:C.border+"88"),background:zona===z?"linear-gradient(135deg,"+C.accent+"22,"+C.orange+"11)":"rgba(255,255,255,0.02)",color:zona===z?C.accent:C.mutedL,cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:zona===z?700:400,whiteSpace:"nowrap" as const,transition:"all 0.15s"}}>
+                      <button key={z} onClick={()=>setZonas(prev=>z==="Todas"?[]:prev.includes(z)?prev.filter(x=>x!==z):[...prev,z])} style={{flexShrink:0,padding:"7px 12px",borderRadius:99,border:"1.5px solid "+((z==="Todas"?zonas.length===0:zonas.includes(z))?C.accent:C.border+"88"),background:(z==="Todas"?zonas.length===0:zonas.includes(z))?"linear-gradient(135deg,"+C.accent+"22,"+C.orange+"11)":"rgba(255,255,255,0.02)",color:(z==="Todas"?zonas.length===0:zonas.includes(z))?C.accent:C.mutedL,cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:(z==="Todas"?zonas.length===0:zonas.includes(z))?700:400,whiteSpace:"nowrap" as const,transition:"all 0.15s"}}>
                         {z}
                       </button>
                     ))}
@@ -3153,7 +3154,7 @@ fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEA
                 <div style={{position:"relative"}}>
                   <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:4,scrollbarWidth:"none"} as any}>
                     {["Sevilla",...SEVILLA_ZONAS,...ZONAS.filter(z=>z!=="Sevilla")].map(z=>(
-                      <button key={z} onClick={()=>setZona(z)} style={{flexShrink:0,padding:"7px 12px",borderRadius:99,border:"1.5px solid "+(zona===z?C.accent:C.border+"88"),background:zona===z?"linear-gradient(135deg,"+C.accent+"22,"+C.orange+"11)":"rgba(255,255,255,0.02)",color:zona===z?C.accent:C.mutedL,cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:zona===z?700:400,whiteSpace:"nowrap" as const,transition:"all 0.15s"}}>
+                      <button key={z} onClick={()=>setZonas(prev=>z==="Todas"?[]:prev.includes(z)?prev.filter(x=>x!==z):[...prev,z])} style={{flexShrink:0,padding:"7px 12px",borderRadius:99,border:"1.5px solid "+((z==="Todas"?zonas.length===0:zonas.includes(z))?C.accent:C.border+"88"),background:(z==="Todas"?zonas.length===0:zonas.includes(z))?"linear-gradient(135deg,"+C.accent+"22,"+C.orange+"11)":"rgba(255,255,255,0.02)",color:(z==="Todas"?zonas.length===0:zonas.includes(z))?C.accent:C.mutedL,cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:(z==="Todas"?zonas.length===0:zonas.includes(z))?700:400,whiteSpace:"nowrap" as const,transition:"all 0.15s"}}>
                         {z}
                       </button>
                     ))}
