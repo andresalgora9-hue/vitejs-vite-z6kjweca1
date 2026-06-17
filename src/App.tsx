@@ -1634,7 +1634,48 @@ useEffect(()=>{
     </div>
   );
 }
-
+// ─── OFICIOYA CARD ───
+function OficioYaCard({onRequest}:{onRequest:()=>void}){
+  return(
+    <div onClick={onRequest} style={{
+      background:"linear-gradient(135deg,#1a0a00,#2a1200)",
+      borderRadius:16,border:"2px solid "+C.accent,
+      overflow:"hidden",cursor:"pointer",
+      boxShadow:"0 4px 20px "+C.accent+"44",
+      transition:"all 0.2s"
+    }}>
+      <div style={{display:"flex"}}>
+        <div style={{width:4,background:"linear-gradient(180deg,"+C.accent+","+C.orange+")",flexShrink:0}} />
+        <div style={{flex:1,padding:"14px 14px 12px"}}>
+          <div style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:10}}>
+            <div style={{width:52,height:52,borderRadius:26,background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,flexShrink:0}}>⚡</div>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{display:"flex",gap:5,alignItems:"center",marginBottom:2,flexWrap:"wrap" as const}}>
+                <p style={{fontWeight:800,fontSize:16,color:C.accent,lineHeight:1.2}}>OficioYa</p>
+                <span style={{fontSize:10,background:C.accent,color:"#000",fontWeight:800,padding:"2px 6px",borderRadius:99}}>GARANTIZADO</span>
+              </div>
+              <p style={{fontSize:12,color:C.orange,fontWeight:600,marginBottom:3}}>🛡️ Gestión directa por nuestro equipo</p>
+              <p style={{fontSize:11,color:C.muted}}>Te encontramos el profesional adecuado</p>
+            </div>
+            <div style={{textAlign:"right" as const,flexShrink:0}}>
+              <p style={{fontSize:10,color:C.accent,fontWeight:700}}>GRATIS</p>
+              <p style={{fontSize:10,color:C.muted}}>sin coste</p>
+            </div>
+          </div>
+          <button style={{
+            width:"100%",padding:"11px",
+            background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",
+            border:"none",borderRadius:10,color:"#000",
+            fontFamily:"'DM Sans',sans-serif",fontWeight:800,fontSize:13,
+            cursor:"pointer",boxShadow:"0 4px 14px "+C.accent+"44"
+          }}>
+            🔴 Solicitar profesional ahora
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ─── WORKER CARD ───
 const WorkerCardIdealista=React.memo(({w,onSelect,onChat}:{w:UserRow;onSelect:()=>void;onChat:()=>void})=>{
@@ -2558,10 +2599,12 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
           </div>
           {loading?<Spin/>:(
             <>
-              {filteredWorkers.length===0&&<div style={{textAlign:"center" as const,padding:"32px 20px",color:C.muted}}><p style={{fontSize:32,marginBottom:8}}>🔍</p><p style={{fontWeight:700,color:C.text,fontSize:16,marginBottom:6}}>Sin resultados</p><p style={{fontSize:13}}>Prueba con otra búsqueda o zona</p></div>}
-              <div id="lista-profesionales" style={{display:"flex",flexDirection:"column" as const,gap:10}}>
-                {loading?<SkeletonList n={5} />:filteredWorkers.map(w=><WorkerCardIdealista key={w.id} w={w} onChat={()=>handleChat(w)} onSelect={()=>setSelectedWorker(w)} />)}
-              </div>
+             <div id="lista-profesionales" style={{display:"flex",flexDirection:"column" as const,gap:10}}>
+  {loading?<SkeletonList n={5} />:<>
+    {filteredWorkers.map(w=><WorkerCardIdealista key={w.id} w={w} onChat={()=>handleChat(w)} onSelect={()=>setSelectedWorker(w)} />)}
+    <OficioYaCard onRequest={()=>setTab("solicitudes")} />
+  </>}
+</div>
             </>
           )}
         </>)}
