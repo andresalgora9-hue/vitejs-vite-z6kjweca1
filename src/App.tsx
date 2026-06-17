@@ -2327,7 +2327,7 @@ const [loadingChats,setLoadingChats]=useState(true);
   if(!zonas.some(z=>wz.includes(z))&&!wz.includes("Sevilla"))return false;
 }
     if(oficio!=="Todos"&&w.trade!==oficio)return false;
-    if(search){const s=search.toLowerCase();if(!w.name.toLowerCase().includes(s)&&!(w.trade||"").toLowerCase().includes(s)&&!(w.bio||"").toLowerCase().includes(s))return false;}
+    if(search){const s=search.toLowerCase();const tradeMatch=OFICIOS.some(o=>o.toLowerCase().includes(s));if(tradeMatch){if(!(w.trade||"").toLowerCase().includes(s))return false;}else{if(!w.name.toLowerCase().includes(s)&&!(w.trade||"").toLowerCase().includes(s)&&!(w.bio||"").toLowerCase().includes(s))return false;}}
     return true;
   });
 
