@@ -3615,6 +3615,8 @@ function ProDeleteAccountButton({user,onLogout}:{user:UserRow;onLogout:()=>void}
 }
 // ─── PRO DASHBOARD ───
 function ProDashboard({user,onLogout,onUpdate,deepLinkChatWith}:{user:UserRow;onLogout:()=>void;onUpdate:(u:UserRow)=>void;deepLinkChatWith?:string|null}){
+  const [showOnboarding,setShowOnboarding]=useState(()=>!localStorage.getItem("oy_onboarded_"+user.id));
+  const handleCloseOnboarding=()=>{localStorage.setItem("oy_onboarded_"+user.id,"1");setShowOnboarding(false);};
   const [tab,setTab]=useState<"inicio"|"chats"|"trabajos"|"perfil"|"planes">("inicio");
   const [toast,setToast]=useState<string|null>(null);
   const [saving,setSaving]=useState(false);
