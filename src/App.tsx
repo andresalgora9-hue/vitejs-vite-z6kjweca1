@@ -4732,7 +4732,7 @@ function ConfirmarBaja(){
 }
 // ─── ROOT ───
 export default function App(){
-  const [user,setUser]=useState<UserRow|null>(null);
+  const [user,setUser]=useState<UserRow|null>(null); const [googlePendingData,setGooglePendingData]=useState<{name:string,email:string,avatar_url:string}|null>(null);
   const [ready,setReady]=useState(false);
   const [installPrompt,setInstallPrompt]=useState<any>(null);
   const [showInstall,setShowInstall]=useState(false);
