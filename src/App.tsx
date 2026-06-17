@@ -38,6 +38,100 @@ Sentry.init({
   replaysOnErrorSampleRate:1.0,
   integrations:[Sentry.replayIntegration()],
 });
+
+// ── ONBOARDING MODAL ──
+function OnboardingModal({tipo,onClose}:{tipo:"cliente"|"profesional";onClose:()=>void}){
+  const [step,setStep]=useState(0);
+  const isCliente=tipo==="cliente";
+
+  const stepsCliente=[
+    {icon:"🔍",title:"Encuentra tu profesional",desc:"Busca por oficio y barrio. Filtra por disponibilidad, valoración y precio."},
+    {icon:"💬",title:"Escríbele directamente",desc:"Contacta sin intermediarios. Chatea, pide presupuesto y acuerda el trabajo."},
+    {icon:"⭐",title:"Valora cuando termines",desc:"Tu opinión ayuda a otros usuarios y mejora la calidad de la plataforma."},
+  ];
+  const stepsPro=[
+    {icon:"✅",title:"Completa tu perfil",desc:"Añade foto, especialidades y precio por hora. Un perfil completo recibe 3x más contactos."},
+    {icon:"🔴",title:"Recibe leads al instante",desc:"Cuando un cliente busca tu oficio en tu zona, te llegará una alerta en tiempo real."},
+    {icon:"💳",title:"Cobra directamente",desc:"Acuerda el precio con el cliente y cobra tú mismo. OficioYa no cobra comisión por trabajo."},
+  ];
+
+  const steps=isCliente?stepsCliente:stepsPro;
+  const current=steps[step];
+
+  return(
+    <div style={{
+      position:"fixed",inset:0,zIndex:9000,
+      display:"flex",alignItems:"center",justifyContent:"center",
+      background:"rgba(4,6,14,0.75)",
+      backdropFilter:"blur(20px)",
+      WebkitBackdropFilter:"blur(20px)",
+      padding:"0 24px",
+    }}>
+      <div style={{
+        background:"rgba(22,27,39,0.92)",
+        border:"1px solid rgba(255,215,0,0.15)",
+        borderRadius:28,
+        padding:"40px 32px 32px",
+        maxWidth:380,width:"100%",
+        boxShadow:"0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04)",
+        textAlign:"center",
+      }}>
+        {/* Logo */}
+        <div style={{marginBottom:28}}>
+          <p style={{fontSize:11,fontWeight:700,color:C.accent,letterSpacing:"0.15em",textTransform:"uppercase"}}>OficioYa</p>
+        </div>
+
+        {/* Icono */}
+        <div style={{
+          width:72,height:72,borderRadius:20,
+          background:"linear-gradient(135deg,rgba(255,215,0,0.12),rgba(255,140,0,0.08))",
+          border:"1px solid rgba(255,215,0,0.2)",
+          display:"flex",alignItems:"center",justifyContent:"center",
+          fontSize:32,margin:"0 auto 24px",
+        }}>{current.icon}</div>
+
+        {/* Título */}
+        <p style={{fontSize:22,fontWeight:800,color:C.text,marginBottom:10,lineHeight:1.25}}>{current.title}</p>
+
+        {/* Descripción */}
+        <p style={{fontSize:14,color:C.mutedL,lineHeight:1.65,marginBottom:32}}>{current.desc}</p>
+
+        {/* Dots */}
+        <div style={{display:"flex",gap:6,justifyContent:"center",marginBottom:28}}>
+          {steps.map((_,i)=>(
+            <div key={i} style={{
+              width:i===step?20:6,height:6,borderRadius:99,
+              background:i===step?C.accent:"rgba(255,255,255,0.12)",
+              transition:"all 0.3s",
+            }} />
+          ))}
+        </div>
+
+        {/* Botón */}
+        <button onClick={()=>step<steps.length-1?setStep(s=>s+1):onClose()} style={{
+          width:"100%",padding:"15px",
+          background:step===steps.length-1?"linear-gradient(135deg,"+C.accent+","+C.orange+")":"rgba(255,255,255,0.06)",
+          border:"1px solid "+(step===steps.length-1?"transparent":"rgba(255,255,255,0.08)"),
+          borderRadius:14,
+          color:step===steps.length-1?"#000":C.text,
+          fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:15,
+          cursor:"pointer",transition:"all 0.2s",
+        }}>
+          {step===steps.length-1?"Empezar →":"Siguiente"}
+        </button>
+
+        {/* Skip */}
+        {step<steps.length-1&&(
+          <button onClick={onClose} style={{
+            marginTop:14,background:"none",border:"none",
+            color:C.muted,fontSize:13,cursor:"pointer",
+            fontFamily:"'DM Sans',sans-serif",
+          }}>Saltar</button>
+        )}
+      </div>
+    </div>
+  );
+}
 // ── SCROLL TO TOP BUTTON ──
 function ScrollToTop(){
   const [visible,setVisible]=useState(false);
@@ -2281,6 +2375,8 @@ function DeleteAccountButton({user,onLogout}:{user:UserRow;onLogout:()=>void}){
 // ════════════════════════════════════════════════════════════════
 
 function ClientHome({user,onLogout,deepLinkChatWith}:{user:UserRow;onLogout:()=>void;deepLinkChatWith?:string|null}){
+  const [showOnboarding,setShowOnboarding]=useState(()=>!localStorage.getItem("oy_onboarded_"+user.id));
+  const handleCloseOnboarding=()=>{localStorage.setItem("oy_onboarded_"+user.id,"1");setShowOnboarding(false);};
   const [tab,setTab]=useState<"buscar"|"ranking"|"chats"|"solicitudes"|"perfil">("buscar");
   const [autoOpenSolicitud,setAutoOpenSolicitud]=useState(false);
   const [zonas,setZonas]=useState<string[]>([]);
@@ -2483,6 +2579,7 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
   return(
     <div data-scroll style={{minHeight:"100dvh",background:C.bg,backgroundImage:"radial-gradient(ellipse at 15% 0%,#1a0a3a22,transparent 50%),radial-gradient(ellipse at 85% 100%,#0a1a3a22,transparent 50%)",paddingBottom:72,overflowY:"auto",height:"100dvh"}}>
 <ScrollToTop />
+      {showOnboarding&&<OnboardingModal tipo="cliente" onClose={handleCloseOnboarding} />}
       {inAppNotif&&<InAppNotification
         msg={inAppNotif.msg} from={inAppNotif.from}
         isAdmin={inAppNotif.isAdmin}
