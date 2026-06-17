@@ -3051,7 +3051,7 @@ const handleForgot=async()=>{
       setLoading(false);
       if(!result.success){setErr(result.error||"Email o contraseña incorrectos.");return;}
       localStorage.setItem("oy_user",JSON.stringify(result.user));onLogin(result.user as UserRow);
-    }catch(e:any){setLoading(false);setErr("Error de conexión: "+e?.message);}
+    }catch(e:any){console.error("STRIPE ERROR:",e);setLoading(false);setErr("Error de conexión: "+e?.message);}
   };
 
   const registerCliente=async()=>{
@@ -3077,7 +3077,7 @@ const handleForgot=async()=>{
         gtagEvent("sign_up",{method:"email",user_type:"cliente"});
         onLogin(result.user as UserRow);
 fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({type:"bienvenida_cliente",to:email.toLowerCase(),name:name.trim()})});
-    }catch(e:any){setLoading(false);setErr("Error de conexión: "+e?.message);}
+    }catch(e:any){console.error("STRIPE ERROR:",e);setLoading(false);setErr("Error de conexión: "+e?.message);}
   };
 
   const registerPro=async()=>{
@@ -3115,7 +3115,7 @@ fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEA
         fetch(`${SUPABASE_FUNCTIONS_URL}/notify-admin`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({type:"nuevo_pro",nombre:name.trim(),oficio:trade,zona:zone,plan:"gratis"})});
         onLogin(data as UserRow);
       }
-    }catch(e:any){setLoading(false);setErr("Error de conexión: "+e?.message);}
+    }catch(e:any){console.error("STRIPE ERROR:",e);setLoading(false);setErr("Error de conexión: "+e?.message);}
   };
 
   const PlanDetailModal=({pl,onClose}:{pl:Plan;onClose:()=>void})=>{
