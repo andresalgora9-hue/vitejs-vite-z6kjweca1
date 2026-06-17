@@ -2960,6 +2960,7 @@ const [forgotEmail,setForgotEmail]=useState("");
 const [forgotPhone,setForgotPhone]=useState("");
 const [forgotMsg,setForgotMsg]=useState("");
 const [forgotLoading,setForgotLoading]=useState(false);
+const [showForgot,setShowForgot]=useState(false);
   useEffect(()=>{
     const googlePro=localStorage.getItem("oy_google_pro");
     if(googlePro){
