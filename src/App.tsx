@@ -3271,7 +3271,7 @@ fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEA
                 <div style={{position:"relative"}}>
                   <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:4,scrollbarWidth:"none"} as any}>
                     {["Sevilla",...SEVILLA_ZONAS,...ZONAS.filter(z=>z!=="Sevilla")].map(z=>(
-                      <button key={z} onClick={()=>setZonas(prev=>z==="Todas"?[]:prev.includes(z)?prev.filter(x=>x!==z):[...prev,z])} style={{flexShrink:0,padding:"7px 12px",borderRadius:99,border:"1.5px solid "+((z==="Todas"?zonas.length===0:zonas.includes(z))?C.accent:C.border+"88"),background:(z==="Todas"?zonas.length===0:zonas.includes(z))?"linear-gradient(135deg,"+C.accent+"22,"+C.orange+"11)":"rgba(255,255,255,0.02)",color:(z==="Todas"?zonas.length===0:zonas.includes(z))?C.accent:C.mutedL,cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:(z==="Todas"?zonas.length===0:zonas.includes(z))?700:400,whiteSpace:"nowrap" as const,transition:"all 0.15s"}}>
+                      <button key={z} onClick={()=>setZone(z)} style={{flexShrink:0,padding:"7px 12px",borderRadius:99,border:"1.5px solid "+(zone===z?C.accent:C.border+"88"),background:zone===z?"linear-gradient(135deg,"+C.accent+"22,"+C.orange+"11)":"rgba(255,255,255,0.02)",color:zone===z?C.accent:C.mutedL,cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:zone===z?700:400,whiteSpace:"nowrap" as const,transition:"all 0.15s"}}>
                         {z}
                       </button>
                     ))}
