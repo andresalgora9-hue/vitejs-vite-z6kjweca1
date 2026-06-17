@@ -4946,7 +4946,7 @@ if(!_lastVisit){
     if(data.isNew && type==="profesional"){
       localStorage.setItem("oy_google_pro",JSON.stringify({name:data.user.name,email:data.user.email,id:data.user.id,fromGoogle:true}));
       setGooglePendingData(null);
-      window.location.reload();
+      setUser(null);
     } else {
       localStorage.setItem("oy_user",JSON.stringify(data.user));
       setGooglePendingData(null);
