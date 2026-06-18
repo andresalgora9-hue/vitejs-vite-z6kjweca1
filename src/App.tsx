@@ -3464,7 +3464,7 @@ function StripePayModal({user,priceId,plan,onClose,onSuccess,isRegistration=fals
         if (confirmError) { setErr(confirmError.message); setLoading(false); return; }
       }
 
-      if (result.ok || result.success || !result.error) {
+      if (result.ok) {
         onSuccess(plan);
       } else {
         setErr(result.error || "Error al procesar el pago");
