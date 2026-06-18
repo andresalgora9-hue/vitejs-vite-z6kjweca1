@@ -3038,6 +3038,11 @@ const handleForgot=async()=>{
   const [pendingPriceId,setPendingPriceId]=useState<string>("");
   const [showRegisterStripe,setShowRegisterStripe]=useState(false);
   const [pendingProFormData,setPendingProFormData]=useState<any>(null);
+  useEffect(() => {
+  if (pendingProFormData) {
+    localStorage.setItem("oy_pending_pro", JSON.stringify(pendingProFormData));
+  }
+}, [pendingProFormData]);
   const login=async()=>{
     if(!email||!pass){setErr("Introduce email y contraseña.");return;}
     setLoading(true);setErr("");
@@ -3417,25 +3422,58 @@ function StripePayModal({user,priceId,plan,onClose,onSuccess,isRegistration=fals
     };
   },[mounted]);
 
-  const pay=async()=>{
-    if(!ready||loading)return;
-    setLoading(true);setErr(null);
-    const {paymentMethod,error}=await stripeRef.current.createPaymentMethod({
-      type:"card",card:cardEl.current,
-      billing_details:{name:user.name,email:user.email,phone:user.phone||""},
+  const pay = async () => {
+    if (!ready || loading) return;
+    setLoading(true);
+    setErr(null);
+
+    const { paymentMethod, error } = await stripeRef.current.createPaymentMethod({
+      type: "card",
+      card: cardEl.current,
+      billing_details: { name: user.name, email: user.email, phone: user.phone || "" },
     });
-    if(error){setErr(error.message);setLoading(false);return;}
-    fbqEvent("AddPaymentInfo",{content_name:"suscripcion_"+plan,currency:"EUR",value:PLAN_PRICES[plan]});
-    gtagEvent("add_payment_info",{currency:"EUR",value:PLAN_PRICES[plan],payment_type:"card"});
-    try{
-      const res=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/dynamic-handler",{
-        method:"POST",headers:SUPABASE_HEADERS,
-        body:JSON.stringify({action:"subscribe",paymentMethodId:paymentMethod.id,priceId,userId:user.id,email:user.email,name:user.name,plan})
+
+    if (error) {
+      setErr(error.message);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const res = await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/dynamic-handler", {
+        method: "POST",
+        headers: SUPABASE_HEADERS,
+        body: JSON.stringify({
+          action: "subscribe",
+          paymentMethodId: paymentMethod.id,
+          priceId,
+          userId: user.id,
+          email: user.email,
+          name: user.name,
+          plan,
+        }),
       });
-      const result=await res.json();
-      if(result.ok){if(result.customerId&&setPendingProFormData)setPendingProFormData((prev:any)=>prev?{...prev,stripeCustomerId:result.customerId}:prev);onSuccess(plan);}
-      else{setErr(result.error||"Error al procesar");setLoading(false);}
-    }catch(e:any){setLoading(false);setErr("Error de conexión: "+e?.message);}
+      const result = await res.json();
+
+      if (result.clientSecret && (result.requiresAction || result.status === "requires_action")) {
+        const { error: confirmError } = await stripeRef.current.confirmCardPayment(result.clientSecret, {
+          confirmParams: {
+            return_url: window.location.origin + window.location.pathname + "?stripe_return=true&plan=" + plan,
+          },
+        });
+        if (confirmError) { setErr(confirmError.message); setLoading(false); return; }
+      }
+
+      if (result.ok || result.success || !result.error) {
+        onSuccess(plan);
+      } else {
+        setErr(result.error || "Error al procesar el pago");
+        setLoading(false);
+      }
+    } catch (e: any) {
+      setLoading(false);
+      setErr("Error de conexión");
+    }
   };
 
   return(
