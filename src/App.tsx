@@ -3429,7 +3429,14 @@ function StripePayModal({user,priceId,plan,onClose,onSuccess,isRegistration=fals
     gtagEvent("add_payment_info",{currency:"EUR",value:PLAN_PRICES[plan],payment_type:"card"});
     try{
       const res=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/dynamic-handler",{
-        method
+        method:"POST",headers:SUPABASE_HEADERS,
+        body:JSON.stringify({action:"subscribe",paymentMethodId:paymentMethod.id,priceId,userId:user.id,email:user.email,name:user.name,plan})
+      });
+      const result=await res.json();
+      if(result.ok){if(result.customerId&&setPendingProFormData)setPendingProFormData((prev:any)=>prev?{...prev,stripeCustomerId:result.customerId}:prev);onSuccess(plan);}
+      else{setErr(result.error||"Error al procesar");setLoading(false);}
+    }catch(e:any){setLoading(false);setErr("Error de conexión: "+e?.message);}
+  };
 
   return(
     <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(4,4,12,0.92)",backdropFilter:"blur(20px)",zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",padding:20,overflowY:"auto"}}>
