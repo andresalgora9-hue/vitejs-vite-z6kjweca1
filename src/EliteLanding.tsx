@@ -351,29 +351,26 @@ function StepTarjeta({ datos, onSuccess }: any) {
   }, []);
 
   const pay = async () => {
-    if (!ready) return;
     setLoading(true); setErr(null);
-
-    const { paymentMethod, error } = await stripeRef.current.createPaymentMethod({
-      type: "card", card: cardEl.current,
-      billing_details: { name:datos.nombre, email:datos.email, phone:datos.telefono },
-    });
-    if (error) { setErr(error.message); setLoading(false); return; }
 
     const res = await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/dynamic-handler", {
       method: "POST",
       headers: { "Content-Type": "application/json", "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI" },
       body: JSON.stringify({
-        paymentMethodId: paymentMethod.id,
-        email:    datos.email,
-        nombre:   datos.nombre,
-        telefono: datos.telefono || "",
-        priceId:  STRIPE_PRICE_ID,
-        userId:   "",
+        action: "create_checkout_session",
+        email: datos.email,
+        name: datos.nombre,
+        priceId: STRIPE_PRICE_ID,
+        userId: "",
+        successUrl: window.location.origin + "/elite-gratis?checkout=success",
+        cancelUrl: window.location.origin + "/elite-gratis",
       }),
     });
     const result = await res.json();
     if (!result.ok) { setErr(result.error || "Error al procesar el pago"); setLoading(false); return; }
+    localStorage.setItem("oy_pending_elite", JSON.stringify(datos));
+    window.location.href = result.url;
+    return;
 
     // 🎯 EVENTO: Purchase — el más importante para Meta y Google
     track("Purchase", {
@@ -538,6 +535,29 @@ export default function EliteLanding() {
 
   // 🎯 EVENTO: ViewContent + Scroll Depth — se ejecuta al montar la landing
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("checkout") === "success") {
+      const pending = localStorage.getItem("oy_pending_elite");
+      if (pending) {
+        const pd = JSON.parse(pending);
+        localStorage.removeItem("oy_pending_elite");
+        setDatos(pd);
+        setStep(3);
+        fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/auth-handler", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI" },
+          body: JSON.stringify({ action: "register", email: pd.email, password: pd.password, name: pd.nombre, type: "profesional", phone: pd.telefono })
+        }).then(r => r.json()).then(async result => {
+          if (result.success) {
+            await db.from("users").update({ trade: pd.oficio, zone: "Sevilla", plan: "elite", price: 30, whatsapp: pd.telefono, free_quote: true, service_zones: ["Sevilla"], schedule: "Lunes a Viernes", response_time: "24h", experience_years: 0, specialties: [] }).eq("id", result.user.id);
+            track("Purchase", { currency: "EUR", value: 0, content_name: "elite_30dias_gratis", content_category: pd.oficio });
+            db.from("leads_landing").update({ convirtio: true }).eq("email", pd.email).then(() => {});
+            window.history.replaceState({}, "", "/elite-gratis");
+          }
+        }).catch(console.error);
+      }
+      return;
+    }
     track("ViewContent", {
       content_name: "landing_elite",
       content_type: "landing_page",
