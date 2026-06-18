@@ -3420,31 +3420,37 @@ function StripePayModal({user,priceId,plan,onClose,onSuccess,isRegistration=fals
   const pay=async()=>{
     if(!ready||loading)return;
     setLoading(true);setErr(null);
-    console.log("STRIPE REF:",stripeRef.current);
-    const {paymentMethod,error}=await stripeRef.current.createPaymentMethod({
-      type:"card",card:cardEl.current,
-      billing_details:{name:user.name,email:user.email,phone:user.phone||""},
-    });
-    console.log("PM:",paymentMethod,"ERR:",error);
-    if(error){setErr(error.message);setLoading(false);return;}
-    fbqEvent("AddPaymentInfo",{content_name:"suscripcion_"+plan,currency:"EUR",value:PLAN_PRICES[plan]});
-    gtagEvent("add_payment_info",{currency:"EUR",value:PLAN_PRICES[plan],payment_type:"card"});
     try{
-      console.log("ANTES DEL FETCH");
-      const res=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/dynamic-handler",{
+      // Paso 1: Crear SetupIntent en el backend
+      const setupRes=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/dynamic-handler",{
         method:"POST",
-        headers:{
-          "Content-Type":"application/json",
-          "apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI",
-          "Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI",
-        },
-        body:JSON.stringify({paymentMethodId:paymentMethod.id,email:user.email,nombre:user.name,telefono:user.phone||"",priceId,userId:user.id}),
+        headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI"},
+        body:JSON.stringify({action:"create_setup",email:user.email,nombre:user.name,telefono:user.phone||"",priceId,userId:user.id}),
       });
-      const result=await res.json();
-      if(result.ok){if(result.customerId&&setPendingProFormData)setPendingProFormData((prev:any)=>prev?{...prev,stripeCustomerId:result.customerId}:prev);onSuccess(plan);}
-      else{console.log("RESULT ERROR:",result);setErr(result.error||"Error al procesar");setLoading(false);}
-    }catch{setErr("Error de conexión");setLoading(false);}
-  };
+      const setupData=await setupRes.json();
+      if(!setupData.ok){setErr(setupData.error||"Error al iniciar pago");setLoading(false);return;}
+
+      // Paso 2: Confirmar SetupIntent con 3DS si necesario
+      const {setupIntent,error}=await stripeRef.current.confirmCardSetup(setupData.clientSecret,{
+        payment_method:{
+          card:cardEl.current,
+          billing_details:{name:user.name,email:user.email,phone:user.phone||""},
+        },
+      });
+      if(error){setErr(error.message);setLoading(false);return;}
+
+      fbqEvent("AddPaymentInfo",{content_name:"suscripcion_"+plan,currency:"EUR",value:PLAN_PRICES[plan]});
+      gtagEvent("add_payment_info",{currency:"EUR",value:PLAN_PRICES[plan],payment_type:"card"});
+
+      // Paso 3: Crear suscripción con el paymentMethod confirmado
+      const subRes=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/dynamic-handler",{
+        method:"POST",
+        headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI"},
+        body:JSON.stringify({action:"create_subscription",paymentMethodId:setupIntent.payment_method,email:user.email,nombre:user.name,telefono:user.phone||"",priceId,userId:user.id}),
+      });
+      const result=await subRes.json();
+      if(result.ok){
+        if(result.customerId&&setPendingProFormData)setPendingProFormData((prev:any)=>prev?{...prev,stripeCustomerId:result.cust
 
   return(
     <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(4,4,12,0.92)",backdropFilter:"blur(20px)",zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",padding:20,overflowY:"auto"}}>
