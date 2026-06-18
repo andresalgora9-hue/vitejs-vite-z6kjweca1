@@ -3443,25 +3443,38 @@ function StripePayModal({user,priceId,plan,onClose,onSuccess,isRegistration=fals
     setLoading(true);
     setErr(null);
 
-    const { paymentMethod, error } = await stripeRef.current.createPaymentMethod({
-      type: "card",
-      card: cardEl.current,
-      billing_details: { name: user.name, email: user.email, phone: user.phone || "" },
-    });
-
-    if (error) {
-      setErr(error.message);
-      setLoading(false);
-      return;
-    }
-
     try {
+      // 1. Crear SetupIntent para autorizar la tarjeta con 3DS
+      const siRes = await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/dynamic-handler", {
+        method: "POST",
+        headers: SUPABASE_HEADERS,
+        body: JSON.stringify({
+          action: "create_setup_intent",
+          email: user.email,
+          name: user.name,
+          userId: user.id,
+        }),
+      });
+      const siData = await siRes.json();
+      if (!siData.ok) { setErr(siData.error || "Error iniciando pago"); setLoading(false); return; }
+
+      // 2. Confirmar SetupIntent con 3DS (aquí el banco pide autorización)
+      const { setupIntent, error: setupError } = await stripeRef.current.confirmCardSetup(siData.setupClientSecret, {
+        payment_method: {
+          card: cardEl.current,
+          billing_details: { name: user.name, email: user.email, phone: user.phone || "" },
+        },
+      });
+      if (setupError) { setErr(setupError.message); setLoading(false); return; }
+      if (setupIntent?.status !== "succeeded") { setErr("No se pudo verificar la tarjeta."); setLoading(false); return; }
+
+      // 3. Suscribir con la tarjeta ya autorizada
       const res = await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/dynamic-handler", {
         method: "POST",
         headers: SUPABASE_HEADERS,
         body: JSON.stringify({
           action: "subscribe",
-          paymentMethodId: paymentMethod.id,
+          paymentMethodId: setupIntent.payment_method,
           priceId,
           userId: user.id,
           email: user.email,
@@ -3470,29 +3483,7 @@ function StripePayModal({user,priceId,plan,onClose,onSuccess,isRegistration=fals
         }),
       });
       const result = await res.json();
-
-      if (result.clientSecret) {
-        // PRO / BASICO — confirmar cobro con 3DS
-        const { error: confirmError, paymentIntent } = await stripeRef.current.confirmCardPayment(result.clientSecret, {
-          payment_method: paymentMethod.id,
-        });
-        if (confirmError) { setErr(confirmError.message); setLoading(false); return; }
-        if (paymentIntent?.status !== "succeeded") { setErr("Pago no completado, inténtalo de nuevo."); setLoading(false); return; }
-        // Actualizar plan en Supabase tras pago confirmado
-        await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/dynamic-handler", {
-          method: "POST",
-          headers: SUPABASE_HEADERS,
-          body: JSON.stringify({
-            action: "update_plan",
-            userId: user.id,
-            plan: result.plan,
-            subscriptionId: result.subscriptionId,
-            customerId: result.customerId,
-          }),
-        }).catch(() => {});
-      }
-
-      if (result.ok) {
+          if (result.ok) {
         onSuccess(plan);
       } else {
         setErr(result.error || "Error al procesar el pago");
