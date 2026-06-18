@@ -3111,17 +3111,6 @@ fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEA
             userId:"",
             successUrl:window.location.origin+"/?checkout=success&plan="+plan,
             cancelUrl:window.location.origin+"/?checkout=cancel",
-            if(params.get("checkout")==="upgrade"){
-      const pl=params.get("plan") as Plan;
-      if(pl&&s){
-        const u=JSON.parse(s);
-        const updated={...u,plan:pl};
-        localStorage.setItem("oy_user",JSON.stringify(updated));
-        setUser(updated as UserRow);
-        db.from("users").update({plan:pl}).eq("id",u.id);
-        window.history.replaceState({},"","/");
-      }
-    }
           })
         });
         const data=await res.json();
