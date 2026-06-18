@@ -3438,7 +3438,7 @@ function StripePayModal({user,priceId,plan,onClose,onSuccess,isRegistration=fals
         },
         return_url:"https://www.aficioya.com",
       });
-      if(error){setErr(error.message);setLoading(false);return;}
+      if(error && error.code !== "payment_intent_authentication_failure"){setErr(error.message);setLoading(false);return;}
 
       fbqEvent("AddPaymentInfo",{content_name:"suscripcion_"+plan,currency:"EUR",value:PLAN_PRICES[plan]});
       gtagEvent("add_payment_info",{currency:"EUR",value:PLAN_PRICES[plan],payment_type:"card"});
