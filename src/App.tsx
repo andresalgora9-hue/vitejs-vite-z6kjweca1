@@ -3450,7 +3450,13 @@ function StripePayModal({user,priceId,plan,onClose,onSuccess,isRegistration=fals
       });
       const result=await subRes.json();
       if(result.ok){
-        if(result.customerId&&setPendingProFormData)setPendingProFormData((prev:any)=>prev?{...prev,stripeCustomerId:result.cust
+        if(result.customerId&&setPendingProFormData)setPendingProFormData((prev:any)=>prev?{...prev,stripeCustomerId:result.customerId}:prev);
+        onSuccess(plan);
+      } else {
+        setErr(result.error||"Error al procesar");setLoading(false);
+      }
+    }catch(e:any){console.error("PAY ERROR:",e);setErr("Error de conexión: "+e?.message);setLoading(false);}
+  };
 
   return(
     <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(4,4,12,0.92)",backdropFilter:"blur(20px)",zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",padding:20,overflowY:"auto"}}>
