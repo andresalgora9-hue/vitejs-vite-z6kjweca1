@@ -3455,11 +3455,9 @@ function StripePayModal({user,priceId,plan,onClose,onSuccess,isRegistration=fals
       });
       const result = await res.json();
 
-      if (result.clientSecret && (result.requiresAction || result.status === "requires_action")) {
-        const { error: confirmError } = await stripeRef.current.confirmCardPayment(result.clientSecret, {
-          confirmParams: {
-            return_url: window.location.origin + window.location.pathname + "?stripe_return=true&plan=" + plan,
-          },
+      if (result.clientSecret) {
+        const { error: confirmError, paymentIntent } = await stripeRef.current.confirmCardPayment(result.clientSecret, {
+          payment_method: paymentMethod.id,
         });
         if (confirmError) { setErr(confirmError.message); setLoading(false); return; }
       }
