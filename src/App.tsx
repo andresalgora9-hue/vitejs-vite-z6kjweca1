@@ -4750,10 +4750,24 @@ setShowStripeModal({priceId:pl==="elite"?elitePriceId:PRICE_MAP[pl],plan:pl});
     priceId={showStripeModal.priceId}
     plan={showStripeModal.plan}
     onClose={()=>setShowStripeModal(null)}
-    onSuccess={(pl)=>{
-      onUpdate({...user,plan:pl});
-      showToast("✅ Plan "+pl.toUpperCase()+" activado");
+    onSuccess={async(pl)=>{
+      const priceId=showStripeModal!.priceId;
       setShowStripeModal(null);
+      const res=await fetch(`${SUPABASE_FUNCTIONS_URL}/dynamic-handler`,{
+        method:"POST",headers:SUPABASE_HEADERS,
+        body:JSON.stringify({
+          action:"create_checkout_session",
+          email:user.email,
+          name:user.name,
+          priceId,
+          userId:user.id,
+          successUrl:window.location.origin+"/?checkout=upgrade&plan="+pl,
+          cancelUrl:window.location.origin+"/",
+        })
+      });
+      const data=await res.json();
+      if(data.ok){window.location.href=data.url;}
+      else{showToast("Error: "+data.error);}
     }}
   />
 )}
