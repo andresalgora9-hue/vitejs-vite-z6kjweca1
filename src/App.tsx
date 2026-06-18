@@ -3456,10 +3456,24 @@ function StripePayModal({user,priceId,plan,onClose,onSuccess,isRegistration=fals
       const result = await res.json();
 
       if (result.clientSecret) {
+        // PRO / BASICO — confirmar cobro con 3DS
         const { error: confirmError, paymentIntent } = await stripeRef.current.confirmCardPayment(result.clientSecret, {
           payment_method: paymentMethod.id,
         });
         if (confirmError) { setErr(confirmError.message); setLoading(false); return; }
+        if (paymentIntent?.status !== "succeeded") { setErr("Pago no completado, inténtalo de nuevo."); setLoading(false); return; }
+        // Actualizar plan en Supabase tras pago confirmado
+        await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/dynamic-handler", {
+          method: "POST",
+          headers: SUPABASE_HEADERS,
+          body: JSON.stringify({
+            action: "update_plan",
+            userId: user.id,
+            plan: result.plan,
+            subscriptionId: result.subscriptionId,
+            customerId: result.customerId,
+          }),
+        }).catch(() => {});
       }
 
       if (result.ok) {
