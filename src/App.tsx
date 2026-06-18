@@ -3094,13 +3094,40 @@ fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEA
       const {data:ex}=await db.from("users").select("id").eq("email",email.toLowerCase()).maybeSingle();
       if(ex){setLoading(false);setErr("Ya existe una cuenta con ese email. ¿Ya tienes cuenta? Inicia sesión.");return;}
       setLoading(false);
-      // Si eligió plan de pago → Stripe PRIMERO, cuenta se crea solo si paga
+      // Si eligió plan de pago → Stripe Checkout (redirect)
       if(plan!=="gratis"){
-  const resolvedPriceId=PRICE_MAP[plan];
+        const resolvedPriceId=PRICE_MAP[plan];
         if(!resolvedPriceId){setErr("Plan no válido.");return;}
-        setPendingProFormData({name:name.trim(),email:email.toLowerCase().trim(),password:pass,phone:phone.trim(),trade,zone,plan});
-        setPendingPriceId(resolvedPriceId);
-        setShowRegisterStripe(true);
+        setLoading(true);
+        // Guardar datos pendientes en localStorage para recuperar tras el redirect
+        localStorage.setItem("oy_pending_pro", JSON.stringify({name:name.trim(),email:email.toLowerCase().trim(),password:pass,phone:phone.trim(),trade,zone,plan}));
+        const res=await fetch(`${SUPABASE_FUNCTIONS_URL}/dynamic-handler`,{
+          method:"POST",headers:SUPABASE_HEADERS,
+          body:JSON.stringify({
+            action:"create_checkout_session",
+            email:email.toLowerCase().trim(),
+            name:name.trim(),
+            priceId:resolvedPriceId,
+            userId:"",
+            successUrl:window.location.origin+"/?checkout=success&plan="+plan,
+            cancelUrl:window.location.origin+"/?checkout=cancel",
+            if(params.get("checkout")==="upgrade"){
+      const pl=params.get("plan") as Plan;
+      if(pl&&s){
+        const u=JSON.parse(s);
+        const updated={...u,plan:pl};
+        localStorage.setItem("oy_user",JSON.stringify(updated));
+        setUser(updated as UserRow);
+        db.from("users").update({plan:pl}).eq("id",u.id);
+        window.history.replaceState({},"","/");
+      }
+    }
+          })
+        });
+        const data=await res.json();
+        if(!data.ok){setLoading(false);setErr(data.error||"Error iniciando pago");return;}
+        window.location.href=data.url;
+        return;
       } else {
         // Plan gratis → crear cuenta directamente
         const trial_end=new Date(Date.now()+30*86400000).toISOString().split("T")[0];
@@ -4846,6 +4873,44 @@ export default function App(){
     }
    const s=localStorage.getItem("oy_user");
     if(s){try{setUser(JSON.parse(s));}catch{localStorage.removeItem("oy_user");}}
+    // Detectar return de Stripe Checkout
+    const params=new URLSearchParams(window.location.search);
+    if(params.get("checkout")==="success"){
+      const pending=localStorage.getItem("oy_pending_pro");
+      if(pending){
+        const pd=JSON.parse(pending);
+        localStorage.removeItem("oy_pending_pro");
+        fetch(`${SUPABASE_FUNCTIONS_URL}/auth-handler`,{
+          method:"POST",headers:SUPABASE_HEADERS,
+          body:JSON.stringify({action:"register",email:pd.email,password:pd.password,name:pd.name,type:"profesional",phone:pd.phone})
+        }).then(r=>r.json()).then(async result=>{
+          if(result.success){
+            await db.from("users").update({trade:pd.trade,zone:pd.zone,plan:pd.plan,price:30,whatsapp:pd.phone,free_quote:true,service_zones:[pd.zone],schedule:"Lunes a Viernes",response_time:"24h",experience_years:0,specialties:[]}).eq("id",result.user.id);
+            const {data:updated}=await db.from("users").select("*").eq("id",result.user.id).single();
+            const finalUser=updated||result.user;
+            localStorage.setItem("oy_user",JSON.stringify(finalUser));
+            setUser(finalUser as UserRow);
+            fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({type:"bienvenida_pro",to:pd.email,name:pd.name})});
+            window.history.replaceState({},"","/");
+          }
+        }).catch(console.error);
+      }
+    }
+    if(params.get("checkout")==="cancel"){
+      localStorage.removeItem("oy_pending_pro");
+      window.history.replaceState({},"","/");
+    }
+    if(params.get("checkout")==="upgrade"){
+      const pl=params.get("plan") as Plan;
+      if(pl&&s){
+        const u=JSON.parse(s);
+        const updated={...u,plan:pl};
+        localStorage.setItem("oy_user",JSON.stringify(updated));
+        setUser(updated as UserRow);
+        db.from("users").update({plan:pl}).eq("id",u.id);
+        window.history.replaceState({},"","/");
+      }
+    }
     
   (window as any).handleGoogleCredential=async(response:any)=>{
       const payload=JSON.parse(atob(response.credential.split(".")[1]));
