@@ -411,26 +411,9 @@ function StepTarjeta({ datos, onSuccess }: any) {
         </div>
       </div>
 
-      <div style={{ background:C.surface, border:`1.5px solid ${C.border}`, borderRadius:16, padding:"18px 16px" }}>
-        <label style={{ display:"block", marginBottom:12, fontSize:11, letterSpacing:1.5, textTransform:"uppercase" as const, color:C.dim, fontWeight:600 }}>
-          Datos de tarjeta
-        </label>
-        <div ref={cardRef} style={{ minHeight:28 }}/>
-        {!ready && <p style={{ color:C.dim, fontSize:11, marginTop:8 }}>Cargando formulario seguro…</p>}
-        {err   && <p style={{ color:C.red,  fontSize:12, marginTop:8 }}>⚠ {err}</p>}
-        <div style={{ display:"flex", alignItems:"center", gap:6, marginTop:14, paddingTop:14, borderTop:`1px solid ${C.border}` }}>
-          <span style={{ fontSize:14 }}>🔒</span>
-          <span style={{ color:C.dim, fontSize:11 }}>Pago cifrado con Stripe · Tus datos están seguros</span>
-        </div>
-      </div>
+      {err && <p style={{ color:C.red, fontSize:12, marginTop:8 }}>⚠ {err}</p>}
 
-      <div style={{ display:"flex", gap:8 }}>
-        {["VISA","Mastercard","AMEX"].map(c=>(
-          <span key={c} style={{ border:`1px solid ${C.border}`, borderRadius:6, padding:"3px 10px", color:C.dim, fontSize:10, letterSpacing:1 }}>{c}</span>
-        ))}
-      </div>
-
-      <Btn onClick={pay} disabled={!ready||loading}>
+      <Btn onClick={pay} disabled={loading}>
         {loading ? "⟳  Activando tu cuenta…" : "Activar 30 días gratis →"}
       </Btn>
       <p style={{ color:C.dim, fontSize:11, textAlign:"center", lineHeight:1.8 }}>
