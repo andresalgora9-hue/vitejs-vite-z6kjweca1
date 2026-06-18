@@ -3436,6 +3436,7 @@ function StripePayModal({user,priceId,plan,onClose,onSuccess,isRegistration=fals
           card:cardEl.current,
           billing_details:{name:user.name,email:user.email,phone:user.phone||""},
         },
+        return_url:"https://www.aficioya.com",
       });
       if(error){setErr(error.message);setLoading(false);return;}
 
