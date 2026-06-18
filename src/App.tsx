@@ -3157,38 +3157,40 @@ fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEA
           plan={pendingProFormData.plan as Plan}
           onClose={()=>{setShowRegisterStripe(false);setPendingProFormData(null);setErr("Pago cancelado. Tu cuenta no ha sido creada. Puedes intentarlo de nuevo.");}}
           onSuccess={async(pl)=>{
-            let data:any=null;
-            if(pendingProFormData.fromGoogle){
-              const {data:existing}=await db.from("users").select("*").eq("email",pendingProFormData.email).maybeSingle();
-              if(existing){
-                await db.from("users").update({trade:pendingProFormData.trade,zone:pendingProFormData.zone,plan:pl,price:30,whatsapp:pendingProFormData.phone||"",free_quote:true,service_zones:[pendingProFormData.zone],schedule:"Lunes a Viernes",response_time:"24h",experience_years:0,specialties:[],...(pendingProFormData.stripeCustomerId?{stripe_customer_id:pendingProFormData.stripeCustomerId}:{})}).eq("id",existing.id);
-                data=existing;
-              }
-            } else {
-              const res=await fetch(`${SUPABASE_FUNCTIONS_URL}/auth-handler`,{
-                method:"POST",headers:SUPABASE_HEADERS,
-                body:JSON.stringify({action:"register",email:pendingProFormData.email,password:pendingProFormData.password,name:pendingProFormData.name,type:"profesional",phone:pendingProFormData.phone})
-              });
-              const result=await res.json();
-              if(result.success){
-                await db.from("users").update({trade:pendingProFormData.trade,zone:pendingProFormData.zone,plan:pl,price:30,whatsapp:pendingProFormData.phone,free_quote:true,service_zones:[pendingProFormData.zone],schedule:"Lunes a Viernes",response_time:"24h",experience_years:0,specialties:[],...(pendingProFormData.stripeCustomerId?{stripe_customer_id:pendingProFormData.stripeCustomerId}:{})}).eq("id",result.user.id);
-                data=result.user;
-              } else {
-                const isDupe=result.error?.includes("duplicate")||result.error?.includes("unique")||result.message?.includes("Ya existe");
-                setShowRegisterStripe(false);setPendingProFormData(null);
-                setErr(isDupe?"Tu email ya está registrado. Inicia sesión y actualiza tu plan desde el perfil.":"Pago procesado pero hubo un error creando tu cuenta. Contacta con soporte: admin@oficioya.com");
-                return;
-              }
+            const res=await fetch(`${SUPABASE_FUNCTIONS_URL}/auth-handler`,{
+              method:"POST",headers:SUPABASE_HEADERS,
+              body:JSON.stringify({action:"register",email:pendingProFormData.email,password:pendingProFormData.password,name:pendingProFormData.name,type:"profesional",phone:pendingProFormData.phone})
+            });
+            const result=await res.json();
+            if(!result.success){
+              const isDupe=result.error?.includes("duplicate")||result.error?.includes("unique")||result.message?.includes("Ya existe");
+              setShowRegisterStripe(false);setPendingProFormData(null);
+              setErr(isDupe?"Tu email ya está registrado. Inicia sesión y actualiza tu plan desde el perfil.":"Pago procesado pero hubo un error creando tu cuenta. Contacta con soporte: admin@oficioya.com");
+              return;
             }
-            if(!data){setShowRegisterStripe(false);setPendingProFormData(null);setErr("Pago procesado pero hubo un error creando tu cuenta. Contacta con soporte: admin@oficioya.com");return;}
+            await db.from("users").update({
+              trade:pendingProFormData.trade,
+              zone:pendingProFormData.zone,
+              plan:pl,
+              price:30,
+              whatsapp:pendingProFormData.phone,
+              free_quote:true,
+              service_zones:[pendingProFormData.zone],
+              schedule:"Lunes a Viernes",
+              response_time:"24h",
+              experience_years:0,
+              specialties:[],
+            }).eq("id",result.user.id);
+            const {data:updated}=await db.from("users").select("*").eq("id",result.user.id).single();
+            const finalUser=updated||result.user;
             fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({type:"bienvenida_pro",to:pendingProFormData.email,name:pendingProFormData.name})});
             setShowRegisterStripe(false);
             setPendingProFormData(null);
             fbqEvent("Purchase",{value:PLAN_PRICES[pl],currency:"EUR",content_name:"suscripcion_"+pl});
             fbqEvent("CompleteRegistration",{content_name:"pro_"+pl});
-            gtagEvent("purchase",{value:PLAN_PRICES[pl],currency:"EUR",transaction_id:data.id,user_type:"pro",plan:pl});
+            gtagEvent("purchase",{value:PLAN_PRICES[pl],currency:"EUR",transaction_id:finalUser.id,user_type:"pro",plan:pl});
             gtagEvent("sign_up",{method:"email",user_type:"pro"});
-            onLogin(data as UserRow);
+            onLogin(finalUser as UserRow);
           }}
         />
       )}
