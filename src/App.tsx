@@ -3370,6 +3370,20 @@ fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEA
   );
 }
 // SATRIPE // 
+function LoadingPay({plan}:{plan:string}){
+  const msgs = [
+    "🔒 Cifrando tus datos...",
+    "💳 Verificando tarjeta...",
+    "⚡ Procesando pago...",
+    "✅ Confirmando suscripción...",
+  ];
+  const [i,setI]=React.useState(0);
+  React.useEffect(()=>{
+    const t=setInterval(()=>setI(p=>(p+1)%msgs.length),1800);
+    return()=>clearInterval(t);
+  },[]);
+  return <span>{msgs[i]}</span>;
+}
 function StripePayModal({user,priceId,plan,onClose,onSuccess,isRegistration=false}:{user:UserRow;priceId:string;plan:Plan;onClose:()=>void;onSuccess:(pl:Plan)=>void;isRegistration?:boolean}){
   const cardRef=useRef<HTMLDivElement>(null);
   const stripeRef=useRef<any>(null);
@@ -3575,7 +3589,7 @@ function StripePayModal({user,priceId,plan,onClose,onSuccess,isRegistration=fals
               transition:"all 0.2s",
             }}
           >
-            {loading?"⟳ Procesando...":
+            {loading?<LoadingPay plan={plan}/>:
              plan==="elite"&&nuncaTuvoElite?"Activar 30 días gratis →":
              "Activar "+plan.toUpperCase()+" por "+PLAN_PRICES[plan]+"€/mes →"}
           </button>
