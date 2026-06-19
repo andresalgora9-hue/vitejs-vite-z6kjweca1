@@ -551,8 +551,11 @@ export default function EliteLanding() {
           body: JSON.stringify({ action: "register", email: pd.email, password: pd.password, name: pd.nombre, type: "profesional", phone: pd.telefono })
         }).then(r => r.json()).then(async result => {
           if (result.success) {
-            await db.from("users").update({ trade: pd.oficio, zone: "Sevilla", plan: "elite", price: 30, whatsapp: pd.telefono, free_quote: true, service_zones: ["Sevilla"], schedule: "Lunes a Viernes", response_time: "24h", experience_years: 0, specialties: [] }).eq("id", result.user.id);
+            const {data:updatedUser}=await db.from("users").update({ trade: pd.oficio, zone: "Sevilla", plan: "elite", price: 30, whatsapp: pd.telefono, free_quote: true, service_zones: ["Sevilla"], schedule: "Lunes a Viernes", response_time: "24h", experience_years: 0, specialties: [] }).eq("id", result.user.id).select("*").single();
+            const finalUser=updatedUser||result.user;
+            localStorage.setItem("oy_user",JSON.stringify(finalUser));
             track("Purchase", { currency: "EUR", value: 0, content_name: "elite_30dias_gratis", content_category: pd.oficio });
+            if((window as any).gtag)(window as any).gtag("event","purchase",{value:0,currency:"EUR",transaction_id:finalUser.id,user_type:"pro",plan:"elite"});
             db.from("leads_landing").update({ convirtio: true }).eq("email", pd.email).then(() => {});
             window.history.replaceState({}, "", "/elite-gratis");
           }
