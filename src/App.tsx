@@ -4894,6 +4894,10 @@ export default function App(){
             localStorage.setItem("oy_user",JSON.stringify(finalUser));
             setUser(finalUser as UserRow);
             fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({type:"bienvenida_pro",to:pd.email,name:pd.name})});
+            fbqEvent("Purchase",{value:0,currency:"EUR",content_name:"suscripcion_"+pd.plan,content_category:pd.trade});
+            fbqEvent("CompleteRegistration",{content_name:"pro_"+pd.plan});
+            gtagEvent("purchase",{value:0,currency:"EUR",transaction_id:finalUser.id,user_type:"pro",plan:pd.plan});
+            gtagEvent("sign_up",{method:"email",user_type:"pro"});
             window.history.replaceState({},"","/");
           }
         }).catch(console.error);
