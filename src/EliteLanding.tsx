@@ -253,6 +253,7 @@ function Btn({ children, onClick, disabled, secondary }: any) {
 function StepDatos({ onNext }: any) {
   const [form, setForm] = useState({ nombre:"", oficio:"", telefono:"", email:"", password:"" });
   const [errors, setErrors] = useState<any>({});
+  const [loading, setLoading] = useState(false);
 
   const OFICIOS = [
     "Electricista","Fontanero","Cerrajero","Pintor","Albañil","Carpintero",
@@ -295,7 +296,7 @@ function StepDatos({ onNext }: any) {
       <Field label="Contraseña" name="password" type="password" placeholder="Mínimo 6 caracteres" value={form.password} onChange={change} error={errors.password} required/>
 
       <div style={{ marginTop:4 }}>
-        <Btn onClick={async () => {
+      <Btn disabled={loading} onClick={async () => {
           const e = validate();
           if (Object.keys(e).length) { setErrors(e); return; }
 
@@ -308,7 +309,25 @@ function StepDatos({ onNext }: any) {
           });
 
           await saveLead(form);
-          onNext(form);
+          // Ir directo a Stripe Checkout sin paso intermedio
+          setLoading(true);
+          const res = await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/dynamic-handler", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI" },
+            body: JSON.stringify({
+              action: "create_checkout_session",
+              email: form.email,
+              name: form.nombre,
+              priceId: STRIPE_PRICE_ID,
+              userId: "",
+              successUrl: window.location.origin + "/elite-gratis?checkout=success",
+              cancelUrl: window.location.origin + "/elite-gratis",
+            }),
+          });
+          const data = await res.json();
+          if (!data.ok) { setLoading(false); return; }
+          localStorage.setItem("oy_pending_elite", JSON.stringify(form));
+          window.location.href = data.url;
         }}>
           Siguiente → Añadir tarjeta
         </Btn>
