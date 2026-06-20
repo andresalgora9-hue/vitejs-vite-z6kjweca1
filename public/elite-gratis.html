@@ -627,11 +627,6 @@ async function enviarDatos() {
   userId: '',
   successUrl: window.location.origin + '/elite-gratis?checkout=success',
   cancelUrl: window.location.origin + '/elite-gratis',
-  nombre, telefono, oficio,
-  utmSource: params.get('utm_source') || 'directo',
-  utmMedium: params.get('utm_medium') || null,
-  utmCampaign: params.get('utm_campaign') || null,
-  utmContent: params.get('utm_content') || null,
 })
     });
     const data = await res.json();
