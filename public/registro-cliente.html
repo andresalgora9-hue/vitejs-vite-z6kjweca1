@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Encuentra profesionales en Sevilla — OficioYa</title>
+<meta name="description" content="Encuentra profesionales verificados en tu zona en Sevilla. Gratis y sin comisiones."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+
+<script>
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('init','2460836967768276');
+fbq('track','PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=2460836967768276&ev=PageView&noscript=1"/></noscript>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-S6F18YG34M"></script>
+<script>
+window.dataLayer=window.dataLayer||[];
+function gtag(){dataLayer.push(arguments);}
+gtag('js',new Date());
+gtag('config','G-S6F18YG34M');
+</script>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+
+body{
+  background:#060608;
+  color:#fff;
+  font-family:'Inter',sans-serif;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:32px 16px;
+  position:relative;
+  overflow-x:hidden;
+}
+
+/* FONDO CON PROFUNDIDAD */
+.bg-layer{position:fixed;inset:0;pointer-events:none;z-index:0;}
+
+/* Orb principal dorado grande */
+.bg-orb-main{
+  position:absolute;
+  width:700px;height:700px;
+  border-radius:50%;
+  background:radial-gradient(circle at center,rgba(255,184,0,0.12) 0%,rgba(255,184,0,0.04) 40%,transparent 70%);
+  top:50%;left:50%;
+  transform:translate(-50%,-60%);
+  animation:orbMain 8s ease-in-out infinite;
+}
+/* Orb azulado frio para contraste de profundidad */
+.bg-orb-cold{
+  position:absolute;
+  width:500px;height:500px;
+  border-radius:50%;
+  background:radial-gradient(circle at center,rgba(80,100,255,0.07) 0%,transparent 65%);
+  bottom:-100px;right:-100px;
+  animation:orbCold 12s ease-in-out infinite;
+}
+/* Orb cálido pequeño arriba izquierda */
+.bg-orb-warm{
+  position:absolute;
+  width:300px;height:300px;
+  border-radius:50%;
+  background:radial-gradient(circle at center,rgba(255,140,0,0.09) 0%,transparent 65%);
+  top:-80px;left:-60px;
+  animation:orbWarm 10s ease-in-out infinite 2s;
+}
+/* Línea de luz vertical */
+.bg-line{
+  position:absolute;
+  width:1px;
+  height:60vh;
+  background:linear-gradient(to bottom,transparent,rgba(255,184,0,0.15),transparent);
+  top:20%;right:20%;
+  animation:lineFloat 7s ease-in-out infinite;
+}
+.bg-line2{
+  position:absolute;
+  width:1px;
+  height:40vh;
+  background:linear-gradient(to bottom,transparent,rgba(255,184,0,0.08),transparent);
+  top:40%;left:15%;
+  animation:lineFloat 10s ease-in-out infinite 3s;
+}
+/* Grid sutil de fondo */
+.bg-grid{
+  position:absolute;
+  inset:0;
+  background-image:
+    linear-gradient(rgba(255,184,0,0.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,184,0,0.03) 1px,transparent 1px);
+  background-size:60px 60px;
+  mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 0%,transparent 100%);
+}
+/* Partículas */
+.particle{
+  position:absolute;
+  border-radius:50%;
+  background:#FFB800;
+  opacity:0;
+  animation:particleFloat var(--dur) ease-in-out infinite var(--del);
+}
+
+@keyframes orbMain{0%,100%{transform:translate(-50%,-60%) scale(1)}50%{transform:translate(-50%,-58%) scale(1.08)}}
+@keyframes orbCold{0%,100%{transform:translate(0,0)}50%{transform:translate(-30px,-40px)}}
+@keyframes orbWarm{0%,100%{transform:translate(0,0)}50%{transform:translate(20px,30px)}}
+@keyframes lineFloat{0%,100%{opacity:0.4;transform:translateY(0)}50%{opacity:1;transform:translateY(-20px)}}
+@keyframes particleFloat{0%{opacity:0;transform:translateY(0) scale(1)}30%{opacity:0.6}70%{opacity:0.4}100%{opacity:0;transform:translateY(-60px) scale(0.5)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeOut{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-5px)}}
+@keyframes pulse2{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.8)}}
+@keyframes shimmer{0%{background-position:200% center}100%{background-position:-200% center}}
+
+/* CONTENIDO */
+.wrap{position:relative;z-index:1;width:100%;max-width:400px;}
+
+/* LOGO */
+.header{text-align:center;margin-bottom:32px;animation:fadeUp 0.5s ease both;}
+.logo-icon{
+  width:56px;height:56px;border-radius:14px;
+  background:linear-gradient(135deg,#FFB800,#ff8c00);
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;margin:0 auto 12px;
+  box-shadow:0 0 40px rgba(255,184,0,0.3),0 0 80px rgba(255,184,0,0.1);
+}
+.logo-name{font-size:12px;font-weight:700;letter-spacing:3px;color:#444;text-transform:uppercase;}
+
+/* HEADLINE */
+.headline{text-align:center;margin-bottom:24px;animation:fadeUp 0.5s ease both 0.1s;}
+.headline-top{font-size:15px;color:#666;font-weight:500;letter-spacing:0.5px;margin-bottom:6px;}
+.headline-main{font-size:32px;font-weight:900;line-height:1.1;letter-spacing:-1px;color:#fff;}
+.headline-main span{color:#FFB800;}
+.rotating-wrap{
+  display:inline-block;
+  position:relative;
+  height:42px;
+  overflow:hidden;
+  vertical-align:bottom;
+  min-width:180px;
+}
+.rotating-word{
+  display:block;
+  color:#FFB800;
+  font-size:32px;
+  font-weight:900;
+  letter-spacing:-1px;
+  line-height:42px;
+  text-shadow:0 0 30px rgba(255,184,0,0.4);
+}
+.rotating-word.out{animation:fadeOut 0.2s ease forwards;}
+.rotating-word.in{animation:fadeIn 0.2s ease forwards;}
+
+/* SUBLINE */
+.subline{text-align:center;color:#555;font-size:14px;margin-bottom:28px;line-height:1.6;animation:fadeUp 0.5s ease both 0.15s;}
+
+/* PILLS */
+.pills{display:flex;justify-content:center;gap:8px;margin-bottom:28px;flex-wrap:wrap;animation:fadeUp 0.5s ease both 0.2s;}
+.pill{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(255,184,0,0.06);
+  border:1px solid rgba(255,184,0,0.15);
+  border-radius:40px;padding:6px 14px;
+  font-size:11px;color:#888;font-weight:600;letter-spacing:0.5px;
+  backdrop-filter:blur(4px);
+}
+.pill-dot{width:5px;height:5px;border-radius:50%;background:#FFB800;box-shadow:0 0 6px rgba(255,184,0,0.8);animation:pulse2 2s infinite;}
+
+/* CARD */
+.card{
+  background:rgba(16,16,22,0.85);
+  border:1px solid rgba(255,184,0,0.12);
+  border-radius:20px;
+  padding:28px 24px;
+  backdrop-filter:blur(20px);
+  box-shadow:0 0 0 1px rgba(255,255,255,0.03),0 32px 64px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.04);
+  animation:fadeUp 0.5s ease both 0.25s;
+}
+.card-title{font-size:14px;font-weight:800;color:#fff;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;}
+.gratis-badge{background:rgba(74,222,128,0.1);color:#4ade80;font-size:10px;font-weight:800;padding:3px 10px;border-radius:20px;border:1px solid rgba(74,222,128,0.2);letter-spacing:0.5px;}
+
+/* FIELDS */
+.field{margin-bottom:14px;}
+.field-label{display:block;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#3a3a4a;margin-bottom:6px;transition:color 0.2s;}
+.field-input{
+  width:100%;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:12px;padding:13px 16px;
+  color:#fff;font-size:15px;outline:none;
+  transition:border-color 0.2s,box-shadow 0.2s;
+  font-family:'Inter',sans-serif;
+}
+.field-input::placeholder{color:#2a2a3a;}
+.field-input:focus{border-color:rgba(255,184,0,0.5);box-shadow:0 0 0 3px rgba(255,184,0,0.08);}
+.field-error{color:#ef4444;font-size:11px;margin-top:4px;display:none;}
+
+.btn{
+  width:100%;padding:15px;
+  background:linear-gradient(135deg,#FFB800,#ff9500);
+  border:none;border-radius:14px;
+  color:#000;font-size:15px;font-weight:800;
+  cursor:pointer;transition:all 0.2s;
+  box-shadow:0 4px 20px rgba(255,184,0,0.3),0 0 40px rgba(255,184,0,0.1);
+  font-family:'Inter',sans-serif;margin-top:6px;
+  letter-spacing:0.2px;
+}
+.btn:hover{transform:translateY(-1px);box-shadow:0 8px 30px rgba(255,184,0,0.4),0 0 60px rgba(255,184,0,0.15);}
+.btn:disabled{background:#1a1a22;color:#333;cursor:not-allowed;box-shadow:none;transform:none;}
+
+.legal{text-align:center;margin-top:14px;font-size:11px;color:#333;line-height:1.6;}
+.legal a{color:rgba(255,184,0,0.6);text-decoration:none;}
+
+/* FOOTER */
+.footer{margin-top:24px;text-align:center;font-size:11px;color:#222;position:relative;z-index:1;}
+.footer a{color:#2a2a2a;text-decoration:none;margin:0 6px;}
+
+/* ÉXITO */
+.success{text-align:center;animation:fadeUp 0.5s ease both;display:none;}
+.success h2{color:#FFB800;font-size:24px;font-weight:900;margin-bottom:8px;text-shadow:0 0 30px rgba(255,184,0,0.3);}
+.success p{color:#666;font-size:14px;line-height:1.7;margin-bottom:24px;}
+.app-link{display:flex;align-items:center;gap:12px;background:rgba(255,184,0,0.08);border:1px solid rgba(255,184,0,0.2);border-radius:12px;padding:14px 16px;text-decoration:none;margin-bottom:10px;}
+</style>
+</head>
+<body>
+
+<!-- FONDO CON PROFUNDIDAD -->
+<div class="bg-layer">
+  <div class="bg-grid"></div>
+  <div class="bg-orb-main"></div>
+  <div class="bg-orb-cold"></div>
+  <div class="bg-orb-warm"></div>
+  <div class="bg-line"></div>
+  <div class="bg-line2"></div>
+  <!-- Partículas -->
+  <div class="particle" style="width:3px;height:3px;top:70%;left:20%;--dur:6s;--del:0s;"></div>
+  <div class="particle" style="width:2px;height:2px;top:60%;left:75%;--dur:8s;--del:1s;"></div>
+  <div class="particle" style="width:3px;height:3px;top:80%;left:50%;--dur:7s;--del:2s;"></div>
+  <div class="particle" style="width:2px;height:2px;top:65%;left:35%;--dur:9s;--del:0.5s;"></div>
+  <div class="particle" style="width:3px;height:3px;top:75%;left:85%;--dur:6.5s;--del:3s;"></div>
+</div>
+
+<div class="wrap">
+
+  <!-- LOGO -->
+  <div class="header">
+    <div class="logo-icon">🔨</div>
+    <div class="logo-name">OficioYa · Sevilla</div>
+  </div>
+
+  <!-- HEADLINE ROTATIVO -->
+  <div class="headline">
+    <div class="headline-top">Profesionales verificados cerca de ti</div>
+    <div class="headline-main">
+      Encuentra tu<br/>
+      <div class="rotating-wrap">
+        <span class="rotating-word" id="rotating-word">fontanero</span>
+      </div>
+      <br/>en Sevilla hoy.
+    </div>
+  </div>
+
+  <div class="subline">Sin llamadas en frío. Sin esperas. Sin comisiones.</div>
+
+  <!-- PILLS -->
+  <div class="pills">
+    <div class="pill"><div class="pill-dot"></div>Verificados</div>
+    <div class="pill"><div class="pill-dot"></div>Respuesta en minutos</div>
+    <div class="pill"><div class="pill-dot"></div>100% gratis</div>
+  </div>
+
+  <!-- CARD -->
+  <div class="card" id="form-card">
+    <div class="card-title">
+      Crea tu cuenta gratis
+      <span class="gratis-badge">100% GRATIS</span>
+    </div>
+
+    <div class="field">
+      <label class="field-label" for="nombre">Nombre completo <span style="color:#FFB800;">*</span></label>
+      <input class="field-input" type="text" id="nombre" placeholder="Tu nombre"/>
+      <span class="field-error" id="err-nombre"></span>
+    </div>
+    <div class="field">
+      <label class="field-label" for="email">Email <span style="color:#FFB800;">*</span></label>
+      <input class="field-input" type="email" id="email" placeholder="tu@email.com"/>
+      <span class="field-error" id="err-email"></span>
+    </div>
+    <div class="field">
+      <label class="field-label" for="telefono">Teléfono (opcional)</label>
+      <input class="field-input" type="tel" id="telefono" placeholder="+34 600 000 000"/>
+    </div>
+    <div class="field">
+      <label class="field-label" for="password">Contraseña <span style="color:#FFB800;">*</span></label>
+      <input class="field-input" type="password" id="password" placeholder="Mínimo 6 caracteres"/>
+      <span class="field-error" id="err-password"></span>
+    </div>
+
+    <button class="btn" id="btn-crear" onclick="crearCuenta()">Crear cuenta gratis →</button>
+    <div class="legal">Al continuar aceptas los <a href="/terminos" target="_blank">Términos</a> y la <a href="/privacidad" target="_blank">Privacidad</a></div>
+  </div>
+
+  <!-- ÉXITO -->
+  <div class="card success" id="success-card">
+    <div style="font-size:52px;margin-bottom:16px;">🎉</div>
+    <h2>¡Cuenta creada!</h2>
+    <p>Ya puedes encontrar profesionales verificados en Sevilla. Descarga la app y publica tu primera solicitud.</p>
+    <a href="https://play.google.com/store/apps/details?id=com.aficioya.twa" target="_blank" class="app-link">
+      <span style="font-size:24px;">🤖</span>
+      <div>
+        <p style="color:#fff;font-weight:700;font-size:13px;margin:0;">Descargar en Android</p>
+        <p style="color:#888;font-size:11px;margin:0;">Google Play Store</p>
+      </div>
+      <span style="color:#FFB800;margin-left:auto;font-size:16px;">→</span>
+    </a>
+    <button class="btn" onclick="window.location.href='/'">Buscar profesionales →</button>
+  </div>
+
+</div>
+
+<div class="footer">
+  © 2026 oficioya &nbsp;·&nbsp;
+  <a href="/terminos">Términos</a>
+  <a href="/privacidad">Privacidad</a>
+  <a href="/cancelacion">Cancelación</a>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://rjwojxwrsbvwwshwwpvq.supabase.co';
+const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI';
+
+const palabras = ['fontanero','electricista','cerrajero','pintor','albañil','carpintero','reformas'];
+let idx = 0;
+const el = document.getElementById('rotating-word');
+
+setInterval(() => {
+  el.classList.remove('in');
+  el.classList.add('out');
+  setTimeout(() => {
+    idx = (idx + 1) % palabras.length;
+    el.textContent = palabras[idx];
+    el.classList.remove('out');
+    el.classList.add('in');
+  }, 200);
+}, 1400);
+
+function track(evento, datos) {
+  if (window.fbq) fbq('track', evento, datos || {});
+  if (window.gtag) gtag('event', evento, datos || {});
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  track('ViewContent', { content_name: 'registro_cliente', currency: 'EUR', value: 0 });
+});
+
+async function crearCuenta() {
+  const nombre = document.getElementById('nombre').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const telefono = document.getElementById('telefono').value.trim();
+  const password = document.getElementById('password').value;
+
+  let ok = true;
+  const setErr = (id, msg) => {
+    const el = document.getElementById(id);
+    if (msg) { el.textContent = '⚠ ' + msg; el.style.display = 'block'; ok = false; }
+    else { el.style.display = 'none'; }
+  };
+
+  setErr('err-nombre', !nombre ? 'Obligatorio' : null);
+  setErr('err-email', !email.includes('@') ? 'Email inválido' : null);
+  setErr('err-password', password.length < 6 ? 'Mínimo 6 caracteres' : null);
+
+  if (!ok) return;
+
+  const btn = document.getElementById('btn-crear');
+  btn.disabled = true;
+  btn.textContent = '⟳ Creando cuenta...';
+
+  try {
+    const res = await fetch(SUPABASE_URL + '/functions/v1/auth-handler', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': ANON_KEY,
+        'Authorization': 'Bearer ' + ANON_KEY
+      },
+      body: JSON.stringify({
+        action: 'register',
+        email, password,
+        name: nombre,
+        type: 'cliente',
+        phone: telefono || null
+      })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      localStorage.setItem('oy_user', JSON.stringify(data.user));
+      track('CompleteRegistration', { content_name: 'registro_cliente', currency: 'EUR', value: 0 });
+      if (window.gtag) gtag('event', 'sign_up', { method: 'email', user_type: 'cliente' });
+      document.getElementById('form-card').style.display = 'none';
+      document.getElementById('success-card').style.display = 'block';
+    } else {
+      btn.disabled = false;
+      btn.textContent = 'Crear cuenta gratis →';
+      if (data.error && data.error.includes('already')) {
+        setErr('err-email', 'Este email ya está registrado');
+      } else {
+        alert('Error al crear la cuenta. Inténtalo de nuevo.');
+      }
+    }
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = 'Crear cuenta gratis →';
+    alert('Error de conexión. Inténtalo de nuevo.');
+  }
+}
+</script>
+</body>
+</html>
