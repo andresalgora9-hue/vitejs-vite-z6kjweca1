@@ -552,32 +552,7 @@ function cerrarFormulario() {
   document.body.style.overflow = '';
 }
 
-// GUARDAR LEAD
-async function saveLead(form) {
-  const params = new URLSearchParams(window.location.search);
-  try {
-    await fetch(SUPABASE_URL + '/rest/v1/leads_landing', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': ANON_KEY,
-        'Authorization': 'Bearer ' + ANON_KEY,
-        'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify({
-        nombre: form.nombre,
-        email: form.email,
-        telefono: form.telefono,
-        oficio: form.oficio,
-        convirtio: false,
-        utm_source: params.get('utm_source') || 'directo',
-        utm_medium: params.get('utm_medium') || null,
-        utm_campaign: params.get('utm_campaign') || null,
-        utm_content: params.get('utm_content') || null,
-      })
-    });
-  } catch(e) { console.log('Lead save error', e); }
-}
+
 
 // VALIDAR Y ENVIAR
 async function enviarDatos() {
@@ -609,8 +584,8 @@ async function enviarDatos() {
   track('Lead', { content_name: 'form_submit', currency: 'EUR', value: 0, content_category: oficio });
 
   const form = { nombre, oficio, telefono, email, password };
-  await saveLead(form);
   localStorage.setItem('oy_pending_elite', JSON.stringify(form));
+  const params = new URLSearchParams(window.location.search);
 
   try {
     const res = await fetch(SUPABASE_URL + '/functions/v1/dynamic-handler', {
@@ -621,13 +596,18 @@ async function enviarDatos() {
         'Authorization': 'Bearer ' + ANON_KEY
       },
       body: JSON.stringify({
-  action: 'create_checkout_session',
-  email, name: nombre,
-  priceId: PRICE_ID,
-  userId: '',
-  successUrl: window.location.origin + '/elite-gratis?checkout=success',
-  cancelUrl: window.location.origin + '/elite-gratis',
-})
+        action: 'create_checkout_session',
+        email, name: nombre,
+        priceId: PRICE_ID,
+        userId: '',
+        successUrl: window.location.origin + '/elite-gratis?checkout=success',
+        cancelUrl: window.location.origin + '/elite-gratis',
+        nombre, telefono, oficio,
+        utmSource: params.get('utm_source') || 'directo',
+        utmMedium: params.get('utm_medium') || null,
+        utmCampaign: params.get('utm_campaign') || null,
+        utmContent: params.get('utm_content') || null,
+      })
     });
     const data = await res.json();
     if (data.ok && data.url) {
