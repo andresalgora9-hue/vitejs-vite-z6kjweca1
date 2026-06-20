@@ -272,6 +272,7 @@
       "source": "/pro/:slug",
       "destination": "/pro/index.html"
     },
+    { "source": "/elite-gratis", "destination": "/elite-gratis.html" },
     {
       "source": "/(.*)",
       "destination": "/index.html"
