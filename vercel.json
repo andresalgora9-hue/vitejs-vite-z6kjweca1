@@ -273,6 +273,7 @@
       "destination": "/pro/index.html"
     },
     { "source": "/elite-gratis", "destination": "/elite-gratis.html" },
+    { "source": "/registro-cliente", "destination": "/registro-cliente.html" },
     {
       "source": "/(.*)",
       "destination": "/index.html"
