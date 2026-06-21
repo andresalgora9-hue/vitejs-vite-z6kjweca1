@@ -687,7 +687,7 @@ function mostrarExito() {
           headers: { 'Content-Type': 'application/json', 'apikey': ANON_KEY, 'Authorization': 'Bearer ' + ANON_KEY },
           body: JSON.stringify({ convirtio: true })
         });
-        localStorage.setItem('oy_user', JSON.stringify(result.user));
+        localStorage.setItem('oy_user', JSON.stringify({...result.user, plan: 'elite'}));
         window.history.replaceState({}, '', '/elite-gratis');
       }
     }).catch(console.error);
