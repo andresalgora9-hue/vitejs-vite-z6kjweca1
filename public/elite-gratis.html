@@ -221,10 +221,50 @@ h1 span{color:var(--gold);}
     </div>
     <h1>Solo acepta.<br/><span>Tú a trabajar.</span></h1>
     <p class="hero-sub">Los clientes que necesitan un profesional como tú llegan solos a tu móvil. Sin buscar, sin esperar, sin perder tiempo.</p>
-    <div class="cta-wrap">
-      <button class="btn" onclick="abrirFormulario('cta_hero')">Activar mi mes Élite gratis →</button>
+
+    <!-- FORMULARIO INLINE PASO 1 -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:24px 20px;max-width:400px;margin:0 auto 14px;text-align:left;">
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div>
+          <label class="field-label" for="nombre-inline">Nombre completo <span style="color:var(--gold);">*</span></label>
+          <input class="field-input" type="text" id="nombre-inline" placeholder="Tu nombre y apellidos"/>
+          <span class="field-error" id="err-nombre-inline" style="display:none;"></span>
+        </div>
+        <div>
+          <label class="field-label" for="oficio-inline">Tu oficio <span style="color:var(--gold);">*</span></label>
+          <select class="field-select" id="oficio-inline">
+            <option value="">Selecciona tu oficio</option>
+            <option>Electricista</option><option>Fontanero</option><option>Cerrajero</option>
+            <option>Pintor</option><option>Albañil</option><option>Carpintero</option>
+            <option>Reformas Integrales</option><option>Climatización</option>
+            <option>Técnico de Gas</option><option>Desatascos y Camión Cuba</option>
+            <option>Soldador</option><option>Instalador Solar</option><option>Yesero</option>
+            <option>Techador</option><option>Montador de Pladur</option>
+            <option>Parquetista / Pulidor de Suelos</option><option>Cristalero</option>
+            <option>Manitas a Domicilio</option><option>Jardinero</option>
+            <option>Fumigador</option><option>Tapicero</option><option>Otros</option>
+          </select>
+          <span class="field-error" id="err-oficio-inline" style="display:none;"></span>
+        </div>
+        <div>
+          <label class="field-label" for="telefono-inline">Teléfono <span style="color:var(--gold);">*</span></label>
+          <input class="field-input" type="tel" id="telefono-inline" placeholder="612 345 678"/>
+          <span class="field-error" id="err-telefono-inline" style="display:none;"></span>
+        </div>
+        <div>
+          <label class="field-label" for="email-inline">Email <span style="color:var(--gold);">*</span></label>
+          <input class="field-input" type="email" id="email-inline" placeholder="tu@email.com"/>
+          <span class="field-error" id="err-email-inline" style="display:none;"></span>
+        </div>
+        <div>
+          <label class="field-label" for="password-inline">Contraseña <span style="color:var(--gold);">*</span></label>
+          <input class="field-input" type="password" id="password-inline" placeholder="Mínimo 6 caracteres"/>
+          <span class="field-error" id="err-password-inline" style="display:none;"></span>
+        </div>
+        <button class="btn" id="btn-siguiente-inline" onclick="enviarDatosInline()">Activar mi mes Élite gratis →</button>
+        <p style="color:var(--dim);font-size:11px;text-align:center;">🔒 Sin cargo hoy · Sin permanencia · Cancela cuando quieras</p>
+      </div>
     </div>
-    <p class="micro">Sin cargo hoy · Sin permanencia · Cancela cuando quieras</p>
   </div>
 
   <!-- MOCK ALERTAS -->
@@ -658,6 +698,76 @@ function mostrarExito() {
   document.getElementById('step-exito').style.display = 'block';
   document.getElementById('form-overlay').style.display = 'flex';
   document.body.style.overflow = 'hidden';
+}
+
+// ENVIAR DESDE FORMULARIO INLINE DEL HERO
+async function enviarDatosInline() {
+  const nombre = document.getElementById('nombre-inline').value.trim();
+  const oficio = document.getElementById('oficio-inline').value;
+  const telefono = document.getElementById('telefono-inline').value.replace(/\s/g,'');
+  const email = document.getElementById('email-inline').value;
+  const password = document.getElementById('password-inline').value;
+
+  let ok = true;
+  const setErr = (id, msg) => {
+    const el = document.getElementById(id);
+    if (msg) { el.textContent = '⚠ ' + msg; el.style.display = 'block'; ok = false; }
+    else { el.style.display = 'none'; }
+  };
+
+  setErr('err-nombre-inline', !nombre ? 'Obligatorio' : null);
+  setErr('err-oficio-inline', !oficio ? 'Selecciona tu oficio' : null);
+  setErr('err-telefono-inline', !/^\d{9}$/.test(telefono) ? 'Teléfono no válido (9 dígitos)' : null);
+  setErr('err-email-inline', !email.includes('@') ? 'Email inválido' : null);
+  setErr('err-password-inline', password.length < 6 ? 'Mínimo 6 caracteres' : null);
+
+  if (!ok) return;
+
+  const btn = document.getElementById('btn-siguiente-inline');
+  btn.disabled = true;
+  btn.textContent = '⟳ Procesando...';
+
+  track('Lead', { content_name: 'form_submit_inline', currency: 'EUR', value: 0, content_category: oficio });
+
+  const form = { nombre, oficio, telefono, email, password };
+  localStorage.setItem('oy_pending_elite', JSON.stringify(form));
+  const params = new URLSearchParams(window.location.search);
+
+  try {
+    const res = await fetch(SUPABASE_URL + '/functions/v1/dynamic-handler', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': ANON_KEY,
+        'Authorization': 'Bearer ' + ANON_KEY
+      },
+      body: JSON.stringify({
+        action: 'create_checkout_session',
+        email, name: nombre,
+        priceId: PRICE_ID,
+        userId: '',
+        successUrl: window.location.origin + '/elite-gratis?checkout=success',
+        cancelUrl: window.location.origin + '/elite-gratis',
+        nombre, telefono, oficio,
+        utmSource: params.get('utm_source') || 'directo',
+        utmMedium: params.get('utm_medium') || null,
+        utmCampaign: params.get('utm_campaign') || null,
+        utmContent: params.get('utm_content') || null,
+      })
+    });
+    const data = await res.json();
+    if (data.ok && data.url) {
+      window.location.href = data.url;
+    } else {
+      btn.disabled = false;
+      btn.textContent = 'Activar mi mes Élite gratis →';
+      alert('Error al iniciar el proceso. Inténtalo de nuevo.');
+    }
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = 'Activar mi mes Élite gratis →';
+    alert('Error de conexión. Inténtalo de nuevo.');
+  }
 }
 
 // Comprobar si vuelve de Stripe al cargar
