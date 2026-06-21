@@ -677,7 +677,7 @@ function mostrarExito() {
     fetch(SUPABASE_URL + '/functions/v1/auth-handler', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'apikey': ANON_KEY, 'Authorization': 'Bearer ' + ANON_KEY },
-      body: JSON.stringify({ action: 'register', email: pd.email, password: pd.password, name: pd.nombre, type: 'profesional', phone: pd.telefono })
+      body: JSON.stringify({ action: 'register', email: pd.email, password: pd.password, name: pd.nombre, type: 'profesional', phone: pd.telefono, trade: pd.oficio })
     }).then(r => r.json()).then(result => {
       if (result.success) {
         track('Purchase', { currency: 'EUR', value: 0, content_name: 'elite_30dias_gratis', content_category: pd.oficio });
