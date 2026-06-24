@@ -2985,15 +2985,6 @@ const [showForgot,setShowForgot]=useState(false);
       document.head.appendChild(script);
     }
   },[]);
-    (window as any).google.accounts.id.initialize({
-      client_id:"616004854667-tmqmecrr4536qcdsfmfn316n1rlg3lpe.apps.googleusercontent.com",
-      callback:(window as any).handleGoogleCredential,
-    });
-    (window as any).google.accounts.id.renderButton(el,{
-      type:"standard",theme:"outline",size:"large",text:"continue_with",width:358,
-    });
-    }
-  },[]);
   useEffect(()=>{
     const googlePro=localStorage.getItem("oy_google_pro");
     if(googlePro){
