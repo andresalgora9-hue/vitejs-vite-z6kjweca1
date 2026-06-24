@@ -2964,14 +2964,9 @@ const [forgotLoading,setForgotLoading]=useState(false);
 const [showForgot,setShowForgot]=useState(false);
   useEffect(()=>{
     const loadGoogle=()=>{
-      const el=document.getElementById("google-signin-btn");
-      if(!el) return;
       (window as any).google.accounts.id.initialize({
         client_id:"616004854667-tmqmecrr4536qcdsfmfn316n1rlg3lpe.apps.googleusercontent.com",
         callback:(window as any).handleGoogleCredential,
-      });
-      (window as any).google.accounts.id.renderButton(el,{
-        type:"standard",theme:"outline",size:"large",text:"continue_with",width:358,
       });
     };
     if((window as any).google?.accounts?.id){
