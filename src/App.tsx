@@ -4921,8 +4921,28 @@ export default function App(){
     
   (window as any).handleGoogleCredential=async(response:any)=>{
       const payload=JSON.parse(atob(response.credential.split(".")[1]));
-      localStorage.setItem("oy_google_fill",JSON.stringify({name:payload.name,email:payload.email,avatar_url:payload.picture}));
-      window.dispatchEvent(new Event("google_fill"));
+      const res=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/auth-handler",{
+        method:"POST",
+        headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.YBGfaKyMGRrH7dh7tqmTTlPP8IQ-oNSxdtV8GCtObHs","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.YBGfaKyMGRrH7dh7tqmTTlPP8IQ-oNSxdtV8GCtObHs"},
+        body:JSON.stringify({action:"google_auth",email:payload.email,name:payload.name,avatar_url:payload.picture,type:"cliente"})
+      });
+      const data=await res.json();
+      if(data.success){
+        if(data.isNew){
+          // Email nuevo → prefill y manda a register_cliente
+          localStorage.setItem("oy_google_fill",JSON.stringify({name:payload.name,email:payload.email,avatar_url:payload.picture}));
+          window.dispatchEvent(new Event("google_fill"));
+        } else {
+          if(data.user.type==="profesional"){
+            // Profesional intentando entrar con Google → error
+            alert("Para profesionales usa email y contraseña.");
+            return;
+          }
+          // Cliente existente → login directo
+          localStorage.setItem("oy_user",JSON.stringify(data.user));
+          window.location.reload();
+        }
+      }
     };
     setReady(true);
     // Limpiar el parámetro ?with= de la URL sin recargar
