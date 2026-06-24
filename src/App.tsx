@@ -2992,8 +2992,8 @@ const [showForgot,setShowForgot]=useState(false);
     (window as any).google.accounts.id.renderButton(el,{
       type:"standard",theme:"outline",size:"large",text:"continue_with",width:358,
     });
-  },1000);
-},[]);
+    }
+  },[]);
   useEffect(()=>{
     const googlePro=localStorage.getItem("oy_google_pro");
     if(googlePro){
