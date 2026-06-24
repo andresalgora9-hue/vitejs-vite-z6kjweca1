@@ -2963,21 +2963,28 @@ const [forgotMsg,setForgotMsg]=useState("");
 const [forgotLoading,setForgotLoading]=useState(false);
 const [showForgot,setShowForgot]=useState(false);
   useEffect(()=>{
-    const handler=()=>{
-      const raw=localStorage.getItem("oy_google_fill");
-      if(!raw) return;
-      const gd=JSON.parse(raw);
-      localStorage.removeItem("oy_google_fill");
-      setName(gd.name||"");
-      setEmail(gd.email||"");
+    const loadGoogle=()=>{
+      const el=document.getElementById("google-signin-btn");
+      if(!el) return;
+      (window as any).google.accounts.id.initialize({
+        client_id:"616004854667-tmqmecrr4536qcdsfmfn316n1rlg3lpe.apps.googleusercontent.com",
+        callback:(window as any).handleGoogleCredential,
+      });
+      (window as any).google.accounts.id.renderButton(el,{
+        type:"standard",theme:"outline",size:"large",text:"continue_with",width:358,
+      });
     };
-    window.addEventListener("google_fill",handler);
-    return()=>window.removeEventListener("google_fill",handler);
+    if((window as any).google?.accounts?.id){
+      loadGoogle();
+    } else {
+      const script=document.createElement("script");
+      script.src="https://accounts.google.com/gsi/client";
+      script.async=true;
+      script.defer=true;
+      script.onload=loadGoogle;
+      document.head.appendChild(script);
+    }
   },[]);
-  useEffect(()=>{
-  setTimeout(()=>{
-    const el=document.getElementById("google-signin-btn");
-    if(!el||(window as any).google?.accounts?.id===undefined) return;
     (window as any).google.accounts.id.initialize({
       client_id:"616004854667-tmqmecrr4536qcdsfmfn316n1rlg3lpe.apps.googleusercontent.com",
       callback:(window as any).handleGoogleCredential,
