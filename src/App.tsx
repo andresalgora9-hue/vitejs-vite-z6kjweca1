@@ -2377,7 +2377,7 @@ function DeleteAccountButton({user,onLogout}:{user:UserRow;onLogout:()=>void}){
 // Busca: "function ClientHome({user,onLogout}:" y reemplaza todo
 // ════════════════════════════════════════════════════════════════
 
-function ClientHome({user,onLogout,deepLinkChatWith}:{user:UserRow;onLogout:()=>void;deepLinkChatWith?:string|null}){
+function ClientHome({user,onLogout,onUpdate,deepLinkChatWith}:{user:UserRow;onLogout:()=>void;onUpdate:(u:UserRow)=>void;deepLinkChatWith?:string|null}){
   const [showOnboarding,setShowOnboarding]=useState(()=>!localStorage.getItem("oy_onboarded_"+user.id));
   const handleCloseOnboarding=()=>{localStorage.setItem("oy_onboarded_"+user.id,"1");setShowOnboarding(false);};
   const [tab,setTab]=useState<"buscar"|"ranking"|"chats"|"solicitudes"|"perfil">("buscar");
@@ -5158,6 +5158,6 @@ if(!_lastVisit){
     {!user&&<Auth onLogin={login} />}
     {user&&user.type==="admin"&&<Admin onLogout={logout} />}
     {user&&user.type==="profesional"&&<ProDashboard user={user} onLogout={logout} onUpdate={update} deepLinkChatWith={deepLinkChatWith} />}
-{user&&user.type==="cliente"&&<ClientHome user={user} onLogout={logout} deepLinkChatWith={deepLinkChatWith} />}
+{user&&user.type==="cliente"&&<ClientHome user={user} onLogout={logout} onUpdate={update} deepLinkChatWith={deepLinkChatWith} />}
 </Sentry.ErrorBoundary>);
 }
