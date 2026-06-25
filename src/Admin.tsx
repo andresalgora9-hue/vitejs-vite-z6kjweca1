@@ -43,9 +43,9 @@ function fmt(n:number){return n.toLocaleString("es-ES");}
 function getProStatus(u:UserRow, now:Date): ProStatus {
   const trialEnd = u.trial_end ? new Date(u.trial_end) : null;
   if(u.plan !== "gratis") return "pagando";
-  if(!trialEnd) return "sin_tarjeta"; // sin trial_end = nunca puso tarjeta
-  if(trialEnd > now) return "trial";  // trial_end futuro = en trial con tarjeta
-  return "expirado";                  // trial_end pasado = expirado
+  if(!(u as any).has_stripe) return "sin_tarjeta";
+  if(trialEnd && trialEnd > now) return "trial";
+  return "expirado";
 }
 function proStatusLabel(s:ProStatus):{label:string;color:string}{
   if(s==="pagando")   return {label:"✅ Pagando",    color:C.green};
@@ -168,7 +168,7 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
   const load=useCallback(async()=>{
     setLoading(true);
     const [u,m,j,sq,r,ld,rp]=await Promise.all([
-      db.from("users").select("id,name,email,phone,whatsapp,type,plan,trade,zone,rating,reviews,jobs,verified,available,trial_end,joined_at,avatar_url,bio,price,banned").order("joined_at",{ascending:false}),
+      db.from("users").select("id,name,email,phone,whatsapp,type,plan,trade,zone,rating,reviews,jobs,verified,available,trial_end,joined_at,avatar_url,bio,price,banned,has_stripe").order("joined_at",{ascending:false}),
       db.from("messages").select("id,from_id,to_id,text,read,created_at").order("created_at",{ascending:false}).limit(1000),
       db.from("jobs").select("id,worker_id,client_id,client_name,title,description,status,created_at").order("created_at",{ascending:false}),       db.from("budget_requests").select("id,client_id,client_name,oficio,zona,description,status,created_at,accepted_pros,notified_pros,admin_notified").order("created_at",{ascending:false}),
       db.from("reviews").select("id,worker_id,client_id,client_name,stars,text,approved,created_at").order("created_at",{ascending:false}),
