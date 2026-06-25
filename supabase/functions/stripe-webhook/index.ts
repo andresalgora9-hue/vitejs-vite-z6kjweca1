@@ -28,7 +28,18 @@ serve(async (req) => {
 
   try {
     switch (event.type) {
-
+case "checkout.session.completed": {
+        const session = event.data.object;
+        const email = session.customer_email || session.metadata?.email;
+        const customerId = session.customer;
+        if (email) {
+          await supabase.from("users").update({
+            has_stripe: true,
+            stripe_customer_id: customerId,
+          }).eq("email", email);
+        }
+        break;
+      }
       // Suscripción creada o activada → actualizar plan
       case "customer.subscription.created":
       case "customer.subscription.updated": {
