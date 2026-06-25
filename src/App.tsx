@@ -2059,7 +2059,7 @@ function RankingSection({workers,onSelect}:{workers:UserRow[];onSelect:(w:UserRo
   );
 }
 // ─── SOLICITUDES TAB ───
-function SolicitudesTab({user,workers,onWorkerSelect,onChat,autoOpen=false}:{user:UserRow;workers:UserRow[];onWorkerSelect:(w:UserRow)=>void;onChat:(w:UserRow)=>void;autoOpen?:boolean}){
+function SolicitudesTab({user,workers,onWorkerSelect,onChat,autoOpen=false,onSolicitudEnviada}:{user:UserRow;workers:UserRow[];onWorkerSelect:(w:UserRow)=>void;onChat:(w:UserRow)=>void;autoOpen?:boolean;onSolicitudEnviada?:()=>void}){
   const [solicitudes,setSolicitudes]=useState<any[]>([]);
   const [ofertas,setOfertas]=useState<Record<string,any[]>>({});
   const [showForm,setShowForm]=useState(autoOpen);
@@ -2146,6 +2146,9 @@ const eligibles=((allPros||[]) as UserRow[]).filter(w=>norm(w.trade||"")===norm(
   loadSolicitudes();
   setSending(false);
   showToast("✅ Solicitud enviada · Recibirás respuesta en menos de 5 min");
+if(Notification.permission === "default"){
+  setTimeout(()=> onSolicitudEnviada?.(), 1500);
+}
 };
 
   return(
@@ -2406,6 +2409,17 @@ const [loadingChats,setLoadingChats]=useState(true);
   catch{return {};}
 });
   const [lastMsgByWorker,setLastMsgByWorker]=useState<Record<string,any>>({});
+  const [showNotifModal,setShowNotifModal]=useState(false);
+const activarNotificacionesCliente = async()=>{
+  setShowNotifModal(false);
+  const permission = await Notification.requestPermission();
+  if(permission === "granted"){
+    await subscribeToPush(user.id);
+    showToast("✅ Perfecto. Te avisaremos en cuanto un profesional acepte.");
+  } else {
+    showToast("📞 Añade tu teléfono en tu perfil — es la forma más rápida de que el profesional te localice.");
+  }
+};
   const [showMapa,setShowMapa]=useState(false);
   const [mapaZones,setMapaZones]=useState<string[]>([]);
   const prosByZone=useCallback((zone:string)=>{
@@ -2580,6 +2594,49 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
     <div data-scroll style={{minHeight:"100dvh",background:C.bg,backgroundImage:"radial-gradient(ellipse at 15% 0%,#1a0a3a22,transparent 50%),radial-gradient(ellipse at 85% 100%,#0a1a3a22,transparent 50%)",paddingBottom:72,overflowY:"auto",height:"100dvh"}}>
 <ScrollToTop />
       {showOnboarding&&<OnboardingModal tipo="cliente" onClose={handleCloseOnboarding} />}
+      {showNotifModal&&(
+  <div style={{
+    position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",
+    zIndex:999,display:"flex",alignItems:"flex-end",justifyContent:"center",
+    padding:"0 0 24px 0"
+  }}>
+    <div style={{
+      background:C.card,borderRadius:20,padding:"24px 20px",
+      width:"100%",maxWidth:420,margin:"0 16px",
+      boxShadow:"0 -4px 40px rgba(0,0,0,0.4)",
+      animation:"slideUp 0.4s cubic-bezier(0.34,1.56,0.64,1)",
+    }}>
+      <div style={{textAlign:"center",marginBottom:16}}>
+        <span style={{fontSize:40}}>🔔</span>
+      </div>
+      <p style={{fontWeight:900,fontSize:17,color:C.text,textAlign:"center",marginBottom:8}}>
+        Activa las notificaciones
+      </p>
+      <p style={{fontSize:13,color:C.muted,textAlign:"center",lineHeight:1.6,marginBottom:20}}>
+        Así te avisamos en el momento en que un profesional acepte tu solicitud — sin tener que estar pendiente de la app.
+      </p>
+      <button onClick={activarNotificacionesCliente} style={{
+        width:"100%",padding:"13px",
+        background:`linear-gradient(135deg,${C.accent},${C.orange})`,
+        border:"none",borderRadius:12,color:"#000",
+        fontWeight:800,fontSize:14,cursor:"pointer",
+        fontFamily:"inherit",marginBottom:10
+      }}>
+        Activar notificaciones →
+      </button>
+      <button onClick={()=>{
+        setShowNotifModal(false);
+        showToast("📞 Añade tu teléfono en tu perfil — es la forma más rápida de que el profesional te localice.");
+      }} style={{
+        width:"100%",padding:"11px",background:"none",
+        border:`1px solid ${C.border}`,borderRadius:12,color:C.muted,
+        fontWeight:600,fontSize:13,cursor:"pointer",fontFamily:"inherit"
+      }}>
+        Ahora no
+      </button>
+    </div>
+  </div>
+)}
       {inAppNotif&&<InAppNotification
         msg={inAppNotif.msg} from={inAppNotif.from}
         isAdmin={inAppNotif.isAdmin}
@@ -2723,7 +2780,7 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
               
 
         {tab==="ranking"&&<RankingSection workers={workers} onSelect={setSelectedWorker} />}
-        {tab==="solicitudes"&&<SolicitudesTab key={autoOpenSolicitud?"open":"closed"} user={user} workers={workers} onWorkerSelect={setSelectedWorker} onChat={handleChat} autoOpen={autoOpenSolicitud} />}
+        {tab==="solicitudes"&&<SolicitudesTab key={autoOpenSolicitud?"open":"closed"} user={user} workers={workers} onWorkerSelect={setSelectedWorker} onChat={handleChat} autoOpen={autoOpenSolicitud} onSolicitudEnviada={()=>setShowNotifModal(true)} />}
         {tab==="chats"&&(<>
           <div style={{padding:"22px 0 16px"}}><h2 style={{fontWeight:800,fontSize:22,color:C.text}}>Mis conversaciones</h2></div>
           {loadingChats?<SkeletonMsgList n={5} />:chatPartners.length===0?<div style={{textAlign:"center" as const,padding:48,color:C.muted}}>
