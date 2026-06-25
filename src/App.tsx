@@ -4971,7 +4971,19 @@ export default function App(){
       navigator.serviceWorker.register('/sw.js').then(()=>{}).catch(()=>{});
     }
    const s=localStorage.getItem("oy_user");
-    if(s){try{setUser(JSON.parse(s));}catch{localStorage.removeItem("oy_user");}}
+    if(s){
+      try{
+        const cached=JSON.parse(s);
+        setUser(cached);
+        // Refrescar desde Supabase en background
+        db.from("users").select("*").eq("id",cached.id).single().then(({data})=>{
+          if(data){
+            setUser(data as UserRow);
+            localStorage.setItem("oy_user",JSON.stringify(data));
+          }
+        });
+      }catch{localStorage.removeItem("oy_user");}
+    }
     // Detectar return de Stripe Checkout
     const params=new URLSearchParams(window.location.search);
     if(params.get("checkout")==="success"){
