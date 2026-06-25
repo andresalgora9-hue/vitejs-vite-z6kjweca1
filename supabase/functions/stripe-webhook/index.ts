@@ -41,11 +41,12 @@ serve(async (req) => {
           : new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0];
 
         if (email) {
-          await supabase.from("users").update({
+        await supabase.from("users").update({
             plan,
             trial_end: trialEnd,
             stripe_customer_id: sub.customer,
             stripe_subscription_id: sub.id,
+            has_stripe: true,
           }).eq("email", email);
         }
         break;
