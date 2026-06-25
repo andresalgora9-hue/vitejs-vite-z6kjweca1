@@ -632,7 +632,24 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
 
   // ── RENDER: TRABAJOS ──────────────────────────────────────────────────────
   const renderTrabajos=(filterStatus?:string)=>{
-    const filtered=filterStatus?jobs.filter(j=>j.status===filterStatus):jobs;
+    const allTrabajos=[
+      ...jobs.map(j=>({
+        id:j.id, title:j.title, description:j.description,
+        client_name:j.client_name, client_id:j.client_id,
+        worker_id:j.worker_id, status:j.status, created_at:j.created_at,
+        tipo:"job"
+      })),
+      ...solicitudes.map(s=>({
+        id:s.id, title:s.oficio+(s.zona?" · "+s.zona:""),
+        description:s.description, client_name:s.client_name,
+        client_id:s.client_id, worker_id:s.accepted_pros?.[0]||null,
+        status:s.accepted_pros?.length>0?"in_progress":s.status==="closed"?"done":"pending",
+        created_at:s.created_at, tipo:"solicitud",
+        zona:s.zona, oficio:s.oficio,
+        accepted_pros:s.accepted_pros, notified_pros:s.notified_pros,
+      })),
+    ].sort((a,b)=>new Date(b.created_at).getTime()-new Date(a.created_at).getTime());
+    const filtered=filterStatus?allTrabajos.filter(j=>j.status===filterStatus):allTrabajos;
     const statusColor=(s:string)=>s==="done"?C.green:s==="in_progress"?C.blue:s==="cancelled"?C.red:C.yellow;
     const statusLabel=(s:string)=>s==="done"?"Completado":s==="in_progress"?"En progreso":s==="cancelled"?"Cancelado":"Pendiente";
     return(
