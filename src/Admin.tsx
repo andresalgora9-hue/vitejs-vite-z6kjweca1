@@ -655,10 +655,10 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
     return(
       <div style={{display:"flex",flexDirection:"column",gap:16}}>
         <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12}}>
-          <KpiCard label="Total" value={jobs.length} color={C.accent}/>
-          <KpiCard label="Pendientes" value={jobs.filter(j=>j.status==="pending").length} color={C.yellow} onClick={()=>navTo("trabajos","pendientes")}/>
-          <KpiCard label="En progreso" value={jobs.filter(j=>j.status==="in_progress").length} color={C.blue} onClick={()=>navTo("trabajos","activos")}/>
-          <KpiCard label="Completados" value={jobs.filter(j=>j.status==="done").length} color={C.green} onClick={()=>navTo("trabajos","completados")}/>
+          <KpiCard label="Total" value={allTrabajos.length} color={C.accent}/>
+        <KpiCard label="Pendientes" value={allTrabajos.filter(j=>j.status==="pending").length} color={C.yellow} onClick={()=>navTo("trabajos","pendientes")}/>
+        <KpiCard label="En progreso" value={allTrabajos.filter(j=>j.status==="in_progress").length} color={C.blue} onClick={()=>navTo("trabajos","activos")}/>
+        <KpiCard label="Completados" value={allTrabajos.filter(j=>j.status==="done").length} color={C.green} onClick={()=>navTo("trabajos","completados")}/>
         </div>
         <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,overflow:"hidden"}}>
           <div style={{padding:"14px 16px",borderBottom:`1px solid ${C.border}`,display:"flex",justifyContent:"space-between"}}>
