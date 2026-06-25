@@ -2873,15 +2873,19 @@ return <GCard key={w.id} onClick={async()=>{
                 localStorage.setItem("oy_user",JSON.stringify(updated));
                 onUpdate(updated);
               }}
-              placeholder="+34 600 000 000"
+             placeholder="+34 600 000 000"
               type="tel"
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
               style={{
                 width:"100%",padding:"12px 14px",
                 background:C.surface,
                 border:"1.5px solid "+(user.phone?C.border:C.red+"88"),
-                borderRadius:10,color:C.text,
+                borderRadius:10,color:"#E8EDF5",
                 fontFamily:"'DM Sans',sans-serif",fontSize:14,
                 outline:"none",boxSizing:"border-box" as const,
+                WebkitTextFillColor:"#E8EDF5",
               }}
             />
             {!user.phone&&(
