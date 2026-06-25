@@ -168,7 +168,7 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
   // ── LOAD DATA ──────────────────────────────────────────────────────────────
   const load=useCallback(async()=>{
     setLoading(true);
-    const [u,m,j,r,ld,rp,sq]=await Promise.all([
+    const [u,m,j,sq,r,ld,rp]=await Promise.all([
       db.from("users").select("id,name,email,phone,whatsapp,type,plan,trade,zone,rating,reviews,jobs,verified,available,trial_end,joined_at,avatar_url,bio,price,banned").order("joined_at",{ascending:false}),
       db.from("messages").select("id,from_id,to_id,text,read,created_at").order("created_at",{ascending:false}).limit(1000),
       db.from("jobs").select("id,worker_id,client_id,client_name,title,description,status,created_at").order("created_at",{ascending:false}),       db.from("budget_requests").select("id,client_id,client_name,oficio,zona,description,status,created_at,accepted_pros,notified_pros,admin_notified").order("created_at",{ascending:false}),
@@ -178,7 +178,8 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
     ]);
     setUsers(((u.data||[]).filter((x:any)=>x.type!=="admin"&&x.id!==ADMIN_ID)) as UserRow[]);
     setMsgs((m.data||[]) as MessageRow[]);
-    setJobs((j.data||[]) as JobRow[]);     setSolicitudes((sq.data||[]) as any[]);
+    setJobs((j.data||[]) as JobRow[]);
+    setSolicitudes((sq.data||[]) as any[]);
     setReviews((r.data||[]) as any[]);
     setLeads((ld.data||[]) as any[]);
     setReports((rp.data||[]) as any[]);
