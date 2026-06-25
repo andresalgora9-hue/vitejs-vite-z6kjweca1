@@ -4199,6 +4199,12 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
       }
       const {data:cliente}=await db.from("users").select("id,name,phone,whatsapp,email,type,plan,zone,joined_at,trial_end").eq("id",req.client_id).single();
       if(cliente){
+        fetch(`${SUPABASE_FUNCTIONS_URL}/send-push`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({
+          user_id:req.client_id,
+          title:"✅ Profesional encontrado · "+req.oficio,
+          body:user.name+" ha aceptado tu solicitud y te va a contactar ahora.",
+          url:"/?with="+user.id,
+        })}).catch(()=>{});
         await db.from("messages").insert({
           from_id:user.id,
           to_id:req.client_id,
