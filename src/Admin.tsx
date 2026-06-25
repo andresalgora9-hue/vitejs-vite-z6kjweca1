@@ -43,11 +43,10 @@ function fmt(n:number){return n.toLocaleString("es-ES");}
 function getProStatus(u:UserRow, now:Date): ProStatus {
   const trialEnd = u.trial_end ? new Date(u.trial_end) : null;
   if(u.plan !== "gratis") return "pagando";
-  if(!trialEnd) return "sin_tarjeta";
-  if(trialEnd > now) return "trial";
-  return "expirado";
+  if(!trialEnd) return "sin_tarjeta"; // sin trial_end = nunca puso tarjeta
+  if(trialEnd > now) return "trial";  // trial_end futuro = en trial con tarjeta
+  return "expirado";                  // trial_end pasado = expirado
 }
-
 function proStatusLabel(s:ProStatus):{label:string;color:string}{
   if(s==="pagando")   return {label:"✅ Pagando",    color:C.green};
   if(s==="trial")     return {label:"⏱ Trial",       color:C.yellow};
@@ -1178,7 +1177,31 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
             {u.phone&&<a href={"tel:"+u.phone} style={{fontSize:11,padding:"7px 12px",background:C.greenDim,border:`1px solid ${C.green}44`,borderRadius:6,color:C.green,textDecoration:"none",fontWeight:700}}>📞 Llamar</a>}
             {(u as any).whatsapp&&<a href={"https://wa.me/"+((u as any).whatsapp||"").replace(/\D/g,"")} target="_blank" rel="noreferrer" style={{fontSize:11,padding:"7px 12px",background:"#25D36618",border:"1px solid #25D36644",borderRadius:6,color:"#25D366",textDecoration:"none",fontWeight:700}}>WA</a>}
           </div>
-
+{/* Cambiar plan manualmente */}
+          {u.type==="profesional"&&(
+            <div style={{marginBottom:16}}>
+              <p style={{fontSize:10,color:C.muted,fontFamily:"monospace",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:8}}>Cambiar plan manualmente</p>
+              <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:6}}>
+                {(["gratis","basico","pro","elite"] as Plan[]).map(pl=>(
+                  <button key={pl} onClick={async()=>{
+                    const trialEnd=pl!=="gratis"?null:u.trial_end;
+                    await db.from("users").update({plan:pl,trial_end:trialEnd}).eq("id",u.id);
+                    setUsers(prev=>prev.map(x=>x.id===u.id?{...x,plan:pl}:x));
+                    setSelectedUser({...u,plan:pl});
+                    showToast(`✓ Plan de ${u.name} cambiado a ${pl.toUpperCase()}`);
+                  }} style={{
+                    fontSize:10,padding:"5px 10px",
+                    background:u.plan===pl?PLAN_COLORS[pl]+"33":"transparent",
+                    border:`1px solid ${PLAN_COLORS[pl]}${u.plan===pl?"":"44"}`,
+                    borderRadius:6,color:PLAN_COLORS[pl],
+                    cursor:"pointer",fontWeight:u.plan===pl?700:400,
+                    fontFamily:"monospace",
+                  }}>{pl.toUpperCase()}</button>
+                ))}
+              </div>
+              <p style={{fontSize:9,color:C.muted,fontFamily:"monospace"}}>El cambio queda registrado en Supabase inmediatamente</p>
+            </div>
+          )}
           {/* Mensaje soporte */}
           <p style={{fontSize:10,color:C.muted,fontFamily:"monospace",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:8}}>Mensaje de soporte directo</p>
           <textarea value={supportMsg} onChange={e=>setSupportMsg(e.target.value)} placeholder="Escribe un mensaje..." rows={3}
