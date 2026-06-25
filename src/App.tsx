@@ -2857,13 +2857,39 @@ return <GCard key={w.id} onClick={async()=>{
               </button>
             </GCard>
           )}
-          <GCard style={{marginBottom:14}}>
-          <p style={{fontWeight:700,color:C.text,fontSize:13,marginBottom:12}}>🔗 Compartir mi perfil</p>
-          <p style={{fontSize:12,color:C.muted,marginBottom:12}}>Comparte tu perfil con clientes para que te encuentren directamente</p>
-          <div style={{display:"flex",gap:8,alignItems:"center",background:C.surface,borderRadius:8,border:"1px solid "+C.border,padding:"10px 12px",marginBottom:10}}>
-            <span style={{flex:1,fontSize:11,color:C.mutedL,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" as const}}>{getDeepLinkUrl(user)}</span>
-          </div>
-        </GCard>
+          <GCard style={{marginBottom:14,border:"1px solid "+(user.phone?C.border:C.red+"66")}}>
+            <p style={{fontWeight:700,color:user.phone?C.text:C.red,fontSize:13,marginBottom:6}}>
+              {user.phone?"📞 Mi teléfono":"⚠️ Añade tu teléfono"}
+            </p>
+            <p style={{fontSize:12,color:C.muted,marginBottom:12}}>
+              {user.phone?"El profesional podrá contactarte directamente":"Sin teléfono el profesional no puede localizarte. ¡Añádelo ahora!"}
+            </p>
+            <input
+              value={user.phone||""}
+              onChange={async(e)=>{
+                const v=e.target.value;
+                await db.from("users").update({phone:v,whatsapp:v}).eq("id",user.id);
+                const updated={...user,phone:v,whatsapp:v};
+                localStorage.setItem("oy_user",JSON.stringify(updated));
+                onUpdate(updated);
+              }}
+              placeholder="+34 600 000 000"
+              type="tel"
+              style={{
+                width:"100%",padding:"12px 14px",
+                background:C.surface,
+                border:"1.5px solid "+(user.phone?C.border:C.red+"88"),
+                borderRadius:10,color:C.text,
+                fontFamily:"'DM Sans',sans-serif",fontSize:14,
+                outline:"none",boxSizing:"border-box" as const,
+              }}
+            />
+            {!user.phone&&(
+              <p style={{fontSize:11,color:C.red,marginTop:8,fontWeight:600}}>
+                🔴 Sin teléfono los profesionales no pueden contactarte
+              </p>
+            )}
+          </GCard>
           <ChangePasswordCard userId={user.id} />
           <Btn full outline danger onClick={onLogout} color={C.red}>Cerrar sesión</Btn>
           <DeleteAccountButton user={user} onLogout={onLogout}/>
