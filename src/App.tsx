@@ -2090,6 +2090,17 @@ function SolicitudesTab({user,workers,onWorkerSelect,onChat,autoOpen=false,onSol
   const enviarSolicitud=async()=>{
   if(!desc.trim())return;
   setSending(true);
+  // Guard adicional: verificar que no existe ya una solicitud idéntica en los últimos 30 segundos
+  const {data:existing}=await db.from("budget_requests")
+    .select("id").eq("client_id",user.id).eq("oficio",oficio).eq("zona",zona)
+    .gte("created_at",new Date(Date.now()-30000).toISOString())
+    .limit(1);
+  if(existing&&existing.length>0){
+    setSending(false);
+    showToast("✅ Solicitud ya enviada");
+    setShowForm(false);
+    return;
+  }
   const {data:req}=await db.from("budget_requests").insert({
     client_id:user.id,client_name:user.name,
     oficio,zona,description:desc,
