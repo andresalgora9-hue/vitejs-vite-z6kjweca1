@@ -41,8 +41,7 @@ function fmtDate(iso:string){
 function fmt(n:number){return n.toLocaleString("es-ES");}
 
 function getProStatus(u:UserRow, now:Date): ProStatus {
-  const hasStripe = !!(u as any).stripe_customer_id;
-  const trialEnd  = u.trial_end ? new Date(u.trial_end) : null;
+  const trialEnd = u.trial_end ? new Date(u.trial_end) : null;
   if(u.plan !== "gratis") return "pagando";
   if(!trialEnd) return "sin_tarjeta";
   if(trialEnd > now) return "trial";
@@ -170,8 +169,8 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
   const load=useCallback(async()=>{
     setLoading(true);
     const [u,m,j,r,ld,rp]=await Promise.all([
-      db.from("users").select("id,name,email,phone,whatsapp,type,plan,trade,zone,rating,reviews,jobs,verified,available,trial_end,joined_at,avatar_url,bio,price,banned,stripe_customer_id").order("joined_at",{ascending:false}),
-      db.from("messages").select("id,from_id,to_id,text,read,created_at").order("created_at",{ascending:false}).limit(500),
+      db.from("users").select("id,name,email,phone,whatsapp,type,plan,trade,zone,rating,reviews,jobs,verified,available,trial_end,joined_at,avatar_url,bio,price,banned").order("joined_at",{ascending:false}),
+      db.from("messages").select("id,from_id,to_id,text,read,created_at").order("created_at",{ascending:false}).limit(1000),
       db.from("jobs").select("id,worker_id,client_id,client_name,title,description,status,created_at").order("created_at",{ascending:false}),
       db.from("reviews").select("id,worker_id,client_id,client_name,stars,text,approved,created_at").order("created_at",{ascending:false}),
       db.from("leads_landing").select("*").order("created_at",{ascending:false}),
