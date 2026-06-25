@@ -2439,6 +2439,9 @@ const activarNotificacionesCliente = async()=>{
     if(oficio!=="Todos"&&w.trade!==oficio)return false;
     if(search){const s=search.toLowerCase();const tradeMatch=OFICIOS.some(o=>o.toLowerCase().includes(s));if(tradeMatch){if(!(w.trade||"").toLowerCase().includes(s))return false;}else{if(!w.name.toLowerCase().includes(s)&&!(w.trade||"").toLowerCase().includes(s)&&!(w.bio||"").toLowerCase().includes(s))return false;}}
     return true;
+  }).sort((a,b)=>{
+    const order:Record<Plan,number>={elite:3,pro:2,basico:1,gratis:0};
+    return order[b.plan as Plan]-order[a.plan as Plan]||b.rating-a.rating;
   });
 
   const loadWorkers=useCallback(async()=>{
