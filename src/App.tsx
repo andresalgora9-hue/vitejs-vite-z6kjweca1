@@ -2146,7 +2146,7 @@ const eligibles=((allPros||[]) as UserRow[]).filter(w=>norm(w.trade||"")===norm(
   loadSolicitudes();
   setSending(false);
   showToast("✅ Solicitud enviada · Recibirás respuesta en menos de 5 min");
-if(Notification.permission === "default"){
+if(Notification.permission !== "granted"){
   setTimeout(()=> onSolicitudEnviada?.(), 1500);
 }
 };
