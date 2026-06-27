@@ -3063,9 +3063,10 @@ const [forgotLoading,setForgotLoading]=useState(false);
 const [showForgot,setShowForgot]=useState(false);
   useEffect(()=>{
     const loadGoogle=()=>{
-      (window as any).google.accounts.id.initialize({
+     (window as any).google.accounts.id.initialize({
         client_id:"616004854667-tmqmecrr4536qcdsfmfn316n1rlg3lpe.apps.googleusercontent.com",
-        callback:(window as any).handleGoogleCredential,
+        callback:(response:any)=>(window as any).handleGoogleCredential?.(response),
+        use_fedcm_for_prompt:false,
       });
     };
     if((window as any).google?.accounts?.id){
@@ -5045,20 +5046,12 @@ export default function App(){
       });
       const data=await res.json();
       if(data.success){
-        if(data.isNew){
-          // Email nuevo → prefill y manda a register_cliente
-          localStorage.setItem("oy_google_fill",JSON.stringify({name:payload.name,email:payload.email,avatar_url:payload.picture}));
-          window.dispatchEvent(new Event("google_fill"));
-        } else {
-          if(data.user.type==="profesional"){
-            // Profesional intentando entrar con Google → error
-            alert("Para profesionales usa email y contraseña.");
-            return;
-          }
-          // Cliente existente → login directo
-          localStorage.setItem("oy_user",JSON.stringify(data.user));
-          window.location.reload();
+        if(data.user.type==="profesional"){
+          alert("Para profesionales usa email y contraseña.");
+          return;
         }
+        localStorage.setItem("oy_user",JSON.stringify(data.user));
+        window.location.reload();
       }
     };
     setReady(true);
