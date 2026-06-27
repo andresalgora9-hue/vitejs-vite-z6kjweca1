@@ -29,6 +29,7 @@ const C = {
   muted:"#5A6A8A",    // slate-500
   mutedL:"#8899BB",   // slate-400
 };
+const PHRASES=["fontaneros","electricistas","reformistas","pintores","carpinteros","cerrajeros","albañiles","manitas","desatascos","limpieza","climatización","calefacción","cristaleros","jardineros","mudanzas","tapiceros","herreros","soldadores","antenistas","domótica","placas solares","control de plagas","parquetistas","escayolistas","yeseros","persianas","toldos","marmolistas"];
 // ── SENTRY ──
 import * as Sentry from "@sentry/react";
 Sentry.init({
@@ -3062,7 +3063,6 @@ const [forgotMsg,setForgotMsg]=useState("");
 const [forgotLoading,setForgotLoading]=useState(false);
 const [showForgot,setShowForgot]=useState(false);
 const [pIdx,setPIdx]=useState(0);
-const PHRASES=["fontaneros","electricistas","reformistas","pintores","carpinteros","cerrajeros","albañiles","manitas","desatascos","limpieza","climatización","calefacción","cristaleros","jardineros","mudanzas","tapiceros","herreros","soldadores","antenistas","domótica","placas solares","control de plagas","parquetistas","escayolistas","yeseros","persianas","toldos","marmolistas","electricistas","fontaneros"];
 useEffect(()=>{
   const t=setInterval(()=>setPIdx(i=>(i+1)%PHRASES.length),150);
   return()=>clearInterval(t);
