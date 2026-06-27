@@ -3366,11 +3366,11 @@ fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEA
           }}
         />
       )}
-      <div style={{width:"100%",maxWidth:420,position:"relative"}}>
+      <div style={{width:"100%",maxWidth:460,position:"relative",zIndex:1}}>
   <canvas ref={canvasRef} style={{position:"fixed",inset:0,width:"100%",height:"100%",pointerEvents:"none",zIndex:0}}/>
   <Logo />
         {mode==="login"&&(
-          <GCard>
+          <GCard style={{background:"rgba(22,27,39,0.82)",backdropFilter:"blur(16px)",WebkitBackdropFilter:"blur(16px)",borderRadius:20,border:"1px solid rgba(255,215,0,0.12)"}}>
             <div style={{textAlign:"center",marginBottom:16}}>
   <p style={{fontWeight:800,fontSize:15,color:"#E8EDF5",margin:"0 0 4px"}}>Conecta con</p>
   <p style={{fontWeight:800,fontSize:22,color:"#FFD700",margin:0,minHeight:30,
