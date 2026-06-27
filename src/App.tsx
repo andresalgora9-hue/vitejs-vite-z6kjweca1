@@ -3437,7 +3437,7 @@ fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEA
           </GCard>
         )}
         {mode==="pick"&&(
-          <div>
+          <div style={{background:"rgba(22,27,39,0.82)",backdropFilter:"blur(16px)",WebkitBackdropFilter:"blur(16px)",borderRadius:20,border:"1px solid rgba(255,215,0,0.12)",padding:18}}>
             <p style={{fontWeight:800,fontSize:18,color:C.text,marginBottom:6,textAlign:"center"}}>¿Cómo quieres usar oficioya?</p>
             <p style={{fontSize:13,color:C.muted,marginBottom:20,textAlign:"center"}}>Es gratis registrarse.</p>
             <div style={{display:"flex",flexDirection:"column",gap:12,marginBottom:20}}>
@@ -3460,7 +3460,7 @@ fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEA
           </div>
         )}
         {mode==="register_cliente"&&(
-          <GCard>
+          <GCard style={{background:"rgba(22,27,39,0.82)",backdropFilter:"blur(16px)",WebkitBackdropFilter:"blur(16px)",borderRadius:20,border:"1px solid rgba(255,215,0,0.12)"}}>
             <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
               <button onClick={()=>setMode("pick")} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:18,padding:0}}>←</button>
               <p style={{fontWeight:800,fontSize:16,color:C.text}}>Crear cuenta de cliente</p>
@@ -3475,7 +3475,7 @@ fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEA
           </GCard>
         )}
         {mode==="register_pro"&&(
-          <GCard style={{padding:20}}>
+          <GCard style={{padding:20,background:"rgba(22,27,39,0.82)",backdropFilter:"blur(16px)",WebkitBackdropFilter:"blur(16px)",borderRadius:20,border:"1px solid rgba(255,215,0,0.12)"}}>
             <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:20}}>
               <button onClick={()=>{if(proStep===1)setMode("pick");else setProStep(p=>p-1);}} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:18,padding:0,flexShrink:0}}>←</button>
               <div style={{flex:1,display:"flex",gap:4}}>
