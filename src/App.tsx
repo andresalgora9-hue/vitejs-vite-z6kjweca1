@@ -3064,12 +3064,65 @@ const [forgotLoading,setForgotLoading]=useState(false);
 const [showForgot,setShowForgot]=useState(false);
 const [pIdx,setPIdx]=useState(0);
 const [pVisible,setPVisible]=useState(true);
+const canvasRef=useRef<HTMLCanvasElement>(null);
 useEffect(()=>{
   const t=setInterval(()=>{
   setPVisible(false);
   setTimeout(()=>{setPIdx(i=>(i+1)%PHRASES.length);setPVisible(true);},320);
 },2800);
-  return()=>clearInterval(t);
+return()=>clearInterval(t);
+},[]);
+useEffect(()=>{
+  const canvas=canvasRef.current;if(!canvas)return;
+  const ctx=canvas.getContext("2d");if(!ctx)return;
+  const parent=canvas.parentElement!;
+  const palette=["#FFD700","#FFFFFF","#FFD700","#FFE680","#FFFFFF"];
+  const dpr=Math.min(window.devicePixelRatio||1,2);
+  let W=0,H=0;
+  const resize=()=>{const rect=parent.getBoundingClientRect();W=rect.width;H=rect.height;canvas.width=W*dpr;canvas.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);};
+  resize();
+  const N=Math.round(Math.min(80,Math.max(40,(W*H)/14000)));
+  const pts:any[]=[];
+  for(let i=0;i<N;i++)pts.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.25,r:1.2+Math.random()*2.2,c:palette[(Math.random()*palette.length)|0]});
+  let mx=W/2,my=H/2,tx=W/2,ty=H/2;
+  const ripples:any[]=[];
+  const setTarget=(cx:number,cy:number)=>{const r=canvas.getBoundingClientRect();tx=cx-r.left;ty=cy-r.top;};
+  const burst=(cx:number,cy:number)=>{
+    const r=canvas.getBoundingClientRect();const x=cx-r.left,y=cy-r.top;
+    if(x<0||y<0||x>W||y>H)return;
+    ripples.push({x,y,r:0,a:.5,gold:Math.random()<.5});
+    for(const p of pts){const dx=p.x-x,dy=p.y-y,d=Math.hypot(dx,dy)||1;if(d<150){const f=(1-d/150)*2.6;p.vx+=(dx/d)*f;p.vy+=(dy/d)*f;}}
+  };
+  const onMove=(e:MouseEvent)=>setTarget(e.clientX,e.clientY);
+  const onClick=(e:MouseEvent)=>burst(e.clientX,e.clientY);
+  const onResize=()=>resize();
+  window.addEventListener("mousemove",onMove);
+  window.addEventListener("click",onClick);
+  window.addEventListener("resize",onResize);
+  let raf:number;
+  const frame=()=>{
+    mx+=(tx-mx)*.06;my+=(ty-my)*.06;
+    const ox=(mx-W/2)*.06,oy=(my-H/2)*.06;
+    ctx.clearRect(0,0,W,H);
+    for(let i=0;i<pts.length;i++){const a=pts[i];for(let j=i+1;j<pts.length;j++){const b=pts[j];const dx=a.x-b.x,dy=a.y-b.y,d2=dx*dx+dy*dy;if(d2<14400){const al=(1-Math.sqrt(d2)/120)*.10;ctx.strokeStyle="rgba(120,140,180,"+al+")";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(a.x+ox,a.y+oy);ctx.lineTo(b.x+ox,b.y+oy);ctx.stroke();}}}
+    for(const p of pts){
+      const dx=p.x-mx,dy=p.y-my,dist=Math.hypot(dx,dy)||1;
+      if(dist<200){const f=(1-dist/200)*2.6;p.vx+=(dx/dist)*f;p.vy+=(dy/dist)*f;}
+      p.vx+=(Math.random()-.5)*.01;p.vy+=(Math.random()-.5)*.01;
+      p.x+=p.vx;p.y+=p.vy;p.vx*=.96;p.vy*=.96;
+      if(p.x<-20)p.x=W+20;if(p.x>W+20)p.x=-20;
+      if(p.y<-20)p.y=H+20;if(p.y>H+20)p.y=-20;
+      ctx.globalAlpha=.5;ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x+ox,p.y+oy,p.r,0,Math.PI*2);ctx.fill();
+    }
+    ctx.globalAlpha=1;
+    const g=ctx.createRadialGradient(mx,my,0,mx,my,260);
+    g.addColorStop(0,"rgba(255,215,0,.10)");g.addColorStop(.5,"rgba(255,140,0,.04)");g.addColorStop(1,"rgba(255,215,0,0)");
+    ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+    for(let i=ripples.length-1;i>=0;i--){const rp=ripples[i];rp.r+=4;rp.a*=.96;if(rp.a<.02){ripples.splice(i,1);continue;}ctx.beginPath();ctx.strokeStyle=(rp.gold?"rgba(255,215,0,":"rgba(255,140,0,")+rp.a+")";ctx.lineWidth=2;ctx.arc(rp.x,rp.y,rp.r,0,Math.PI*2);ctx.stroke();}
+    raf=requestAnimationFrame(frame);
+  };
+  raf=requestAnimationFrame(frame);
+  return()=>{window.removeEventListener("mousemove",onMove);window.removeEventListener("click",onClick);window.removeEventListener("resize",onResize);cancelAnimationFrame(raf);};
 },[]);
   useEffect(()=>{
     const loadGoogle=()=>{
@@ -3313,8 +3366,9 @@ fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEA
           }}
         />
       )}
-      <div style={{width:"100%",maxWidth:420}}>
-        <Logo />
+      <div style={{width:"100%",maxWidth:420,position:"relative"}}>
+  <canvas ref={canvasRef} style={{position:"fixed",inset:0,width:"100%",height:"100%",pointerEvents:"none",zIndex:0}}/>
+  <Logo />
         {mode==="login"&&(
           <GCard>
             <div style={{textAlign:"center",marginBottom:16}}>
