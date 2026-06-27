@@ -3311,10 +3311,28 @@ fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEA
             {err&&<div style={{color:C.red,fontSize:13,marginBottom:12,padding:"10px 12px",background:C.red+"15",borderRadius:8,border:"1px solid "+C.red+"33"}}>{err}</div>}
             <Inp label="Email" value={email} onChange={setEmail} type="email" placeholder="tu@email.com" />
             <Inp label="Contraseña" value={pass} onChange={setPass} type="password" placeholder="••••••••" />
-            <Btn full disabled={loading} onClick={login}>{loading?"Entrando...":"Entrar →"}</Btn>             <div style={{display:"flex",alignItems:"center",gap:8,margin:"12px 0"}}>               <div style={{flex:1,height:1,background:"rgba(255,255,255,0.08)"}} />               <span style={{fontSize:11,color:C.muted}}>o</span>               <div style={{flex:1,height:1,background:"rgba(255,255,255,0.08)"}} />             </div>             <button onClick={()=>{
-  if((window as any).google?.accounts?.id){
-    (window as any).google.accounts.id.prompt();
-  }
+            <Btn full disabled={loading} onClick={login}>{loading?"Entrando...":"Entrar →"}</Btn>             <div style={{display:"flex",alignItems:"center",gap:8,margin:"12px 0"}}>               <div style={{flex:1,height:1,background:"rgba(255,255,255,0.08)"}} />               <span style={{fontSize:11,color:C.muted}}>o</span>               <div style={{flex:1,height:1,background:"rgba(255,255,255,0.08)"}} />             </div>             onClick={()=>{
+  const client=(window as any).google.accounts.oauth2.initTokenClient({
+    client_id:"616004854667-tmqmecrr4536qcdsfmfn316n1rlg3lpe.apps.googleusercontent.com",
+    scope:"email profile openid",
+    callback:async(t:any)=>{
+      if(!t.access_token)return;
+      const info=await fetch("https://www.googleapis.com/oauth2/v3/userinfo",{headers:{Authorization:"Bearer "+t.access_token}}).then(r=>r.json());
+      const res=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/auth-handler",{
+        method:"POST",
+        headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.YBGfaKyMGRrH7dh7tqmTTlPP8IQ-oNSxdtV8GCtObHs","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.YBGfaKyMGRrH7dh7tqmTTlPP8IQ-oNSxdtV8GCtObHs"},
+        body:JSON.stringify({action:"google_auth",email:info.email,name:info.name,avatar_url:info.picture,type:"cliente"})
+      });
+      const data=await res.json();
+      if(data.success){
+        if(data.user.type==="profesional"){alert("Para profesionales usa email y contraseña.");return;}
+        localStorage.setItem("oy_user",JSON.stringify(data.user));
+        window.location.reload();
+      }
+    }
+  });
+  client.requestAccessToken();
+}}
 }} style={{width:"100%",padding:"13px 16px",background:"#1E2536",border:"1px solid #2D3A52",borderRadius:12,display:"flex",alignItems:"center",justifyContent:"center",gap:10,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:14,color:"#E8EDF5",boxSizing:"border-box" as const}}>
   <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
   Continuar con Google
