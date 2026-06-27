@@ -3065,6 +3065,27 @@ const [showForgot,setShowForgot]=useState(false);
 const [pIdx,setPIdx]=useState(0);
 const [pVisible,setPVisible]=useState(true);
 const canvasRef=useRef<HTMLCanvasElement>(null);
+const [isDesktop,setIsDesktop]=useState(window.innerWidth>900);
+const [sideCount,setSideCount]=useState([0,0,0,0,0,0]);
+const SIDE_PROS=[
+  {name:"Sergio M.",oficio:"Reformas",photo:"https://rjwojxwrsbvwwshwwpvq.supabase.co/storage/v1/object/public/photos/avatars/394696a7-6797-4b76-848e-c1efd059847f/1782125441349.jpg"},
+  {name:"Enoc E.",oficio:"Electricista",photo:"https://rjwojxwrsbvwwshwwpvq.supabase.co/storage/v1/object/public/photos/avatars/83a9bf5d-cb33-44de-b0f5-7e0d3be75389/1782285030018.jpg"},
+  {name:"Ivan F.",oficio:"Reformas",initials:"IF",bg:"#3B82F622",color:"#3B82F6"},
+  {name:"Yassine E.",oficio:"Electricista",initials:"YE",bg:"#8B5CF622",color:"#8B5CF6"},
+  {name:"Desatascos S.",oficio:"Fontanero",photo:"https://rjwojxwrsbvwwshwwpvq.supabase.co/storage/v1/object/public/photos/avatars/24588d93-75e0-49e0-af3d-7ae141bed60b/1782292677971.jpg"},
+  {name:"Celso N.",oficio:"Electricista",initials:"CN",bg:"#00D68F22",color:"#00D68F"},
+];
+const SLOT_BASE=[0,2,4,1,3,5];
+useEffect(()=>{
+  const onResize=()=>setIsDesktop(window.innerWidth>900);
+  window.addEventListener("resize",onResize);
+  return()=>window.removeEventListener("resize",onResize);
+},[]);
+useEffect(()=>{
+  if(!isDesktop)return;
+  const t=setInterval(()=>setSideCount(c=>{const n=[...c];const slot=Math.floor(Math.random()*6);n[slot]=(n[slot]+1)%SIDE_PROS.length;return n;}),1400);
+  return()=>clearInterval(t);
+},[isDesktop]);
 useEffect(()=>{
   const t=setInterval(()=>{
   setPVisible(false);
@@ -3318,9 +3339,24 @@ fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEA
       <p style={{fontSize:12,color:C.muted}}>Profesionales verificados en tu zona · Sevilla</p>
     </div>
   );
-
+const makeSideCard=(slot:number)=>{
+    const p=SIDE_PROS[(SLOT_BASE[slot]+sideCount[slot])%SIDE_PROS.length];
+    const avatar=p.photo
+      ?<img src={p.photo} alt={p.name} style={{width:44,height:44,borderRadius:"50%",objectFit:"cover",flexShrink:0}}/>
+      :<div style={{width:44,height:44,borderRadius:"50%",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:14,background:p.bg,color:p.color}}>{p.initials}</div>;
+    return(
+      <div key={slot+"-"+sideCount[slot]} style={{background:"rgba(22,27,39,0.75)",backdropFilter:"blur(10px)",border:"1px solid #2D3A52",borderRadius:14,padding:12,display:"flex",alignItems:"center",gap:10,opacity:.7,transition:"opacity 0.3s",cursor:"default",animation:"cardIn 0.5s ease"}}>
+        {avatar}
+        <div>
+          <div style={{fontWeight:700,fontSize:14,color:"#E8EDF5"}}>{p.name}</div>
+          <div style={{fontSize:12,color:"#5A6A8A"}}>{p.oficio} · Sevilla</div>
+        </div>
+        <div style={{marginLeft:"auto",fontSize:11,color:C.accent,fontWeight:700}}>✓</div>
+      </div>
+    );
+  };
   return(
-    <div style={{minHeight:"100dvh",background:C.bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px 20px",backgroundImage:"radial-gradient(ellipse at 20% 0%,#2a0a5a22,transparent 55%),radial-gradient(ellipse at 80% 100%,#0a2a4a22,transparent 55%)",overflowY:"auto"}}>
+    <div style={{minHeight:"100dvh",background:C.bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:isDesktop?"24px 40px":"24px 20px",backgroundImage:"radial-gradient(ellipse at 20% 0%,#2a0a5a22,transparent 55%),radial-gradient(ellipse at 80% 100%,#0a2a4a22,transparent 55%)",overflowY:"auto"}}>
       {showPlanDetail&&<PlanDetailModal pl={showPlanDetail} onClose={()=>setShowPlanDetail(null)} />}
       {showRegisterStripe&&pendingProFormData&&(
         <StripePayModal
@@ -3366,8 +3402,10 @@ fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEA
           }}
         />
       )}
+      <canvas ref={canvasRef} style={{position:"fixed",inset:0,width:"100%",height:"100%",pointerEvents:"none",zIndex:0}}/>
+      <div style={{display:"flex",alignItems:"center",gap:32,width:"100%",maxWidth:1100,justifyContent:"center"}}>
+      {isDesktop&&<div style={{display:"flex",flexDirection:"column",gap:14,width:260,flexShrink:0}}>{[0,1,2].map(s=>makeSideCard(s))}</div>}
       <div style={{width:"100%",maxWidth:460,position:"relative",zIndex:1}}>
-  <canvas ref={canvasRef} style={{position:"fixed",inset:0,width:"100%",height:"100%",pointerEvents:"none",zIndex:0}}/>
   <Logo />
         {mode==="login"&&(
           <GCard style={{background:"rgba(22,27,39,0.82)",backdropFilter:"blur(16px)",WebkitBackdropFilter:"blur(16px)",borderRadius:20,border:"1px solid rgba(255,215,0,0.12)"}}>
@@ -3569,6 +3607,8 @@ fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEA
   <a href="/privacidad" style={{color:C.accent,textDecoration:"none"}}>Política de Privacidad</a>
 </p>
 <LegalFooter/>
+      </div>
+      {isDesktop&&<div style={{display:"flex",flexDirection:"column",gap:14,width:260,flexShrink:0}}>{[3,4,5].map(s=>makeSideCard(s))}</div>}
       </div>
     </div>
   );
