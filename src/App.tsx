@@ -3061,6 +3061,12 @@ const [forgotPhone,setForgotPhone]=useState("");
 const [forgotMsg,setForgotMsg]=useState("");
 const [forgotLoading,setForgotLoading]=useState(false);
 const [showForgot,setShowForgot]=useState(false);
+const [pIdx,setPIdx]=useState(0);
+const PHRASES=["fontaneros","electricistas","reformistas","pintores","carpinteros","cerrajeros","albañiles","manitas","desatascos","limpieza","climatización","calefacción","cristaleros","jardineros","mudanzas","tapiceros","herreros","soldadores","antenistas","domótica","placas solares","control de plagas","parquetistas","escayolistas","yeseros","persianas","toldos","marmolistas","electricistas","fontaneros"];
+useEffect(()=>{
+  const t=setInterval(()=>setPIdx(i=>(i+1)%PHRASES.length),150);
+  return()=>clearInterval(t);
+},[]);
   useEffect(()=>{
     const loadGoogle=()=>{
      (window as any).google.accounts.id.initialize({
@@ -3307,7 +3313,10 @@ fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEA
         <Logo />
         {mode==="login"&&(
           <GCard>
-            <p style={{fontWeight:800,fontSize:17,color:C.text,marginBottom:16,textAlign:"center"}}>Bienvenido de nuevo</p>
+            <div style={{textAlign:"center",marginBottom:16}}>
+  <p style={{fontWeight:800,fontSize:15,color:C.muted,margin:"0 0 4px"}}>Conecta con</p>
+  <p style={{fontWeight:800,fontSize:22,color:"#FFD700",margin:0,minHeight:30,transition:"opacity 0.1s"}}>{PHRASES[pIdx]}</p>
+</div>
             {err&&<div style={{color:C.red,fontSize:13,marginBottom:12,padding:"10px 12px",background:C.red+"15",borderRadius:8,border:"1px solid "+C.red+"33"}}>{err}</div>}
             <Inp label="Email" value={email} onChange={setEmail} type="email" placeholder="tu@email.com" />
             <Inp label="Contraseña" value={pass} onChange={setPass} type="password" placeholder="••••••••" />
