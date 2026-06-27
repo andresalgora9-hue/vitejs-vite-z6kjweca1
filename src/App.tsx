@@ -3063,8 +3063,12 @@ const [forgotMsg,setForgotMsg]=useState("");
 const [forgotLoading,setForgotLoading]=useState(false);
 const [showForgot,setShowForgot]=useState(false);
 const [pIdx,setPIdx]=useState(0);
+const [pVisible,setPVisible]=useState(true);
 useEffect(()=>{
-  const t=setInterval(()=>setPIdx(i=>(i+1)%PHRASES.length),150);
+  const t=setInterval(()=>{
+  setPVisible(false);
+  setTimeout(()=>{setPIdx(i=>(i+1)%PHRASES.length);setPVisible(true);},320);
+},2800);
   return()=>clearInterval(t);
 },[]);
   useEffect(()=>{
@@ -3314,8 +3318,12 @@ fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEA
         {mode==="login"&&(
           <GCard>
             <div style={{textAlign:"center",marginBottom:16}}>
-  <p style={{fontWeight:800,fontSize:15,color:C.muted,margin:"0 0 4px"}}>Conecta con</p>
-  <p style={{fontWeight:800,fontSize:22,color:"#FFD700",margin:0,minHeight:30,transition:"opacity 0.1s"}}>{PHRASES[pIdx]}</p>
+  <p style={{fontWeight:800,fontSize:15,color:"#E8EDF5",margin:"0 0 4px"}}>Conecta con</p>
+  <p style={{fontWeight:800,fontSize:22,color:"#FFD700",margin:0,minHeight:30,
+    opacity:pVisible?1:0,
+    transform:pVisible?"translateY(0px)":"translateY(10px)",
+    transition:"opacity 0.3s ease, transform 0.3s ease"
+  }}>{PHRASES[pIdx]}</p>
 </div>
             {err&&<div style={{color:C.red,fontSize:13,marginBottom:12,padding:"10px 12px",background:C.red+"15",borderRadius:8,border:"1px solid "+C.red+"33"}}>{err}</div>}
             <Inp label="Email" value={email} onChange={setEmail} type="email" placeholder="tu@email.com" />
