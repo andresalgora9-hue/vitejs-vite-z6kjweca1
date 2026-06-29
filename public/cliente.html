@@ -549,8 +549,6 @@ async function guardarLead(nombre, telefono, oficio) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'apikey': ANON_KEY,
-        'Authorization': 'Bearer ' + ANON_KEY
       },
       body: JSON.stringify({
         action: 'save_client_lead',
