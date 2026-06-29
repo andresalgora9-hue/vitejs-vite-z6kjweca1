@@ -545,16 +545,15 @@ async function guardarLead(nombre, telefono, oficio) {
   const params = new URLSearchParams(window.location.search);
   const descripcion = step1Data.descripcion || '';
   try {
-    // Insertar en tabla client_leads
-    await fetch(SUPABASE_URL + '/rest/v1/client_leads', {
+    await fetch(SUPABASE_URL + '/functions/v1/auth-handler', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'apikey': ANON_KEY,
-        'Authorization': 'Bearer ' + ANON_KEY,
-        'Prefer': 'return=minimal'
+        'Authorization': 'Bearer ' + ANON_KEY
       },
       body: JSON.stringify({
+        action: 'save_client_lead',
         nombre,
         telefono,
         oficio,
@@ -563,7 +562,6 @@ async function guardarLead(nombre, telefono, oficio) {
         utm_medium: params.get('utm_medium') || null,
         utm_campaign: params.get('utm_campaign') || null,
         utm_content: params.get('utm_content') || null,
-        registered: false
       })
     });
   } catch(e) { console.log('Lead save error:', e); }
