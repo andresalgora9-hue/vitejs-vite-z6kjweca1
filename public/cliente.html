@@ -104,6 +104,28 @@ h1 span{color:var(--gold);}
 .trust-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);}
 .trust-check{color:var(--green);font-weight:800;}
 
+/* CARRUSEL PROFESIONALES */
+.pro-carousel-wrap{max-width:400px;margin:16px auto 0;height:64px;position:relative;overflow:hidden;animation:fadeUp 0.7s ease both 0.35s;}
+.pro-carousel-card{
+  position:absolute;inset:0;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:10px 14px;
+  display:flex;align-items:center;gap:12px;
+  opacity:1;
+  transition:opacity 0.25s ease, transform 0.25s ease;
+}
+.pro-carousel-card.fade-out{opacity:0;transform:translateY(-8px);}
+.pro-carousel-card.fade-in{opacity:0;transform:translateY(8px);}
+.car-avatar{width:38px;height:38px;border-radius:50%;background:var(--gold-dim);border:1.5px solid rgba(255,184,0,0.3);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:var(--gold);flex-shrink:0;}
+.car-info{flex:1;min-width:0;}
+.car-name{font-size:13px;font-weight:700;color:var(--white);}
+.car-oficio{font-size:11px;color:var(--muted);margin-top:1px;}
+.car-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;}
+.car-stars{font-size:10px;color:var(--gold);}
+.car-badge{background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.25);color:var(--green);font-size:9px;font-weight:800;letter-spacing:0.5px;padding:2px 6px;border-radius:5px;}
+
 /* SOCIAL PROOF */
 .proof-row{display:flex;align-items:center;gap:10px;max-width:400px;margin:16px auto 0;background:rgba(74,222,128,0.05);border:1px solid rgba(74,222,128,0.15);border-radius:12px;padding:10px 14px;animation:fadeUp 0.7s ease both 0.35s;}
 .proof-avatars{display:flex;}
@@ -163,6 +185,24 @@ h1 span{color:var(--gold);}
 .success-inner{max-width:420px;margin:0 auto;text-align:center;}
 .success-check{width:72px;height:72px;border-radius:50%;background:rgba(74,222,128,0.1);border:2px solid var(--green);display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 20px;animation:checkIn 0.5s ease both;}
 
+/* STEP INDICATOR */
+.step-indicator{display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:20px;}
+.step-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;border:1.5px solid var(--border);color:var(--dim);background:var(--bg);transition:all 0.3s;}
+.step-dot.active{background:var(--gold-dim);border-color:var(--gold);color:var(--gold);}
+.step-dot.done{background:rgba(74,222,128,0.1);border-color:var(--green);color:var(--green);}
+.step-connector{width:40px;height:1.5px;background:var(--border);}
+.step-label{font-size:10px;color:var(--dim);letter-spacing:1px;text-align:center;}
+
+/* OFICIO SELECTOR */
+.oficio-grid-sel{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:6px;}
+.oficio-sel-btn{background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:9px 4px;text-align:center;font-size:12px;color:var(--muted);cursor:pointer;transition:all 0.15s;font-family:'Inter',sans-serif;line-height:1.4;}
+.oficio-sel-btn:hover{border-color:var(--gold);color:var(--white);}
+.oficio-sel-btn.selected{background:var(--gold-dim);border-color:var(--gold);color:var(--gold);font-weight:700;}
+
+/* BACK BTN */
+.back-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;padding:0;line-height:1;transition:color 0.2s;}
+.back-btn:hover{color:var(--white);}
+
 @media(max-width:480px){
   .topbar{padding:14px 16px;}
   .hero{padding:36px 16px 32px;}
@@ -198,6 +238,7 @@ h1 span{color:var(--gold);}
   </div>
 </div>
 
+
 <div class="wrap" id="main-view">
 
   <!-- TOPBAR -->
@@ -215,41 +256,94 @@ h1 span{color:var(--gold);}
 
   <!-- HERO -->
   <div class="hero">
-    <div class="free-pill">
-      <span class="free-badge">GRATIS</span>
-      <span class="free-text">Para clientes · Siempre</span>
+    <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:24px;">
+      <div class="free-pill" style="margin-bottom:0;">
+        <span class="free-badge">GRATIS</span>
+        <span class="free-text">Para clientes · Siempre</span>
+      </div>
+      <div class="free-pill" style="margin-bottom:0;background:rgba(255,184,0,0.08);border-color:rgba(255,184,0,0.2);">
+        <span style="font-size:13px;">⭐</span>
+        <span class="free-text" style="color:#ccc;"><b style="color:#fff;">+120 clientes</b> encontraron profesional esta semana</span>
+      </div>
     </div>
     <h1>El profesional<br/><span>llega a ti.</span></h1>
     <p class="hero-sub">Fontaneros, electricistas, cerrajeros y más de 40 oficios verificados en Sevilla. En minutos, no en días.</p>
 
+    <!-- CARRUSEL PROFESIONALES — encima del form -->
+    <div class="pro-carousel-wrap" style="margin-bottom:16px;">
+      <div class="pro-carousel-card" id="pro-carousel"></div>
+    </div>
+
     <!-- FORM CARD -->
     <div class="form-card">
-      <!-- Google One Tap -->
-      <button class="google-btn" id="google-btn" onclick="iniciarGoogle()">
-        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-        Continuar con Google
-      </button>
 
-      <div class="divider-row">
-        <div class="div-line"></div>
-        <span class="div-text">o con email</span>
-        <div class="div-line"></div>
+      <!-- STEP INDICATOR -->
+      <div class="step-indicator">
+        <div class="step-dot active" id="dot1">1</div>
+        <div class="step-connector"></div>
+        <div class="step-dot" id="dot2">2</div>
       </div>
 
-      <label class="field-label">Nombre completo</label>
-      <input class="field-input" type="text" id="nombre" placeholder="Tu nombre" autocomplete="name"/>
-      <span class="field-error" id="err-nombre"></span>
+      <!-- ── PASO 1: ¿Qué necesitas? ── -->
+      <div id="step1-content">
+        <p style="font-size:11px;font-weight:800;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;">¿Qué necesitas?</p>
+        <div class="oficio-grid-sel" id="oficio-grid">
+          <div class="oficio-sel-btn" onclick="selOficio(this,'Fontanero')">💧<br/>Fontanero</div>
+          <div class="oficio-sel-btn" onclick="selOficio(this,'Electricista')">⚡<br/>Electricista</div>
+          <div class="oficio-sel-btn" onclick="selOficio(this,'Cerrajero')">🔑<br/>Cerrajero</div>
+          <div class="oficio-sel-btn" onclick="selOficio(this,'Pintor')">🎨<br/>Pintor</div>
+          <div class="oficio-sel-btn" onclick="selOficio(this,'Albañil')">🧱<br/>Albañil</div>
+          <div class="oficio-sel-btn" onclick="selOficio(this,'Climatización')">❄️<br/>Clima</div>
+          <div class="oficio-sel-btn" onclick="selOficio(this,'Carpintero')">🪵<br/>Carpintero</div>
+          <div class="oficio-sel-btn" onclick="selOficio(this,'Jardinero')">🌿<br/>Jardinero</div>
+          <div class="oficio-sel-btn" onclick="selOficio(this,'Manitas')">🔧<br/>Manitas</div>
+        </div>
+        <span class="field-error" id="err-oficio" style="margin-bottom:8px;display:none;"></span>
 
-      <label class="field-label">Email</label>
-      <input class="field-input" type="email" id="email" placeholder="tu@email.com" autocomplete="email"/>
-      <span class="field-error" id="err-email"></span>
+        <label class="field-label" style="margin-top:14px;">Descríbenos el problema <span style="color:var(--dim);font-weight:400;text-transform:none;letter-spacing:0;">(opcional)</span></label>
+        <textarea class="field-input" id="s1-descripcion" placeholder="Ej: Tengo una gotera en el baño, necesito que vengan hoy si es posible..." rows="3" style="resize:none;line-height:1.6;"></textarea>
+        <span class="field-error" id="err-s1-descripcion"></span>
 
-      <label class="field-label">Teléfono</label>
-      <input class="field-input" type="tel" id="telefono" placeholder="612 345 678" autocomplete="tel"/>
-      <span class="field-error" id="err-telefono"></span>
+        <label class="field-label">Tu nombre</label>
+        <input class="field-input" type="text" id="s1-nombre" placeholder="Tu nombre" autocomplete="name"/>
+        <span class="field-error" id="err-s1-nombre"></span>
 
-      <button class="btn" id="btn-registro" onclick="registrarCliente()">Crear cuenta gratis →</button>
-      <p class="micro">Sin contraseña · Sin tarjeta · Sin compromiso</p>
+        <label class="field-label">Tu teléfono</label>
+        <input class="field-input" type="tel" id="s1-telefono" placeholder="612 345 678" autocomplete="tel"/>
+        <span class="field-error" id="err-s1-telefono"></span>
+
+        <button class="btn" id="btn-step1" onclick="pasarPaso2()">Buscar profesional →</button>
+        <p class="micro">Gratis · Sin compromiso · En minutos</p>
+      </div>
+
+      <!-- ── PASO 2: Crear cuenta ── -->
+      <div id="step2-content" style="display:none;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+          <button class="back-btn" onclick="volverPaso1()">←</button>
+          <p style="font-size:11px;font-weight:800;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin:0;">Último paso</p>
+        </div>
+        <p style="color:var(--white);font-size:15px;font-weight:700;margin:0 0 4px;">Buscando <span id="oficio-elegido" style="color:var(--gold);"></span>...</p>
+        <p style="color:var(--muted);font-size:13px;margin:0 0 18px;line-height:1.6;">Crea tu cuenta gratis para recibir respuesta en minutos.</p>
+
+        <button class="google-btn" id="google-btn" onclick="iniciarGoogle()">
+          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+          Continuar con Google
+        </button>
+
+        <div class="divider-row">
+          <div class="div-line"></div>
+          <span class="div-text">o con email</span>
+          <div class="div-line"></div>
+        </div>
+
+        <label class="field-label">Email</label>
+        <input class="field-input" type="email" id="email" placeholder="tu@email.com" autocomplete="email"/>
+        <span class="field-error" id="err-email"></span>
+
+        <button class="btn" id="btn-registro" onclick="registrarCliente()">Completar registro →</button>
+        <p class="micro">Sin contraseña · Sin tarjeta · Sin compromiso</p>
+      </div>
+
     </div>
 
     <div class="trust-row">
@@ -258,14 +352,6 @@ h1 span{color:var(--gold);}
       <div class="trust-item"><span class="trust-check">✓</span> Solo Sevilla</div>
     </div>
 
-    <div class="proof-row">
-      <div class="proof-avatars">
-        <div class="proof-avatar">M</div>
-        <div class="proof-avatar">J</div>
-        <div class="proof-avatar">A</div>
-      </div>
-      <div class="proof-text"><b>+120 clientes</b> ya han encontrado su profesional esta semana en Sevilla</div>
-    </div>
   </div>
 
   <!-- PAIN POINTS -->
@@ -372,22 +458,157 @@ const SUPABASE_URL = 'https://rjwojxwrsbvwwshwwpvq.supabase.co';
 const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI';
 const GOOGLE_CLIENT_ID = '616004854667-tmqmecrr4536qcdsfmfn316n1rlg3lpe.apps.googleusercontent.com';
 
-// TRACKING
+// Estado del funnel
+let selectedOficio = '';
+let step1Data = {};
+
+// ── TRACKING ──
 function track(evento, datos) {
   if (window.fbq) fbq('track', evento, datos || {});
   if (window.gtag) gtag('event', evento, datos || {});
 }
 
-// MOSTRAR ERROR
+// ── ERRORES ──
 function setErr(id, msg) {
   const el = document.getElementById(id);
+  if (!el) return;
   if (msg) { el.textContent = '⚠ ' + msg; el.style.display = 'block'; }
   else { el.style.display = 'none'; }
 }
 
-// CREAR CUENTA EN SUPABASE
+// ── SELECTOR DE OFICIO ──
+function selOficio(el, oficio) {
+  document.querySelectorAll('.oficio-sel-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedOficio = oficio;
+  setErr('err-oficio', null);
+}
+
+// ── PASO 1 → PASO 2 ──
+async function pasarPaso2() {
+  const nombre = document.getElementById('s1-nombre').value.trim();
+  const telefono = document.getElementById('s1-telefono').value.replace(/\s/g,'');
+  const descripcion = document.getElementById('s1-descripcion').value.trim();
+
+  let ok = true;
+  if (!selectedOficio) { setErr('err-oficio', 'Elige qué necesitas'); ok = false; }
+  else setErr('err-oficio', null);
+  setErr('err-s1-descripcion', null);
+  if (!nombre) { setErr('err-s1-nombre', 'Escribe tu nombre'); ok = false; }
+  else setErr('err-s1-nombre', null);
+  if (!telefono || !/^\d{9}$/.test(telefono)) { setErr('err-s1-telefono', 'Teléfono no válido (9 dígitos)'); ok = false; }
+  else setErr('err-s1-telefono', null);
+  if (!ok) return;
+
+  step1Data = { nombre, telefono, oficio: selectedOficio, descripcion };
+
+  const btn = document.getElementById('btn-step1');
+  btn.disabled = true;
+  btn.textContent = '⟳ Buscando...';
+
+  // Tracking pixel paso 1
+  track('Lead', { content_name: 'cliente_step1', content_category: selectedOficio });
+  if (window.gtag) gtag('event', 'generate_lead', { oficio: selectedOficio });
+
+  // Guardar lead + notificar admin (no bloquea el flujo si falla)
+  guardarLead(nombre, telefono, selectedOficio);
+
+  // Pequeño delay para que se sienta que "busca"
+  await new Promise(r => setTimeout(r, 600));
+
+  btn.disabled = false;
+  btn.textContent = 'Buscar profesional →';
+
+  // Cambiar al paso 2
+  document.getElementById('step1-content').style.display = 'none';
+  document.getElementById('step2-content').style.display = 'block';
+  document.getElementById('oficio-elegido').textContent = selectedOficio;
+
+  // Step indicator
+  document.getElementById('dot1').classList.remove('active');
+  document.getElementById('dot1').classList.add('done');
+  document.getElementById('dot1').textContent = '✓';
+  document.getElementById('dot2').classList.add('active');
+}
+
+function volverPaso1() {
+  document.getElementById('step2-content').style.display = 'none';
+  document.getElementById('step1-content').style.display = 'block';
+  document.getElementById('dot1').classList.add('active');
+  document.getElementById('dot1').classList.remove('done');
+  document.getElementById('dot1').textContent = '1';
+  document.getElementById('dot2').classList.remove('active');
+}
+
+// ── GUARDAR LEAD EN SUPABASE + NOTIF ADMIN ──
+async function guardarLead(nombre, telefono, oficio) {
+  const params = new URLSearchParams(window.location.search);
+  const descripcion = step1Data.descripcion || '';
+  try {
+    // Insertar en tabla client_leads
+    await fetch(SUPABASE_URL + '/rest/v1/client_leads', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': ANON_KEY,
+        'Authorization': 'Bearer ' + ANON_KEY,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        nombre,
+        telefono,
+        oficio,
+        descripcion,
+        utm_source: params.get('utm_source') || 'directo',
+        utm_medium: params.get('utm_medium') || null,
+        utm_campaign: params.get('utm_campaign') || null,
+        utm_content: params.get('utm_content') || null,
+        registered: false
+      })
+    });
+  } catch(e) { console.log('Lead save error:', e); }
+
+  // Notificación push al admin (fire & forget)
+  try {
+    fetch(SUPABASE_URL + '/functions/v1/send-push', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': ANON_KEY,
+        'Authorization': 'Bearer ' + ANON_KEY
+      },
+      body: JSON.stringify({
+        action: 'notify_admin',
+        title: '🔔 Nuevo lead cliente — ' + oficio,
+        body: nombre + ' · ' + telefono + ' · ' + descripcion.slice(0, 60),
+        zone: 'Sevilla'
+      })
+    }).catch(() => {});
+  } catch(e) {}
+}
+
+// ── MARCAR LEAD COMO REGISTRADO ──
+async function marcarLeadRegistrado(telefono) {
+  try {
+    await fetch(SUPABASE_URL + '/rest/v1/client_leads?telefono=eq.' + telefono + '&registered=eq.false', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': ANON_KEY,
+        'Authorization': 'Bearer ' + ANON_KEY,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ registered: true })
+    });
+  } catch(e) {}
+}
+
+// ── CREAR CUENTA EN SUPABASE ──
 async function crearCuenta(nombre, email, telefono, fromGoogle) {
   const params = new URLSearchParams(window.location.search);
+  // Usar datos del paso 1 si están disponibles
+  const finalNombre = nombre || step1Data.nombre || '';
+  const finalTelefono = telefono || step1Data.telefono || '';
   const res = await fetch(SUPABASE_URL + '/functions/v1/auth-handler', {
     method: 'POST',
     headers: {
@@ -399,9 +620,10 @@ async function crearCuenta(nombre, email, telefono, fromGoogle) {
       action: 'register',
       email: email,
       password: Math.random().toString(36).slice(-12) + 'Aa1!',
-      name: nombre,
+      name: finalNombre,
       type: 'cliente',
-      phone: telefono || '',
+      phone: finalTelefono,
+      oficio_buscado: step1Data.oficio || '',
       from_google: fromGoogle || false,
       utm_source: params.get('utm_source') || 'directo',
       utm_medium: params.get('utm_medium') || null,
@@ -412,28 +634,29 @@ async function crearCuenta(nombre, email, telefono, fromGoogle) {
   return await res.json();
 }
 
-// MOSTRAR ÉXITO
+// ── MOSTRAR ÉXITO ──
 function mostrarExito(nombre) {
   track('CompleteRegistration', { content_name: 'cliente_registro', currency: 'EUR', value: 0 });
   track('Lead', { content_name: 'cliente_registro_completado' });
   if (window.gtag) gtag('event', 'sign_up', { method: 'email', user_type: 'cliente' });
+  // Marcar lead como registrado
+  if (step1Data.telefono) marcarLeadRegistrado(step1Data.telefono);
   const msg = document.getElementById('success-msg');
-  if (nombre) msg.textContent = nombre.split(' ')[0] + ', ya puedes buscar profesionales verificados en Sevilla.';
+  const displayName = nombre || step1Data.nombre || '';
+  if (displayName) msg.textContent = displayName.split(' ')[0] + ', ya puedes buscar profesionales verificados en Sevilla.';
   document.getElementById('success-screen').style.display = 'block';
   window.scrollTo(0, 0);
 }
 
-// REGISTRO CON EMAIL
+// ── REGISTRO CON EMAIL (paso 2) ──
 async function registrarCliente() {
-  const nombre = document.getElementById('nombre').value.trim();
   const email = document.getElementById('email').value.trim();
-  const telefono = document.getElementById('telefono').value.replace(/\s/g,'');
+  const nombre = step1Data.nombre || '';
+  const telefono = step1Data.telefono || '';
 
   let ok = true;
-  setErr('err-nombre', !nombre ? 'Escribe tu nombre' : null); if (!nombre) ok = false;
-  setErr('err-email', !email.includes('@') ? 'Email no válido' : null); if (!email.includes('@')) ok = false;
-  setErr('err-telefono', telefono && !/^\d{9}$/.test(telefono) ? 'Teléfono no válido (9 dígitos)' : null);
-  if (telefono && !/^\d{9}$/.test(telefono)) ok = false;
+  setErr('err-email', !email.includes('@') ? 'Email no válido' : null);
+  if (!email.includes('@')) ok = false;
   if (!ok) return;
 
   const btn = document.getElementById('btn-registro');
@@ -447,21 +670,21 @@ async function registrarCliente() {
       mostrarExito(nombre);
     } else if (data.error && data.error.includes('ya existe')) {
       btn.disabled = false;
-      btn.textContent = 'Crear cuenta gratis →';
+      btn.textContent = 'Completar registro →';
       setErr('err-email', 'Este email ya tiene cuenta. Inicia sesión en OficioYa.');
     } else {
       btn.disabled = false;
-      btn.textContent = 'Crear cuenta gratis →';
+      btn.textContent = 'Completar registro →';
       setErr('err-email', 'Error al crear la cuenta. Inténtalo de nuevo.');
     }
   } catch(e) {
     btn.disabled = false;
-    btn.textContent = 'Crear cuenta gratis →';
+    btn.textContent = 'Completar registro →';
     setErr('err-email', 'Error de conexión. Inténtalo de nuevo.');
   }
 }
 
-// GOOGLE ONE TAP
+// ── GOOGLE ONE TAP ──
 function iniciarGoogle() {
   if (typeof google === 'undefined' || !google.accounts) {
     alert('Google no cargó correctamente. Usa el registro con email.');
@@ -477,7 +700,7 @@ function iniciarGoogle() {
 
 async function handleGoogleResponse(response) {
   const payload = JSON.parse(atob(response.credential.split('.')[1]));
-  const nombre = payload.name || '';
+  const nombre = payload.name || step1Data.nombre || '';
   const email = payload.email || '';
 
   const btn = document.getElementById('google-btn');
@@ -485,14 +708,13 @@ async function handleGoogleResponse(response) {
   btn.textContent = '⟳ Conectando con Google...';
 
   try {
-    const data = await crearCuenta(nombre, email, '', true);
+    const data = await crearCuenta(nombre, email, step1Data.telefono || '', true);
     if (data.success) {
       localStorage.setItem('oy_user', JSON.stringify(data.user));
       if (window.gtag) gtag('event', 'sign_up', { method: 'google', user_type: 'cliente' });
       if (window.fbq) fbq('track', 'Lead', { content_name: 'google_cliente' });
       mostrarExito(nombre);
     } else if (data.error && data.error.includes('ya existe')) {
-      // Login existente — redirigir a la app con sesión
       localStorage.setItem('oy_user', JSON.stringify(data.user));
       window.location.href = '/';
     } else {
@@ -507,8 +729,68 @@ async function handleGoogleResponse(response) {
   }
 }
 
+// ── CARRUSEL DE PROFESIONALES ──
+const PROS_CAROUSEL = [
+  { inicial:'M', nombre:'Miguel R.', oficio:'⚡ Electricista', zona:'Triana' },
+  { inicial:'C', nombre:'Carlos V.', oficio:'💧 Fontanero', zona:'Nervión' },
+  { inicial:'I', nombre:'Ivan F.', oficio:'🔧 Reformas', zona:'Sevilla Este' },
+  { inicial:'J', nombre:'José A.', oficio:'🔑 Cerrajero', zona:'Los Remedios' },
+  { inicial:'S', nombre:'Sergio M.', oficio:'💧 Fontanero', zona:'Macarena' },
+  { inicial:'R', nombre:'Rafael P.', oficio:'🎨 Pintor', zona:'Casco Antiguo' },
+  { inicial:'A', nombre:'Antonio S.', oficio:'🧱 Albañil', zona:'Aljarafe' },
+  { inicial:'P', nombre:'Pedro L.', oficio:'❄️ Climatización', zona:'Bellavista' },
+  { inicial:'F', nombre:'Francisco G.', oficio:'🪵 Carpintero', zona:'San Pablo' },
+  { inicial:'Y', nombre:'Yusniel A.', oficio:'⚡ Electricista', zona:'Dos Hermanas' },
+  { inicial:'J', nombre:'Jonatan R.', oficio:'🎨 Pintor', zona:'Heliópolis' },
+  { inicial:'V', nombre:'Victor H.', oficio:'⚡ Electricista', zona:'Sevilla' },
+];
+
+let carIdx = 0;
+
+function renderCarouselCard(pro) {
+  return `
+    <div class="car-avatar">${pro.inicial}</div>
+    <div class="car-info">
+      <div class="car-name">${pro.nombre}</div>
+      <div class="car-oficio">${pro.oficio} · ${pro.zona}</div>
+    </div>
+    <div class="car-right">
+      <div class="car-stars">★★★★★</div>
+      <div class="car-badge">ACTIVO</div>
+    </div>
+  `;
+}
+
+function rotarCarousel() {
+  const card = document.getElementById('pro-carousel');
+  if (!card) return;
+
+  // Fade out
+  card.classList.add('fade-out');
+
+  setTimeout(() => {
+    carIdx = (carIdx + 1) % PROS_CAROUSEL.length;
+    card.innerHTML = renderCarouselCard(PROS_CAROUSEL[carIdx]);
+    card.classList.remove('fade-out');
+    card.classList.add('fade-in');
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        card.classList.remove('fade-in');
+      });
+    });
+  }, 250);
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   track('ViewContent', { content_name: 'cliente_landing' });
+
+  // Init carrusel
+  const card = document.getElementById('pro-carousel');
+  if (card) {
+    card.innerHTML = renderCarouselCard(PROS_CAROUSEL[0]);
+    setInterval(rotarCarousel, 1500);
+  }
 });
 </script>
 </body>
