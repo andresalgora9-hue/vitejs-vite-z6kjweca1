@@ -118,7 +118,7 @@ const NAV:{id:Section;icon:string;label:string;subs:{id:string;label:string}[]}[
   {id:"mensajes",     icon:"◈",  label:"Mensajes",      subs:[{id:"chat",label:"Chat soporte"}]},
   {id:"disputas",     icon:"⚑",  label:"Disputas",      subs:[{id:"denuncias",label:"Denuncias"},{id:"resenas",label:"Reseñas"},{id:"sugerencias",label:"Sugerencias"}]},
   {id:"finanzas",     icon:"◆",  label:"Finanzas",      subs:[{id:"mrr",label:"MRR"},{id:"planes",label:"Por plan"},{id:"ltv",label:"LTV"}]},
-  {id:"flujo",        icon:"⟳",  label:"Funnel",        subs:[{id:"funnel",label:"Funnel"},{id:"leads",label:"Leads landing"},{id:"buscar",label:"Buscador"}]},
+  {id:"flujo",        icon:"⟳",  label:"Funnel",        subs:[{id:"funnel",label:"Funnel"},{id:"leads",label:"Leads landing"},{id:"leads_clientes",label:"Leads clientes"},{id:"buscar",label:"Buscador"}]},
 ];
 
 // ── MAIN COMPONENT ────────────────────────────────────────────────────────────
@@ -130,6 +130,7 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
   const [jobs,  setJobs]      = useState<JobRow[]>([]);   const [solicitudes, setSolicitudes] = useState<any[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
   const [leads,   setLeads]   = useState<any[]>([]);
+  const [clientLeads, setClientLeads] = useState<any[]>([]);
   const [reports, setReports] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [toast,   setToast]   = useState<{msg:string;type:"ok"|"err"|"warn"}|null>(null);
@@ -167,13 +168,14 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
   // ── LOAD DATA ──────────────────────────────────────────────────────────────
   const load=useCallback(async()=>{
     setLoading(true);
-    const [u,m,j,sq,r,ld,rp]=await Promise.all([
+    const [u,m,j,sq,r,ld,rp,cl]=await Promise.all([
       db.from("users").select("id,name,email,phone,whatsapp,type,plan,trade,zone,rating,reviews,jobs,verified,available,trial_end,joined_at,avatar_url,bio,price,banned,has_stripe").order("joined_at",{ascending:false}),
       db.from("messages").select("id,from_id,to_id,text,read,created_at").order("created_at",{ascending:false}).limit(1000),
       db.from("jobs").select("id,worker_id,client_id,client_name,title,description,status,created_at").order("created_at",{ascending:false}),       db.from("budget_requests").select("id,client_id,client_name,oficio,zona,description,status,created_at,accepted_pros,notified_pros,admin_notified").order("created_at",{ascending:false}),
       db.from("reviews").select("id,worker_id,client_id,client_name,stars,text,approved,created_at").order("created_at",{ascending:false}),
       db.from("leads_landing").select("*").order("created_at",{ascending:false}),
       db.from("reports").select("*").order("created_at",{ascending:false}),
+      db.from("client_leads").select("*").order("created_at",{ascending:false}),
     ]);
     setUsers(((u.data||[]).filter((x:any)=>x.type!=="admin"&&x.id!==ADMIN_ID)) as UserRow[]);
     setMsgs((m.data||[]) as MessageRow[]);
@@ -182,6 +184,7 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
     setReviews((r.data||[]) as any[]);
     setLeads((ld.data||[]) as any[]);
     setReports((rp.data||[]) as any[]);
+    setClientLeads((cl.data||[]) as any[]);
     setLoading(false);
   },[]);
 
@@ -880,6 +883,54 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
     </div>
   );
 
+  // ── RENDER: LEADS CLIENTES ────────────────────────────────────────────────
+  const renderClientLeads=()=>{
+    const registrados = clientLeads.filter((l:any)=>l.registered);
+    const pendientes  = clientLeads.filter((l:any)=>!l.registered);
+    return(
+      <div style={{display:"flex",flexDirection:"column",gap:16}}>
+        <SectionTitle>Leads clientes — landing funnel</SectionTitle>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12}}>
+          <KpiCard label="Total leads" value={clientLeads.length} color={C.blue}/>
+          <KpiCard label="Registrados" value={registrados.length} color={C.green}/>
+          <KpiCard label="Sin registrar" value={pendientes.length} color={C.orange} sub="llamar ahora"/>
+          <KpiCard label="Conversión" value={clientLeads.length>0?((registrados.length/clientLeads.length)*100).toFixed(1)+"%":"—"} color={C.purple}/>
+        </div>
+        <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,overflow:"hidden"}}>
+          <table style={{width:"100%",borderCollapse:"collapse"}}>
+            <thead><tr style={{borderBottom:`1px solid ${C.border}`}}>
+              {["Nombre","Oficio","Teléfono","Descripción","Estado","Origen","Fecha","Contactar"].map(h=>(
+                <th key={h} style={{padding:"10px 14px",textAlign:"left",fontSize:9,color:C.muted,fontFamily:"monospace",letterSpacing:"0.1em"}}>{h}</th>
+              ))}
+            </tr></thead>
+            <tbody>
+              {[...clientLeads].sort((a:any,b:any)=>a.registered?1:-1).map((l:any)=>(
+                <tr key={l.id} style={{borderBottom:`1px solid ${C.border}`,background:!l.registered?C.orange+"06":"transparent"}}
+                  onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background=!l.registered?C.orange+"12":C.cardHover;}}
+                  onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background=!l.registered?C.orange+"06":"transparent";}}>
+                  <td style={{padding:"10px 14px",fontSize:12,color:C.text,fontWeight:600}}>{l.nombre||"—"}</td>
+                  <td style={{padding:"10px 14px"}}><span style={{fontSize:10,color:C.accent,fontFamily:"monospace"}}>{l.oficio||"—"}</span></td>
+                  <td style={{padding:"10px 14px"}}>{l.telefono&&<a href={"tel:"+l.telefono} style={{fontSize:11,color:C.green,textDecoration:"none",fontWeight:700}}>{l.telefono}</a>}</td>
+                  <td style={{padding:"10px 14px",fontSize:11,color:C.mutedL,maxWidth:180,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{l.descripcion||"—"}</td>
+                  <td style={{padding:"10px 14px"}}><Pill label={l.registered?"Registrado":"Pendiente"} color={l.registered?C.green:C.orange}/></td>
+                  <td style={{padding:"10px 14px",fontSize:10,color:C.muted,fontFamily:"monospace"}}>{l.utm_source||"directo"}</td>
+                  <td style={{padding:"10px 14px",fontSize:10,color:C.muted,fontFamily:"monospace"}}>{fmtDate(l.created_at)}</td>
+                  <td style={{padding:"10px 14px"}}>
+                    <div style={{display:"flex",gap:5}}>
+                      {l.telefono&&<a href={"tel:"+l.telefono} style={{fontSize:10,padding:"4px 8px",background:C.greenDim,border:`1px solid ${C.green}44`,borderRadius:4,color:C.green,textDecoration:"none"}}>📞</a>}
+                      {l.telefono&&<a href={"https://wa.me/34"+l.telefono.replace(/\D/g,"")} target="_blank" rel="noreferrer" style={{fontSize:10,padding:"4px 8px",background:"#25D36618",border:"1px solid #25D36644",borderRadius:4,color:"#25D366",textDecoration:"none"}}>WA</a>}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {clientLeads.length===0&&<tr><td colSpan={8} style={{padding:32,textAlign:"center",color:C.muted,fontSize:12}}>Sin leads aún</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  };
+
   // ── RENDER: DISPUTAS ──────────────────────────────────────────────────────
   const renderDenuncias=()=>(
     <div style={{display:"flex",flexDirection:"column",gap:16}}>
@@ -1275,6 +1326,7 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
     if(section==="flujo"){
       if(sub==="funnel") return renderFunnel();
       if(sub==="leads")  return renderLeads();
+      if(sub==="leads_clientes") return renderClientLeads();
       if(sub==="buscar") return(
         <div style={{display:"flex",flexDirection:"column",gap:16}}>
           <SectionTitle>Buscador universal</SectionTitle>
