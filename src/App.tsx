@@ -209,6 +209,24 @@ function shareProfile(user:UserRow){
 function fbqEvent(event:string, data?:Record<string,any>){
   try{if((window as any).fbq)(window as any).fbq("track",event,data||{});}catch{}
 }
+function normalizePhoneFB(phone:string):string{
+  let p=(phone||"").replace(/\D/g,"");
+  if(p.startsWith("0034"))p=p.slice(2);
+  if(p.length===9)p="34"+p;
+  return p;
+}
+// Re-inicializa el pixel con email/teléfono (el SDK de Meta los hashea en el navegador antes de enviarlos)
+// para que el evento que sigue venga con Advanced Matching.
+function fbAdvancedMatch(email?:string,phone?:string){
+  try{
+    if(!(window as any).fbq)return;
+    const adv:Record<string,string>={};
+    if(email)adv.em=email.toLowerCase().trim();
+    if(phone){const n=normalizePhoneFB(phone);if(n)adv.ph=n;}
+    if(Object.keys(adv).length===0)return;
+    (window as any).fbq("init","2460836967768276",adv);
+  }catch{}
+}
 function gtagEvent(event:string, data?:Record<string,any>){
   try{if((window as any).gtag)(window as any).gtag("event",event,data||{});}catch{}
 }
@@ -2152,6 +2170,8 @@ const eligibles=((allPros||[]) as UserRow[]).filter(w=>norm(w.trade||"")===norm(
         request_id:req.id,
       })
     }).catch(()=>{});
+    gtagEvent("generate_lead",{content_name:"solicitud_presupuesto",oficio,zona});
+    fbqEvent("Lead",{content_name:"solicitud_presupuesto",content_category:oficio});
   }
   setDesc("");setMaxBudget("");setShowForm(false);
   loadSolicitudes();
@@ -2568,6 +2588,7 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
     const ok=await logLead(w.id,user.id,"message");
     if(!ok){showToast("⛔ Este profesional ha alcanzado su límite de contactos este mes");return;}
     await notifyProOfNewLead(w.id,user.name,w.trade||"servicios");
+    gtagEvent("contacto_profesional",{content_name:"chat",trade:w.trade});
     setSelectedWorker(null);setChatWorker(w);
   };
   const handleChat=(w:UserRow)=>{requireAuth(()=>doChat(w));};
@@ -3293,6 +3314,7 @@ const handleForgot=async()=>{
       if(!result.success){setErr(result.error||"Error creando cuenta.");return;}
       if(phone){await db.from("users").update({phone:phone.trim(),whatsapp:phone.trim()}).eq("id",result.user.id);}
       localStorage.setItem("oy_user",JSON.stringify(result.user));
+        fbAdvancedMatch(email.toLowerCase().trim(),phone?phone.trim():"");
         fbqEvent("CompleteRegistration",{content_name:"cliente"});
         gtagEvent("sign_up",{method:"email",user_type:"cliente"});
         onLogin(result.user as UserRow);
@@ -5223,6 +5245,9 @@ export default function App(){
         }
         if(data.isNew){
           const _utm=new URLSearchParams(window.location.search).get("utm_source")||"directo";
+          fbAdvancedMatch(payload.email,"");
+          fbqEvent("CompleteRegistration",{content_name:"cliente_google"});
+          gtagEvent("sign_up",{method:"google",user_type:"cliente"});
           fetch(`${SUPABASE_FUNCTIONS_URL}/notify-admin`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({type:"nuevo_cliente",nombre:payload.name,email:payload.email,telefono:"",utm_source:_utm+"_google"})});
         }
         localStorage.setItem("oy_user",JSON.stringify(data.user));
