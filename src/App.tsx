@@ -2390,7 +2390,7 @@ function DeleteAccountButton({user,onLogout}:{user:UserRow;onLogout:()=>void}){
 
 function ClientHome({user,onLogout,onUpdate,deepLinkChatWith,onLogin}:{user:UserRow|null;onLogout:()=>void;onUpdate:(u:UserRow)=>void;deepLinkChatWith?:string|null;onLogin:(u:UserRow)=>void}){
   const [showOnboarding,setShowOnboarding]=useState(()=>!!user&&!localStorage.getItem("oy_onboarded_"+user.id));
-  const handleCloseOnboarding=()=>{localStorage.setItem("oy_onboarded_"+user.id,"1");setShowOnboarding(false);};
+  const handleCloseOnboarding=()=>{if(user)localStorage.setItem("oy_onboarded_"+user.id,"1");setShowOnboarding(false);};
   const [tab,setTab]=useState<"buscar"|"ranking"|"chats"|"solicitudes"|"perfil">("buscar");
   const [autoOpenSolicitud,setAutoOpenSolicitud]=useState(false);
   const [zonas,setZonas]=useState<string[]>([]);
