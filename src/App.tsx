@@ -3297,6 +3297,8 @@ const handleForgot=async()=>{
         gtagEvent("sign_up",{method:"email",user_type:"cliente"});
         onLogin(result.user as UserRow);
 fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({type:"bienvenida_cliente",to:email.toLowerCase(),name:name.trim()})});
+const _utm=new URLSearchParams(window.location.search).get("utm_source")||"directo";
+fetch(`${SUPABASE_FUNCTIONS_URL}/notify-admin`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({type:"nuevo_cliente",nombre:name.trim(),email:email.toLowerCase().trim(),telefono:phone?phone.trim():"",utm_source:_utm})});
     }catch(e:any){console.error("STRIPE ERROR:",e);setLoading(false);setErr("Error de conexión: "+e?.message);}
   };
 
@@ -5218,6 +5220,10 @@ export default function App(){
         if(data.user.type==="profesional"){
           alert("Para profesionales usa email y contraseña.");
           return;
+        }
+        if(data.isNew){
+          const _utm=new URLSearchParams(window.location.search).get("utm_source")||"directo";
+          fetch(`${SUPABASE_FUNCTIONS_URL}/notify-admin`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({type:"nuevo_cliente",nombre:payload.name,email:payload.email,telefono:"",utm_source:_utm+"_google"})});
         }
         localStorage.setItem("oy_user",JSON.stringify(data.user));
         window.location.reload();
