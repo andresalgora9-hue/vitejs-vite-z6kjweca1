@@ -1824,7 +1824,7 @@ const WorkerCardIdealista=React.memo(({w,onSelect,onChat}:{w:UserRow;onSelect:()
 });
 
 // ─── WORKER DETAIL SHEET ───
-function WorkerSheet({worker,onClose,onChat,currentUser}:{worker:UserRow;onClose:()=>void;onChat:(w:UserRow)=>void;currentUser:UserRow|null}){
+function WorkerSheet({worker,onClose,onChat,currentUser,onRequireAuth}:{worker:UserRow;onClose:()=>void;onChat:(w:UserRow)=>void;currentUser:UserRow|null;onRequireAuth?:(action:()=>void)=>void}){
   const [tab,setTab]=useState<"info"|"fotos"|"reviews"|"certs">("info");
   const [reviews,setReviews]=useState<any[]>([]);
   const [leads,setLeads]=useState<any[]>([]);
@@ -1867,6 +1867,7 @@ useEffect(()=>{
   },[worker.id]);
   const submitReview=async()=>{
     if(!newRev.trim())return;
+    if(!currentUser){if(onRequireAuth)onRequireAuth(()=>submitReview());return;}
     setSaving(true);
     const {data}=await db.from("reviews").insert({worker_id:worker.id,client_name:currentUser?.name||"Anónimo",client_id:currentUser?.id||null,stars:selStars,text:newRev,photo:"",photo_url:"",approved:true}).select().single();
     if(data){
@@ -2387,8 +2388,8 @@ function DeleteAccountButton({user,onLogout}:{user:UserRow;onLogout:()=>void}){
 // Busca: "function ClientHome({user,onLogout}:" y reemplaza todo
 // ════════════════════════════════════════════════════════════════
 
-function ClientHome({user,onLogout,onUpdate,deepLinkChatWith}:{user:UserRow;onLogout:()=>void;onUpdate:(u:UserRow)=>void;deepLinkChatWith?:string|null}){
-  const [showOnboarding,setShowOnboarding]=useState(()=>!localStorage.getItem("oy_onboarded_"+user.id));
+function ClientHome({user,onLogout,onUpdate,deepLinkChatWith,onLogin}:{user:UserRow|null;onLogout:()=>void;onUpdate:(u:UserRow)=>void;deepLinkChatWith?:string|null;onLogin:(u:UserRow)=>void}){
+  const [showOnboarding,setShowOnboarding]=useState(()=>!!user&&!localStorage.getItem("oy_onboarded_"+user.id));
   const handleCloseOnboarding=()=>{localStorage.setItem("oy_onboarded_"+user.id,"1");setShowOnboarding(false);};
   const [tab,setTab]=useState<"buscar"|"ranking"|"chats"|"solicitudes"|"perfil">("buscar");
   const [autoOpenSolicitud,setAutoOpenSolicitud]=useState(false);
@@ -2402,8 +2403,22 @@ function ClientHome({user,onLogout,onUpdate,deepLinkChatWith}:{user:UserRow;onLo
   
   const [selectedWorker,setSelectedWorker]=useState<UserRow|null>(null);
   const [chatWorker,setChatWorker]=useState<UserRow|null>(null);
+  const [authModal,setAuthModal]=useState<null|{mode:"login"|"pick"}>(null);
+  const pendingActionRef=useRef<(()=>void)|null>(null);
+  const requireAuth=useCallback((action:()=>void,mode:"login"|"pick"="login")=>{
+    if(user){action();return;}
+    pendingActionRef.current=action;
+    setAuthModal({mode});
+  },[user]);
+  const handleAuthSuccess=(u:UserRow)=>{
+    onLogin(u);
+    setAuthModal(null);
+    const cb=pendingActionRef.current;
+    pendingActionRef.current=null;
+    if(cb)setTimeout(cb,80);
+  };
   useEffect(()=>{
-    if(!deepLinkChatWith)return;
+    if(!deepLinkChatWith||!user)return;
     db.from("users").select("id,name,trade,zone,rating,reviews,jobs,verified,available,plan,bio,price,phone,whatsapp,type,photos,specialties,experience_years,free_quote,schedule,response_time,company_name,joined_at,trial_end").eq("id",deepLinkChatWith).single().then(({data})=>{
       if(data){setTab("chats");setChatWorker(data as UserRow);}
     });
@@ -2415,12 +2430,14 @@ const [loadingChats,setLoadingChats]=useState(true);
   const [unreadChats,setUnreadChats]=useState(0);
   const [unreadByWorker,setUnreadByWorker]=useState<Record<string,number>>({});
   const [lastReadTime,setLastReadTime]=useState<Record<string,string>>(()=>{
+  if(!user)return {};
   try{const s=localStorage.getItem("oy_last_read_"+user.id);return s?JSON.parse(s):{};}
   catch{return {};}
 });
   const [lastMsgByWorker,setLastMsgByWorker]=useState<Record<string,any>>({});
   const [showNotifModal,setShowNotifModal]=useState(false);
 const activarNotificacionesCliente = async()=>{
+  if(!user)return;
   setShowNotifModal(false);
   const permission = await Notification.requestPermission();
   if(permission === "granted"){
@@ -2466,13 +2483,15 @@ const activarNotificacionesCliente = async()=>{
 
   useEffect(()=>{loadWorkers();},[loadWorkers]);
   const countUnread=useCallback(async()=>{
+    if(!user)return;
     const {count}=await db.from("messages").select("id",{count:"exact"} as any).eq("to_id",user.id).eq("read",false);
     setUnreadChats(count||0);
-  },[user.id]);
+  },[user?.id]);
 
   useEffect(()=>{countUnread();},[countUnread]);
 
   useEffect(()=>{
+    if(!user)return;
     const ch=db.channel("client-notif-"+user.id)
       .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"to_id=eq."+user.id},(p:any)=>{
         const m=p.new;
@@ -2493,8 +2512,9 @@ db.from("users").select("name").eq("id",m.from_id).single().then(({data}:any)=>{
 });}
       }).subscribe();
     return()=>{db.removeChannel(ch);};
-   },[user.id]);
+   },[user?.id]);
   const loadChats=useCallback(async()=>{
+    if(!user){setLoadingChats(false);return;}
     setLoadingChats(true);
     // Traer todos los mensajes donde el pro es destinatario O remitente
     // Traer todos los mensajes donde el pro es destinatario O remitente
@@ -2533,7 +2553,7 @@ const counts:Record<string,number>={};
 setUnreadByWorker(counts);
 setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
   setLoadingChats(false);
-  },[user.id]);
+  },[user?.id]);
 
   useEffect(()=>{
     if(tab==="chats"){
@@ -2543,14 +2563,17 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
     }
   },[tab,loadChats]);
 
-  const handleChat=async(w:UserRow)=>{
+  const doChat=async(w:UserRow)=>{
+    if(!user)return;
     const ok=await logLead(w.id,user.id,"message");
     if(!ok){showToast("⛔ Este profesional ha alcanzado su límite de contactos este mes");return;}
     await notifyProOfNewLead(w.id,user.name,w.trade||"servicios");
     setSelectedWorker(null);setChatWorker(w);
   };
+  const handleChat=(w:UserRow)=>{requireAuth(()=>doChat(w));};
 
   const handleWizardResult=async(oficio:string,zonaResult:string,urgency:string)=>{
+    if(!user)return;
     if(oficio)setOficio(oficio);
     setShowWizard(false);
     setTimeout(()=>{
@@ -2680,7 +2703,14 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
             <span style={{fontWeight:900,fontSize:19,letterSpacing:"-0.03em"}}><span style={{color:C.text}}>Oficio</span><span style={{color:C.accent}}>Ya</span></span>
             <span style={{fontSize:9,color:C.accent,background:C.accent+"15",padding:"2px 7px",borderRadius:3,fontWeight:700}}>SEVILLA</span>
           </button>
-          <button onClick={onLogout} style={{background:"none",border:"1px solid "+C.border,borderRadius:6,color:C.muted,cursor:"pointer",padding:"4px 10px",fontSize:11}}>Salir</button>
+          {user?(
+            <button onClick={onLogout} style={{background:"none",border:"1px solid "+C.border,borderRadius:6,color:C.muted,cursor:"pointer",padding:"4px 10px",fontSize:11}}>Salir</button>
+          ):(
+            <div style={{display:"flex",alignItems:"center",gap:8}}>
+              <button onClick={()=>requireAuth(()=>{},"login")} style={{background:"none",border:"1px solid "+C.border,borderRadius:6,color:C.mutedL,cursor:"pointer",padding:"6px 12px",fontSize:12,fontWeight:600}}>Iniciar sesión</button>
+              <button onClick={()=>requireAuth(()=>{},"pick")} style={{background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:6,color:"#000",cursor:"pointer",padding:"6px 12px",fontSize:12,fontWeight:700}}>Regístrate</button>
+            </div>
+          )}
         </div>
       </header>
 
@@ -2725,7 +2755,7 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
 
               {/* Botón pedir presupuesto pequeño */}
               <button
-                onClick={(e)=>{e.stopPropagation();setAutoOpenSolicitud(true);setTab("solicitudes");}}
+                onClick={(e)=>{e.stopPropagation();requireAuth(()=>{setAutoOpenSolicitud(true);setTab("solicitudes");});}}
                 style={{width:"100%",padding:"12px 16px",background:"transparent",border:"1.5px solid "+C.accent+"66",borderRadius:12,color:C.accent,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,cursor:"pointer",textAlign:"left" as const,display:"flex",alignItems:"center",gap:8}}
               >
                 <span style={{fontSize:15}}>📋</span>
@@ -2784,7 +2814,7 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
              <div id="lista-profesionales" style={{display:"flex",flexDirection:"column" as const,gap:10}}>
   {loading?<SkeletonList n={5} />:<>
     {filteredWorkers.map(w=><WorkerCardIdealista key={w.id} w={w} onChat={()=>handleChat(w)} onSelect={()=>setSelectedWorker(w)} />)}
-    <OficioYaCard onRequest={()=>setTab("solicitudes")} />
+    <OficioYaCard onRequest={()=>requireAuth(()=>setTab("solicitudes"))} />
   </>}
 </div>
             </>
@@ -2793,8 +2823,8 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
               
 
         {tab==="ranking"&&<RankingSection workers={workers} onSelect={setSelectedWorker} />}
-        {tab==="solicitudes"&&<SolicitudesTab key={autoOpenSolicitud?"open":"closed"} user={user} workers={workers} onWorkerSelect={setSelectedWorker} onChat={handleChat} autoOpen={autoOpenSolicitud} onSolicitudEnviada={()=>setShowNotifModal(true)} />}
-        {tab==="chats"&&(<>
+        {tab==="solicitudes"&&user&&<SolicitudesTab key={autoOpenSolicitud?"open":"closed"} user={user} workers={workers} onWorkerSelect={setSelectedWorker} onChat={handleChat} autoOpen={autoOpenSolicitud} onSolicitudEnviada={()=>setShowNotifModal(true)} />}
+        {tab==="chats"&&user&&(<>
           <div style={{padding:"22px 0 16px"}}><h2 style={{fontWeight:800,fontSize:22,color:C.text}}>Mis conversaciones</h2></div>
           {loadingChats?<SkeletonMsgList n={5} />:chatPartners.length===0?<div style={{textAlign:"center" as const,padding:48,color:C.muted}}>
             <p style={{fontSize:36,marginBottom:8}}>💬</p>
@@ -2844,7 +2874,7 @@ return <GCard key={w.id} onClick={async()=>{
           </div>}
         </>)}
 
-        {tab==="perfil"&&(<>
+        {tab==="perfil"&&user&&(<>
           <div style={{padding:"22px 0 16px"}}><h2 style={{fontWeight:800,fontSize:22,color:C.text}}>Mi perfil</h2></div>
           <GCard style={{marginBottom:14}}>
             <div style={{display:"flex",gap:14,alignItems:"center",marginBottom:14}}>
@@ -2962,7 +2992,10 @@ return <GCard key={w.id} onClick={async()=>{
           return(
             <button
               key={id}
-              onClick={()=>setTab(id)}
+              onClick={()=>{
+                if(!user&&(id==="solicitudes"||id==="chats"||id==="perfil")){requireAuth(()=>setTab(id));return;}
+                setTab(id);
+              }}
               style={{
                 flex:1,
                 padding:"10px 4px 12px",
@@ -3044,8 +3077,13 @@ return <GCard key={w.id} onClick={async()=>{
       )}
       
       {showWizard&&<BuscadorExpressModal workers={workers} onResult={handleWizardResult} onWorkerSelect={w=>{setShowWizard(false);setSelectedWorker(w);}} onClose={()=>setShowWizard(false)} />}
-      {selectedWorker&&<WorkerSheet worker={selectedWorker} onClose={()=>setSelectedWorker(null)} onChat={w=>{setSelectedWorker(null);handleChat(w);}} currentUser={user} />}
-      {chatWorker&&<ChatPanel toUser={chatWorker} currentUser={user} onClose={()=>setChatWorker(null)} onViewProfile={(w)=>{setChatWorker(null);setSelectedWorker(w);}} />}
+      {selectedWorker&&<WorkerSheet worker={selectedWorker} onClose={()=>setSelectedWorker(null)} onChat={w=>{setSelectedWorker(null);handleChat(w);}} currentUser={user} onRequireAuth={requireAuth} />}
+      {chatWorker&&user&&<ChatPanel toUser={chatWorker} currentUser={user} onClose={()=>setChatWorker(null)} onViewProfile={(w)=>{setChatWorker(null);setSelectedWorker(w);}} />}
+      {authModal&&(
+        <div style={{position:"fixed",inset:0,zIndex:3000,background:"#0F1117",overflowY:"auto"}}>
+          <Auth onLogin={handleAuthSuccess} onClose={()=>{setAuthModal(null);pendingActionRef.current=null;}} initialMode={authModal.mode} />
+        </div>
+      )}
       <InstallBanner/>
 <Ping msg={toast} />
     </div>
@@ -3053,8 +3091,8 @@ return <GCard key={w.id} onClick={async()=>{
   }
 
 // ─── AUTH ───
-function Auth({onLogin}:{onLogin:(u:UserRow)=>void}){
-  const initMode=(()=>{const p=new URLSearchParams(window.location.search).get("tipo");if(p==="cliente")return "register_cliente";if(p==="pro")return "register_pro";return "login";})(); const [mode,setMode]=useState<"login"|"pick"|"register_cliente"|"register_pro">(initMode);
+function Auth({onLogin,onClose,initialMode}:{onLogin:(u:UserRow)=>void;onClose?:()=>void;initialMode?:"login"|"pick"}){
+  const initMode=(()=>{if(initialMode)return initialMode;const p=new URLSearchParams(window.location.search).get("tipo");if(p==="cliente")return "register_cliente";if(p==="pro")return "register_pro";return "login";})(); const [mode,setMode]=useState<"login"|"pick"|"register_cliente"|"register_pro">(initMode);
   const [proStep,setProStep]=useState(1);
   const [loading,setLoading]=useState(false);
 const [forgotEmail,setForgotEmail]=useState("");
@@ -3357,6 +3395,9 @@ const makeSideCard=(slot:number)=>{
   };
   return(
     <div style={{minHeight:"100dvh",background:C.bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:isDesktop?"24px 40px":"24px 20px",backgroundImage:"radial-gradient(ellipse at 20% 0%,#2a0a5a22,transparent 55%),radial-gradient(ellipse at 80% 100%,#0a2a4a22,transparent 55%)",overflowY:"auto"}}>
+      {onClose&&(
+        <button onClick={onClose} style={{position:"fixed",top:"max(16px,env(safe-area-inset-top))",right:16,zIndex:50,width:36,height:36,borderRadius:"50%",background:"rgba(22,27,39,0.85)",border:"1px solid rgba(255,255,255,0.12)",color:"#E8EDF5",fontSize:16,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>
+      )}
       {showPlanDetail&&<PlanDetailModal pl={showPlanDetail} onClose={()=>setShowPlanDetail(null)} />}
       {showRegisterStripe&&pendingProFormData&&(
         <StripePayModal
@@ -5304,9 +5345,8 @@ if(!_lastVisit){
 @keyframes shimmer{0%{background-position:-200% center;}100%{background-position:200% center;}}
 @keyframes fadeSlideUp{from{transform:translateY(12px);opacity:0;}to{transform:translateY(0);opacity:1;}}
     `}</style>
-    {!user&&<Auth onLogin={login} />}
     {user&&user.type==="admin"&&<Admin onLogout={logout} />}
     {user&&user.type==="profesional"&&<ProDashboard user={user} onLogout={logout} onUpdate={update} deepLinkChatWith={deepLinkChatWith} />}
-{user&&user.type==="cliente"&&<ClientHome user={user} onLogout={logout} onUpdate={update} deepLinkChatWith={deepLinkChatWith} />}
+{(!user||user.type==="cliente")&&<ClientHome user={user} onLogout={logout} onUpdate={update} deepLinkChatWith={deepLinkChatWith} onLogin={login} />}
 </Sentry.ErrorBoundary>);
 }
