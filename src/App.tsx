@@ -2462,7 +2462,7 @@ function ClientHome({user,onLogout,onUpdate,deepLinkChatWith,onLogin}:{user:User
           notifiedIds.push(pro.id);
         }
         await db.from("budget_requests").update({notified_pros:notifiedIds,last_notified_at:new Date().toISOString()}).eq("id",req.id);
-        fetch(`${SUPABASE_FUNCTIONS_URL}/notify-admin`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({type:"quick_request",cliente:qrName,oficio:qrOficio,zona:"Sevilla",descripcion:qrDesc,telefono:qrPhone,email:qrEmail,request_id:req.id})}).catch(()=>{});
+        fetch(`${SUPABASE_FUNCTIONS_URL}/notify-admin`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({type:"sin_profesional",cliente:qrName,oficio:qrOficio,zona:"Sevilla",descripcion:qrDesc,telefono:qrPhone,email:qrEmail,request_id:req.id})}).catch(()=>{});
       }
       gtagEvent("generate_lead",{content_name:"quick_request",oficio:qrOficio});
       fbqEvent("Lead",{content_name:"quick_request",content_category:qrOficio});
