@@ -2822,17 +2822,54 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
               </h1>
               <p style={{fontSize:12,color:C.mutedL,marginBottom:22}}>Presupuesto gratis · Sin compromiso · Pago directo al profesional</p>
 
-              {/* Botón pedir presupuesto pequeño */}
+              {/* Botón pedir presupuesto GRANDE */}
               <button
-                onClick={(e)=>{e.stopPropagation();requireAuth(()=>{setAutoOpenSolicitud(true);setTab("solicitudes");});}}
-                style={{width:"100%",padding:"12px 16px",background:"transparent",border:"1.5px solid "+C.accent+"66",borderRadius:12,color:C.accent,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,cursor:"pointer",textAlign:"left" as const,display:"flex",alignItems:"center",gap:8}}
+                onClick={(e)=>{e.stopPropagation();if(!user){setShowQuickRequest(true);setQuickSent(false);}else{setAutoOpenSolicitud(true);setTab("solicitudes");}}}
+                style={{width:"100%",padding:"16px 20px",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:14,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:800,fontSize:16,cursor:"pointer",textAlign:"center" as const,display:"flex",alignItems:"center",justifyContent:"center",gap:10,boxShadow:"0 4px 20px rgba(255,215,0,0.35)",letterSpacing:"-0.01em"}}
               >
-                <span style={{fontSize:15}}>📋</span>
-                <span>Pedir presupuesto a varios profesionales</span>
-                <span style={{marginLeft:"auto"}}>→</span>
+                Recibir presupuesto en minutos
               </button>
-            </div>
-              
+              <p style={{textAlign:"center" as const,fontSize:11,color:C.mutedL,marginTop:8}}>Sin registro · Te contactamos en 5 min</p>
+           </div>
+
+            {/* ════════════════════════════════════════════
+                FORMULARIO RÁPIDO sin cuenta
+                ════════════════════════════════════════════ */}
+            {showQuickRequest&&!quickSent&&(
+              <div style={{background:C.card,borderRadius:16,border:"1.5px solid "+C.accent+"44",padding:"20px",marginBottom:16,animation:"fadeSlideUp 0.3s ease"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+                  <p style={{fontWeight:800,fontSize:16,color:C.text}}>📋 ¿Qué necesitas?</p>
+                  <button onClick={()=>setShowQuickRequest(false)} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:16}}>✕</button>
+                </div>
+                {qrErr&&<div style={{color:C.red,fontSize:13,marginBottom:12,padding:"10px 12px",background:C.red+"15",borderRadius:8,border:"1px solid "+C.red+"33"}}>{qrErr}</div>}
+                <div style={{marginBottom:12}}>
+                  <p style={{fontSize:11,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.08em",marginBottom:6,fontWeight:700}}>Tipo de profesional</p>
+                  <select value={qrOficio} onChange={e=>setQrOficio(e.target.value)} style={{width:"100%",background:C.surface,border:"1px solid "+C.border,borderRadius:8,padding:"10px 12px",color:C.text,fontFamily:"'DM Sans',sans-serif",fontSize:13,outline:"none"}}>
+                    {OFICIOS.map(o=><option key={o} style={{background:C.card}}>{o}</option>)}
+                  </select>
+                </div>
+                <Inp label="Describe el problema *" value={qrDesc} onChange={setQrDesc} placeholder="Ej: Se me ha roto una tubería en la cocina y pierde agua..." multiline />
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:0}}>
+                  <Inp label="Tu nombre *" value={qrName} onChange={setQrName} placeholder="Nombre completo" />
+                  <Inp label="Teléfono *" value={qrPhone} onChange={setQrPhone} placeholder="612 345 678" type="tel" />
+                </div>
+                <Inp label="Email *" value={qrEmail} onChange={setQrEmail} placeholder="tu@email.com" type="email" />
+                <button onClick={handleQuickRequest} disabled={qrSending} style={{width:"100%",padding:"14px",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:12,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:800,fontSize:15,cursor:qrSending?"wait":"pointer",opacity:qrSending?0.7:1,marginTop:4}}>
+                  {qrSending?"Enviando...":"Enviar solicitud →"}
+                </button>
+                <p style={{textAlign:"center" as const,fontSize:11,color:C.muted,marginTop:8}}>100% gratis · Sin compromiso · Tu cuenta se crea automáticamente</p>
+              </div>
+            )}
+
+            {quickSent&&(
+              <div style={{background:"linear-gradient(135deg,#0d1a0d,#131320)",borderRadius:16,border:"1.5px solid "+C.green+"44",padding:"32px 20px",marginBottom:16,textAlign:"center" as const,animation:"fadeSlideUp 0.3s ease"}}>
+                <div style={{fontSize:48,marginBottom:12}}>✅</div>
+                <p style={{fontWeight:900,fontSize:20,color:C.text,marginBottom:8}}>¡Solicitud enviada!</p>
+                <p style={{fontSize:14,color:C.mutedL,marginBottom:4}}>Un profesional te contactará en <strong style={{color:C.accent}}>menos de 5 minutos</strong></p>
+                <p style={{fontSize:13,color:C.muted,marginBottom:20}}>Revisa tu teléfono ({qrPhone})</p>
+                <button onClick={()=>{setShowQuickRequest(false);setQuickSent(false);}} style={{padding:"12px 24px",background:C.accent,border:"none",borderRadius:10,color:"#000",fontWeight:700,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>Ver profesionales disponibles</button>
+              </div>
+            )}
 
             {/* ════════════════════════════════════════════
                 BUSCADOR con scroll de TODAS las profesiones
