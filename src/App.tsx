@@ -2825,11 +2825,18 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
               {/* Botón pedir presupuesto GRANDE */}
               <button
                 onClick={(e)=>{e.stopPropagation();if(!user){setShowQuickRequest(true);setQuickSent(false);}else{setAutoOpenSolicitud(true);setTab("solicitudes");}}}
-                style={{width:"100%",padding:"16px 20px",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:14,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:800,fontSize:16,cursor:"pointer",textAlign:"center" as const,display:"flex",alignItems:"center",justifyContent:"center",gap:10,boxShadow:"0 4px 20px rgba(255,215,0,0.35)",letterSpacing:"-0.01em"}}
+                style={{width:"100%",padding:"18px 24px",background:"linear-gradient(135deg,#FFFFFF 0%,#F0E6C0 50%,#FFD700 100%)",border:"2px solid rgba(255,215,0,0.6)",borderRadius:16,color:"#1a1200",fontFamily:"'DM Sans',sans-serif",fontWeight:900,fontSize:17,cursor:"pointer",textAlign:"center" as const,display:"flex",alignItems:"center",justifyContent:"center",gap:10,boxShadow:"0 6px 30px rgba(255,215,0,0.4),0 2px 8px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.6)",letterSpacing:"-0.02em",position:"relative" as const,overflow:"hidden",transition:"transform 0.15s ease,box-shadow 0.15s ease"}}
+                onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 10px 40px rgba(255,215,0,0.55),0 4px 12px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.6)";}}
+                onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow="0 6px 30px rgba(255,215,0,0.4),0 2px 8px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.6)";}}
               >
+                <span style={{fontSize:20}}>⚡</span>
                 Recibir presupuesto en minutos
               </button>
-              <p style={{textAlign:"center" as const,fontSize:11,color:C.mutedL,marginTop:8}}>Sin registro · Te contactamos en 5 min</p>
+              <div style={{display:"flex",justifyContent:"center",gap:16,marginTop:10}}>
+                <span style={{fontSize:10,color:C.mutedL,display:"flex",alignItems:"center",gap:4}}>✓ Sin registro</span>
+                <span style={{fontSize:10,color:C.mutedL,display:"flex",alignItems:"center",gap:4}}>✓ 100% gratis</span>
+                <span style={{fontSize:10,color:C.mutedL,display:"flex",alignItems:"center",gap:4}}>✓ En 5 min</span>
+              </div>
            </div>
 
             {/* ════════════════════════════════════════════
