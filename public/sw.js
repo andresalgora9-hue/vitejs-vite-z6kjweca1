@@ -66,7 +66,8 @@ self.addEventListener('push', function(event) {
     vibrate: [200, 100, 200],
     data: { url: data.url || '/' },
     requireInteraction: true,
-    tag: 'oficioya-notif',
+    tag: 'oficioya-' + Date.now(),
+    renotify: true,
   };
   event.waitUntil(self.registration.showNotification(title, options));
 });
