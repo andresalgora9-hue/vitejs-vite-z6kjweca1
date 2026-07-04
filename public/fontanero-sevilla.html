@@ -141,30 +141,15 @@ nav{background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px
 .field input:focus{border-color:var(--gold)}
 .lead-privacy{display:flex;gap:6px;align-items:flex-start;font-size:11.5px;color:var(--ink-faint);line-height:1.5;margin:2px 0 14px}
 
-/* ── WIZARD 3 PASOS ── */
-.wiz-progress{display:flex;gap:5px;margin-bottom:16px}
-.wiz-dot{height:4px;flex:1;background:var(--line);border-radius:3px;overflow:hidden}
-.wiz-dot i{display:block;height:100%;width:0%;background:var(--gold);transition:width .3s}
-.wiz-dot.done i{width:100%}
-.wiz-dot.active i{width:100%;background:var(--cta)}
+/* ── SELECTOR DE AVERÍA + RESULTADO ── */
 .chip-grid{display:flex;flex-direction:column;gap:8px}
 .chip-opt{display:flex;align-items:center;gap:10px;text-align:left;width:100%;background:var(--bg-soft);border:1.5px solid var(--line);border-radius:9px;padding:12px 13px;cursor:pointer;font-family:'Inter';font-size:13.5px;font-weight:600;color:var(--ink);transition:border-color .15s,background .15s}
 .chip-opt:hover{border-color:var(--gold)}
 .chip-opt.sel{background:var(--ink);border-color:var(--ink);color:#fff}
-.range-init{margin-top:16px;display:none;border-top:1px dashed var(--line);padding-top:14px}
-.range-init.show{display:block}
-.range-init .result-label{font-size:12px;color:var(--ink-faint);margin-bottom:6px}
-.range-init .result-range{font-family:'Sora';font-size:20px;font-weight:800;color:var(--ink-soft)}
-.range-narrow{margin-top:16px;display:none;border-top:1px dashed var(--line);padding-top:16px}
-.range-narrow.show{display:block}
-.range-narrow .old-range{font-size:14px;color:var(--ink-faint);text-decoration:line-through;margin-bottom:4px}
-.range-narrow .result-label{font-size:12px;color:var(--ink-faint);margin-bottom:6px}
-.range-narrow .result-range{font-family:'Sora';font-size:28px;font-weight:800;color:var(--gold-deep)}
-.range-narrow .result-disc{font-size:11.5px;color:var(--ink-faint);line-height:1.5;margin-top:10px}
+.old-range{font-size:13px;color:var(--ink-faint);text-decoration:line-through;margin-bottom:4px}
 .field textarea{width:100%;font-family:'Inter';font-size:14px;font-weight:500;color:var(--ink);background:var(--bg-soft);border:1.5px solid var(--line);border-radius:9px;padding:12px;min-height:70px;resize:vertical}
 .field textarea:focus{border-color:var(--gold)}
-.wiz-back{display:inline-block;font-size:12px;font-weight:600;color:var(--ink-faint);margin-top:10px;cursor:pointer;background:none;border:none;padding:0}
-.wiz-back:hover{color:var(--ink)}
+.field-tag-optional{display:inline-block;background:var(--bg-soft);color:var(--ink-faint);font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:7px;letter-spacing:.2px;text-transform:none;vertical-align:middle}
 
 /* ── STATS STRIP ── */
 .stats{background:var(--bg-soft);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
@@ -287,52 +272,32 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
         <div class="ticket">
           <div class="ticket-head">
             <span class="ticket-title">Presupuesto orientativo</span>
-            <span class="ticket-badge" id="stepBadge">Paso 1 de 3</span>
+            <span class="ticket-badge">20 seg</span>
           </div>
           <p class="ticket-sub">Sin compromiso. El precio final lo confirma el fontanero al ver el problema.</p>
 
-          <div class="wiz-progress">
-            <div class="wiz-dot active" id="dot1"><i></i></div>
-            <div class="wiz-dot" id="dot2"><i></i></div>
-            <div class="wiz-dot" id="dot3"><i></i></div>
-          </div>
-
-          <!-- PASO 1 · QUÉ LE PASA -->
-          <div class="wiz-step" id="wizStep1">
-            <div class="field">
-              <label>¿Qué le está pasando?</label>
-              <div class="chip-grid" id="chipGrid">
-                <button type="button" class="chip-opt" data-id="fuga" data-label="💧 Fuga o inundación" data-low="65" data-high="250" data-floor="35" data-desc="Fuga de agua o inundación">💧 Fuga o inundación</button>
-                <button type="button" class="chip-opt" data-id="atasco" data-label="🚿 Atasco o desagüe" data-low="55" data-high="220" data-floor="30" data-desc="Atasco o desagüe obstruido">🚿 Atasco o desagüe</button>
-                <button type="button" class="chip-opt" data-id="grifo" data-label="🚰 Grifo o cisterna" data-low="45" data-high="150" data-floor="25" data-desc="Grifo, cisterna o sanitario">🚰 Grifo o cisterna</button>
-                <button type="button" class="chip-opt" data-id="calentador" data-label="🔥 Calentador o termo" data-low="70" data-high="220" data-floor="40" data-desc="Avería en calentador o termo">🔥 Calentador o termo</button>
-                <button type="button" class="chip-opt" data-id="instalacion" data-label="🛠️ Instalación o reforma" data-low="90" data-high="320" data-floor="55" data-desc="Instalación o reforma de fontanería">🛠️ Instalación o reforma</button>
-              </div>
-            </div>
-            <div class="range-init" id="rangeInitBox">
-              <p class="result-label">Rango orientativo en Sevilla para este tipo de avería</p>
-              <p class="result-range" id="rangeInit">—</p>
+          <div class="field">
+            <label>¿Qué le está pasando?</label>
+            <div class="chip-grid" id="chipGrid">
+              <button type="button" class="chip-opt" data-id="fuga" data-label="💧 Fuga o inundación" data-low="65" data-high="250" data-floor="35" data-desc="Fuga de agua o inundación">💧 Fuga o inundación</button>
+              <button type="button" class="chip-opt" data-id="atasco" data-label="🚿 Atasco o desagüe" data-low="55" data-high="220" data-floor="30" data-desc="Atasco o desagüe obstruido">🚿 Atasco o desagüe</button>
+              <button type="button" class="chip-opt" data-id="grifo" data-label="🚰 Grifo o cisterna" data-low="45" data-high="150" data-floor="25" data-desc="Grifo, cisterna o sanitario">🚰 Grifo o cisterna</button>
+              <button type="button" class="chip-opt" data-id="calentador" data-label="🔥 Calentador o termo" data-low="70" data-high="220" data-floor="40" data-desc="Avería en calentador o termo">🔥 Calentador o termo</button>
+              <button type="button" class="chip-opt" data-id="instalacion" data-label="🛠️ Instalación o reforma" data-low="90" data-high="320" data-floor="55" data-desc="Instalación o reforma de fontanería">🛠️ Instalación o reforma</button>
             </div>
           </div>
 
-          <!-- PASO 2 · DESCRIBIR -->
-          <div class="wiz-step" id="wizStep2" style="display:none">
+          <!-- Todo esto aparece debajo, en el mismo sitio, sin ocultar los chips de arriba — igual que en electricista -->
+          <div class="result" id="resultBox">
+            <p class="old-range" id="oldRange">—</p>
+            <p class="result-label">Con este caso, esto es lo que suele costar en Sevilla</p>
+            <p class="result-range" id="priceRange">—</p>
+            <p class="result-disc">Precio mínimo orientativo para el caso más sencillo dentro de esta avería. El fontanero confirma el precio exacto según lo que encuentre, la zona y el material necesario.</p>
+
             <div class="field">
-              <label for="descProblema">Cuéntenos qué está pasando</label>
+              <label for="descProblema">Cuéntenos qué está pasando<span class="field-tag-optional">Opcional</span></label>
               <textarea id="descProblema" placeholder="Ej: gotea agua debajo del fregadero desde ayer, no sé de dónde viene..."></textarea>
             </div>
-            <div class="range-narrow" id="rangeNarrowBox">
-              <p class="old-range" id="oldRange">—</p>
-              <p class="result-label">Con este caso, esto es lo que suele costar en Sevilla</p>
-              <p class="result-range" id="rangeNarrow">—</p>
-              <p class="result-disc">Precio mínimo orientativo para el caso más sencillo dentro de esta avería. El fontanero confirma el precio exacto según lo que encuentre, la zona y el material necesario.</p>
-            </div>
-            <button class="btn-calc" onclick="irPaso3()">Siguiente: sus datos →</button>
-            <button type="button" class="wiz-back" onclick="irPaso1()">← Cambiar tipo de avería</button>
-          </div>
-
-          <!-- PASO 3 · DATOS -->
-          <div class="wiz-step" id="wizStep3" style="display:none">
             <div class="field">
               <label for="leadNombre">Su nombre</label>
               <input id="leadNombre" type="text" placeholder="¿Cómo se llama?" autocomplete="name">
@@ -342,8 +307,8 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
               <input id="leadTelefono" type="tel" placeholder="600 000 000" autocomplete="tel">
             </div>
             <p class="lead-privacy">🔒 Solo lo verá el fontanero que acepte esta solicitud, y únicamente para contactarle por este trabajo. Nunca lo compartimos con nadie más.</p>
+
             <button type="button" class="btn-result-cta" id="resultCta" onclick="enviarSolicitud()">Enviar solicitud y ver fontaneros →</button>
-            <button type="button" class="wiz-back" onclick="irPaso2()">← Volver a la descripción</button>
           </div>
         </div>
         <div class="ticket-zigzag"></div>
@@ -491,7 +456,8 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
 
 
 <script>
-  // ── Wizard de presupuesto en 3 pasos ──
+  // ── Presupuesto orientativo ── mismo patrón que electricista: los chips nunca
+  // se ocultan, y al elegir uno se revela el bloque de resultado debajo, sin mover nada.
   var chipsWrap = document.getElementById('chipGrid');
   var selected = null; // {id, label, low, high, floor, desc}
 
@@ -510,70 +476,38 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
       desc: btn.dataset.desc
     };
 
-    document.getElementById('rangeInit').textContent = selected.low + '€ – ' + selected.high + '€';
-    document.getElementById('rangeInitBox').classList.add('show');
+    // Efecto de precio a la baja: el rango orientativo completo queda tachado arriba,
+    // y debajo el mínimo real para el caso más sencillo dentro de esta avería.
+    document.getElementById('oldRange').textContent = 'Rango orientativo: ' + selected.low + '€ – ' + selected.high + '€';
+    document.getElementById('priceRange').textContent = 'Desde ' + selected.floor + '€';
+    document.getElementById('resultBox').classList.add('show');
 
     var textarea = document.getElementById('descProblema');
-    if(!textarea.dataset.touched){
-      var EJEMPLOS = {
-        fuga: 'Ej: gotea agua debajo del fregadero desde ayer, no sé de dónde viene...',
-        atasco: 'Ej: el fregadero de la cocina no traga agua desde esta mañana...',
-        grifo: 'Ej: el grifo del baño gotea constantemente aunque esté cerrado...',
-        calentador: 'Ej: el calentador no da agua caliente, se apaga solo...',
-        instalacion: 'Ej: quiero cambiar la instalación de un baño en una reforma...'
-      };
-      textarea.placeholder = EJEMPLOS[selected.id] || 'Cuéntenos qué está pasando...';
-    }
+    var EJEMPLOS = {
+      fuga: 'Ej: gotea agua debajo del fregadero desde ayer, no sé de dónde viene...',
+      atasco: 'Ej: el fregadero de la cocina no traga agua desde esta mañana...',
+      grifo: 'Ej: el grifo del baño gotea constantemente aunque esté cerrado...',
+      calentador: 'Ej: el calentador no da agua caliente, se apaga solo...',
+      instalacion: 'Ej: quiero cambiar la instalación de un baño en una reforma...'
+    };
+    textarea.placeholder = EJEMPLOS[selected.id] || 'Cuéntenos qué está pasando...';
 
     // Micro-conversión: interés en presupuesto (aún sin datos de contacto)
     if (typeof gtag === 'function') {
       gtag('event', 'view_item', {'event_category':'presupuesto_calculado', 'event_label': selected.id});
     }
-
-    // Avanza solo al paso 2 — no hace falta pulsar ningún botón, ve el rango un instante y salta
-    clearTimeout(window._avanceAuto);
-    window._avanceAuto = setTimeout(function(){ irPaso2(); }, 550);
   });
 
-  function setStep(n){
-    document.getElementById('wizStep1').style.display = n===1 ? 'block' : 'none';
-    document.getElementById('wizStep2').style.display = n===2 ? 'block' : 'none';
-    document.getElementById('wizStep3').style.display = n===3 ? 'block' : 'none';
-    document.getElementById('stepBadge').textContent = 'Paso ' + n + ' de 3';
-    ['dot1','dot2','dot3'].forEach(function(id, i){
-      var el = document.getElementById(id);
-      el.classList.remove('active','done');
-      if(i+1 < n) el.classList.add('done');
-      if(i+1 === n) el.classList.add('active');
-    });
-    document.getElementById('presupuesto').scrollIntoView({behavior:'smooth', block:'center'});
-  }
-
-  function irPaso1(){ setStep(1); }
-
-  function irPaso2(){
-    if(!selected) return;
-    // Efecto de precio a la baja: se muestra el rango inicial tachado y el mínimo real del caso más sencillo
-    document.getElementById('oldRange').textContent = 'Antes: ' + selected.low + '€ – ' + selected.high + '€';
-    document.getElementById('rangeNarrow').textContent = 'Desde ' + selected.floor + '€';
-    document.getElementById('rangeNarrowBox').classList.add('show');
-    setStep(2);
-  }
-
-  function irPaso3(){
-    setStep(3);
-  }
-
   function enviarSolicitud(){
+    if(!selected){
+      alert('Elija primero qué tipo de avería tiene.');
+      document.getElementById('chipGrid').scrollIntoView({behavior:'smooth', block:'center'});
+      return;
+    }
     var nombre = document.getElementById('leadNombre').value.trim();
     var telefono = document.getElementById('leadTelefono').value.trim();
     if(!nombre || !telefono){
       alert('Indique su nombre y un teléfono de contacto para que el fontanero pueda escribirle.');
-      return;
-    }
-    if(!selected){
-      alert('Elija primero qué tipo de avería tiene.');
-      setStep(1);
       return;
     }
 
