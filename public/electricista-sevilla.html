@@ -232,7 +232,6 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
     <a href="/" class="logo">🔌 Oficio<em>Ya</em><span>Sevilla</span></a>
     <div class="nav-actions">
       <a href="tel:+34656398014" class="nav-phone">📞 <span class="txt">656 398 014</span></a>
-      <a href="/" class="btn-cta-sm">Ver electricistas</a>
     </div>
   </div>
 </nav>
@@ -251,7 +250,7 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
           <div class="trust-chip">🛡️ En contra de los precios inflados de última hora</div>
         </div>
         <div class="hero-ctas">
-          <a href="#presupuesto" class="btn-main">Calcular mi presupuesto orientativo →</a>
+          <a href="#presupuesto" class="btn-main" onclick="event.preventDefault();document.getElementById('presupuesto').scrollIntoView({behavior:'smooth',block:'center'});">Calcular mi presupuesto orientativo →</a>
           <a href="tel:+34656398014" class="btn-call">📞 ¿Es urgente? Llame ya: 656 398 014</a>
         </div>
         <p class="hero-note">Gratis para buscar y comparar</p>
