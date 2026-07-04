@@ -2433,13 +2433,18 @@ function ClientHome({user,onLogout,onUpdate,deepLinkChatWith,onLogin}:{user:User
   const [qrDesc,setQrDesc]=useState("");
   const [qrSending,setQrSending]=useState(false);
   const [qrErr,setQrErr]=useState("");
-  const handleQuickRequest=async()=>{
-    if(!qrName.trim()||!qrEmail.trim()||!qrPhone.trim()||!qrDesc.trim()){setQrErr("Rellena todos los campos");return;}
-    if(!/\S+@\S+\.\S+/.test(qrEmail)){setQrErr("Introduce un email válido");return;}
+  const handleQuickRequest=async(override?:{name:string;email:string;phone:string;oficio:string;desc:string})=>{
+    const name=override?.name??qrName;
+    const email=override?.email??qrEmail;
+    const phone=override?.phone??qrPhone;
+    const oficioReq=override?.oficio??qrOficio;
+    const desc=override?.desc??qrDesc;
+    if(!name.trim()||!email.trim()||!phone.trim()||!desc.trim()){setQrErr("Rellena todos los campos");return;}
+    if(!/\S+@\S+\.\S+/.test(email)){setQrErr("Introduce un email válido");return;}
     setQrSending(true);setQrErr("");
     try{
       const pw=Math.random().toString(36).slice(-8)+"A1";
-      const res=await fetch(SUPABASE_FUNCTIONS_URL+"/auth-handler",{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({action:"register",name:qrName.trim(),email:qrEmail.toLowerCase().trim(),password:pw,type:"cliente",phone:qrPhone.trim(),trial_end:""})});
+      const res=await fetch(SUPABASE_FUNCTIONS_URL+"/auth-handler",{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({action:"register",name:name.trim(),email:email.toLowerCase().trim(),password:pw,type:"cliente",phone:phone.trim(),trial_end:""})});
       const data=await res.json();
       if(!data.success){
         if(data.error?.includes("Ya existe")){setQrErr("Ya tienes cuenta con ese email. Inicia sesión arriba.");setQrSending(false);return;}
@@ -2447,31 +2452,47 @@ function ClientHome({user,onLogout,onUpdate,deepLinkChatWith,onLogin}:{user:User
       }
       const u=data.user;
       const norm=(s:string)=>s?.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim()||"";
-      const{data:req}=await db.from("budget_requests").insert({client_id:u.id,client_name:qrName.trim(),oficio:qrOficio,zona:"Sevilla",description:qrDesc.trim(),max_budget:null,status:"open",notified_pros:[]}).select().single();
+      const{data:req}=await db.from("budget_requests").insert({client_id:u.id,client_name:name.trim(),oficio:oficioReq,zona:"Sevilla",description:desc.trim(),max_budget:null,status:"open",notified_pros:[]}).select().single();
       if(req){
         const{data:allPros}=await db.from("users").select("id,name,trade,zone,service_zones,plan").eq("type","profesional").eq("available",true).in("plan",["elite","pro"]);
-        const eligibles=((allPros||[]) as any[]).filter((w:any)=>norm(w.trade||"")===norm(qrOficio));
+        const eligibles=((allPros||[]) as any[]).filter((w:any)=>norm(w.trade||"")===norm(oficioReq));
         const shuffle=(arr:any[])=>[...arr].sort(()=>Math.random()-0.5);
         const elites=shuffle(eligibles.filter((w:any)=>w.plan==="elite"));
         const pros=shuffle(eligibles.filter((w:any)=>w.plan==="pro"));
         const toNotify=[...elites.slice(0,2),...pros.slice(0,1)];
         const notifiedIds:string[]=[];
         for(const pro of toNotify){
-          await db.from("messages").insert({from_id:"00000000-0000-0000-0000-000000000001",to_id:pro.id,text:`🔴 *NUEVO LEAD*|REQUEST_ID:${req.id}|${qrName} necesita ${qrOficio} en Sevilla.\n📝 ${qrDesc}\n📞 ${qrPhone}`,read:false,is_lead_alert:true});
-          fetch(`${SUPABASE_FUNCTIONS_URL}/send-push`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({user_id:pro.id,title:"🔴 Nuevo lead · "+qrOficio,body:qrName+" necesita "+qrOficio+" en Sevilla",url:"/"})}).catch(()=>{});
+          await db.from("messages").insert({from_id:"00000000-0000-0000-0000-000000000001",to_id:pro.id,text:`🔴 *NUEVO LEAD*|REQUEST_ID:${req.id}|${name} necesita ${oficioReq} en Sevilla.\n📝 ${desc}\n📞 ${phone}`,read:false,is_lead_alert:true});
+          fetch(`${SUPABASE_FUNCTIONS_URL}/send-push`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({user_id:pro.id,title:"🔴 Nuevo lead · "+oficioReq,body:name+" necesita "+oficioReq+" en Sevilla",url:"/"})}).catch(()=>{});
           notifiedIds.push(pro.id);
         }
         await db.from("budget_requests").update({notified_pros:notifiedIds,last_notified_at:new Date().toISOString()}).eq("id",req.id);
-        fetch(`${SUPABASE_FUNCTIONS_URL}/notify-admin`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({type:"sin_profesional",cliente:qrName,oficio:qrOficio,zona:"Sevilla",descripcion:qrDesc,telefono:qrPhone,email:qrEmail,request_id:req.id})}).catch(()=>{});
+        fetch(`${SUPABASE_FUNCTIONS_URL}/notify-admin`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({type:"sin_profesional",cliente:name,oficio:oficioReq,zona:"Sevilla",descripcion:desc,telefono:phone,email:email,request_id:req.id})}).catch(()=>{});
       }
-      gtagEvent("generate_lead",{content_name:"quick_request",oficio:qrOficio});
-      fbqEvent("Lead",{content_name:"quick_request",content_category:qrOficio});
+      gtagEvent("generate_lead",{content_name:"quick_request",oficio:oficioReq});
+      fbqEvent("Lead",{content_name:"quick_request",content_category:oficioReq});
       localStorage.setItem("oy_user",JSON.stringify(u));
       onLogin(u);
       setQuickSent(true);
       setQrSending(false);
+      setShowQuickRequest(false);
+      setTab("solicitudes");
     }catch(e:any){setQrErr(e.message||"Error");setQrSending(false);}
   };
+  useEffect(()=>{
+    const p=new URLSearchParams(window.location.search);
+    if(p.get("quick")==="1"){
+      const nombreParam=p.get("nombre")||"";
+      const telefonoParam=p.get("telefono")||"";
+      const emailParam=p.get("email")||"";
+      const oficioParam=p.get("oficio")||qrOficio;
+      const descParam=p.get("desc")||"";
+     setQrOficio(oficioParam);setQrName(nombreParam);setQrPhone(telefonoParam);setQrEmail(emailParam);setQrDesc(descParam);
+      setShowQuickRequest(true);
+      window.history.replaceState({},"",window.location.pathname);
+      handleQuickRequest({name:nombreParam,email:emailParam,phone:telefonoParam,oficio:oficioParam,desc:descParam});
+    }
+  },[]);
   const pendingActionRef=useRef<(()=>void)|null>(null);
   const requireAuth=useCallback((action:()=>void,mode:"login"|"pick"="login")=>{
     if(user){action();return;}
