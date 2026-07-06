@@ -654,7 +654,7 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
         client_name:s.client_name||"—",
         client_id:s.client_id||null,
         worker_id:(s.accepted_pros&&s.accepted_pros.length>0)?s.accepted_pros[0]:null,
-        status:(s.accepted_pros&&s.accepted_pros.length>0)?"in_progress":s.status==="closed"?"done":"pending",
+        status:s.status==="cancelled"?"cancelled":(s.accepted_pros&&s.accepted_pros.length>0)?"in_progress":s.status==="closed"?"done":"pending", 
         created_at:s.created_at,
         tipo:"solicitud",
         zona:s.zona||"",
