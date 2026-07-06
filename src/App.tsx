@@ -4699,7 +4699,7 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
         </div>
       </header>
 
-      {daysLeft<=7&&<div style={{background:"linear-gradient(135deg,"+C.red+"18,"+C.orange+"11)",borderBottom:"1px solid "+C.red+"22",padding:"8px 16px",textAlign:"center"}}>
+      {!user.has_stripe&&daysLeft<=7&&<div style={{background:"linear-gradient(135deg,"+C.red+"18,"+C.orange+"11)",borderBottom:"1px solid "+C.red+"22",padding:"8px 16px",textAlign:"center"}}>
         <p style={{fontSize:12,color:daysLeft>0?C.orange:C.red,fontWeight:700}}>{daysLeft>0?"⚠ "+daysLeft+" días de prueba · Activa un plan para no perder tu perfil":"⛔ Trial expirado · Tu perfil no es visible"}</p>
       </div>}
 
