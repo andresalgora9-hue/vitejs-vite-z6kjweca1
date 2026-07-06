@@ -42,11 +42,12 @@ export interface UserRow {
   photos?: string[];
   profile_views?: number;
   leads_count?: number;
-  trial_end: string;
+ trial_end: string;
   joined_at: string;
   role?: string;
   banned?: boolean;
   company_name?: string;
+  has_stripe?: boolean;
 }
 
 export interface MessageRow {
