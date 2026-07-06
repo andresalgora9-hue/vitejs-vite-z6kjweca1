@@ -126,6 +126,8 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
   const [section, setSection] = useState<Section>("monitor");
   const [sub, setSub]         = useState<string>("salud");
   const [users, setUsers]     = useState<UserRow[]>([]);
+  const usersRef = useRef<UserRow[]>([]);
+  useEffect(()=>{usersRef.current=users;},[users]);
   const [msgs,  setMsgs]      = useState<MessageRow[]>([]);
   const [jobs,  setJobs]      = useState<JobRow[]>([]);   const [solicitudes, setSolicitudes] = useState<any[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
@@ -211,7 +213,7 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
         const m=p.new as MessageRow;
         if(m.from_id!==ADMIN_ID)setMsgs(prev=>[m,...prev]);
         if(m.to_id===ADMIN_ID&&m.from_id!==BOT_ID){
-          const sender=users.find(u=>u.id===m.from_id);
+          const sender=usersRef.current.find(u=>u.id===m.from_id);
           showToast(`💬 ${sender?.name||"Usuario"}: ${m.text.substring(0,40)}`,"ok");
         }
       })
@@ -227,7 +229,7 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
       })
       .subscribe();
     return()=>{db.removeChannel(ch);};
-  },[users]);
+  },[]);
 
   useEffect(()=>{
     const handler=(e:MouseEvent)=>{
