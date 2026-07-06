@@ -2428,6 +2428,27 @@ function ClientHome({user,onLogout,onUpdate,deepLinkChatWith,onLogin}:{user:User
   const [quickSent,setQuickSent]=useState(false);
   const [qrName,setQrName]=useState("");
   const [qrEmail,setQrEmail]=useState("");
+  const [emailEditVal,setEmailEditVal]=useState("");
+  const [emailSaving,setEmailSaving]=useState(false);
+  const [emailErr,setEmailErr]=useState("");
+  const [bannerEmailVal,setBannerEmailVal]=useState("");
+  const [bannerSaving,setBannerSaving]=useState(false);
+  const [bannerErr,setBannerErr]=useState("");
+  const [bannerDismissed,setBannerDismissed]=useState(false);
+  const isSyntheticEmail=(user?.email||"").endsWith("@aficioya-lead.com");
+  const saveRealEmail=async(raw:string):Promise<string|null>=>{
+    const v=raw.trim().toLowerCase();
+    if(!v||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v))return"Introduce un email válido";
+    if(v.endsWith("@aficioya-lead.com"))return"Ese no es tu email real";
+    const{data:existing}=await db.from("users").select("id").eq("email",v).maybeSingle();
+    if(existing&&existing.id!==user!.id)return"Ese email ya está en uso por otra cuenta";
+    const{error}=await db.from("users").update({email:v}).eq("id",user!.id);
+    if(error)return"No se pudo guardar, inténtalo de nuevo";
+    const updated={...user!,email:v};
+    localStorage.setItem("oy_user",JSON.stringify(updated));
+    onUpdate(updated);
+    return null;
+  };
   const [qrPhone,setQrPhone]=useState("");
   const [qrOficio,setQrOficio]=useState("Fontanería");
   const [qrDesc,setQrDesc]=useState("");
@@ -2957,6 +2978,23 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
               
 
         {tab==="ranking"&&<RankingSection workers={workers} onSelect={setSelectedWorker} />}
+        {tab==="solicitudes"&&user&&isSyntheticEmail&&!bannerDismissed&&(
+          <div style={{background:"linear-gradient(135deg,"+C.red+"14,"+C.orange+"0c)",border:"1px solid "+C.red+"44",borderRadius:12,padding:"14px 16px",marginTop:16,marginBottom:4}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10,marginBottom:8}}>
+              <p style={{fontSize:13,fontWeight:700,color:C.text,flex:1}}>📧 Añade tu email para no perder el contacto con el profesional</p>
+              <button onClick={()=>setBannerDismissed(true)} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:14,padding:0,lineHeight:1}}>✕</button>
+            </div>
+            <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+              <input value={bannerEmailVal} onChange={(e)=>{setBannerEmailVal(e.target.value);setBannerErr("");}} placeholder="tu@email.com" type="email" autoComplete="off"
+                style={{flex:"1 1 200px",padding:"10px 12px",background:C.surface,border:"1.5px solid "+(bannerErr?C.red:C.border),borderRadius:8,color:"#E8EDF5",fontFamily:"'DM Sans',sans-serif",fontSize:13,outline:"none",boxSizing:"border-box" as const,WebkitTextFillColor:"#E8EDF5"}}/>
+              <button onClick={async()=>{setBannerSaving(true);const err=await saveRealEmail(bannerEmailVal);if(err){setBannerErr(err);setBannerSaving(false);return;}setBannerSaving(false);setBannerEmailVal("");setBannerDismissed(true);}} disabled={bannerSaving||!bannerEmailVal.trim()}
+                style={{padding:"10px 16px",background:bannerEmailVal.trim()?"linear-gradient(135deg,"+C.accent+","+C.orange+")":C.surface,border:"none",borderRadius:8,color:bannerEmailVal.trim()?"#000":C.muted,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,cursor:bannerEmailVal.trim()?"pointer":"default",flexShrink:0}}>
+                {bannerSaving?"...":"Guardar"}
+              </button>
+            </div>
+            {bannerErr&&<p style={{fontSize:11,color:C.red,marginTop:6,fontWeight:600}}>{bannerErr}</p>}
+          </div>
+        )}
         {tab==="solicitudes"&&user&&<SolicitudesTab key={autoOpenSolicitud?"open":"closed"} user={user} workers={workers} onWorkerSelect={setSelectedWorker} onChat={handleChat} autoOpen={autoOpenSolicitud} onSolicitudEnviada={()=>setShowNotifModal(true)} />}
         {tab==="chats"&&user&&(<>
           <div style={{padding:"22px 0 16px"}}><h2 style={{fontWeight:800,fontSize:22,color:C.text}}>Mis conversaciones</h2></div>
@@ -3065,12 +3103,25 @@ return <GCard key={w.id} onClick={async()=>{
                 WebkitTextFillColor:"#E8EDF5",
               }}
             />
-            {!user.phone&&(
+           {!user.phone&&(
               <p style={{fontSize:11,color:C.red,marginTop:8,fontWeight:600}}>
                 🔴 Sin teléfono los profesionales no pueden contactarte
               </p>
             )}
           </GCard>
+          {isSyntheticEmail&&(
+            <GCard style={{marginBottom:14,border:"1px solid "+C.red+"66"}}>
+              <p style={{fontWeight:700,color:C.red,fontSize:13,marginBottom:6}}>⚠️ Añade tu email real</p>
+              <p style={{fontSize:12,color:C.muted,marginBottom:12}}>Te registraste rápido desde un anuncio y usamos un email temporal. Añade el tuyo para recibir avisos y poder recuperar tu cuenta.</p>
+              <input value={emailEditVal} onChange={(e)=>{setEmailEditVal(e.target.value);setEmailErr("");}} placeholder="tu@email.com" type="email" autoComplete="off"
+                style={{width:"100%",padding:"12px 14px",background:C.surface,border:"1.5px solid "+(emailErr?C.red:C.border),borderRadius:10,color:"#E8EDF5",fontFamily:"'DM Sans',sans-serif",fontSize:14,outline:"none",boxSizing:"border-box" as const,WebkitTextFillColor:"#E8EDF5",marginBottom:8}}/>
+              {emailErr&&<p style={{fontSize:11,color:C.red,marginBottom:8,fontWeight:600}}>{emailErr}</p>}
+              <button onClick={async()=>{setEmailSaving(true);const err=await saveRealEmail(emailEditVal);if(err){setEmailErr(err);setEmailSaving(false);return;}setEmailSaving(false);setEmailEditVal("");}} disabled={emailSaving||!emailEditVal.trim()}
+                style={{width:"100%",padding:"12px",background:emailEditVal.trim()?"linear-gradient(135deg,"+C.accent+","+C.orange+")":C.surface,border:"none",borderRadius:10,color:emailEditVal.trim()?"#000":C.muted,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:14,cursor:emailEditVal.trim()?"pointer":"default"}}>
+                {emailSaving?"Guardando...":"Guardar mi email real"}
+              </button>
+            </GCard>
+          )}
           <ChangePasswordCard userId={user.id} />
           <Btn full outline danger onClick={onLogout} color={C.red}>Cerrar sesión</Btn>
           <DeleteAccountButton user={user} onLogout={onLogout}/>
