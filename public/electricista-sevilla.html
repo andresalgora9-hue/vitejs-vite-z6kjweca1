@@ -88,6 +88,10 @@ nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.92);backdrop-
 .hero-sub .strike::after{content:'';position:absolute;left:-2px;right:-2px;top:52%;height:3px;background:var(--amber);opacity:.85;transform:rotate(-1.2deg)}
 .btn-big{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;background:var(--amber);color:var(--amber-ink);font-family:'Inter';font-weight:800;font-size:17px;padding:19px 24px;border-radius:16px;border:none;cursor:pointer;box-shadow:0 10px 34px rgba(240,169,59,.35);transition:transform .15s,background .15s}
 .btn-big:hover{background:var(--amber-deep);transform:translateY(-1px)}
+.hero-ab{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:560px){.hero-ab{grid-template-columns:1fr}}
+.btn-dark{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;background:var(--ink);color:#fff;font-family:'Inter';font-weight:800;font-size:16.5px;padding:19px 24px;border-radius:16px;border:none;cursor:pointer;box-shadow:0 10px 30px rgba(16,24,44,.28);transition:transform .15s,background .15s}
+.btn-dark:hover{background:#1B2745;transform:translateY(-1px)}
 .hero-links{display:flex;justify-content:center;gap:26px;margin-top:20px}
 .hero-link{color:#3452E1;font-weight:700;font-size:14.5px}
 .hero-link:hover{text-decoration:underline}
@@ -212,17 +216,19 @@ nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.92);backdrop-
   <!-- ── HERO ── -->
   <section class="hero">
     <div class="pill">⚡ Solo Sevilla y área metropolitana</div>
-    <h1>Tu avería eléctrica, <em>resuelta hoy</em>.</h1>
-    <p class="hero-sub">Se acabó llamar a diez números que no lo cogen y los <span class="strike">precios que se inflan al final</span>. Electricistas verificados de Sevilla te llaman en minutos, con precio orientativo antes de que venga nadie.</p>
-    <a class="btn-big" href="tel:+34656398014" onclick="if(typeof gtag==='function'){gtag('event','contact_phone',{'event_category':'llamada_hero','event_label':'electricista'});}">📞 Llamar ahora</a>
+    <h1>Electricistas verificados en Sevilla, <em>para lo que necesites</em></h1>
+    <p class="hero-sub">Avería, cuadro eléctrico, instalación nueva o certificado. Presupuesto orientativo antes de que venga nadie, y te llaman en minutos si es urgente — sin <span class="strike">precios que se inflan al final</span>.</p>
+    <div class="hero-ab">
+      <a class="btn-big" href="#presupuesto" onclick="event.preventDefault();document.getElementById('presupuesto').scrollIntoView({behavior:'smooth',block:'center'});if(typeof gtag==='function'){gtag('event','select_content',{'event_category':'cta_hero','event_label':'calcular_presupuesto'});}">Calcular presupuesto →</a>
+      <a class="btn-dark" href="tel:+34656398014" onclick="if(typeof gtag==='function'){gtag('event','contact_phone',{'event_category':'llamada_hero','event_label':'electricista'});}">📞 Llamar ahora</a>
+    </div>
     <div class="hero-links">
-      <a class="hero-link" href="#presupuesto" onclick="event.preventDefault();document.getElementById('presupuesto').scrollIntoView({behavior:'smooth',block:'center'});">Calcular mi presupuesto ↓</a>
       <a class="hero-link" href="#como-funciona">Ver cómo funciona ↓</a>
     </div>
     <div class="hero-trust">
-      <span class="chip">✅ Verificados antes de entrar</span>
-      <span class="chip">💶 100% gratis para clientes</span>
-      <span class="chip">🛡️ Pagas directo al profesional</span>
+      <span class="chip">Seguridad garantizada</span>
+      <span class="chip">Profesionalidad verificada</span>
+      <span class="chip">Seriedad en cada trabajo</span>
     </div>
   </section>
 
