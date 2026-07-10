@@ -195,7 +195,7 @@ function toSlug(name:string,trade?:string){
   return base;
 }
 function getDeepLinkUrl(user:UserRow){
-  return "https://oficioya.com/pro/"+toSlug(user.name,user.trade);
+  return "https://aficioya.com/pro/"+toSlug(user.name,user.trade);
 }
 function shareProfile(user:UserRow){
   const url=getDeepLinkUrl(user);
