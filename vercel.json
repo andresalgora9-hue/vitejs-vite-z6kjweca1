@@ -270,7 +270,7 @@
     { "source": "/alternativa-wolly-sevilla", "destination": "/alternativa-wolly-sevilla.html" },
     {
       "source": "/pro/:slug",
-      "destination": "/pro/index.html"
+      "destination": "/api/pro?slug=:slug"
     },
     { "source": "/elite-gratis", "destination": "/elite-gratis.html" },
     { "source": "/registro-cliente", "destination": "/registro-cliente.html" },
