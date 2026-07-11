@@ -928,7 +928,12 @@ useEffect(()=>{
 },[]);
   const isSystem=toUser.id==="00000000-0000-0000-0000-000000000001"||toUser.id==="00000000-0000-0000-0000-000000000002";
   const displayColor=isSystem?C.orange:col;
-
+  const [clientContact,setClientContact]=useState<{phone:string;email:string}|null>(null);
+  useEffect(()=>{
+    if(currentUser.type!=="profesional"||isSystem)return;
+    db.from("users").select("phone,email").eq("id",toUser.id).maybeSingle()
+      .then(({data})=>{if(data)setClientContact({phone:data.phone||"",email:data.email||""});});
+  },[toUser.id,currentUser.type,isSystem]);
   const loadMsgs=useCallback(async()=>{
     const {data}=await db.from("messages").select("*")
       .or("and(from_id.eq."+currentUser.id+",to_id.eq."+toUser.id+"),and(from_id.eq."+toUser.id+",to_id.eq."+currentUser.id+")")
@@ -1078,10 +1083,16 @@ if(toUser.id==="00000000-0000-0000-0000-000000000002"){
               :<Ava s={toUser.name.substring(0,2).toUpperCase()} size={34} color={displayColor} online={toUser.available} imgUrl={toUser.avatar_url||""} />
             }
           </div>
-          <p style={{fontWeight:700,fontSize:14,color:C.text,lineHeight:1}}>{isSystem?"oficioya Soporte":toUser.name}</p>
+          <p style={{fontWeight:700,fontSize:14,color:C.text,lineHeight:1}}>{isSystem?"OficioYa Soporte":toUser.name}</p>
           <p style={{fontSize:10,color:isTyping?C.green:toUser.available?C.green:C.muted,transition:"color 0.3s"}}>
             {isTyping?"escribiendo...":(isSystem?"Soporte oficial":toUser.available?"En línea":"Última vez "+timeAgo(new Date().toISOString()))}
           </p>
+          {currentUser.type==="profesional"&&!isSystem&&clientContact&&(
+            <div style={{display:"flex",gap:6,marginTop:5,flexWrap:"wrap",justifyContent:"center"}}>
+              {clientContact.phone&&<a href={"tel:"+clientContact.phone} style={{fontSize:10,color:"#000",background:C.green,padding:"3px 9px",borderRadius:99,fontWeight:800,textDecoration:"none"}}>📞 {clientContact.phone}</a>}
+              {clientContact.email&&!clientContact.email.includes("@aficioya-lead.com")&&<a href={"mailto:"+clientContact.email} style={{fontSize:10,color:C.cyan,background:C.cyan+"18",padding:"3px 9px",borderRadius:99,fontWeight:700,textDecoration:"none",border:"1px solid "+C.cyan+"33"}}>✉️ {clientContact.email}</a>}
+            </div>
+          )}
         </div>
 
         {!isSystem&&(
