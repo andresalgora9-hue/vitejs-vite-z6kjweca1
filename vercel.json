@@ -269,8 +269,8 @@
     { "source": "/alternativa-zaask-sevilla", "destination": "/alternativa-zaask-sevilla.html" },
     { "source": "/alternativa-wolly-sevilla", "destination": "/alternativa-wolly-sevilla.html" },
     {
-      "source": "/:page((?:cerrajero|desatascos|aire-acondicionado|manitas|jardinero|carpintero|limpieza|reformas|fontanero|electricista|pintor|albanil)-[a-z0-9-]+)",
-      "destination": "/:page.html"
+      "source": "/:trade(cerrajero|desatascos|aire-acondicionado|manitas|jardinero|carpintero|limpieza|reformas|fontanero|electricista|pintor|albanil)-:zone(.+)",
+      "destination": "/:trade-:zone.html"
     },
     {
       "source": "/pro/:slug",
