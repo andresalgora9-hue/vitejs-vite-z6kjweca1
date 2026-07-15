@@ -737,6 +737,48 @@ export default function EliteLanding() {
           </div>
         </div>
 
+        {/* ═══ QUIÉN ESTÁ DETRÁS — SECCIÓN FUNDADOR ═══ */}
+        <div style={{ background:C.bg, borderTop:`1px solid ${C.border}`, padding:"52px 24px" }}>
+          <div style={{ maxWidth:540, margin:"0 auto" }}>
+            <GlowLabel mb={22}>QUIÉN ESTÁ DETRÁS</GlowLabel>
+            <div style={{
+              position:"relative",
+              background:"linear-gradient(160deg,#161616,#0d0d0d)",
+              border:`1px solid ${C.goldGlow}`,
+              borderRadius:22, overflow:"hidden",
+              boxShadow:`0 0 60px ${C.goldDim}, 0 20px 50px rgba(0,0,0,0.5)`,
+            }}>
+              <div style={{ position:"relative", width:"100%", height:230, overflow:"hidden" }}>
+                <img
+                  src="/andres-fundador.jpg"
+                  alt="Andrés Algora, fundador de OficioYa"
+                  style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"50% 30%", display:"block" }}
+                />
+                <div style={{ position:"absolute", inset:0, background:"linear-gradient(to bottom, transparent 40%, #0d0d0d 98%)" }} />
+              </div>
+              <div style={{ padding:"6px 26px 28px", position:"relative", zIndex:2, marginTop:-30 }}>
+                <div style={{ fontSize:26, fontWeight:900, letterSpacing:-0.5, color:C.white }}>Andrés Algora</div>
+                <div style={{ color:C.gold, fontSize:12, fontWeight:800, letterSpacing:1.5, textTransform:"uppercase", margin:"6px 0 20px" }}>
+                  Fundador de OficioYa · Sevilla
+                </div>
+
+                <p style={{ color:"#c8c8c8", fontSize:15, lineHeight:1.7, marginBottom:18 }}>
+                  Vengo del <b style={{ color:C.white }}>mundo financiero</b>: años analizando números, mercados y modelos de negocio. Pero lo que de verdad me movió a crear OficioYa fue algo mucho más de calle.
+                </p>
+                <p style={{ color:"#c8c8c8", fontSize:15, lineHeight:1.7, marginBottom:18 }}>
+                  Empecé a hablar cada semana con fontaneros, electricistas y albañiles de Sevilla, y todos me contaban lo mismo: <b style={{ color:C.gold }}>demasiado tiempo perdido en presupuestos que no llegaban a nada.</b> Ahí lo tuve claro.
+                </p>
+                <p style={{ color:"#c8c8c8", fontSize:15, lineHeight:1.7, marginBottom:18 }}>
+                  OficioYa es mi respuesta a ese problema. Aquí solo te llegan clientes que <b style={{ color:C.white }}>ya han decidido contratar.</b> Y no hay un call center detrás ni una empresa gigante: <b style={{ color:C.white }}>soy yo.</b> Regístrate y hablamos.
+                </p>
+
+                <div style={{ fontFamily:"'Brush Script MT', cursive", fontSize:26, color:C.gold, margin:"4px 0 24px", opacity:0.9 }}>Andrés</div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* MOCK PERFIL */}
         <div style={{ maxWidth:540, margin:"0 auto", padding:"48px 24px" }}>
           <GlowLabel mb={8}>ASÍ SE VE TU PERFIL</GlowLabel>
@@ -843,7 +885,7 @@ export default function EliteLanding() {
             Quiero mi mes Élite gratis →
           </Btn>
           <p style={{ color:C.dim, fontSize:11, marginTop:12 }}>
-            🔒 Pago seguro con Stripe · Sin permanencia · Cancela cuando quieras
+            🔒 Pago seguro con Stripe · Sin permanencia
           </p>
         </div>
 
