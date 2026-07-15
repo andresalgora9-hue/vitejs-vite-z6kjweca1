@@ -140,6 +140,29 @@ nav{background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px
 .field input:focus{border-color:var(--gold)}
 .lead-privacy{display:flex;gap:6px;align-items:flex-start;font-size:11.5px;color:var(--ink-faint);line-height:1.5;margin:2px 0 14px}
 
+/* ── PRECIO GIRANDO (difuminado) ── */
+.price-reveal{background:var(--gold-soft);border:1px solid #E8CE94;border-radius:12px;padding:16px 18px;text-align:center;margin-bottom:18px}
+.price-reveal-label{font-size:12px;font-weight:700;color:var(--gold-deep);letter-spacing:.2px;margin-bottom:6px}
+.price-spin{font-family:'Sora';font-size:27px;font-weight:800;color:var(--gold-deep);line-height:1.15;letter-spacing:-.5px;transition:filter .5s ease, transform .3s ease;font-variant-numeric:tabular-nums}
+.price-spin.blurred{filter:blur(5px);user-select:none}
+.price-spin.revealed{filter:blur(0);transform:scale(1.04)}
+.price-reveal-hint{font-size:11.5px;color:var(--gold-deep);font-weight:600;margin-top:8px;line-height:1.5}
+.price-reveal-hint:empty{margin-top:0}
+.opt-tag{font-weight:500;color:var(--ink-faint);font-size:11px}
+
+/* ── QUIZ DE PULSAR ── */
+.quiz-step{display:none;animation:fadeStep .35s ease}
+.quiz-step.show{display:block}
+@keyframes fadeStep{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.quiz-q{font-family:'Sora';font-size:15.5px;font-weight:700;color:var(--ink);margin-bottom:14px;line-height:1.35}
+.quiz-qn{display:block;font-family:'Inter';font-size:11px;font-weight:700;color:var(--gold-deep);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{width:100%;text-align:left;font-family:'Inter';font-size:15px;font-weight:600;color:var(--ink);background:var(--bg-soft);border:1.5px solid var(--line);border-radius:11px;padding:15px 16px;cursor:pointer;transition:all .18s}
+.opt:hover{border-color:var(--gold);background:#fff;transform:translateX(2px)}
+.opt.sel{border-color:var(--gold);background:var(--gold-soft);color:var(--gold-deep)}
+.quiz-back{background:none;border:none;color:var(--ink-faint);font-family:'Inter';font-size:12.5px;font-weight:600;cursor:pointer;margin-top:12px;padding:4px}
+.quiz-back:hover{color:var(--ink-soft)}
+
 /* ── STATS STRIP ── */
 .stats{background:var(--bg-soft);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
 .stats-inner{display:flex;justify-content:center;gap:44px;padding:26px 0;flex-wrap:wrap;max-width:1120px;margin:0 auto}
@@ -262,52 +285,66 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
           </div>
           <p class="ticket-sub">Sin compromiso. El precio final lo confirma el pintor al ver la vivienda.</p>
 
-          <div class="field">
-            <label for="tipoTrabajo">Tipo de trabajo</label>
-            <select id="tipoTrabajo">
-              <option value="habitacion">Pintar una habitación</option>
-              <option value="piso_completo">Pintar el piso completo</option>
-              <option value="gotele">Quitar gotelé y pintar</option>
-              <option value="fachada">Pintar fachada / exterior</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label for="tamano">Tamaño aproximado</label>
-            <select id="tamano">
-              <option value="pequeno">Pequeño</option>
-              <option value="mediano">Mediano</option>
-              <option value="grande">Grande</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label for="estado">Estado actual de las paredes</label>
-            <select id="estado">
-              <option value="bueno">Buen estado, solo repintar</option>
-              <option value="preparacion">Necesita preparación (grietas, gotelé...)</option>
-              <option value="humedades">Con manchas de humedad</option>
-            </select>
-          </div>
-
-          <button class="btn-calc" onclick="calcularPresupuesto()">Calcular estimación →</button>
-
-          <div class="result" id="resultBox">
-            <p class="result-label">Rango orientativo en Sevilla</p>
-            <p class="result-range" id="resultRange">—</p>
-            <p class="result-disc">Precio no vinculante. Varía según el alcance real, la vivienda y los materiales elegidos. El pintor le confirma el precio antes de empezar.</p>
-
-            <div class="field">
-              <label for="leadNombre">Su nombre</label>
-              <input id="leadNombre" type="text" placeholder="¿Cómo se llama?" autocomplete="name">
+          <!-- ── PRECIO (difuminado, cambia al pulsar) ── -->
+          <div class="price-reveal">
+            <p class="price-reveal-label">Tu presupuesto orientativo en Sevilla</p>
+            <div class="price-spin blurred" id="priceSpin">
+              <span id="priceSpinValue">— €</span>
             </div>
-            <div class="field">
-              <label for="leadTelefono">Teléfono o WhatsApp</label>
-              <input id="leadTelefono" type="tel" placeholder="600 000 000" autocomplete="tel">
-            </div>
-            <p class="lead-privacy">🔒 Solo lo verá el pintor que acepte esta solicitud, y únicamente para contactarle por este trabajo. Nunca lo compartimos con nadie más.</p>
+            <p class="price-reveal-hint" id="priceHint"></p>
+          </div>
 
-            <button type="button" class="btn-result-cta" id="resultCta" onclick="enviarSolicitud()">Enviar solicitud y ver pintores →</button>
+          <!-- ── QUIZ 3 PASOS ── -->
+          <div class="quiz">
+
+            <!-- Paso 1 -->
+            <div class="quiz-step show" id="step1" data-step="1">
+              <p class="quiz-q"><span class="quiz-qn">1 de 3</span>¿Qué necesitas pintar?</p>
+              <div class="opts">
+                <button type="button" class="opt" onclick="elegir('tipo','habitaciones',this)">🛏️ Habitaciones sueltas</button>
+                <button type="button" class="opt" onclick="elegir('tipo','piso_completo',this)">🏠 El piso completo</button>
+                <button type="button" class="opt" onclick="elegir('tipo','fachada',this)">🧱 Fachada / exterior</button>
+              </div>
+            </div>
+
+            <!-- Paso 2 (dinámico según paso 1) -->
+            <div class="quiz-step" id="step2" data-step="2">
+              <p class="quiz-q"><span class="quiz-qn">2 de 3</span><span id="step2Titulo">¿Cuánto, más o menos?</span></p>
+              <div class="opts" id="step2Opts"><!-- se rellena por JS --></div>
+              <button type="button" class="quiz-back" onclick="volverPaso(1)">← Atrás</button>
+            </div>
+
+            <!-- Paso 3 (urgencia) -->
+            <div class="quiz-step" id="step3" data-step="3">
+              <p class="quiz-q"><span class="quiz-qn">3 de 3</span>¿Para cuándo lo necesitas?</p>
+              <div class="opts">
+                <button type="button" class="opt" onclick="elegir('urgencia','esta_semana',this)">🔥 Esta semana</button>
+                <button type="button" class="opt" onclick="elegir('urgencia','este_mes',this)">📅 Este mes</button>
+                <button type="button" class="opt" onclick="elegir('urgencia','comparando',this)">🔍 Solo comparando precios</button>
+              </div>
+              <button type="button" class="quiz-back" onclick="volverPaso(2)">← Atrás</button>
+            </div>
+
+            <!-- Captura final -->
+            <div class="quiz-step" id="step4" data-step="4">
+              <p class="quiz-q"><span class="quiz-qn">Último paso</span>¿A quién le pasamos tu solicitud?</p>
+              <div class="field">
+                <label for="leadNombre">Tu nombre</label>
+                <input id="leadNombre" type="text" placeholder="¿Cómo te llamas?" autocomplete="name">
+              </div>
+              <div class="field">
+                <label for="leadTelefono">Teléfono o WhatsApp</label>
+                <input id="leadTelefono" type="tel" placeholder="600 000 000" autocomplete="tel">
+              </div>
+              <div class="field">
+                <label for="leadEmail">Correo <span class="opt-tag">(opcional)</span></label>
+                <input id="leadEmail" type="email" placeholder="tucorreo@email.com" autocomplete="email">
+              </div>
+              <p class="lead-privacy">🔒 Solo lo verá el pintor que acepte tu solicitud, y únicamente para contactarte por este trabajo. Nunca lo compartimos con nadie más.</p>
+              <button type="button" class="btn-result-cta" id="resultCta" onclick="enviarSolicitud()">Ver valor estimado →</button>
+              <button type="button" class="quiz-back" onclick="volverPaso(3)">← Atrás</button>
+            </div>
+
           </div>
         </div>
         <div class="ticket-zigzag"></div>
@@ -436,74 +473,129 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
 
 
 <script>
-  // ── Calculadora de presupuesto orientativo — Pintores ──
+  // ── Rangos orientativos — Pintores (por tipo y tamaño) ──
   var RANGOS = {
-    habitacion:    {pequeno:[100,165],  mediano:[165,240],  grande:[240,360]},
-    piso_completo: {pequeno:[380,680],  mediano:[680,1200], grande:[1200,1950]},
-    gotele:        {pequeno:[520,830],  mediano:[830,1430], grande:[1430,2250]},
-    fachada:       {pequeno:[900,1500], mediano:[1500,2600],grande:[2600,5250]}
+    habitaciones:  {p1:[100,165],   p2:[200,420],   p3:[420,760]},   // 1 hab / 2-3 hab / 4+ hab
+    piso_completo: {p1:[380,680],   p2:[680,1200],  p3:[1200,1950]}, // peq / med / grande
+    fachada:       {p1:[900,1500],  p2:[1500,2600], p3:[2600,5250]}  // peq / med / grande
   };
-  // El estado de las paredes mueve el rango: mejor estado = menos preparación de superficie
-  var MULTIPLICADOR_ESTADO = { bueno:0.9, preparacion:1, humedades:1.25 };
 
-  function calcularPresupuesto(){
-    var tipo = document.getElementById('tipoTrabajo').value;
-    var tamano = document.getElementById('tamano').value;
-    var estado = document.getElementById('estado').value;
-    var base = RANGOS[tipo][tamano];
-    var mult = MULTIPLICADOR_ESTADO[estado];
-    var low = Math.round(base[0] * mult / 10) * 10;
-    var high = Math.round(base[1] * mult / 10) * 10;
-    document.getElementById('resultRange').textContent = low.toLocaleString('es-ES') + '€ – ' + high.toLocaleString('es-ES') + '€';
-    document.getElementById('resultBox').classList.add('show');
-    document.getElementById('resultBox').scrollIntoView({behavior:'smooth', block:'nearest'});
-
-    // Micro-conversión: interés en presupuesto (aún sin datos de contacto)
-    if (typeof gtag === 'function') {
-      gtag('event', 'view_item', {'event_category':'presupuesto_calculado', 'event_label': tipo + '_' + tamano + '_' + estado});
+  // Opciones del paso 2 según lo elegido en paso 1
+  var OPCIONES_PASO2 = {
+    habitaciones: {
+      titulo: '¿Cuántas habitaciones?',
+      opts: [['p1','1 habitación'], ['p2','2-3 habitaciones'], ['p3','4 o más']]
+    },
+    piso_completo: {
+      titulo: '¿De qué tamaño es el piso?',
+      opts: [['p1','Pequeño · − de 60 m²'], ['p2','Mediano · 60–100 m²'], ['p3','Grande · + de 100 m²']]
+    },
+    fachada: {
+      titulo: '¿De qué tamaño es la fachada?',
+      opts: [['p1','Pequeña · − de 50 m²'], ['p2','Mediana · 50–120 m²'], ['p3','Grande · + de 120 m²']]
     }
+  };
+
+  var DESC_TIPO = {
+    habitaciones: 'Pintar habitaciones sueltas',
+    piso_completo: 'Pintar el piso completo',
+    fachada: 'Pintar fachada o exterior'
+  };
+  var DESC_URGENCIA = {
+    esta_semana: 'Lo necesita esta semana.',
+    este_mes: 'Lo necesita este mes.',
+    comparando: 'Está comparando precios.'
+  };
+
+  var seleccion = { tipo:null, tamano:null, tamanoLabel:null, urgencia:null };
+
+  // ── Precio: solo cambia al pulsar una opción ──
+  function actualizarPrecio(){
+    if(!seleccion.tipo) return;
+    var tam = seleccion.tamano || 'p2'; // si aún no eligió tamaño, muestra el intermedio como referencia
+    var base = RANGOS[seleccion.tipo][tam];
+    document.getElementById('priceSpinValue').textContent =
+      base[0].toLocaleString('es-ES') + '€ – ' + base[1].toLocaleString('es-ES') + '€';
+  }
+
+  // ── Navegación del quiz ──
+  function mostrarPaso(n){
+    document.querySelectorAll('.quiz-step').forEach(function(s){ s.classList.remove('show'); });
+    document.getElementById('step'+n).classList.add('show');
+  }
+  function volverPaso(n){ mostrarPaso(n); }
+
+  // ── Rellena el paso 2 según el paso 1 ──
+  function pintarPaso2(){
+    var cfg = OPCIONES_PASO2[seleccion.tipo];
+    document.getElementById('step2Titulo').textContent = cfg.titulo;
+    var cont = document.getElementById('step2Opts');
+    cont.innerHTML = '';
+    cfg.opts.forEach(function(o){
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'opt'; b.textContent = o[1];
+      b.onclick = function(){ elegirTamano(o[0], o[1], b); };
+      cont.appendChild(b);
+    });
+  }
+
+  function elegir(campo, valor, btn){
+    var cont = btn.parentElement;
+    cont.querySelectorAll('.opt').forEach(function(o){ o.classList.remove('sel'); });
+    btn.classList.add('sel');
+
+    if(campo === 'tipo'){
+      seleccion.tipo = valor;
+      seleccion.tamano = null; // reset por si cambia de tipo
+      actualizarPrecio();
+      pintarPaso2();
+      if (typeof gtag === 'function'){ gtag('event','view_item',{'event_category':'quiz_pintor','event_label':'tipo_'+valor}); }
+      setTimeout(function(){ mostrarPaso(2); }, 220);
+    } else if(campo === 'urgencia'){
+      seleccion.urgencia = valor;
+      if (typeof gtag === 'function'){ gtag('event','view_item',{'event_category':'quiz_pintor','event_label':'urgencia_'+valor}); }
+      setTimeout(function(){ mostrarPaso(4); }, 220);
+    }
+  }
+
+  function elegirTamano(valor, label, btn){
+    var cont = btn.parentElement;
+    cont.querySelectorAll('.opt').forEach(function(o){ o.classList.remove('sel'); });
+    btn.classList.add('sel');
+    seleccion.tamano = valor;
+    seleccion.tamanoLabel = label;
+    actualizarPrecio();
+    if (typeof gtag === 'function'){ gtag('event','view_item',{'event_category':'quiz_pintor','event_label':'tamano_'+valor}); }
+    setTimeout(function(){ mostrarPaso(3); }, 220);
   }
 
   function enviarSolicitud(){
     var nombre = document.getElementById('leadNombre').value.trim();
     var telefono = document.getElementById('leadTelefono').value.trim();
     if(!nombre || !telefono){
-      alert('Indique su nombre y un teléfono de contacto para que el pintor pueda escribirle.');
+      alert('Indícanos tu nombre y un teléfono de contacto para que el pintor pueda escribirte.');
       return;
     }
-    var tipo = document.getElementById('tipoTrabajo').value;
-    var tamano = document.getElementById('tamano').value;
-    var estado = document.getElementById('estado').value;
+    if(!seleccion.tipo){ seleccion.tipo = 'piso_completo'; }
+    if(!seleccion.tamano){ seleccion.tamano = 'p2'; seleccion.tamanoLabel = 'Tamaño medio'; }
+    if(!seleccion.urgencia){ seleccion.urgencia = 'este_mes'; }
 
-    var DESCRIPCIONES = {
-      habitacion: 'Pintar una habitación.',
-      piso_completo: 'Pintar el piso completo.',
-      gotele: 'Quitar gotelé y pintar.',
-      fachada: 'Pintar fachada o exterior.'
-    };
-    var TAMANOS = {
-      pequeno: 'Tamaño pequeño.',
-      mediano: 'Tamaño mediano.',
-      grande: 'Tamaño grande.'
-    };
-    var ESTADOS = {
-      bueno: 'Paredes en buen estado.',
-      preparacion: 'Necesita preparación (grietas, gotelé...).',
-      humedades: 'Con manchas de humedad.'
-    };
-    var desc = DESCRIPCIONES[tipo] + ' ' + TAMANOS[tamano] + ' ' + ESTADOS[estado];
+    var desc = DESC_TIPO[seleccion.tipo] + ' (' + (seleccion.tamanoLabel || '') + '). ' + DESC_URGENCIA[seleccion.urgencia];
 
-    // Email sintético e invisible — la cuenta de cliente lo necesita por detrás, pero no se lo pedimos al usuario
+    // Correo: si el usuario lo deja, se usa el real; si no, sintético invisible que la cuenta necesita por detrás
+    var emailReal = document.getElementById('leadEmail').value.trim();
     var telefonoLimpio = telefono.replace(/\D/g,'') || Date.now().toString();
     var emailSintetico = 'lead' + telefonoLimpio + '@aficioya-lead.com';
+    var email = (emailReal && emailReal.indexOf('@') > 0) ? emailReal : emailSintetico;
 
     // El oficio real en la base de datos es "Pintor" (confirmado contra la tabla users)
-    var params = new URLSearchParams({quick:'1', oficio:'Pintor', nombre:nombre, telefono:telefono, email:emailSintetico, desc:desc});
+    var params = new URLSearchParams({quick:'1', oficio:'Pintor', nombre:nombre, telefono:telefono, email:email, desc:desc});
 
     // Conversión real — Google Ads lee este evento vía GA4 (acción "Solicitud de presupuesto" importada de generate_lead)
     if (typeof gtag === 'function') {
-      gtag('event', 'generate_lead', {'event_category':'solicitud_pintor', 'event_label': tipo + '_' + tamano + '_' + estado});
+      gtag('event', 'generate_lead', {'event_category':'solicitud_pintor', 'event_label': seleccion.tipo + '_' + seleccion.tamano + '_' + seleccion.urgencia});
     }
+    // Directo a la app: el precio real lo da el profesional, aquí no se enfoca nada
     window.location.href = '/?' + params.toString();
   }
 </script>
