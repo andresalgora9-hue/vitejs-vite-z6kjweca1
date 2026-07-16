@@ -263,11 +263,214 @@
       "source": "/trabajo-pintor-sevilla",
       "destination": "/trabajo-pintor-sevilla.html"
     },
-    { "source": "/alternativa-habitissimo-sevilla", "destination": "/alternativa-habitissimo-sevilla.html" },
-    { "source": "/alternativa-cronoshare-sevilla", "destination": "/alternativa-cronoshare-sevilla.html" },
-    { "source": "/alternativa-webel-sevilla", "destination": "/alternativa-webel-sevilla.html" },
-    { "source": "/alternativa-zaask-sevilla", "destination": "/alternativa-zaask-sevilla.html" },
-    { "source": "/alternativa-wolly-sevilla", "destination": "/alternativa-wolly-sevilla.html" },
+    {
+      "source": "/alternativa-habitissimo-sevilla",
+      "destination": "/alternativa-habitissimo-sevilla.html"
+    },
+    {
+      "source": "/alternativa-cronoshare-sevilla",
+      "destination": "/alternativa-cronoshare-sevilla.html"
+    },
+    {
+      "source": "/alternativa-webel-sevilla",
+      "destination": "/alternativa-webel-sevilla.html"
+    },
+    {
+      "source": "/alternativa-zaask-sevilla",
+      "destination": "/alternativa-zaask-sevilla.html"
+    },
+    {
+      "source": "/alternativa-wolly-sevilla",
+      "destination": "/alternativa-wolly-sevilla.html"
+    },
+    {
+      "source": "/boletin-electrico-sevilla",
+      "destination": "/boletin-electrico-sevilla.html"
+    },
+    {
+      "source": "/cambiar-banera-por-ducha-precio-sevilla",
+      "destination": "/cambiar-banera-por-ducha-precio-sevilla.html"
+    },
+    {
+      "source": "/checklist-antes-de-contratar-fontanero",
+      "destination": "/checklist-antes-de-contratar-fontanero.html"
+    },
+    {
+      "source": "/checklist-antes-de-contratar-pintor",
+      "destination": "/checklist-antes-de-contratar-pintor.html"
+    },
+    {
+      "source": "/checklist-antes-de-contratar-reforma",
+      "destination": "/checklist-antes-de-contratar-reforma.html"
+    },
+    {
+      "source": "/como-comparar-presupuestos-de-reforma",
+      "destination": "/como-comparar-presupuestos-de-reforma.html"
+    },
+    {
+      "source": "/como-cortar-el-agua-en-casa-guia",
+      "destination": "/como-cortar-el-agua-en-casa-guia.html"
+    },
+    {
+      "source": "/como-preparar-pared-antes-de-pintar",
+      "destination": "/como-preparar-pared-antes-de-pintar.html"
+    },
+    {
+      "source": "/cuanta-pintura-necesito-calculadora",
+      "destination": "/cuanta-pintura-necesito-calculadora.html"
+    },
+    {
+      "source": "/cuanto-consume-mi-casa-calculadora",
+      "destination": "/cuanto-consume-mi-casa-calculadora.html"
+    },
+    {
+      "source": "/cuanto-cuesta-reforma-piso-calculadora",
+      "destination": "/cuanto-cuesta-reforma-piso-calculadora.html"
+    },
+    {
+      "source": "/cuanto-dura-una-reforma-plazos",
+      "destination": "/cuanto-dura-una-reforma-plazos.html"
+    },
+    {
+      "source": "/cuanto-gasto-agua-factura-calculadora",
+      "destination": "/cuanto-gasto-agua-factura-calculadora.html"
+    },
+    {
+      "source": "/electricista-urgente-sevilla",
+      "destination": "/electricista-urgente-sevilla.html"
+    },
+    {
+      "source": "/errores-comunes-al-reformar",
+      "destination": "/errores-comunes-al-reformar.html"
+    },
+    {
+      "source": "/fontanero-urgente-sevilla",
+      "destination": "/fontanero-urgente-sevilla.html"
+    },
+    {
+      "source": "/licencia-de-obra-sevilla-cuando-necesito",
+      "destination": "/licencia-de-obra-sevilla-cuando-necesito.html"
+    },
+    {
+      "source": "/pintar-piso-vacio-o-amueblado",
+      "destination": "/pintar-piso-vacio-o-amueblado.html"
+    },
+    {
+      "source": "/pintar-yo-mismo-o-contratar-pintor",
+      "destination": "/pintar-yo-mismo-o-contratar-pintor.html"
+    },
+    {
+      "source": "/por-que-baja-poco-la-presion-del-agua",
+      "destination": "/por-que-baja-poco-la-presion-del-agua.html"
+    },
+    {
+      "source": "/por-que-saltan-los-plomos-sevilla",
+      "destination": "/por-que-saltan-los-plomos-sevilla.html"
+    },
+    {
+      "source": "/por-que-se-va-la-luz-en-casa",
+      "destination": "/por-que-se-va-la-luz-en-casa.html"
+    },
+    {
+      "source": "/precio-cambiar-bombilla-led-halogeno",
+      "destination": "/precio-cambiar-bombilla-led-halogeno.html"
+    },
+    {
+      "source": "/precio-cambiar-suelo-sevilla",
+      "destination": "/precio-cambiar-suelo-sevilla.html"
+    },
+    {
+      "source": "/precio-cambiar-termo-sevilla",
+      "destination": "/precio-cambiar-termo-sevilla.html"
+    },
+    {
+      "source": "/precio-cuadro-electrico-sevilla",
+      "destination": "/precio-cuadro-electrico-sevilla.html"
+    },
+    {
+      "source": "/precio-desatasco-sevilla",
+      "destination": "/precio-desatasco-sevilla.html"
+    },
+    {
+      "source": "/precio-electricista-sevilla",
+      "destination": "/precio-electricista-sevilla.html"
+    },
+    {
+      "source": "/precio-fontanero-sevilla",
+      "destination": "/precio-fontanero-sevilla.html"
+    },
+    {
+      "source": "/precio-fuga-agua-sevilla",
+      "destination": "/precio-fuga-agua-sevilla.html"
+    },
+    {
+      "source": "/precio-instalacion-electrica-piso-sevilla",
+      "destination": "/precio-instalacion-electrica-piso-sevilla.html"
+    },
+    {
+      "source": "/precio-instalacion-fontaneria-piso-sevilla",
+      "destination": "/precio-instalacion-fontaneria-piso-sevilla.html"
+    },
+    {
+      "source": "/precio-pintar-fachada-sevilla",
+      "destination": "/precio-pintar-fachada-sevilla.html"
+    },
+    {
+      "source": "/precio-pintar-habitacion-sevilla",
+      "destination": "/precio-pintar-habitacion-sevilla.html"
+    },
+    {
+      "source": "/precio-pintar-local-comercial-sevilla",
+      "destination": "/precio-pintar-local-comercial-sevilla.html"
+    },
+    {
+      "source": "/precio-pintor-sevilla",
+      "destination": "/precio-pintor-sevilla.html"
+    },
+    {
+      "source": "/precio-punto-luz-enchufe-sevilla",
+      "destination": "/precio-punto-luz-enchufe-sevilla.html"
+    },
+    {
+      "source": "/precio-quitar-gotele-sevilla",
+      "destination": "/precio-quitar-gotele-sevilla.html"
+    },
+    {
+      "source": "/precio-reforma-bano-sevilla",
+      "destination": "/precio-reforma-bano-sevilla.html"
+    },
+    {
+      "source": "/precio-reforma-cocina-sevilla",
+      "destination": "/precio-reforma-cocina-sevilla.html"
+    },
+    {
+      "source": "/precio-reforma-integral-sevilla",
+      "destination": "/precio-reforma-integral-sevilla.html"
+    },
+    {
+      "source": "/precio-reforma-sevilla",
+      "destination": "/precio-reforma-sevilla.html"
+    },
+    {
+      "source": "/precio-tirar-tabique-sevilla",
+      "destination": "/precio-tirar-tabique-sevilla.html"
+    },
+    {
+      "source": "/que-tipo-de-pintura-elegir-guia",
+      "destination": "/que-tipo-de-pintura-elegir-guia.html"
+    },
+    {
+      "source": "/reforma-piso-para-alquilar-rentabilidad",
+      "destination": "/reforma-piso-para-alquilar-rentabilidad.html"
+    },
+    {
+      "source": "/reforma-por-fases-o-integral",
+      "destination": "/reforma-por-fases-o-integral.html"
+    },
+    {
+      "source": "/tengo-una-fuga-oculta-diagnostico",
+      "destination": "/tengo-una-fuga-oculta-diagnostico.html"
+    },
     {
       "source": "/:trade(cerrajero|desatascos|aire-acondicionado|manitas|jardinero|carpintero|limpieza|reformas|fontanero|electricista|pintor|albanil)-:zone(.+)",
       "destination": "/:trade-:zone.html"
@@ -276,8 +479,14 @@
       "source": "/pro/:slug",
       "destination": "/api/pro?slug=:slug"
     },
-    { "source": "/elite-gratis", "destination": "/elite-gratis.html" },
-    { "source": "/registro-cliente", "destination": "/registro-cliente.html" },
+    {
+      "source": "/elite-gratis",
+      "destination": "/elite-gratis.html"
+    },
+    {
+      "source": "/registro-cliente",
+      "destination": "/registro-cliente.html"
+    },
     {
       "source": "/(.*)",
       "destination": "/index.html"
