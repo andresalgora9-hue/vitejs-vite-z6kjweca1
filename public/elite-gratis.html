@@ -77,6 +77,33 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;over
 .live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse2 2s infinite;}
 .live-text{color:var(--muted);font-size:11px;letter-spacing:1.5px;}
 
+/* BOTÓN CASOS DE ÉXITO (topbar) */
+@keyframes playPulse{0%{box-shadow:0 0 0 0 rgba(255,184,0,0.45)}100%{box-shadow:0 0 0 16px rgba(255,184,0,0)}}
+.btn-casos{display:flex;align-items:center;gap:7px;background:rgba(255,184,0,0.06);border:1px solid rgba(255,184,0,0.35);border-radius:40px;padding:8px 14px;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;}
+.btn-casos:hover{background:rgba(255,184,0,0.12);box-shadow:0 0 18px rgba(255,184,0,0.18);}
+.btn-casos .bc-play{color:var(--gold);font-size:10px;}
+.btn-casos .bc-text{color:var(--gold);font-size:11px;font-weight:800;letter-spacing:1.2px;}
+
+/* MARCO PREMIUM VÍDEO CASO DE ÉXITO */
+.vcaso{position:relative;background:var(--card);border:1.5px solid rgba(255,184,0,0.3);border-radius:22px;padding:20px 18px 18px;box-shadow:0 0 40px rgba(255,184,0,0.07);margin-bottom:22px;overflow:hidden;}
+.vcaso-corner{position:absolute;top:-60px;right:-60px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(255,184,0,0.1) 0%,transparent 70%);pointer-events:none;}
+.vcaso-head{display:flex;align-items:center;gap:14px;margin-bottom:16px;position:relative;}
+.vcaso-avatar{width:58px;height:58px;border-radius:50%;flex-shrink:0;position:relative;background:linear-gradient(135deg,#1e3a2e,#0f2a1f);background-size:cover;background-position:center;border:2px solid var(--gold);box-shadow:0 0 16px rgba(255,184,0,0.3);display:flex;align-items:center;justify-content:center;color:var(--gold);font-weight:800;font-size:19px;}
+.vcaso-online{position:absolute;bottom:1px;right:1px;width:13px;height:13px;border-radius:50%;background:var(--green);border:2px solid var(--card);}
+.vcaso-name{color:var(--white);font-weight:800;font-size:16px;}
+.vcaso-trade{color:var(--gold);font-size:13px;margin:3px 0;}
+.vcaso-meta{color:#aaa;font-size:12px;}
+.vcaso-video{position:relative;border-radius:16px;overflow:hidden;aspect-ratio:9/16;max-height:500px;margin:0 auto;background:#0e0e0e;border:1px solid var(--border);}
+.vcaso-video video{width:100%;height:100%;object-fit:cover;display:block;}
+.vcaso-chip{position:absolute;top:12px;left:12px;display:flex;align-items:center;gap:6px;background:rgba(13,13,13,0.8);backdrop-filter:blur(4px);border:1px solid rgba(255,184,0,0.35);border-radius:30px;padding:5px 12px;pointer-events:none;z-index:2;}
+.vcaso-chip span{font-size:11px;font-weight:700;color:var(--gold);letter-spacing:0.8px;}
+.vcaso-quote{margin-top:16px;padding:14px 16px;border-radius:12px;background:rgba(255,184,0,0.03);border:1px solid rgba(255,184,0,0.1);display:flex;gap:12px;align-items:flex-start;}
+.vcaso-quote-mark{color:var(--gold);font-size:26px;font-weight:900;line-height:1;font-family:Georgia,serif;}
+.vcaso-quote p{color:#ccc;font-size:13.5px;line-height:1.65;font-style:italic;margin:0;}
+.vcaso-foot{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;}
+.vcaso-foot-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse2 2s infinite;}
+.vcaso-foot span{color:var(--muted);font-size:11.5px;}
+
 /* HERO */
 .hero{padding:52px 24px 44px;text-align:center;max-width:540px;margin:0 auto;}
 .elite-pill{display:inline-flex;align-items:center;gap:8px;background:var(--gold-dim);border:1px solid rgba(255,184,0,0.25);border-radius:40px;padding:8px 18px;margin-bottom:28px;animation:float 5s ease-in-out infinite;}
@@ -157,6 +184,17 @@ h1 span{color:var(--gold);}
 .testimonio{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px 16px;display:flex;gap:14px;}
 .test-avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#1e2a3a,#0f1a2a);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--gold);font-weight:800;font-size:15px;flex-shrink:0;}
 
+/* FAQ / OBJECIONES */
+.faq-section{background:var(--bg);border-top:1px solid var(--border);padding:48px 24px 56px;}
+.faq-item{background:var(--card);border:1px solid var(--border);border-radius:14px;margin-bottom:10px;overflow:hidden;transition:border-color 0.2s;}
+.faq-item[open]{border-color:rgba(255,184,0,0.35);}
+.faq-item summary{list-style:none;cursor:pointer;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;color:var(--white);font-size:14px;font-weight:700;user-select:none;}
+.faq-item summary::-webkit-details-marker{display:none;}
+.faq-arrow{color:var(--gold);font-size:13px;flex-shrink:0;transition:transform 0.25s;}
+.faq-item[open] .faq-arrow{transform:rotate(90deg);}
+.faq-body{padding:0 18px 16px;color:#aaa;font-size:13.5px;line-height:1.75;}
+.faq-body b{color:var(--white);}
+
 /* CTA FINAL */
 .cta-final{max-width:540px;margin:0 auto;padding:52px 24px 80px;text-align:center;}
 
@@ -207,13 +245,13 @@ h1 span{color:var(--gold);}
       <span class="logo-text">oficioya</span>
       <span class="logo-badge">SEVILLA</span>
     </div>
-    <div class="live">
-      <div class="live-dot"></div>
-      <span class="live-text">NUEVO LANZAMIENTO</span>
-    </div>
+    <button class="btn-casos" onclick="verCasosExito()">
+      <span class="bc-play">▶</span>
+      <span class="bc-text">CASOS DE ÉXITO</span>
+    </button>
   </div>
 
-  <!-- HERO -->
+  <!-- HERO — CON FORMULARIO INLINE VISIBLE AL ENTRAR (no tocar: funciona) -->
   <div class="hero">
     <div class="elite-pill">
       <span class="elite-badge">ELITE</span>
@@ -378,27 +416,6 @@ h1 span{color:var(--gold);}
     </div>
   </div>
 
-  <!-- ═══ QUIÉN ESTÁ DETRÁS — SECCIÓN FUNDADOR ═══ -->
-  <div style="background:var(--bg);border-top:1px solid var(--border);padding:52px 24px;">
-    <div class="inner">
-      <div class="glow-label" style="margin-bottom:22px;"><span>QUIÉN ESTÁ DETRÁS</span></div>
-      <div style="position:relative;background:linear-gradient(160deg,#161616,#0d0d0d);border:1px solid var(--gold-glow);border-radius:22px;overflow:hidden;box-shadow:0 0 60px var(--gold-dim),0 20px 50px rgba(0,0,0,0.5);">
-        <div style="position:relative;width:100%;height:230px;overflow:hidden;">
-          <img src="/andres-fundador.jpg" alt="Andrés Algora, fundador de OficioYa" style="width:100%;height:100%;object-fit:cover;object-position:50% 30%;display:block;">
-          <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,#0d0d0d 98%);"></div>
-        </div>
-        <div style="padding:6px 26px 28px;position:relative;z-index:2;margin-top:-30px;">
-          <div style="font-size:26px;font-weight:900;letter-spacing:-0.5px;color:var(--white);">Andrés Algora</div>
-          <div style="color:var(--gold);font-size:12px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;margin:6px 0 20px;">Fundador de OficioYa · Sevilla</div>
-          <p style="color:#c8c8c8;font-size:15px;line-height:1.7;margin-bottom:18px;">Vengo del <b style="color:var(--white);">mundo financiero</b>: años analizando números, mercados y modelos de negocio. Pero lo que de verdad me movió a crear OficioYa fue algo mucho más de calle.</p>
-          <p style="color:#c8c8c8;font-size:15px;line-height:1.7;margin-bottom:18px;">Empecé a hablar cada semana con fontaneros, electricistas y albañiles de Sevilla, y todos me contaban lo mismo: <b style="color:var(--gold);">demasiado tiempo perdido en presupuestos que no llegaban a nada.</b> Ahí lo tuve claro.</p>
-          <p style="color:#c8c8c8;font-size:15px;line-height:1.7;margin-bottom:18px;">OficioYa es mi respuesta a ese problema. Aquí solo te llegan clientes que <b style="color:var(--white);">ya han decidido contratar.</b> Y no hay un call center detrás ni una empresa gigante: <b style="color:var(--white);">soy yo.</b> Regístrate y hablamos.</p>
-          <div style="font-family:'Brush Script MT',cursive;font-size:26px;color:var(--gold);margin:4px 0 8px;opacity:0.9;">Andrés</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- MOCK PERFIL -->
   <div class="inner" style="padding:48px 24px;">
     <div class="glow-label"><span>ASÍ SE VE TU PERFIL</span></div>
@@ -452,10 +469,44 @@ h1 span{color:var(--gold);}
     </div>
   </div>
 
-  <!-- TESTIMONIOS -->
-  <div class="testimonios">
+  <!-- TESTIMONIOS + VÍDEO CASO DE ÉXITO -->
+  <div class="testimonios" id="testimonios-reales" style="scroll-margin-top:20px;">
     <div style="max-width:540px;margin:0 auto;">
       <div class="glow-label" style="margin-bottom:32px;"><span>LO QUE DICEN NUESTROS PROFESIONALES</span></div>
+
+      <!-- VÍDEO CASO DE ÉXITO — Jonatan (pintor) -->
+      <div class="vcaso">
+        <div class="vcaso-corner"></div>
+        <div class="vcaso-head">
+          <div class="vcaso-avatar" style="background-image:url('https://rjwojxwrsbvwwshwwpvq.supabase.co/storage/v1/object/public/photos/avatars/7c6031a3-b573-44fd-a873-db7d50c41d4f/1782451461689.jpg');">
+            <div class="vcaso-online"></div>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <span class="vcaso-name">Jonatan R. ✓</span>
+              <span class="elite-badge">ELITE</span>
+            </div>
+            <div class="vcaso-trade">🎨 Pintor · Sevilla</div>
+            <div class="vcaso-meta"><span style="color:var(--gold);">★★★★★</span> Verificado · <strong style="color:var(--gold);">+3 trabajos</strong> <span style="color:#ccc;">en su primer mes</span></div>
+          </div>
+        </div>
+        <div class="vcaso-video">
+          <div class="vcaso-chip"><span>🎨 PINTOR</span></div>
+          <video controls playsinline preload="metadata" poster="/caso-exito-poster.jpg"
+            onplay="if(!this.dataset.f){this.dataset.f=1;try{fbq('trackCustom','VideoCasoExito');gtag('event','video_caso_exito',{page:'landing_elite'});}catch(e){}}">
+            <source src="/caso-exito.mp4" type="video/mp4"/>
+          </video>
+        </div>
+        <div class="vcaso-quote">
+          <div class="vcaso-quote-mark">"</div>
+          <p>Gracias a Dios encontré tu plataforma.</p>
+        </div>
+        <div class="vcaso-foot">
+          <div class="vcaso-foot-dot"></div>
+          <span>Activo ahora en OficioYa · Sevilla</span>
+        </div>
+      </div>
+
       <div style="display:flex;flex-direction:column;gap:14px;">
         <div class="testimonio">
           <div class="test-avatar">C</div>
@@ -470,6 +521,66 @@ h1 span{color:var(--gold);}
           <div><span style="color:var(--gold);font-size:12px;">★★★★★</span><p style="color:#aaa;font-size:13px;line-height:1.7;margin:8px 0;font-style:italic;">"En el primer mes sin pagar ya recuperé el tiempo que perdía buscando clientes. Ahora la agenda se llena sola."</p><span style="color:var(--muted);font-size:11px;">Paco L. · Fontanero · Los Remedios</span></div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- ═══ QUIÉN ESTÁ DETRÁS — SECCIÓN FUNDADOR ═══ -->
+  <div style="background:var(--bg);border-top:1px solid var(--border);padding:52px 24px;">
+    <div class="inner">
+      <div class="glow-label" style="margin-bottom:22px;"><span>QUIÉN ESTÁ DETRÁS</span></div>
+      <div style="position:relative;background:linear-gradient(160deg,#161616,#0d0d0d);border:1px solid var(--gold-glow);border-radius:22px;overflow:hidden;box-shadow:0 0 60px var(--gold-dim),0 20px 50px rgba(0,0,0,0.5);">
+        <div style="position:relative;width:100%;height:230px;overflow:hidden;">
+          <img src="/andres-fundador.jpg" alt="Andrés Algora, fundador de OficioYa" style="width:100%;height:100%;object-fit:cover;object-position:50% 30%;display:block;">
+          <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,#0d0d0d 98%);"></div>
+        </div>
+        <div style="padding:6px 26px 28px;position:relative;z-index:2;margin-top:-30px;">
+          <div style="font-size:26px;font-weight:900;letter-spacing:-0.5px;color:var(--white);">Andrés Algora</div>
+          <div style="color:var(--gold);font-size:12px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;margin:6px 0 20px;">Fundador de OficioYa · Sevilla</div>
+          <p style="color:#c8c8c8;font-size:15px;line-height:1.7;margin-bottom:18px;">Vengo del <b style="color:var(--white);">mundo financiero</b>: años analizando números, mercados y modelos de negocio. Pero lo que de verdad me movió a crear OficioYa fue algo mucho más de calle.</p>
+          <p style="color:#c8c8c8;font-size:15px;line-height:1.7;margin-bottom:18px;">Empecé a hablar cada semana con fontaneros, electricistas y albañiles de Sevilla, y todos me contaban lo mismo: <b style="color:var(--gold);">demasiado tiempo perdido en presupuestos que no llegaban a nada.</b> Ahí lo tuve claro.</p>
+          <p style="color:#c8c8c8;font-size:15px;line-height:1.7;margin-bottom:18px;">OficioYa es mi respuesta a ese problema. Aquí solo te llegan clientes que <b style="color:var(--white);">ya han decidido contratar.</b> Y no hay un call center detrás ni una empresa gigante: <b style="color:var(--white);">soy yo.</b> Regístrate y hablamos.</p>
+          <div style="font-family:'Brush Script MT',cursive;font-size:26px;color:var(--gold);margin:4px 0 8px;opacity:0.9;">Andrés</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ OBJECIONES / DUDAS FRECUENTES ═══ -->
+  <div class="faq-section">
+    <div style="max-width:540px;margin:0 auto;">
+      <div class="glow-label" style="margin-bottom:8px;"><span>DUDAS FRECUENTES</span></div>
+      <p style="color:var(--white);font-size:20px;font-weight:800;text-align:center;margin-bottom:28px;">Antes de que preguntes</p>
+
+      <details class="faq-item">
+        <summary>¿Me vais a cobrar algo hoy?<span class="faq-arrow">▶</span></summary>
+        <div class="faq-body">No. Hoy pagas <b>0€</b>. La tarjeta solo sirve para activar el mes de prueba. Te avisamos <b>3 días antes</b> de que termine, y si no quieres seguir, cancelas y no se cobra nada.</div>
+      </details>
+
+      <details class="faq-item">
+        <summary>¿Hay permanencia?<span class="faq-arrow">▶</span></summary>
+        <div class="faq-body">No. Cancelas cuando quieras desde tu perfil, en dos toques. <b>Sin llamadas, sin explicaciones, sin letra pequeña.</b></div>
+      </details>
+
+      <details class="faq-item">
+        <summary>¿Cobráis comisión por los trabajos?<span class="faq-arrow">▶</span></summary>
+        <div class="faq-body"><b>0% de comisión, siempre.</b> Lo que cobres por cada trabajo es tuyo al completo. Solo existe la suscripción, y el primer mes es gratis.</div>
+      </details>
+
+      <details class="faq-item">
+        <summary>¿Y si en el primer mes no me llega ningún trabajo?<span class="faq-arrow">▶</span></summary>
+        <div class="faq-body">Entonces no habrás pagado nada: cancelas antes del día 30 y listo. <b>El riesgo lo asumimos nosotros, no tú.</b> Cuantos más datos tenga tu perfil (fotos, zona, descripción), más fácil es que los clientes te elijan.</div>
+      </details>
+
+      <details class="faq-item">
+        <summary>¿Tengo que estar pendiente del móvil todo el día?<span class="faq-arrow">▶</span></summary>
+        <div class="faq-body">No. Cuando un cliente necesita tu oficio en tu zona, <b>te llega una notificación</b>. La miras cuando puedas y decides: aceptar o rechazar. Nada más.</div>
+      </details>
+
+      <details class="faq-item">
+        <summary>Si tengo un problema, ¿con quién hablo?<span class="faq-arrow">▶</span></summary>
+        <div class="faq-body">Conmigo. Soy Andrés, el fundador, y atiendo personalmente a cada profesional que se registra. <b>No hay call center ni robots.</b></div>
+      </details>
+
     </div>
   </div>
 
@@ -598,6 +709,12 @@ setTimeout(() => document.getElementById('alert1').classList.add('visible'), 300
 setTimeout(() => document.getElementById('alert2').classList.add('visible'), 700);
 setTimeout(() => document.getElementById('alert3').classList.add('visible'), 1100);
 
+// BOTÓN CASOS DE ÉXITO (topbar) → scroll al vídeo
+function verCasosExito() {
+  try{ fbq('trackCustom','VerCasosExito'); gtag('event','ver_casos_exito',{page:'landing_elite'}); }catch(e){}
+  document.getElementById('testimonios-reales').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
 // ABRIR FORMULARIO
 function abrirFormulario(cta) {
   track('InitiateCheckout', { content_name: cta, currency: 'EUR', value: 0 });
@@ -613,7 +730,16 @@ function cerrarFormulario() {
   document.body.style.overflow = '';
 }
 
-
+// TRACKING FAQ — qué objeción abre la gente
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.faq-item').forEach((d, i) => {
+    d.addEventListener('toggle', () => {
+      if (d.open) {
+        try{ gtag('event','faq_open',{faq_index:i+1,page:'landing_elite'}); }catch(e){}
+      }
+    });
+  });
+});
 
 // VALIDAR Y ENVIAR
 async function enviarDatos() {
