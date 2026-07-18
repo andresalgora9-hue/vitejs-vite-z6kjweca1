@@ -39,8 +39,8 @@ gtag('config','G-S6F18YG34M');
   --green:#4ade80;
   --red:#ef4444;
   --white:#ffffff;
-  --muted:#888888;
-  --dim:#444444;
+  --muted:#9a9a9a;
+  --dim:#5f5f5f;
 }
 body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;overflow-x:hidden;min-height:100vh;}
 
@@ -125,6 +125,29 @@ h1 span{color:var(--gold);}
 .glow-label{text-align:center;margin-bottom:8px;}
 .glow-label span{display:inline-block;font-size:11px;font-weight:800;letter-spacing:2.5px;background-image:linear-gradient(90deg,#888 0%,#FFB800 30%,#fff8e0 50%,#FFB800 70%,#888 100%);background-size:250% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shimmer 3.5s linear infinite;text-transform:uppercase;}
 
+/* CHIPS GOOGLE / META */
+.ads-chip{display:inline-flex;align-items:center;gap:9px;background:var(--card);border:1px solid var(--border);border-radius:40px;padding:10px 20px;}
+.ads-chip span{color:#ddd;font-size:13px;font-weight:700;letter-spacing:0.3px;}
+
+/* FEED DE SOLICITUDES — caja premium */
+@keyframes feedIn{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+.feed-box{max-width:420px;margin:0 auto;background:#121212;border:1px solid var(--border);border-radius:18px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,0.45),0 0 0 1px rgba(255,255,255,0.02) inset;}
+.feed-box-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #1f1f1f;background:rgba(255,255,255,0.015);}
+.feed-box-head .fbh-left{display:flex;align-items:center;gap:8px;}
+.feed-box-head .fbh-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse2 2s infinite;}
+.feed-box-head .fbh-title{color:#ccc;font-size:11px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;}
+.feed-box-head .fbh-right{color:#666;font-size:10.5px;}
+.feed-wrap{display:flex;flex-direction:column;overflow:hidden;}
+.feed-item{display:flex;align-items:center;gap:11px;padding:11px 16px;border-bottom:1px solid #1c1c1c;animation:feedIn 0.45s ease both;}
+.feed-item:last-child{border-bottom:none;}
+.feed-avatar{width:30px;height:30px;border-radius:50%;flex-shrink:0;background:#1d1d1d;border:1px solid #2c2c2c;display:flex;align-items:center;justify-content:center;color:var(--gold);font-weight:700;font-size:11.5px;}
+.feed-info{flex:1;min-width:0;}
+.feed-top{display:flex;align-items:baseline;gap:5px;margin-bottom:1px;min-width:0;}
+.feed-name{color:#f0f0f0;font-weight:600;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.feed-busca{color:var(--gold);font-size:11px;font-weight:600;white-space:nowrap;}
+.feed-desc{color:#8a8a8a;font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.feed-time{color:#565656;font-size:9.5px;flex-shrink:0;white-space:nowrap;align-self:flex-start;margin-top:2px;}
+
 /* ALERT CARDS */
 .alert-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:14px;opacity:0;transform:translateX(50px);transition:all 0.5s cubic-bezier(0.34,1.56,0.64,1);}
 .alert-card.urgent{border-color:rgba(255,184,0,0.35);box-shadow:0 0 20px rgba(255,184,0,0.08);}
@@ -203,10 +226,10 @@ h1 span{color:var(--gold);}
 .form-wrap{background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:32px 28px;width:100%;max-width:480px;margin:auto;}
 .form-logo{display:flex;align-items:center;justify-content:space-between;margin-bottom:36px;}
 .field-label{display:block;margin-bottom:6px;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);font-weight:600;transition:color 0.2s;}
-.field-input{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:13px 16px;color:var(--white);font-size:15px;outline:none;transition:border-color 0.2s;font-family:'Inter',sans-serif;}
+.field-input{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:13px 16px;color:var(--white);font-size:16px;outline:none;transition:border-color 0.2s;font-family:'Inter',sans-serif;}
 .field-input:focus{border-color:var(--gold);}
 .field-error{color:var(--red);font-size:11px;margin-top:4px;display:block;}
-.field-select{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:13px 16px;color:var(--white);font-size:15px;outline:none;font-family:'Inter',sans-serif;appearance:none;}
+.field-select{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:13px 16px;color:var(--white);font-size:16px;outline:none;font-family:'Inter',sans-serif;appearance:none;}
 .field-select:focus{border-color:var(--gold);}
 
 /* STEPPER */
@@ -305,55 +328,36 @@ h1 span{color:var(--gold);}
     </div>
   </div>
 
-  <!-- MOCK ALERTAS -->
+  <!-- ═══ FEED DE SOLICITUDES EN VIVO ═══ -->
   <div class="inner" style="padding-bottom:56px;">
-    <div class="glow-label" style="margin-bottom:18px;"><span>ASÍ LLEGAN LOS TRABAJOS A TU MÓVIL</span></div>
-    <div style="text-align:center;margin-bottom:22px;">
-      <span style="display:inline-block;animation:shake 2s ease-in-out infinite 1s;font-size:28px;">🔔</span>
+    <div class="glow-label" style="margin-bottom:8px;"><span>BUSCANDO PRESUPUESTOS AHORA</span></div>
+    <p style="color:var(--white);font-size:20px;font-weight:800;text-align:center;margin-bottom:22px;line-height:1.3;">Uno de estos puede ser<br/><span style="color:var(--gold);">tu próximo trabajo.</span></p>
+    <div class="feed-box">
+      <div class="feed-box-head">
+        <div class="fbh-left">
+          <div class="fbh-dot"></div>
+          <span class="fbh-title">Solicitudes en directo</span>
+        </div>
+        <span class="fbh-right">Sevilla</span>
+      </div>
+      <div id="feed" class="feed-wrap"></div>
     </div>
-    <div style="display:flex;flex-direction:column;gap:12px;">
-      <div class="alert-card urgent" id="alert1">
-        <div class="alert-avatar urgent">💧<div class="ring ring1"></div><div class="ring ring2"></div></div>
-        <div class="alert-info">
-          <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
-            <span class="alert-name">Cliente en Triana</span>
-            <span class="urgent-tag">⚡ URGENTE</span>
-          </div>
-          <div class="alert-desc">Necesita fontanero urgente · 800m</div>
-        </div>
-        <div class="alert-btns">
-          <button class="btn-accept">Aceptar</button>
-          <button class="btn-reject">Rechazar</button>
-        </div>
+    <p style="color:var(--muted);font-size:13px;line-height:1.7;text-align:center;max-width:380px;margin:24px auto 16px;">Invertimos <b style="color:var(--white);">todos los días</b> en publicidad para que estas solicitudes no paren de entrar en tu zona.</p>
+    <div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;">
+      <div class="ads-chip">
+        <svg viewBox="0 0 48 48" width="18" height="18"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        <span>Google</span>
       </div>
-      <div class="alert-card" id="alert2">
-        <div class="alert-avatar">⚡</div>
-        <div class="alert-info">
-          <div style="margin-bottom:3px;"><span class="alert-name">Cliente en Nervión</span></div>
-          <div class="alert-desc">Necesita electricista · 1.2km</div>
-        </div>
-        <div class="alert-btns">
-          <button class="btn-accept">Aceptar</button>
-          <button class="btn-reject">Rechazar</button>
-        </div>
-      </div>
-      <div class="alert-card urgent" id="alert3">
-        <div class="alert-avatar urgent">🔑<div class="ring ring1"></div><div class="ring ring2"></div></div>
-        <div class="alert-info">
-          <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
-            <span class="alert-name">Cliente en Macarena</span>
-            <span class="urgent-tag">⚡ URGENTE</span>
-          </div>
-          <div class="alert-desc">Necesita cerrajero 24h · 600m</div>
-        </div>
-        <div class="alert-btns">
-          <button class="btn-accept">Aceptar</button>
-          <button class="btn-reject">Rechazar</button>
-        </div>
+      <div class="ads-chip">
+        <svg viewBox="0 0 24 24" width="20" height="20"><defs><linearGradient id="mg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0668E1"/><stop offset="1" stop-color="#0080FB"/></linearGradient></defs><path d="M6.4 6.7C3.6 6.7 2 9.7 2 12c0 2.3 1.4 5.3 4.2 5.3 1.9 0 3.3-1.6 5.8-5.3 2.5 3.7 3.9 5.3 5.8 5.3 2.8 0 4.2-3 4.2-5.3 0-2.3-1.6-5.3-4.4-5.3-1.9 0-3.3 1.6-5.6 5.1C9.7 8.3 8.3 6.7 6.4 6.7z" fill="none" stroke="url(#mg)" stroke-width="2.1" stroke-linecap="round"/></svg>
+        <span>Meta</span>
       </div>
     </div>
-    <div style="text-align:center;margin-top:18px;">
-      <span style="background:rgba(255,184,0,0.06);border:1px solid rgba(255,184,0,0.35);border-radius:40px;padding:10px 24px;display:inline-block;font-size:13px;font-weight:700;letter-spacing:1px;box-shadow:0 0 24px rgba(255,184,0,0.15);color:#FFB800;">✦ Solo tú decides qué aceptar</span>
+    <div style="text-align:center;margin-top:24px;">
+      <button class="btn-casos" style="margin:0 auto;" onclick="verCasosExito()">
+        <span class="bc-play">▶</span>
+        <span class="bc-text">VER TESTIMONIOS REALES</span>
+      </button>
     </div>
   </div>
 
@@ -474,24 +478,24 @@ h1 span{color:var(--gold);}
     <div style="max-width:540px;margin:0 auto;">
       <div class="glow-label" style="margin-bottom:32px;"><span>LO QUE DICEN NUESTROS PROFESIONALES</span></div>
 
-      <!-- VÍDEO CASO DE ÉXITO — Jonatan (pintor) -->
+      <!-- VÍDEO CASO DE ÉXITO — Victor Hugo (electricista) -->
       <div class="vcaso">
         <div class="vcaso-corner"></div>
         <div class="vcaso-head">
-          <div class="vcaso-avatar" style="background-image:url('https://rjwojxwrsbvwwshwwpvq.supabase.co/storage/v1/object/public/photos/avatars/7c6031a3-b573-44fd-a873-db7d50c41d4f/1782451461689.jpg');">
+          <div class="vcaso-avatar" style="background-image:url('https://rjwojxwrsbvwwshwwpvq.supabase.co/storage/v1/object/public/photos/avatars/e58fd790-c2cc-4071-96f6-e1ff1741df16/1782328379147.jpg');">
             <div class="vcaso-online"></div>
           </div>
           <div style="flex:1;min-width:0;">
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-              <span class="vcaso-name">Jonatan R. ✓</span>
+              <span class="vcaso-name">Victor Hugo ✓</span>
               <span class="elite-badge">ELITE</span>
             </div>
-            <div class="vcaso-trade">🎨 Pintor · Sevilla</div>
-            <div class="vcaso-meta"><span style="color:var(--gold);">★★★★★</span> Verificado · <strong style="color:var(--gold);">+3 trabajos</strong> <span style="color:#ccc;">en su primer mes</span></div>
+            <div class="vcaso-trade">⚡ Electricista · Sevilla</div>
+            <div class="vcaso-meta"><span style="color:var(--gold);">★★★★★</span> Verificado · <strong style="color:var(--gold);">+4 trabajos conseguidos</strong> <span style="color:#ccc;">en su primer mes gratis</span></div>
           </div>
         </div>
         <div class="vcaso-video">
-          <div class="vcaso-chip"><span>🎨 PINTOR</span></div>
+          <div class="vcaso-chip"><span>⚡ ELECTRICISTA</span></div>
           <video controls playsinline preload="metadata" poster="/caso-exito-poster.jpg"
             onplay="if(!this.dataset.f){this.dataset.f=1;try{fbq('trackCustom','VideoCasoExito');gtag('event','video_caso_exito',{page:'landing_elite'});}catch(e){}}">
             <source src="/caso-exito.mp4" type="video/mp4"/>
@@ -499,7 +503,7 @@ h1 span{color:var(--gold);}
         </div>
         <div class="vcaso-quote">
           <div class="vcaso-quote-mark">"</div>
-          <p>Gracias a Dios encontré tu plataforma.</p>
+          <p>Yo personalmente doy fe de que es una página muy rentable. Siempre detrás del teléfono hay alguien que está para ayudarte, tanto al profesional como al cliente.</p>
         </div>
         <div class="vcaso-foot">
           <div class="vcaso-foot-dot"></div>
@@ -704,10 +708,41 @@ function track(evento, datos) {
   if (window.gtag) gtag('event', evento, datos || {});
 }
 
-// ALERTAS ANIMADAS
-setTimeout(() => document.getElementById('alert1').classList.add('visible'), 300);
-setTimeout(() => document.getElementById('alert2').classList.add('visible'), 700);
-setTimeout(() => document.getElementById('alert3').classList.add('visible'), 1100);
+// FEED DE SOLICITUDES (simulación ilustrativa — máx. 5 visibles)
+const feedData = [
+  {n:'Manuel García', o:'Fontanero', d:'Tengo una fuga debajo del fregadero y está saliendo agua al mueble, necesito que venga alguien a…'},
+  {n:'Carmen Ruiz', o:'Electricista', d:'Se me va la luz cuando enciendo el horno y la vitro a la vez, creo que es el cuadro…'},
+  {n:'Antonio López', o:'Pintor', d:'Quiero pintar el salón y dos dormitorios, unos 60m2, quitar gotelé de una pared y…'},
+  {n:'Rocío Fernández', o:'Cerrajero', d:'Se me ha quedado la llave dentro y no puedo entrar en casa, es en la zona de…'},
+  {n:'José Martín', o:'Climatización', d:'El aire acondicionado del salón no enfría, echa aire pero no frío, creo que le falta gas…'},
+  {n:'María Romero', o:'Albañil', d:'Quiero quitar la bañera y poner plato de ducha, con obra incluida y azulejos de…'},
+  {n:'Francisco Jiménez', o:'Reformas', d:'Reforma completa de cocina de 9m2, cambiar muebles, encimera, suelo y la instalación de…'},
+  {n:'Lucía Navarro', o:'Fontanero', d:'El termo eléctrico no calienta el agua desde ayer, tiene unos 8 años y no sé si…'},
+  {n:'Ángel Torres', o:'Electricista', d:'Necesito instalar 4 puntos de luz y 6 enchufes en un piso que estoy reformando en…'},
+  {n:'Isabel Moreno', o:'Pintor', d:'Presupuesto para pintar fachada de casa de dos plantas, tiene algunas grietas que hay que…'},
+  {n:'Rafael Ortiz', o:'Manitas', d:'Montar dos armarios, colgar una tele en la pared y arreglar una persiana que se ha…'},
+  {n:'Pilar Domínguez', o:'Desatascos', d:'El baño está atascado y sube agua por el plato de ducha, necesito que vengan hoy si…'}
+];
+let feedIdx = 0;
+function addSolicitud(){
+  const feed = document.getElementById('feed');
+  if (!feed) return;
+  const s = feedData[feedIdx % feedData.length];
+  feedIdx++;
+  const mins = 1 + Math.floor(Math.random()*9);
+  const div = document.createElement('div');
+  div.className = 'feed-item';
+  div.innerHTML = '<div class="feed-avatar">' + s.n.charAt(0) + '</div>' +
+    '<div class="feed-info">' +
+      '<div class="feed-top"><span class="feed-name">' + s.n + '</span><span class="feed-busca">· busca ' + s.o + '</span></div>' +
+      '<div class="feed-desc">"' + s.d + '"</div>' +
+    '</div>' +
+    '<span class="feed-time">hace ' + mins + ' min</span>';
+  feed.insertBefore(div, feed.firstChild);
+  while (feed.children.length > 5) feed.removeChild(feed.lastChild);
+}
+for (let i = 0; i < 5; i++) addSolicitud();
+setInterval(addSolicitud, 4000);
 
 // BOTÓN CASOS DE ÉXITO (topbar) → scroll al vídeo
 function verCasosExito() {
