@@ -488,6 +488,206 @@
       "destination": "/registro-cliente.html"
     },
     {
+      "source": "/abrir-cocina-salon-sevilla",
+      "destination": "/abrir-cocina-salon-sevilla.html"
+    },
+    {
+      "source": "/adaptar-local-normativa-sevilla",
+      "destination": "/adaptar-local-normativa-sevilla.html"
+    },
+    {
+      "source": "/aislamiento-termico-sevilla",
+      "destination": "/aislamiento-termico-sevilla.html"
+    },
+    {
+      "source": "/alicatado-solado-sevilla",
+      "destination": "/alicatado-solado-sevilla.html"
+    },
+    {
+      "source": "/ampliar-habitacion-sevilla",
+      "destination": "/ampliar-habitacion-sevilla.html"
+    },
+    {
+      "source": "/armarios-empotrados-sevilla",
+      "destination": "/armarios-empotrados-sevilla.html"
+    },
+    {
+      "source": "/cambio-banera-por-ducha-sevilla",
+      "destination": "/cambio-banera-por-ducha-sevilla.html"
+    },
+    {
+      "source": "/cambio-fontaneria-tuberias-sevilla",
+      "destination": "/cambio-fontaneria-tuberias-sevilla.html"
+    },
+    {
+      "source": "/cambio-puertas-interiores-sevilla",
+      "destination": "/cambio-puertas-interiores-sevilla.html"
+    },
+    {
+      "source": "/cambio-suelo-tarima-sevilla",
+      "destination": "/cambio-suelo-tarima-sevilla.html"
+    },
+    {
+      "source": "/cambio-ventanas-sevilla",
+      "destination": "/cambio-ventanas-sevilla.html"
+    },
+    {
+      "source": "/cerramiento-terraza-sevilla",
+      "destination": "/cerramiento-terraza-sevilla.html"
+    },
+    {
+      "source": "/dividir-piso-dos-sevilla",
+      "destination": "/dividir-piso-dos-sevilla.html"
+    },
+    {
+      "source": "/home-staging-sevilla",
+      "destination": "/home-staging-sevilla.html"
+    },
+    {
+      "source": "/impermeabilizacion-azotea-sevilla",
+      "destination": "/impermeabilizacion-azotea-sevilla.html"
+    },
+    {
+      "source": "/instalacion-aire-acondicionado-sevilla",
+      "destination": "/instalacion-aire-acondicionado-sevilla.html"
+    },
+    {
+      "source": "/microcemento-sevilla",
+      "destination": "/microcemento-sevilla.html"
+    },
+    {
+      "source": "/pintura-vivienda-sevilla",
+      "destination": "/pintura-vivienda-sevilla.html"
+    },
+    {
+      "source": "/pladur-falsos-techos-sevilla",
+      "destination": "/pladur-falsos-techos-sevilla.html"
+    },
+    {
+      "source": "/quitar-gotele-sevilla",
+      "destination": "/quitar-gotele-sevilla.html"
+    },
+    {
+      "source": "/reforma-bano-personas-mayores-sevilla",
+      "destination": "/reforma-bano-personas-mayores-sevilla.html"
+    },
+    {
+      "source": "/reforma-bano-sevilla",
+      "destination": "/reforma-bano-sevilla.html"
+    },
+    {
+      "source": "/reforma-bar-restaurante-sevilla",
+      "destination": "/reforma-bar-restaurante-sevilla.html"
+    },
+    {
+      "source": "/reforma-casa-patio-sevilla",
+      "destination": "/reforma-casa-patio-sevilla.html"
+    },
+    {
+      "source": "/reforma-chalet-unifamiliar-sevilla",
+      "destination": "/reforma-chalet-unifamiliar-sevilla.html"
+    },
+    {
+      "source": "/reforma-clinica-consulta-sevilla",
+      "destination": "/reforma-clinica-consulta-sevilla.html"
+    },
+    {
+      "source": "/reforma-cocina-pequena-sevilla",
+      "destination": "/reforma-cocina-pequena-sevilla.html"
+    },
+    {
+      "source": "/reforma-cocina-sevilla",
+      "destination": "/reforma-cocina-sevilla.html"
+    },
+    {
+      "source": "/reforma-dormitorio-sevilla",
+      "destination": "/reforma-dormitorio-sevilla.html"
+    },
+    {
+      "source": "/reforma-electrica-vivienda-sevilla",
+      "destination": "/reforma-electrica-vivienda-sevilla.html"
+    },
+    {
+      "source": "/reforma-escalera-sevilla",
+      "destination": "/reforma-escalera-sevilla.html"
+    },
+    {
+      "source": "/reforma-fachada-comunidad-sevilla",
+      "destination": "/reforma-fachada-comunidad-sevilla.html"
+    },
+    {
+      "source": "/reforma-garaje-sevilla",
+      "destination": "/reforma-garaje-sevilla.html"
+    },
+    {
+      "source": "/reforma-habitacion-juvenil-sevilla",
+      "destination": "/reforma-habitacion-juvenil-sevilla.html"
+    },
+    {
+      "source": "/reforma-integral-piso-sevilla",
+      "destination": "/reforma-integral-piso-sevilla.html"
+    },
+    {
+      "source": "/reforma-lavadero-trastero-sevilla",
+      "destination": "/reforma-lavadero-trastero-sevilla.html"
+    },
+    {
+      "source": "/reforma-llave-en-mano-inversores-sevilla",
+      "destination": "/reforma-llave-en-mano-inversores-sevilla.html"
+    },
+    {
+      "source": "/reforma-local-comercial-sevilla",
+      "destination": "/reforma-local-comercial-sevilla.html"
+    },
+    {
+      "source": "/reforma-local-vivienda-sevilla",
+      "destination": "/reforma-local-vivienda-sevilla.html"
+    },
+    {
+      "source": "/reforma-oficina-sevilla",
+      "destination": "/reforma-oficina-sevilla.html"
+    },
+    {
+      "source": "/reforma-pasillo-entrada-sevilla",
+      "destination": "/reforma-pasillo-entrada-sevilla.html"
+    },
+    {
+      "source": "/reforma-patio-andaluz-sevilla",
+      "destination": "/reforma-patio-andaluz-sevilla.html"
+    },
+    {
+      "source": "/reforma-peluqueria-estetica-sevilla",
+      "destination": "/reforma-peluqueria-estetica-sevilla.html"
+    },
+    {
+      "source": "/reforma-piso-airbnb-sevilla",
+      "destination": "/reforma-piso-airbnb-sevilla.html"
+    },
+    {
+      "source": "/reforma-piso-alquiler-sevilla",
+      "destination": "/reforma-piso-alquiler-sevilla.html"
+    },
+    {
+      "source": "/reforma-piso-antiguo-casco-sevilla",
+      "destination": "/reforma-piso-antiguo-casco-sevilla.html"
+    },
+    {
+      "source": "/reforma-salon-sevilla",
+      "destination": "/reforma-salon-sevilla.html"
+    },
+    {
+      "source": "/reforma-sotano-sevilla",
+      "destination": "/reforma-sotano-sevilla.html"
+    },
+    {
+      "source": "/reforma-terraza-sevilla",
+      "destination": "/reforma-terraza-sevilla.html"
+    },
+    {
+      "source": "/rehabilitacion-portal-sevilla",
+      "destination": "/rehabilitacion-portal-sevilla.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
