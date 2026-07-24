@@ -162,25 +162,15 @@ nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.92);backdrop-
 .btn-result-cta{width:100%;background:var(--amber);color:var(--amber-ink);font-weight:800;font-size:15.5px;padding:16px;border-radius:12px;border:none;cursor:pointer}
 .btn-result-cta:hover{background:var(--amber-deep)}
 
-/* ── WIZARD PRESUPUESTO ── */
-.price-top{display:flex;align-items:baseline;justify-content:center;gap:8px;padding:6px 0 18px;border-bottom:1.5px dashed #E7E9EE;margin-bottom:20px}
-.price-desde{font-size:13px;font-weight:700;color:#5B6472;text-transform:uppercase;letter-spacing:.5px}
-.price-num{font-family:'Sora';font-weight:800;font-size:46px;color:#B7860F;line-height:1;transition:transform .2s}
-.price-num.bump{transform:scale(1.12)}
-.price-eur{font-family:'Sora';font-weight:800;font-size:26px;color:#B7860F}
-.wiz-step{animation:stepIn .38s ease-out}
-.wiz-step.leaving{animation:stepOut .28s ease-in forwards;pointer-events:none}
-@keyframes stepOut{to{opacity:0;filter:blur(10px);transform:translateY(-14px)}}
-@keyframes stepIn{from{opacity:0;filter:blur(10px);transform:translateY(18px)}to{opacity:1;filter:blur(0);transform:translateY(0)}}
+/* ── SELECTOR DE TRABAJO (1 SOLO PASO) ── */
 .wiz-q{font-family:'Sora';font-weight:700;font-size:16.5px;color:#10182C;margin-bottom:14px}
 .opt{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;background:#F6F7FA;border:1.5px solid #E7E9EE;border-radius:12px;padding:15px 16px;font-family:'Inter';font-size:14.5px;font-weight:600;color:#10182C;cursor:pointer;margin-bottom:10px;text-align:left;transition:border-color .15s,background .15s}
 .opt:hover{border-color:var(--amber);background:#FFFDF7}
 .opt:active{transform:scale(.985)}
-.opt .opt-price{font-family:'Sora';font-weight:800;font-size:13.5px;color:#B7860F;white-space:nowrap;flex-shrink:0}
+.opt.sel{background:#10182C;border-color:#10182C;color:#fff}
+.opt.sel .opt-arrow{color:#fff}
 .opt .opt-arrow{color:#B9C0CE;flex-shrink:0}
-.wiz-back{display:inline-block;font-size:12.5px;font-weight:600;color:#8891A0;margin-bottom:12px;cursor:pointer;background:none;border:none;font-family:'Inter'}
-.wiz-back:hover{color:#10182C}
-.range-line{font-size:12.5px;color:#8891A0;text-align:center;margin:-8px 0 16px}
+.old-range{font-size:13px;color:#8891A0;text-decoration:line-through;margin-bottom:4px}
 
 /* ── DEMO CHAT ── */
 .demo-wrap{background:var(--bg-2);border:1px solid var(--line);border-radius:18px;padding:26px 20px 18px;position:relative;margin-top:30px}
@@ -254,7 +244,6 @@ nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.92);backdrop-
   .hero h1{font-size:32px;letter-spacing:-.8px}
   .hero-sub{font-size:16px}
   .ticket{padding:22px 18px}
-  .price-num{font-size:40px}
   .sec-h2{font-size:22px}
   .cmp-row{grid-template-columns:1fr 74px 74px}
   .cmp-feat{font-size:12px;padding:12px 12px}
@@ -307,7 +296,7 @@ body{overflow-x:hidden}
     <p class="hero-freebar">Gratis para buscar y comparar</p>
   </section>
 
-  <!-- ── CALCULADORA ── -->
+  <!-- ── CALCULADORA (1 SOLO PASO) ── -->
   <section class="section" id="presupuesto" style="padding-top:8px">
     <div class="ticket">
       <div class="ticket-head">
@@ -316,35 +305,22 @@ body{overflow-x:hidden}
       </div>
       <p class="ticket-sub">Sin compromiso. El precio final lo confirma el electricista al ver el problema.</p>
 
-      <div class="price-top">
-        <span class="price-desde">Desde</span>
-        <span class="price-num" id="priceNum">0</span>
-        <span class="price-eur">€</span>
+      <div class="field">
+        <p class="wiz-q" style="margin-bottom:14px">¿Qué le está pasando?</p>
+        <div id="chipGrid">
+          <button type="button" class="opt" data-id="averia" data-low="41" data-high="195" data-floor="41" data-desc="Avería o cortocircuito eléctrico."><span>⚡ Avería / se ha ido la luz</span><span class="opt-arrow">→</span></button>
+          <button type="button" class="opt" data-id="cuadro" data-low="113" data-high="338" data-floor="113" data-desc="Revisión o cambio de cuadro eléctrico."><span>🔌 Cuadro / salta el diferencial</span><span class="opt-arrow">→</span></button>
+          <button type="button" class="opt" data-id="instalacion" data-low="41" data-high="150" data-floor="41" data-desc="Instalación eléctrica nueva (enchufes, puntos de luz)."><span>💡 Instalación nueva</span><span class="opt-arrow">→</span></button>
+          <button type="button" class="opt" data-id="certificado" data-low="98" data-high="240" data-floor="98" data-desc="Certificado eléctrico (CIE / boletín)."><span>📋 Certificado (CIE / boletín)</span><span class="opt-arrow">→</span></button>
+        </div>
       </div>
 
-      <!-- PASO 1: tipo de trabajo -->
-      <div class="wiz-step" id="step1">
-        <p class="wiz-q">¿Qué le está pasando?</p>
-        <button class="opt" onclick="elegirTipo('averia')"><span>⚡ Avería / se ha ido la luz</span><span class="opt-price">desde 41€</span></button>
-        <button class="opt" onclick="elegirTipo('cuadro')"><span>🔌 Cuadro / salta el diferencial</span><span class="opt-price">desde 113€</span></button>
-        <button class="opt" onclick="elegirTipo('instalacion')"><span>💡 Instalación nueva</span><span class="opt-price">desde 41€</span></button>
-        <button class="opt" onclick="elegirTipo('certificado')"><span>📋 Certificado (CIE / boletín)</span><span class="opt-price">desde 98€</span></button>
-      </div>
+      <div class="result" id="resultBox">
+        <p class="old-range" id="oldRange">—</p>
+        <p class="result-label">Con este caso, esto es lo que suele costar en Sevilla</p>
+        <p class="result-range" id="priceRange">—</p>
+        <p class="result-disc">Precio mínimo orientativo para el caso más sencillo dentro de esta avería. El electricista confirma el precio exacto según lo que encuentre.</p>
 
-      <!-- PASO 2: urgencia -->
-      <div class="wiz-step" id="step2" style="display:none">
-        <button class="wiz-back" onclick="volverPaso(1)">← Cambiar tipo de trabajo</button>
-        <p class="wiz-q">¿Cuándo lo necesitas?</p>
-        <button class="opt" onclick="elegirUrgencia('hoy')"><span>🔥 Hoy — es urgente</span><span class="opt-price" id="pHoy"></span></button>
-        <button class="opt" onclick="elegirUrgencia('semana')"><span>📅 Esta semana</span><span class="opt-price" id="pSemana"></span></button>
-        <button class="opt" onclick="elegirUrgencia('sinprisa')"><span>🕐 Sin prisa</span><span class="opt-price" id="pSinprisa"></span></button>
-      </div>
-
-      <!-- PASO 3: datos -->
-      <div class="wiz-step" id="step3" style="display:none">
-        <button class="wiz-back" onclick="volverPaso(2)">← Cambiar urgencia</button>
-        <p class="range-line" id="rangeLine"></p>
-        <p class="wiz-q">¿Dónde le enviamos los presupuestos?</p>
         <div class="field">
           <label for="leadNombre">Su nombre</label>
           <input id="leadNombre" type="text" placeholder="¿Cómo se llama?" autocomplete="name">
@@ -464,7 +440,7 @@ body{overflow-x:hidden}
       <div class="job"><h3>💡 Instalación nueva</h3><span class="job-price">41€ – 150€</span><p>Enchufes nuevos, puntos de luz, tomas para aire acondicionado o cocina, iluminación LED.</p></div>
       <div class="job"><h3>📋 Certificado eléctrico</h3><span class="job-price">98€ – 240€</span><p>Boletín (CIE) para dar de alta la luz, cambios de potencia o compraventa de vivienda.</p></div>
     </div>
-    <p class="jobs-note">Rangos orientativos según urgencia — los mismos de la calculadora. El precio exacto lo confirma el electricista antes de empezar.</p>
+    <p class="jobs-note">Rangos orientativos según el tipo de trabajo. El precio exacto lo confirma el electricista antes de empezar.</p>
   </section>
 
   <!-- ── POR QUÉ OFICIOYA ── -->
@@ -497,7 +473,7 @@ body{overflow-x:hidden}
     <p class="sec-label">Preguntas frecuentes</p>
     <h2 class="sec-h2">Lo que más nos preguntan</h2>
     <div class="faq"><h3>¿Cómo verifico que el electricista está cualificado?</h3><p>En OficioYa solo aparecen electricistas que han pasado verificación. Además puedes ver fotos de sus instalaciones anteriores.</p></div>
-    <div class="faq"><h3>¿El presupuesto que me da la web es el precio final?</h3><p>No, es una estimación orientativa según el tipo de trabajo y la urgencia. El electricista confirma el precio exacto al ver el problema, antes de empezar a trabajar.</p></div>
+    <div class="faq"><h3>¿El presupuesto que me da la web es el precio final?</h3><p>No, es una estimación orientativa según el tipo de trabajo. El electricista confirma el precio exacto al ver el problema, antes de empezar a trabajar.</p></div>
     <div class="faq"><h3>¿Cuánto tardan en atender una avería eléctrica urgente?</h3><p>En cuanto envía su solicitud, se notifica al momento a los electricistas disponibles en su zona de Sevilla. Usted ve quién puede atenderle y en qué plazo, antes de decidir.</p></div>
     <div class="faq"><h3>¿Hay electricistas para urgencias el mismo día en Sevilla?</h3><p>Sí. Los profesionales disponibles hoy responden a tu solicitud en minutos, sin esperas.</p></div>
     <div class="faq"><h3>¿Es gratis buscar electricista en OficioYa?</h3><p>Sí, para clientes es completamente gratuito. Solo necesitas cuenta cuando quieres enviar una solicitud.</p></div>
@@ -549,105 +525,54 @@ body{overflow-x:hidden}
 </script>
 
 <script>
-  // ── Wizard de presupuesto orientativo ──
-  var RANGOS = {
-    averia:      {hoy:[68,195],  semana:[53,150],  sinprisa:[41,120]},
-    cuadro:      {hoy:[165,338],semana:[135,285],sinprisa:[113,240]},
-    instalacion: {hoy:[68,150], semana:[53,120],  sinprisa:[41,98]},
-    certificado: {hoy:[135,240],semana:[113,210], sinprisa:[98,180]}
-  };
-  var wizTipo = null, wizUrgencia = null, precioActual = 0;
+  // ── Presupuesto orientativo en 1 paso ──
+  var chipsWrap = document.getElementById('chipGrid');
+  var selected = null;
 
-  function animarPrecio(objetivo){
-    var el = document.getElementById('priceNum');
-    var inicio = precioActual, dur = 500, t0 = null;
-    el.classList.remove('bump');
-    function frame(t){
-      if(!t0) t0 = t;
-      var p = Math.min((t - t0) / dur, 1);
-      var eased = 1 - Math.pow(1 - p, 3);
-      el.textContent = Math.round(inicio + (objetivo - inicio) * eased);
-      if(p < 1){ requestAnimationFrame(frame); }
-      else { precioActual = objetivo; el.classList.add('bump'); setTimeout(function(){el.classList.remove('bump');}, 250); }
-    }
-    requestAnimationFrame(frame);
-  }
+  chipsWrap.addEventListener('click', function(e){
+    var btn = e.target.closest('.opt');
+    if(!btn) return;
+    Array.prototype.forEach.call(chipsWrap.querySelectorAll('.opt'), function(c){ c.classList.remove('sel'); });
+    btn.classList.add('sel');
 
-  function cambiarPaso(desde, hacia){
-    var a = document.getElementById('step' + desde);
-    var b = document.getElementById('step' + hacia);
-    a.classList.add('leaving');
-    setTimeout(function(){
-      a.style.display = 'none';
-      a.classList.remove('leaving');
-      b.style.display = 'block';
-    }, 270);
-  }
+    selected = {
+      id: btn.dataset.id,
+      low: parseInt(btn.dataset.low, 10),
+      high: parseInt(btn.dataset.high, 10),
+      floor: parseInt(btn.dataset.floor, 10),
+      desc: btn.dataset.desc
+    };
 
-  function minDeTipo(tipo){
-    var r = RANGOS[tipo];
-    return Math.min(r.hoy[0], r.semana[0], r.sinprisa[0]);
-  }
+    document.getElementById('oldRange').textContent = 'Rango orientativo: ' + selected.low + '€ – ' + selected.high + '€';
+    document.getElementById('priceRange').textContent = 'Desde ' + selected.floor + '€';
+    document.getElementById('resultBox').classList.add('show');
+    document.getElementById('resultBox').scrollIntoView({behavior:'smooth', block:'nearest'});
 
-  function elegirTipo(tipo){
-    wizTipo = tipo;
-    animarPrecio(minDeTipo(tipo));
-    document.getElementById('pHoy').textContent = 'desde ' + RANGOS[tipo].hoy[0] + '€';
-    document.getElementById('pSemana').textContent = 'desde ' + RANGOS[tipo].semana[0] + '€';
-    document.getElementById('pSinprisa').textContent = 'desde ' + RANGOS[tipo].sinprisa[0] + '€';
-    cambiarPaso(1, 2);
-  }
-
-  function elegirUrgencia(urg){
-    wizUrgencia = urg;
-    var rango = RANGOS[wizTipo][urg];
-    animarPrecio(rango[0]);
-    document.getElementById('rangeLine').textContent = 'Rango estimado: ' + rango[0] + '€ – ' + rango[1] + '€ · El electricista confirma el precio antes de empezar.';
     if (typeof gtag === 'function') {
-      gtag('event', 'view_item', {'event_category':'presupuesto_calculado', 'event_label': wizTipo + '_' + urg});
+      gtag('event', 'view_item', {'event_category':'presupuesto_calculado', 'event_label': selected.id});
     }
-    cambiarPaso(2, 3);
-  }
-
-  function volverPaso(n){
-    var actual = (n === 1) ? 2 : 3;
-    cambiarPaso(actual, n);
-    if(n === 1){ wizTipo = null; animarPrecio(0); }
-    if(n === 2){ wizUrgencia = null; animarPrecio(minDeTipo(wizTipo)); }
-  }
+  });
 
   function enviarSolicitud(){
+    if(!selected){
+      alert('Elige primero qué tipo de avería tienes.');
+      document.getElementById('chipGrid').scrollIntoView({behavior:'smooth', block:'center'});
+      return;
+    }
     var nombre = document.getElementById('leadNombre').value.trim();
     var telefono = document.getElementById('leadTelefono').value.trim();
     if(!nombre || !telefono){
       alert('Indica tu nombre y un teléfono de contacto para que el electricista pueda escribirte.');
       return;
     }
-    var tipo = wizTipo || 'averia';
-    var urgencia = wizUrgencia || 'hoy';
 
-    var DESCRIPCIONES = {
-      averia: 'Avería o cortocircuito eléctrico.',
-      cuadro: 'Revisión o cambio de cuadro eléctrico.',
-      instalacion: 'Instalación eléctrica nueva (enchufes, puntos de luz).',
-      certificado: 'Certificado eléctrico (CIE / boletín).'
-    };
-    var URGENCIAS = {
-      hoy: 'Es urgente, lo necesita hoy.',
-      semana: 'Lo necesita esta semana.',
-      sinprisa: 'Sin prisa.'
-    };
-    var desc = DESCRIPCIONES[tipo] + ' ' + URGENCIAS[urgencia];
-
-    // Email sintético e invisible — la cuenta de cliente lo necesita por detrás, pero no se lo pedimos al usuario
     var telefonoLimpio = telefono.replace(/\D/g,'') || Date.now().toString();
     var emailSintetico = 'lead' + telefonoLimpio + '@aficioya-lead.com';
 
-    var params = new URLSearchParams({quick:'1', oficio:'Electricista', nombre:nombre, telefono:telefono, email:emailSintetico, desc:desc});
+    var params = new URLSearchParams({quick:'1', oficio:'Electricista', nombre:nombre, telefono:telefono, email:emailSintetico, desc:selected.desc});
 
-    // Conversión real — Google Ads lee este evento vía GA4 (acción "Solicitud de presupuesto" importada de generate_lead)
     if (typeof gtag === 'function') {
-      gtag('event', 'generate_lead', {'event_category':'solicitud_electricista', 'event_label': tipo + '_' + urgencia});
+      gtag('event', 'generate_lead', {'event_category':'solicitud_electricista', 'event_label': selected.id});
     }
     window.location.href = '/?' + params.toString();
   }
