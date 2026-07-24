@@ -2,21 +2,23 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
 <title>Electricistas en Sevilla verificados — Te llaman en minutos | OficioYa</title>
-<meta name="description" content="¿Avería eléctrica en Sevilla? Electricistas verificados te llaman en minutos, con precio orientativo antes de que venga nadie. Gratis para clientes."/>
+<meta name="description" content="¿Se ha ido la luz o salta el diferencial en Sevilla? Electricistas verificados te responden en minutos, con precio orientativo antes de que venga nadie. Gratis para clientes."/>
 <meta name="keywords" content="electricista Sevilla, electricista urgente Sevilla, avería eléctrica Sevilla, salta el diferencial, presupuesto electricista Sevilla"/>
 <meta name="robots" content="index, follow"/>
 <link rel="canonical" href="https://www.aficioya.com/electricista-sevilla"/>
 <meta property="og:title" content="Electricistas verificados en Sevilla | OficioYa"/>
-<meta property="og:description" content="¿Avería eléctrica? Electricistas verificados de Sevilla te llaman en minutos. Precio orientativo antes de contactar."/>
+<meta property="og:description" content="¿Avería eléctrica? Electricistas verificados de Sevilla te responden en minutos. Precio orientativo antes de contactar."/>
 <meta property="og:url" content="https://www.aficioya.com/electricista-sevilla"/>
 <meta property="og:image" content="https://www.aficioya.com/icon-512.png"/>
 <meta property="og:type" content="website"/>
 <meta name="theme-color" content="#FFFFFF"/>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
 
 <script type="application/ld+json">
 {
@@ -61,10 +63,11 @@
   --radius:16px;
 }
 *{margin:0;padding:0;box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{font-family:'Inter',Arial,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:84px}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;padding-bottom:84px}
 a{text-decoration:none;color:inherit}
-h1,h2,h3{font-family:'Sora',Arial,sans-serif}
+h1,h2,h3{font-family:'Sora',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif}
+img{max-width:100%;height:auto}
 .wrap{max-width:680px;margin:0 auto;padding:0 22px}
 :focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 @media(prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
@@ -77,6 +80,12 @@ nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.92);backdrop-
 .nav-cta{background:var(--amber);color:var(--amber-ink);font-size:13.5px;font-weight:700;padding:10px 18px;border-radius:24px;white-space:nowrap}
 .nav-cta:hover{background:var(--amber-deep)}
 
+/* ── BARRA DE URGENCIA SUPERIOR ── */
+.urgbar{background:var(--ink);color:#fff;font-size:13px;font-weight:600;text-align:center;padding:10px 16px;line-height:1.45}
+.urgbar a{color:#FFD98A;font-weight:800;text-decoration:underline;text-underline-offset:2px;white-space:nowrap}
+.urgbar a:hover{color:#fff}
+@media(max-width:480px){.urgbar{font-size:12px;padding:9px 14px}}
+
 /* ── HERO ── */
 .hero{padding:52px 0 44px}
 @media(max-width:640px){.hero{padding:36px 0 36px}}
@@ -86,6 +95,10 @@ nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.92);backdrop-
 .hero-sub{font-size:17.5px;color:var(--ink-soft);line-height:1.75;margin-bottom:30px;max-width:560px}
 .hero-sub .strike{position:relative;color:var(--ink);font-weight:600;white-space:nowrap}
 .hero-sub .strike::after{content:'';position:absolute;left:-2px;right:-2px;top:52%;height:3px;background:var(--amber);opacity:.85;transform:rotate(-1.2deg)}
+.hero-bullets{list-style:none;margin:0 0 30px;padding:0;display:flex;flex-direction:column;gap:11px}
+.hero-bullets li{display:flex;align-items:flex-start;gap:10px;font-size:15px;color:var(--ink-soft);line-height:1.5}
+.hero-bullets li b{color:var(--ink);font-weight:600}
+.hero-bullets .bico{flex-shrink:0;font-size:16px;line-height:1.4}
 .btn-big{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;background:var(--amber);color:var(--amber-ink);font-family:'Inter';font-weight:800;font-size:17px;padding:19px 24px;border-radius:16px;border:none;cursor:pointer;box-shadow:0 10px 34px rgba(240,169,59,.35);transition:transform .15s,background .15s}
 .btn-big:hover{background:var(--amber-deep);transform:translateY(-1px)}
 .hero-ab{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -97,12 +110,36 @@ nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.92);backdrop-
 .hero-link:hover{text-decoration:underline}
 .hero-trust{display:flex;flex-wrap:wrap;gap:8px;margin-top:26px;justify-content:center}
 .chip{font-size:12px;font-weight:600;color:var(--ink-soft);background:var(--bg-2);border:1px solid var(--line);border-radius:9px;padding:7px 12px}
+.hero-freebar{font-size:12.5px;color:var(--ink-faint);text-align:center;margin-top:16px;font-weight:600}
 
 /* ── SECCIONES ── */
 .section{padding:52px 0}
 .sec-label{font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--gold-deep);margin-bottom:12px}
 .sec-h2{font-size:clamp(25px,5.4vw,34px);font-weight:800;line-height:1.2;letter-spacing:-.6px;margin-bottom:14px}
 .sec-p{font-size:15.5px;color:var(--ink-soft);line-height:1.7;margin-bottom:8px}
+
+/* ── DOLOR / PROBLEMA ── */
+.pain-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:26px}
+@media(max-width:560px){.pain-grid{grid-template-columns:1fr}}
+.pain{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:0 2px 6px rgba(16,24,44,.04)}
+.pain .pico{font-size:26px;display:block;margin-bottom:10px}
+.pain h3{font-size:15px;font-weight:700;margin-bottom:6px;line-height:1.3}
+.pain p{font-size:13px;color:var(--ink-soft);line-height:1.6}
+
+/* ── TABLA COMPARATIVA ── */
+.cmp{margin-top:26px;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:0 2px 6px rgba(16,24,44,.04)}
+.cmp-row{display:grid;grid-template-columns:1fr 92px 92px;align-items:center}
+.cmp-row:not(:last-child){border-bottom:1px solid var(--line)}
+.cmp-head{background:var(--bg-2)}
+.cmp-head .cmp-c{font-family:'Sora';font-weight:800;font-size:12.5px;text-align:center;color:var(--ink)}
+.cmp-head .cmp-c.gold{color:var(--gold-deep)}
+.cmp-feat{font-size:13px;font-weight:600;color:var(--ink);padding:14px 16px;line-height:1.35}
+.cmp-c{padding:14px 8px;text-align:center;font-size:15px}
+.cmp-c.gold{background:#FEFaf0}
+.cmp-x{color:#C9CFDA;font-weight:700}
+.cmp-v{color:#1F8A5F;font-weight:800}
+.cmp-txt{font-size:11.5px;font-weight:700;color:var(--ink-soft)}
+.cmp-txt.gold{color:var(--gold-deep)}
 
 /* ── TICKET / CALCULADORA ── */
 .ticket{background:#fff;color:#10182C;border-radius:20px;padding:26px 24px;border:1px solid var(--line);box-shadow:0 2px 6px rgba(16,24,44,.04),0 14px 40px rgba(16,24,44,.09)}
@@ -165,12 +202,21 @@ nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.92);backdrop-
 .job p{font-size:12.5px;color:var(--ink-soft);line-height:1.55}
 .jobs-note{font-size:12px;color:var(--ink-faint);margin-top:14px;text-align:center}
 
+/* ── POR QUÉ ── */
+.why{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:26px}
+@media(max-width:560px){.why{grid-template-columns:1fr}}
+.whyc{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:0 2px 6px rgba(16,24,44,.04)}
+.whyc .wico{font-size:22px;display:block;margin-bottom:9px}
+.whyc h3{font-size:14px;font-weight:700;margin-bottom:5px}
+.whyc p{font-size:12.5px;color:var(--ink-soft);line-height:1.55}
+
 /* ── PASOS ── */
 .steps{display:flex;flex-direction:column;gap:16px;margin-top:26px}
 .step{display:flex;gap:16px;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:0 2px 6px rgba(16,24,44,.04)}
 .step-num{width:34px;height:34px;border-radius:50%;background:var(--amber);color:var(--amber-ink);font-family:'Sora';font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .step h3{font-size:15px;margin-bottom:4px}
 .step p{font-size:13px;color:var(--ink-soft);line-height:1.6}
+.step .step-free{font-size:11px;font-weight:700;color:#1F8A5F;background:#EAF6EF;border-radius:6px;padding:2px 8px;display:inline-block;margin-top:7px}
 
 /* ── FAQ ── */
 .faq{border-bottom:1px solid var(--line);padding:18px 0}
@@ -200,13 +246,34 @@ nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.92);backdrop-
 .btn-tel{display:flex;align-items:center;gap:8px;background:var(--amber);color:var(--amber-ink);font-weight:800;font-size:14.5px;padding:0 20px;height:48px;border-radius:14px;white-space:nowrap;box-shadow:0 6px 16px rgba(240,169,59,.35)}
 .btn-tel:hover{background:var(--amber-deep)}
 @media(max-width:480px){.sticky-q{font-size:12px}.btn-tel{font-size:13.5px;padding:0 15px}}
+
+/* ── MÓVILES MUY PEQUEÑOS (320-360px) ── */
+@media(max-width:360px){
+  .wrap{padding:0 16px}
+  .nav-inner{padding:12px 16px}
+  .hero h1{font-size:32px;letter-spacing:-.8px}
+  .hero-sub{font-size:16px}
+  .ticket{padding:22px 18px}
+  .price-num{font-size:40px}
+  .sec-h2{font-size:22px}
+  .cmp-row{grid-template-columns:1fr 74px 74px}
+  .cmp-feat{font-size:12px;padding:12px 12px}
+  .jobs,.pain-grid,.why{gap:10px}
+  .stickybar-inner{gap:8px}
+  .btn-tel{padding:0 12px;font-size:13px}
+}
+/* Evitar desborde horizontal en cualquier caso */
+body{overflow-x:hidden}
+.opt span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis}
 </style>
 </head>
 <body>
 
+<div class="urgbar">⚡ Una avería eléctrica no espera: cada hora sin luz complica más — <a href="#presupuesto" onclick="event.preventDefault();document.getElementById('presupuesto').scrollIntoView({behavior:'smooth',block:'center'});">calcula tu presupuesto</a></div>
+
 <nav>
   <div class="nav-inner">
-    <a href="/" class="logo"><img src="/icon-512.png" alt="OficioYa" style="height:34px;width:34px;border-radius:8px;object-fit:cover;flex-shrink:0"><span>Oficio<em>Ya</em></span></a>
+    <a href="/" class="logo"><img src="/icon-512.png" alt="OficioYa" width="34" height="34" fetchpriority="high" decoding="async" style="height:34px;width:34px;border-radius:8px;object-fit:cover;flex-shrink:0"><span>Oficio<em>Ya</em></span></a>
     <a class="nav-cta" href="#presupuesto" onclick="event.preventDefault();document.getElementById('presupuesto').scrollIntoView({behavior:'smooth',block:'center'});">Presupuesto →</a>
   </div>
 </nav>
@@ -215,21 +282,29 @@ nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.92);backdrop-
 
   <!-- ── HERO ── -->
   <section class="hero">
-    <div class="pill">⚡ Solo Sevilla y área metropolitana</div>
-    <h1>Electricistas verificados en Sevilla, <em>para lo que necesites</em></h1>
-    <p class="hero-sub">Avería, cuadro eléctrico, instalación nueva o certificado. Presupuesto orientativo antes de que venga nadie, y te llaman en minutos si es urgente — sin <span class="strike">precios que se inflan al final</span>.</p>
+    <div class="pill">⚡ Sevilla · Electricistas verificados</div>
+    <h1>Encuentra un electricista de confianza en Sevilla — <em>antes de que la avería vaya a más</em></h1>
+    <p class="hero-sub">Diga qué le está pasando y compare electricistas verificados con reseñas reales de vecinos que ya les contrataron. Le responden en minutos si es urgente, sin <span class="strike">precios que se inflan al final</span>.</p>
+    <ul class="hero-bullets">
+      <li><span class="bico">✅</span><span><b>Verificados antes de entrar</b> — cada electricista pasa un control previo</span></li>
+      <li><span class="bico">📨</span><span>Su solicitud llega <b>directa a electricistas de su zona</b></span></li>
+      <li><span class="bico">⭐</span><span>Reseñas de <b>clientes reales</b>, no compradas</span></li>
+      <li><span class="bico">🛡️</span><span>En contra de los <b>precios inflados</b> de última hora</span></li>
+    </ul>
     <div class="hero-ab">
-      <a class="btn-big" href="#presupuesto" onclick="event.preventDefault();document.getElementById('presupuesto').scrollIntoView({behavior:'smooth',block:'center'});if(typeof gtag==='function'){gtag('event','select_content',{'event_category':'cta_hero','event_label':'calcular_presupuesto'});}">Calcular presupuesto →</a>
-      <a class="btn-dark" href="tel:+34656398014" onclick="if(typeof gtag==='function'){gtag('event','contact_phone',{'event_category':'llamada_hero','event_label':'electricista'});}">📞 Llamar ahora</a>
+      <a class="btn-big" href="#presupuesto" onclick="event.preventDefault();document.getElementById('presupuesto').scrollIntoView({behavior:'smooth',block:'center'});if(typeof gtag==='function'){gtag('event','select_content',{'event_category':'cta_hero','event_label':'calcular_presupuesto'});}">Calcular mi presupuesto →</a>
+      <a class="btn-dark" href="tel:+34656398014" onclick="if(typeof gtag==='function'){gtag('event','contact_phone',{'event_category':'llamada_hero','event_label':'electricista'});}">📞 ¿Es urgente? Llame ya</a>
     </div>
     <div class="hero-links">
       <a class="hero-link" href="#como-funciona">Ver cómo funciona ↓</a>
     </div>
     <div class="hero-trust">
-      <span class="chip">Seguridad garantizada</span>
-      <span class="chip">Profesionalidad verificada</span>
-      <span class="chip">Seriedad en cada trabajo</span>
+      <span class="chip">✅ Verificados antes de entrar</span>
+      <span class="chip">⭐ Reseñas reales</span>
+      <span class="chip">⚡ Pensado para urgencias</span>
+      <span class="chip">💰 Precio claro antes de llamar</span>
     </div>
+    <p class="hero-freebar">Gratis para buscar y comparar</p>
   </section>
 
   <!-- ── CALCULADORA ── -->
@@ -249,9 +324,9 @@ nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.92);backdrop-
 
       <!-- PASO 1: tipo de trabajo -->
       <div class="wiz-step" id="step1">
-        <p class="wiz-q">¿Qué necesitas?</p>
-        <button class="opt" onclick="elegirTipo('averia')"><span>⚡ Avería / cortocircuito</span><span class="opt-price">desde 41€</span></button>
-        <button class="opt" onclick="elegirTipo('cuadro')"><span>🔌 Cuadro eléctrico</span><span class="opt-price">desde 113€</span></button>
+        <p class="wiz-q">¿Qué le está pasando?</p>
+        <button class="opt" onclick="elegirTipo('averia')"><span>⚡ Avería / se ha ido la luz</span><span class="opt-price">desde 41€</span></button>
+        <button class="opt" onclick="elegirTipo('cuadro')"><span>🔌 Cuadro / salta el diferencial</span><span class="opt-price">desde 113€</span></button>
         <button class="opt" onclick="elegirTipo('instalacion')"><span>💡 Instalación nueva</span><span class="opt-price">desde 41€</span></button>
         <button class="opt" onclick="elegirTipo('certificado')"><span>📋 Certificado (CIE / boletín)</span><span class="opt-price">desde 98€</span></button>
       </div>
@@ -269,23 +344,95 @@ nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.92);backdrop-
       <div class="wiz-step" id="step3" style="display:none">
         <button class="wiz-back" onclick="volverPaso(2)">← Cambiar urgencia</button>
         <p class="range-line" id="rangeLine"></p>
-        <p class="wiz-q">¿Dónde te enviamos los presupuestos?</p>
+        <p class="wiz-q">¿Dónde le enviamos los presupuestos?</p>
         <div class="field">
-          <label for="leadNombre">Tu nombre</label>
-          <input id="leadNombre" type="text" placeholder="¿Cómo te llamas?" autocomplete="name">
+          <label for="leadNombre">Su nombre</label>
+          <input id="leadNombre" type="text" placeholder="¿Cómo se llama?" autocomplete="name">
         </div>
         <div class="field">
           <label for="leadTelefono">Teléfono o WhatsApp</label>
           <input id="leadTelefono" type="tel" placeholder="600 000 000" autocomplete="tel">
         </div>
-        <p class="lead-privacy">🔒 Solo lo verá el electricista que acepte esta solicitud, y únicamente para contactarte por este trabajo. Nunca lo compartimos con nadie más.</p>
+        <p class="lead-privacy">🔒 Solo lo verá el electricista que acepte esta solicitud, y únicamente para contactarle por este trabajo. Nunca lo compartimos con nadie más.</p>
         <button type="button" class="btn-result-cta" id="resultCta" onclick="enviarSolicitud()">Enviar solicitud y ver electricistas →</button>
       </div>
     </div>
   </section>
 
+  <!-- ── EL PROBLEMA / DOLOR ── -->
+  <section class="section" style="padding-top:8px">
+    <p class="sec-label">El problema</p>
+    <h2 class="sec-h2">Con la electricidad, esperar sale caro — y a veces es peligroso</h2>
+    <p class="sec-p">Buscar en Google devuelve decenas de resultados sin saber cuál va a llegar a tiempo, cuál es de fiar, o qué le van a cobrar cuando ya está a oscuras.</p>
+    <div class="pain-grid">
+      <div class="pain">
+        <span class="pico">🔥</span>
+        <h3>Un olor a quemado no puede esperar</h3>
+        <p>Un enchufe que huele a quemado o un cable recalentado es riesgo de incendio. Cuanto antes lo vea un profesional, mejor.</p>
+      </div>
+      <div class="pain">
+        <span class="pico">🌑</span>
+        <h3>Sin luz, la casa entera se para</h3>
+        <p>Nevera descongelándose, no puede trabajar, niños a oscuras. Una avería eléctrica no es algo para "la semana que viene".</p>
+      </div>
+      <div class="pain">
+        <span class="pico">⚠️</span>
+        <h3>Tocarlo usted mismo es peligroso</h3>
+        <p>El cuadro y las derivaciones no se tocan sin saber. Necesita a alguien cualificado, no un tutorial de internet.</p>
+      </div>
+      <div class="pain">
+        <span class="pico">🔁</span>
+        <h3>Si el de siempre no puede, empieza de cero</h3>
+        <p>Si su electricista habitual no está disponible, toca buscar otra vez sin ninguna referencia real. Mismo riesgo, otra vez.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── TABLA COMPARATIVA ── -->
+  <section class="section" style="padding-top:0">
+    <p class="sec-label">La diferencia</p>
+    <h2 class="sec-h2">Llamar a ciegas, o saber a quién está llamando</h2>
+    <div class="cmp">
+      <div class="cmp-row cmp-head">
+        <div class="cmp-feat">&nbsp;</div>
+        <div class="cmp-c"><span class="cmp-txt">Buscando<br>en Google</span></div>
+        <div class="cmp-c gold"><span class="cmp-txt gold">Con<br>OficioYa</span></div>
+      </div>
+      <div class="cmp-row">
+        <div class="cmp-feat">Verificación previa</div>
+        <div class="cmp-c"><span class="cmp-x">✕</span></div>
+        <div class="cmp-c gold"><span class="cmp-v">✓</span></div>
+      </div>
+      <div class="cmp-row">
+        <div class="cmp-feat">Reseñas de vecinos reales</div>
+        <div class="cmp-c"><span class="cmp-x">✕</span></div>
+        <div class="cmp-c gold"><span class="cmp-v">✓</span></div>
+      </div>
+      <div class="cmp-row">
+        <div class="cmp-feat">Precio orientativo antes de llamar</div>
+        <div class="cmp-c"><span class="cmp-x">✕</span></div>
+        <div class="cmp-c gold"><span class="cmp-v">✓</span></div>
+      </div>
+      <div class="cmp-row">
+        <div class="cmp-feat">Filtra por tipo de avería</div>
+        <div class="cmp-c"><span class="cmp-x">✕</span></div>
+        <div class="cmp-c gold"><span class="cmp-v">✓</span></div>
+      </div>
+      <div class="cmp-row">
+        <div class="cmp-feat">Sin recargos inflados de última hora</div>
+        <div class="cmp-c"><span class="cmp-x">✕</span></div>
+        <div class="cmp-c gold"><span class="cmp-v">✓</span></div>
+      </div>
+      <div class="cmp-row">
+        <div class="cmp-feat">Coste de comparar varios</div>
+        <div class="cmp-c"><span class="cmp-txt">Su tiempo</span></div>
+        <div class="cmp-c gold"><span class="cmp-txt gold">Gratis</span></div>
+      </div>
+    </div>
+  </section>
+
   <!-- ── DEMO ── -->
-  <section class="section">
+  <section class="section" style="padding-top:0">
     <p class="sec-label">Así funciona por dentro</p>
     <h2 class="sec-h2">Envías una solicitud y los electricistas te responden con precio</h2>
     <p class="sec-p">Sin llamar a diez números. Una sola solicitud y los profesionales disponibles de tu zona responden directamente con precio y disponibilidad.</p>
@@ -320,14 +467,28 @@ nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.92);backdrop-
     <p class="jobs-note">Rangos orientativos según urgencia — los mismos de la calculadora. El precio exacto lo confirma el electricista antes de empezar.</p>
   </section>
 
+  <!-- ── POR QUÉ OFICIOYA ── -->
+  <section class="section" style="padding-top:0">
+    <p class="sec-label">Por qué OficioYa</p>
+    <h2 class="sec-h2">Lo que no encontrará buscando en Google</h2>
+    <div class="why">
+      <div class="whyc"><span class="wico">✅</span><h3>Verificados antes de entrar</h3><p>Cada profesional pasa por verificación antes de aparecer en la plataforma.</p></div>
+      <div class="whyc"><span class="wico">⭐</span><h3>Solo reseñas de clientes reales</h3><p>Únicamente opinan vecinos que han contratado el servicio. Sin reseñas compradas.</p></div>
+      <div class="whyc"><span class="wico">💰</span><h3>Precio orientativo primero</h3><p>Sabe un rango de precio antes de hablar con el profesional. Sin sorpresas al final.</p></div>
+      <div class="whyc"><span class="wico">⚡</span><h3>Disponibilidad en tiempo real</h3><p>Sabe si el profesional puede atenderle hoy, sin llamar y esperar respuesta.</p></div>
+      <div class="whyc"><span class="wico">🎯</span><h3>Filtra por tipo de avería</h3><p>No es lo mismo una urgencia con el diferencial que una instalación sin prisa.</p></div>
+      <div class="whyc"><span class="wico">💬</span><h3>Chat directo sin intermediarios</h3><p>Hable directamente con el profesional desde la app, sin llamadas perdidas.</p></div>
+    </div>
+  </section>
+
   <!-- ── CÓMO FUNCIONA ── -->
   <section class="section" id="como-funciona" style="padding-top:0">
     <p class="sec-label">Cómo funciona</p>
-    <h2 class="sec-h2">Tres pasos y resuelto</h2>
+    <h2 class="sec-h2">Encuentre su electricista en tres pasos</h2>
     <div class="steps">
-      <div class="step"><div class="step-num">1</div><div><h3>Calcula tu presupuesto orientativo</h3><p>Dos preguntas y ves un rango de precio real antes de hablar con nadie. Sin registro.</p></div></div>
-      <div class="step"><div class="step-num">2</div><div><h3>Los electricistas de tu zona te responden</h3><p>Los profesionales disponibles ven tu solicitud y te contactan con precio y disponibilidad.</p></div></div>
-      <div class="step"><div class="step-num">3</div><div><h3>Eliges y pagas directo al profesional</h3><p>Comparas, decides y cierras. OficioYa no cobra nada al cliente: pagas directo a quien hace el trabajo.</p></div></div>
+      <div class="step"><div class="step-num">1</div><div><h3>Diga qué le está pasando</h3><p>Elija el tipo de avería y vea un rango de precio real en Sevilla antes de hablar con nadie.</p><span class="step-free">Sin registro</span></div></div>
+      <div class="step"><div class="step-num">2</div><div><h3>Los electricistas de su zona le responden</h3><p>Los profesionales disponibles ven su solicitud y le contactan con precio y disponibilidad.</p><span class="step-free">Sin registro</span></div></div>
+      <div class="step"><div class="step-num">3</div><div><h3>Deje sus datos y reciba respuesta</h3><p>Nombre y teléfono al final. Su solicitud llega directa a electricistas de su zona y chatea en tiempo real dentro de la app.</p></div></div>
     </div>
   </section>
 
@@ -337,6 +498,7 @@ nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.92);backdrop-
     <h2 class="sec-h2">Lo que más nos preguntan</h2>
     <div class="faq"><h3>¿Cómo verifico que el electricista está cualificado?</h3><p>En OficioYa solo aparecen electricistas que han pasado verificación. Además puedes ver fotos de sus instalaciones anteriores.</p></div>
     <div class="faq"><h3>¿El presupuesto que me da la web es el precio final?</h3><p>No, es una estimación orientativa según el tipo de trabajo y la urgencia. El electricista confirma el precio exacto al ver el problema, antes de empezar a trabajar.</p></div>
+    <div class="faq"><h3>¿Cuánto tardan en atender una avería eléctrica urgente?</h3><p>En cuanto envía su solicitud, se notifica al momento a los electricistas disponibles en su zona de Sevilla. Usted ve quién puede atenderle y en qué plazo, antes de decidir.</p></div>
     <div class="faq"><h3>¿Hay electricistas para urgencias el mismo día en Sevilla?</h3><p>Sí. Los profesionales disponibles hoy responden a tu solicitud en minutos, sin esperas.</p></div>
     <div class="faq"><h3>¿Es gratis buscar electricista en OficioYa?</h3><p>Sí, para clientes es completamente gratuito. Solo necesitas cuenta cuando quieres enviar una solicitud.</p></div>
     <div class="faq"><h3>¿En qué zonas de Sevilla hay electricista?</h3><p>Toda Sevilla capital y área metropolitana.</p></div>
@@ -345,8 +507,8 @@ nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.92);backdrop-
 
   <!-- ── CTA FINAL ── -->
   <div class="cta-final">
-    <h2>Calcula tu <em>presupuesto</em> en 10 segundos</h2>
-    <p>Sin registro y sin compromiso. Sabes el rango de precio antes de hablar con nadie.</p>
+    <h2>No deje que la avería <em>espere</em></h2>
+    <p>Verificados. Con reseñas reales de vecinos y precio orientativo antes de llamar.</p>
     <a class="btn-big" href="#presupuesto" onclick="event.preventDefault();document.getElementById('presupuesto').scrollIntoView({behavior:'smooth',block:'center'});">Calcular mi presupuesto →</a>
     <p class="cta-note">Gratis para clientes · ¿Eres electricista en Sevilla? <a href="/elite-gratis">Regístrate aquí — primer mes gratis</a></p>
   </div>
@@ -362,7 +524,7 @@ nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.92);backdrop-
   <div class="stickybar-inner">
     <div class="sticky-info">
       <span class="sticky-q">¿Avería ahora mismo?</span>
-      <span class="sticky-sub"><span class="dot"></span> Te llaman en minutos</span>
+      <span class="sticky-sub"><span class="dot"></span> Te responden en minutos</span>
     </div>
     <div class="sticky-btns">
       <a class="btn-wa" target="_blank" rel="noopener" aria-label="Escribir por WhatsApp"
