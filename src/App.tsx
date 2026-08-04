@@ -8,6 +8,7 @@ import { db, STORAGE_URL, ADMIN_USER } from "./supabase";
 import type { UserRow, MessageRow, JobRow, CertRow, Plan, PhotoRow } from "./supabase";
 import { MapaZonas, MapaProModal } from './MapaZonas';
 import { PRICE_MAP } from "./constants";
+import ProTrabajos from "./pro/ProTrabajos";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI";
 const SUPABASE_FUNCTIONS_URL = "https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1";
 const SUPABASE_HEADERS = {
@@ -4861,137 +4862,10 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
           </div>}
         </>)}
 
-        {tab==="trabajos"&&(<>
-          <div style={{padding:"22px 0 16px"}}><h2 style={{fontWeight:800,fontSize:22,color:C.text}}>Mis trabajos</h2></div>
-          {/* ── LEADS PENDIENTES ── */}
-          {jobs.filter((j:any)=>j.status==="lead").length>0&&(
-            <div style={{marginBottom:16}}>
-              <p style={{fontSize:11,color:C.orange,fontWeight:700,textTransform:"uppercase" as const,letterSpacing:"0.08em",marginBottom:8}}>🔴 Solicitudes nuevas</p>
-              {jobs.filter((j:any)=>j.status==="lead").map((j:any)=>(
-                <GCard key={j.id} style={{marginBottom:8,border:"1px solid "+C.orange+"44",background:"#1a1500"}}>
-                  <div style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:10}}>
-                    <div style={{flex:1}}>
-                      <p style={{fontWeight:700,color:C.text,fontSize:14,marginBottom:3}}>{j.title}</p>
-                      <p style={{fontSize:12,color:C.muted}}>👤 {j.client_name} · {timeAgo(j.created_at)}</p>
-                      {j.description&&<p style={{fontSize:12,color:C.mutedL,marginTop:4,lineHeight:1.4}}>{j.description}</p>}
-                    </div>
-                    <span style={{fontSize:9,color:C.orange,background:C.orange+"22",padding:"2px 7px",borderRadius:3,fontWeight:700,flexShrink:0}}>NUEVO</span>
-                  </div>
-                  <div style={{display:"flex",gap:8}}>
-                    <button onClick={async()=>{
-                      await updateJobStatus(j.id,"in_progress");
-                      // Abrir chat con cliente
-                      const {data:cliente}=await db.from("users").select("id,name,phone,whatsapp,email,type,plan,zone,joined_at,trial_end").eq("id",j.client_id).single();
-                      if(cliente){
-                        await db.from("messages").insert({
-                          from_id:user.id,to_id:j.client_id,
-                          text:`¡Hola ${j.client_name}! He visto tu solicitud de ${j.title}. Estoy disponible para ayudarte. ¿Cuándo te viene bien?`,
-                          read:false,
-                        });
-                        setChatUser(cliente as UserRow);
-                      }
-                    }} style={{flex:2,padding:"9px",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:8,color:"#000",fontFamily:"'DM Sans',sans-serif",fontSize:13,fontWeight:800,cursor:"pointer"}}>
-                      ✓ Aceptar y chatear →
-                    </button>
-                    <button onClick={()=>updateJobStatus(j.id,"cancelled")} style={{padding:"9px 12px",background:C.red+"15",border:"1px solid "+C.red+"33",borderRadius:8,color:C.red,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:600}}>
-                      Rechazar
-                    </button>
-                  </div>
-                </GCard>
-              ))}
-            </div>
-          )}
-          <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10,marginBottom:16}}>
-            {[{l:"Pendientes",v:jobs.filter(j=>j.status==="pending").length,c:C.orange},{l:"En progreso",v:jobs.filter(j=>j.status==="in_progress").length,c:C.blue},{l:"Completados",v:jobs.filter(j=>j.status==="done").length,c:C.green},{l:"Total",v:jobs.length,c:C.accent}].map(s=>(
-              <GCard key={s.l} style={{textAlign:"center",padding:"12px 8px"}}>
-                <p style={{fontWeight:800,fontSize:22,color:s.c}}>{s.v}</p>
-                <p style={{fontSize:11,color:C.muted}}>{s.l}</p>
-              </GCard>
-            ))}
-          </div>
-          <div style={{display:"flex",flexDirection:"column",gap:10}}>
-            {jobs.length===0&&<p style={{textAlign:"center",color:C.muted,fontSize:13,padding:32}}>No hay trabajos registrados aún</p>}
-            {jobs.map(j=>(
-              <GCard key={j.id} style={{padding:0,overflow:"hidden"}}>
-                {/* Barra lateral de color según estado */}
-                <div style={{display:"flex"}}>
-                  <div style={{width:4,flexShrink:0,background:
-                    j.status==="pending"?C.orange:
-                    j.status==="in_progress"?C.blue:
-                    j.status==="done"?C.green:C.muted,
-                    borderRadius:"4px 0 0 4px",
-                  }} />
-                  <div style={{flex:1,padding:14}}>
-                    <div style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:10}}>
-                      <div style={{flex:1}}>
-                        <p style={{fontWeight:700,color:C.text,fontSize:14,marginBottom:3}}>{j.title}</p>
-                        <p style={{fontSize:12,color:C.muted}}>👤 {j.client_name} · {timeAgo(j.created_at)}</p>
-                        {j.description&&<p style={{fontSize:12,color:C.mutedL,marginTop:4,lineHeight:1.4}}>{j.description}</p>}
-                      </div>
-                      <StatusDot status={j.status} />
-                    </div>
-
-                    {/* ── ACCIONES SEGÚN ESTADO ── */}
-                    {j.status==="pending"&&(
-                      <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-                        <button onClick={()=>updateJobStatus(j.id,"in_progress")} style={{
-                          flex:1,padding:"9px 12px",
-                          background:"linear-gradient(135deg,"+C.blue+","+C.blue+"BB)",
-                          border:"none",borderRadius:8,color:"#fff",
-                          cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:700,
-                          boxShadow:"0 4px 12px "+C.blue+"33",
-                        }}>✓ Precio acordado — Iniciar trabajo</button>
-                        <button onClick={()=>updateJobStatus(j.id,"cancelled")} style={{
-                          padding:"9px 12px",background:C.red+"15",
-                          border:"1px solid "+C.red+"33",borderRadius:8,color:C.red,
-                          cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:600,
-                        }}>Rechazar</button>
-                      </div>
-                    )}
-
-                    {j.status==="in_progress"&&(
-                      <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-                        <button onClick={()=>updateJobStatus(j.id,"done")} style={{
-                          flex:1,padding:"9px 12px",
-                          background:"linear-gradient(135deg,"+C.green+","+C.green+"BB)",
-                          border:"none",borderRadius:8,color:"#000",
-                          cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:800,
-                          boxShadow:"0 4px 12px "+C.green+"33",
-                        }}>🏁 Marcar finalizado · Cobrar</button>
-                        <button onClick={()=>updateJobStatus(j.id,"cancelled")} style={{
-                          padding:"9px 12px",background:C.red+"15",
-                          border:"1px solid "+C.red+"33",borderRadius:8,color:C.red,
-                          cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:600,
-                        }}>Cancelar</button>
-                      </div>
-                    )}
-
-                    {j.status==="done"&&(
-                      <div style={{
-                        padding:"8px 12px",background:C.green+"12",
-                        border:"1px solid "+C.green+"33",borderRadius:8,
-                        display:"flex",alignItems:"center",gap:8,
-                      }}>
-                        <span style={{fontSize:14}}>✅</span>
-                        <span style={{fontSize:12,color:C.green,fontWeight:700}}>Trabajo completado · Pendiente de cobro / archivado</span>
-                      </div>
-                    )}
-
-                    {j.status==="cancelled"&&(
-                      <div style={{
-                        padding:"8px 12px",background:C.red+"10",
-                        border:"1px solid "+C.red+"22",borderRadius:8,
-                      }}>
-                        <span style={{fontSize:12,color:C.muted}}>Trabajo cancelado</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </GCard>
-            ))}
-          </div>
-        </>)}
-
+{tab==="trabajos"&&(
+          <ProTrabajos user={{id:user.id,name:user.name}} onToast={showToast} />
+        )}
+        
         {tab==="perfil"&&(<>
           <div style={{padding:"22px 0 16px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
             <h2 style={{fontWeight:800,fontSize:22,color:C.text}}>Mi perfil público</h2>
@@ -5208,7 +5082,7 @@ setShowStripeModal({priceId:pl==="elite"?elitePriceId:PRICE_MAP[pl],plan:pl});
         paddingBottom: "calc(10px + env(safe-area-inset-bottom))", // Fix para iPhone
         paddingTop: "10px"
       }}>
-        {([["inicio","🏠","Inicio"],["chats","💬","Mensajes"],["trabajos","🔨","Trabajos"],["perfil","👤","Perfil"],["planes","💎","Planes"]] as const).map(([id,icon,label])=>(
+        {([["inicio","🏠","Inicio"],["chats","💬","Mensajes"],["trabajos","🔨","Trabajos"],["perfil","👤","Perfil"]] as const).map(([id,icon,label])=>(
           <button key={id} onClick={()=>setTab(id as any)} style={{flex:1,padding:"8px 2px 10px",background:"none",border:"none",color:tab===id?C.accent:C.muted,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:2,transition:"color 0.15s",position:"relative"}}>
             <span style={{fontSize:18,position:"relative"}}>
               {icon}
