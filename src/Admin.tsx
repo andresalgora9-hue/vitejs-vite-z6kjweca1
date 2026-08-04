@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import AdminCRM from "./admin/AdminCRM";
 import { db } from "./supabase";
 import type { UserRow, MessageRow, JobRow, Plan } from "./supabase";
 
@@ -25,7 +26,7 @@ const SUPABASE_URL = "https://rjwojxwrsbvwwshwwpvq.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI";
 const SB_HEADERS = {"Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":`Bearer ${SUPABASE_KEY}`};
 
-type Section = "monitor"|"profesionales"|"clientes"|"trabajos"|"mensajes"|"disputas"|"finanzas"|"flujo";
+type Section = "crm"|"monitor"|"profesionales"|"clientes"|"trabajos"|"mensajes"|"disputas"|"finanzas"|"flujo";
 type ProStatus = "pagando"|"trial"|"sin_tarjeta"|"expirado";
 
 // ── HELPERS ───────────────────────────────────────────────────────────────────
@@ -111,6 +112,7 @@ function ImageModal({url,onClose}:{url:string;onClose:()=>void}){
 
 // ── NAV ───────────────────────────────────────────────────────────────────────
 const NAV:{id:Section;icon:string;label:string;subs:{id:string;label:string}[]}[]=[
+  {id:"crm",         icon:"⬢",  label:"CRM",           subs:[{id:"resumen",label:"Resumen"},{id:"bandeja",label:"Bandeja"},{id:"tablero",label:"Tablero"},{id:"cobros",label:"Cobros"},{id:"pros",label:"Profesionales"},{id:"ciudades",label:"Ciudades"},{id:"decisiones",label:"Decisiones"}]},
   {id:"monitor",      icon:"◉",  label:"Monitor",       subs:[{id:"salud",label:"Salud"},{id:"alertas",label:"Alertas"},{id:"fuga",label:"Bloqueos"}]},
   {id:"profesionales",icon:"🔨", label:"Profesionales", subs:[{id:"todos",label:"Todos"},{id:"trial",label:"En trial"},{id:"sin_tarjeta",label:"Sin tarjeta"},{id:"pagando",label:"Pagando"},{id:"expirado",label:"Expirados"},{id:"sinleads",label:"Sin leads"}]},
   {id:"clientes",     icon:"👤", label:"Clientes",      subs:[{id:"todos",label:"Todos"},{id:"nuevos",label:"Nuevos 7d"}]},
@@ -123,8 +125,8 @@ const NAV:{id:Section;icon:string;label:string;subs:{id:string;label:string}[]}[
 
 // ── MAIN COMPONENT ────────────────────────────────────────────────────────────
 export default function Admin({onLogout}:{onLogout:()=>void}){
-  const [section, setSection] = useState<Section>("monitor");
-  const [sub, setSub]         = useState<string>("salud");
+const [section, setSection] = useState<Section>("crm");
+  const [sub, setSub]         = useState<string>("resumen");;
   const [users, setUsers]     = useState<UserRow[]>([]);
   const usersRef = useRef<UserRow[]>([]);
   useEffect(()=>{usersRef.current=users;},[users]);
@@ -1269,7 +1271,10 @@ export default function Admin({onLogout}:{onLogout:()=>void}){
   };
 
   // ── ROUTER ────────────────────────────────────────────────────────────────
-  const renderContent=()=>{
+const renderContent=()=>{
+    if(section==="crm"){
+      return <AdminCRM sub={sub} />;
+    }
     if(section==="monitor"){
       if(sub==="salud")  return renderSalud();
       if(sub==="alertas")return renderAlertas();
