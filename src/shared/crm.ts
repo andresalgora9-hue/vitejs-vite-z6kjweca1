@@ -1,813 +1,258 @@
 // ============================================================
-// OficioYa · Panel PROFESIONAL — pestaña TRABAJOS
-// Archivo independiente. No toca Perfil ni Mensajes.
+// OficioYa · CRM — tipos y listas compartidas
+// Este archivo lo usan el panel del PROFESIONAL y el panel ADMIN.
+// Si cambias una lista aquí, cambia en los dos sitios a la vez.
 // ============================================================
-import React, { useState, useEffect, useCallback } from "react";
-import { db } from "../supabase";
-import {
-  DealRow, DealEventRow, DealRequestRow, InvoiceRow, Stage,
-  STAGES_ACTIVOS, STAGES_SALDO, SUBSTAGES,
-  CLOSE_REASONS_SIN_PRECIO, CLOSE_REASONS_CON_PRECIO, REASONS_REASIGNAR,
-  PAUSE_REASONS, UNPAID_REASONS, labelDe,
-  eur, fechaCorta, tiempoRestante, conceptoTransferencia,
-  OY_IBAN, OY_TITULAR,
-} from "../shared/crm";
 
-const C = {
-  bg: "#0F1117", surface: "#161B27", card: "#1E2536", border: "#2D3A52",
-  accent: "#FFD700", orange: "#FF8C00", red: "#FF4455", green: "#00D68F",
-  blue: "#3B82F6", text: "#E8EDF5", muted: "#5A6A8A", mutedL: "#8899BB",
+// ── DATOS DE COBRO (cámbialos aquí si cambia el banco) ──
+export const OY_IBAN = "ES45 1465 0100 9117 4426 4278";
+export const OY_TITULAR = "Andrés Algora";
+
+// ── LOS 13 ESTADOS ──
+export type Stage =
+  | "entrada"
+  | "cualificado"
+  | "asignado"
+  | "aceptado"
+  | "presupuestando"
+  | "precio_acordado"
+  | "programado"
+  | "completado"
+  | "cobrado_cliente"
+  | "facturado"
+  | "liquidado"
+  | "en_espera"
+  | "cerrado";
+
+export const STAGE_LABEL: Record<Stage, string> = {
+  entrada: "Entrada",
+  cualificado: "Cualificado",
+  asignado: "Asignado",
+  aceptado: "Aceptado",
+  presupuestando: "Presupuestando",
+  precio_acordado: "Precio acordado",
+  programado: "Programado",
+  completado: "Completado",
+  cobrado_cliente: "Cobrado del cliente",
+  facturado: "Facturado",
+  liquidado: "Liquidado",
+  en_espera: "En espera",
+  cerrado: "Cerrado",
 };
-const F = "'DM Sans',sans-serif";
 
-// ── PIEZAS DE INTERFAZ ──────────────────────────────────────
-function Card({ children, style = {}, accent }: any) {
-  return (
-    <div style={{
-      background: C.card, border: "1px solid " + (accent || C.border),
-      borderRadius: 12, padding: 14, marginBottom: 10, ...style,
-    }}>{children}</div>
-  );
+// Estados en los que el profesional ve el trabajo en "Activos"
+export const STAGES_ACTIVOS: Stage[] = [
+  "asignado",
+  "aceptado",
+  "presupuestando",
+  "precio_acordado",
+  "programado",
+  "completado",
+];
+
+// Estados en los que ya hay dinero devengado
+export const STAGES_SALDO: Stage[] = ["cobrado_cliente", "facturado"];
+
+// ── QUÉ ESTÁ HACIENDO EL PRO MIENTRAS PRESUPUESTA ──
+export const SUBSTAGES = [
+  { id: "visita", label: "Voy a visitarlo", pideFecha: true },
+  { id: "fotos", label: "Esperando fotos o vídeo", pideFecha: false },
+  { id: "confirma", label: "Esperando que me confirme", pideFecha: false },
+] as const;
+
+// ── MOTIVOS DE DEVOLUCIÓN (cancelar) ──
+// Si NO llegó a dar precio (0 €)
+export const CLOSE_REASONS_SIN_PRECIO = [
+  { id: "no_contesta", label: "No consigo hablar con el cliente" },
+  { id: "ya_no_necesita", label: "El cliente ya no lo necesita" },
+  { id: "no_puedo", label: "No puedo atenderlo (agenda)" },
+  { id: "fuera_zona", label: "Está fuera de mi zona" },
+  { id: "otros", label: "Otros" },
+];
+
+// Si SÍ dio precio
+export const CLOSE_REASONS_CON_PRECIO = [
+  { id: "caro", label: "Le pareció caro" },
+  { id: "otro_presupuesto", label: "Eligió otro presupuesto" },
+  { id: "aplazado", label: "Lo ha aplazado" },
+  { id: "no_contesta_tras", label: "No contesta desde que le pasé el presupuesto" },
+  { id: "no_puedo", label: "No puedo atenderlo yo" },
+  { id: "otros", label: "Otros" },
+];
+
+// Motivos que devuelven el lead a la bandeja de admin para reasignar
+export const REASONS_REASIGNAR = ["no_puedo", "fuera_zona", "no_contesta", "no_contesta_tras"];
+
+// ── MOTIVOS PARA APARCAR ──
+export const PAUSE_REASONS = [
+  { id: "aplazado", label: "El cliente lo ha aplazado" },
+  { id: "tercero", label: "Espera decisión de otra persona (propietario, comunidad, pareja)" },
+  { id: "obra", label: "Obra o reforma sin terminar" },
+  { id: "fuera", label: "El cliente está fuera" },
+  { id: "seguro", label: "Tema de seguro o peritaje" },
+  { id: "otros", label: "Otros" },
+];
+
+// ── MOTIVOS DE IMPAGO DEL CLIENTE ──
+export const UNPAID_REASONS = [
+  { id: "plazo", label: "Me paga a plazos" },
+  { id: "espera_factura", label: "Espera mi factura" },
+  { id: "no_responde", label: "No me responde" },
+  { id: "disconforme", label: "No está conforme con el trabajo" },
+  { id: "otros", label: "Otros" },
+];
+
+export function labelDe(lista: { id: string; label: string }[], id?: string | null) {
+  if (!id) return "";
+  return lista.find((x) => x.id === id)?.label || id;
 }
 
-function Boton({ children, onClick, color = C.accent, outline = false, full = false, small = false, disabled = false }: any) {
-  return (
-    <button onClick={disabled ? undefined : onClick} disabled={disabled} style={{
-      padding: small ? "8px 12px" : "11px 14px",
-      background: disabled ? C.border : outline ? "transparent" : color,
-      border: outline ? "1px solid " + color : "none",
-      borderRadius: 9,
-      color: disabled ? C.muted : outline ? color : (color === C.accent || color === C.green ? "#000" : "#fff"),
-      fontFamily: F, fontSize: small ? 12 : 13, fontWeight: 800,
-      cursor: disabled ? "not-allowed" : "pointer",
-      width: full ? "100%" : undefined, flex: full ? undefined : 1,
-    }}>{children}</button>
-  );
+// ── LA FILA DE LA TABLA deals ──
+export interface DealRow {
+  id: string;
+  ref: number;
+  created_at: string;
+  updated_at: string;
+
+  city_id?: string | null;
+  city_name?: string | null;
+  zone?: string | null;
+
+  client_id?: string | null;
+  client_name: string;
+  client_phone: string;
+  client_email?: string | null;
+
+  trade: string;
+  title?: string | null;
+  description?: string | null;
+  urgency: number;
+  source: string;
+
+  pro_id?: string | null;
+  pro_name?: string | null;
+  assigned_at?: string | null;
+  accepted_at?: string | null;
+
+  stage: Stage;
+  substage?: string | null;
+  stage_before_pause?: string | null;
+  deadline_at?: string | null;
+  next_step_at?: string | null;
+  pause_until?: string | null;
+  pause_reason?: string | null;
+  pause_note?: string | null;
+
+  price?: number | null;
+  commission_rate: number;
+  commission_committed: number;
+  collected_amount: number;
+  commission_due: number;
+  collected_at?: string | null;
+  unpaid_reason?: string | null;
+  unpaid_expected_date?: string | null;
+
+  scheduled_for?: string | null;
+  completed_at?: string | null;
+
+  close_reason?: string | null;
+  close_note?: string | null;
+  close_price?: number | null;
+  closed_at?: string | null;
+  returned_to_admin: boolean;
+
+  invoice_id?: string | null;
+  settled_at?: string | null;
+  admin_note?: string | null;
 }
 
-function Modal({ title, children, onClose }: any) {
-  return (
-    <div onClick={onClose} style={{
-      position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 30000,
-      display: "flex", alignItems: "flex-end", justifyContent: "center",
-    }}>
-      <div onClick={(e) => e.stopPropagation()} style={{
-        background: C.surface, borderRadius: "18px 18px 0 0", width: "100%", maxWidth: 520,
-        maxHeight: "92vh", overflowY: "auto", padding: 20,
-        paddingBottom: "calc(20px + env(safe-area-inset-bottom))",
-        border: "1px solid " + C.border,
-      }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-          <h3 style={{ color: C.text, fontSize: 17, fontWeight: 800, margin: 0 }}>{title}</h3>
-          <button onClick={onClose} style={{ background: "none", border: "none", color: C.muted, fontSize: 24, cursor: "pointer", lineHeight: 1 }}>×</button>
-        </div>
-        {children}
-      </div>
-    </div>
-  );
+export interface DealEventRow {
+  id: string;
+  deal_id: string;
+  actor_id?: string | null;
+  actor_name?: string | null;
+  actor_role: string;
+  event: string;
+  detail?: string | null;
+  created_at: string;
 }
 
-function Radios({ options, value, onChange }: { options: { id: string; label: string }[]; value: string; onChange: (v: string) => void }) {
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-      {options.map((o) => (
-        <button key={o.id} onClick={() => onChange(o.id)} style={{
-          display: "flex", alignItems: "center", gap: 10, textAlign: "left",
-          padding: "11px 12px", borderRadius: 9, cursor: "pointer", fontFamily: F,
-          background: value === o.id ? C.accent + "18" : "transparent",
-          border: "1px solid " + (value === o.id ? C.accent : C.border),
-          color: value === o.id ? C.text : C.mutedL, fontSize: 13, fontWeight: 600,
-        }}>
-          <span style={{
-            width: 16, height: 16, borderRadius: "50%", flexShrink: 0,
-            border: "2px solid " + (value === o.id ? C.accent : C.muted),
-            background: value === o.id ? C.accent : "transparent",
-          }} />
-          {o.label}
-        </button>
-      ))}
-    </div>
-  );
+export interface DealRequestRow {
+  id: string;
+  deal_id: string;
+  pro_id?: string | null;
+  pro_name?: string | null;
+  kind: "pausa" | "correccion";
+  requested_until?: string | null;
+  reason?: string | null;
+  note?: string | null;
+  new_amount?: number | null;
+  status: "pendiente" | "aprobada" | "rechazada";
+  admin_note?: string | null;
+  created_at: string;
 }
 
-function Campo({ label, value, onChange, type = "text", placeholder = "", sufijo }: any) {
-  return (
-    <div style={{ marginBottom: 14 }}>
-      <label style={{ display: "block", fontSize: 12, color: C.mutedL, marginBottom: 6, fontWeight: 600 }}>{label}</label>
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <input
-          type={type} value={value} placeholder={placeholder}
-          onChange={(e) => onChange(e.target.value)}
-          style={{
-            flex: 1, padding: "11px 12px", background: C.bg, border: "1px solid " + C.border,
-            borderRadius: 9, color: C.text, fontSize: 15, fontFamily: F, outline: "none",
-          }}
-        />
-        {sufijo && <span style={{ color: C.mutedL, fontSize: 15, fontWeight: 700 }}>{sufijo}</span>}
-      </div>
-    </div>
-  );
+export interface InvoiceRow {
+  id: string;
+  number: string;
+  pro_id: string;
+  pro_name?: string | null;
+  period_start?: string | null;
+  period_end?: string | null;
+  base: number;
+  iva: number;
+  total: number;
+  status: string;
+  issued_at: string;
+  paid_at?: string | null;
 }
 
-function Reloj({ deal }: { deal: DealRow }) {
-  const t = tiempoRestante(deal.deadline_at);
-  if (!deal.deadline_at) return null;
-  const esCobro = deal.stage === "completado";
-  return (
-    <span style={{
-      fontSize: 11, fontWeight: 800, padding: "3px 8px", borderRadius: 5,
-      background: t.vencido ? C.red + "22" : esCobro ? C.blue + "18" : C.orange + "18",
-      color: t.vencido ? C.red : esCobro ? C.blue : C.orange,
-    }}>
-      {t.vencido ? "⚠ vencido hace " + t.texto : (esCobro ? "se dará por cobrado en " : "quedan ") + t.texto}
-    </span>
-  );
+// ── AYUDAS DE FORMATO ──
+export function eur(n?: number | null) {
+  const v = Number(n || 0);
+  return v.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
 }
 
-// ── COMPONENTE PRINCIPAL ────────────────────────────────────
-export default function ProTrabajos({ user, onToast }: { user: { id: string; name: string }; onToast?: (m: string) => void }) {
-  const [sub, setSub] = useState<"activos" | "espera" | "saldo" | "historial">("activos");
-  const [deals, setDeals] = useState<DealRow[]>([]);
-  const [pagos, setPagos] = useState<{ amount: number }[]>([]);
-  const [facturas, setFacturas] = useState<InvoiceRow[]>([]);
-  const [solicitudes, setSolicitudes] = useState<DealRequestRow[]>([]);
-  const [cargando, setCargando] = useState(true);
-  const [filtroHist, setFiltroHist] = useState<"liquidados" | "cancelados">("liquidados");
-
-  // modales
-  const [mPrecio, setMPrecio] = useState<DealRow | null>(null);
-  const [mFecha, setMFecha] = useState<DealRow | null>(null);
-  const [mCobro, setMCobro] = useState<DealRow | null>(null);
-  const [mImpago, setMImpago] = useState<DealRow | null>(null);
-  const [mDevolver, setMDevolver] = useState<DealRow | null>(null);
-  const [mAparcar, setMAparcar] = useState<DealRow | null>(null);
-  const [mFicha, setMFicha] = useState<DealRow | null>(null);
-
-  const aviso = (m: string) => { if (onToast) onToast(m); };
-
-  const cargar = useCallback(async () => {
-    const [d, p, f, s] = await Promise.all([
-      db.from("deals").select("*").eq("pro_id", user.id).order("created_at", { ascending: false }),
-      db.from("commission_payments").select("amount").eq("pro_id", user.id),
-      db.from("commission_invoices").select("*").eq("pro_id", user.id).order("issued_at", { ascending: false }),
-      db.from("deal_requests").select("*").eq("pro_id", user.id).eq("status", "pendiente"),
-    ]);
-    setDeals((d.data as DealRow[]) || []);
-    setPagos((p.data as any[]) || []);
-    setFacturas((f.data as InvoiceRow[]) || []);
-    setSolicitudes((s.data as DealRequestRow[]) || []);
-    setCargando(false);
-  }, [user.id]);
-
-  useEffect(() => { cargar(); }, [cargar]);
-
-  // Tiempo real: si admin cambia algo, se ve al momento
-  useEffect(() => {
-    const ch = db.channel("pro-deals-" + user.id)
-      .on("postgres_changes", { event: "*", schema: "public", table: "deals", filter: "pro_id=eq." + user.id }, () => cargar())
-      .subscribe();
-    return () => { db.removeChannel(ch); };
-  }, [user.id, cargar]);
-
-  // Refrescar los relojes cada minuto
-  const [, tick] = useState(0);
-  useEffect(() => { const i = setInterval(() => tick((n) => n + 1), 60000); return () => clearInterval(i); }, []);
-
-  const guardar = async (id: string, cambios: any, mensaje?: string) => {
-    const { error } = await db.from("deals").update(cambios).eq("id", id);
-    if (error) { aviso("No se pudo guardar. Inténtalo otra vez."); return false; }
-    await cargar();
-    if (mensaje) aviso(mensaje);
-    return true;
-  };
-
-  const evento = async (dealId: string, event: string, detail: string) => {
-    await db.from("deal_events").insert({
-      deal_id: dealId, actor_id: user.id, actor_name: user.name,
-      actor_role: "pro", event, detail,
-    });
-  };
-
-  // ── CLASIFICACIÓN ──
-  const tieneSolicitud = (id: string) => solicitudes.some((s) => s.deal_id === id);
-  const activos = deals.filter((d) => STAGES_ACTIVOS.includes(d.stage) ||
-    (d.stage === "cobrado_cliente" && Number(d.collected_amount) < Number(d.price || 0)));
-  const nuevos = activos.filter((d) => d.stage === "asignado");
-  const sinPrecio = activos.filter((d) => d.stage === "aceptado" || d.stage === "presupuestando");
-  const enMarcha = activos.filter((d) => d.stage === "precio_acordado" || d.stage === "programado");
-  const esperandoCobro = activos.filter((d) => d.stage === "completado" || d.stage === "cobrado_cliente");
-  const enEspera = deals.filter((d) => d.stage === "en_espera");
-  const historialLiq = deals.filter((d) => d.stage === "liquidado" || d.settled_at);
-  const historialCanc = deals.filter((d) => d.stage === "cerrado");
-
-  // ── SALDO ──
-  const dealsSaldo = deals.filter((d) => STAGES_SALDO.includes(d.stage) && !d.settled_at);
-  const devengado = dealsSaldo.reduce((a, d) => a + Number(d.commission_due || 0), 0);
-  const pagado = pagos.reduce((a, p) => a + Number(p.amount || 0), 0);
-  const pendiente = Math.max(0, devengado - pagado);
-  const concepto = conceptoTransferencia(user.name);
-
-  const copiarDatos = () => {
-    const txt = `${OY_TITULAR}\n${OY_IBAN}\nConcepto: ${concepto}\nImporte: ${eur(pendiente)}`;
-    if (navigator.clipboard) navigator.clipboard.writeText(txt).then(() => aviso("✓ Datos copiados"));
-  };
-
-  // ── ACCIONES ──
-  const aceptar = (d: DealRow) => guardar(d.id, { stage: "aceptado" }, "✓ Trabajo aceptado. Ya puedes ver el teléfono.");
-
-  const noPuedo = (d: DealRow) =>
-    guardar(d.id, { stage: "cerrado", close_reason: "no_puedo", close_price: 0, returned_to_admin: true },
-      "Devuelto a OficioYa. Se lo asignaremos a otro.");
-
-  const marcarSubstage = async (d: DealRow, id: string, fecha: string) => {
-    const opt = SUBSTAGES.find((s) => s.id === id);
-    const cambios: any = { stage: "presupuestando", substage: id };
-    if (opt?.pideFecha && fecha) {
-      cambios.next_step_at = new Date(fecha + "T12:00:00").toISOString();
-      cambios.deadline_at = new Date(new Date(fecha + "T12:00:00").getTime() + 86400000).toISOString();
-    } else if (id === "confirma") {
-      cambios.deadline_at = new Date(Date.now() + 5 * 86400000).toISOString();
-    } else {
-      cambios.deadline_at = new Date(Date.now() + 2 * 86400000).toISOString();
-    }
-    await guardar(d.id, cambios);
-    await evento(d.id, "seguimiento", opt?.label || id);
-  };
-
-  // ── RENDER ──
-  if (cargando) {
-    return <div style={{ padding: 50, textAlign: "center", color: C.muted, fontSize: 13 }}>Cargando tus trabajos…</div>;
-  }
-
-  return (
-    <div style={{ paddingBottom: 20 }}>
-      <div style={{ padding: "20px 0 14px" }}>
-        <h2 style={{ fontWeight: 800, fontSize: 22, color: C.text, margin: 0 }}>Mis trabajos</h2>
-      </div>
-
-      {/* SUB-PESTAÑAS */}
-      <div style={{ display: "flex", gap: 6, marginBottom: 16, overflowX: "auto" }}>
-        {([
-          ["activos", "Activos", activos.length ? String(activos.length) : ""],
-          ["espera", "En espera", enEspera.length ? String(enEspera.length) : ""],
-          ["saldo", "Saldo", pendiente > 0 ? eur(pendiente) : ""],
-          ["historial", "Historial", ""],
-        ] as const).map(([id, label, badge]) => (
-          <button key={id} onClick={() => setSub(id as any)} style={{
-            flexShrink: 0, padding: "9px 13px", borderRadius: 9, cursor: "pointer", fontFamily: F,
-            border: "1px solid " + (sub === id ? C.accent : C.border),
-            background: sub === id ? C.accent + "18" : "transparent",
-            color: sub === id ? C.accent : C.muted, fontSize: 12, fontWeight: 700,
-          }}>
-            {label}{badge ? " · " + badge : ""}
-          </button>
-        ))}
-      </div>
-
-      {/* ═══ ACTIVOS ═══ */}
-      {sub === "activos" && (
-        <>
-          {activos.length === 0 && (
-            <Card style={{ textAlign: "center", padding: 34 }}>
-              <p style={{ color: C.muted, fontSize: 13, margin: 0 }}>No tienes trabajos activos ahora mismo.</p>
-              <p style={{ color: C.muted, fontSize: 12, marginTop: 6 }}>Te avisaremos en cuanto te asignemos uno.</p>
-            </Card>
-          )}
-
-          {/* NUEVOS */}
-          {nuevos.length > 0 && (
-            <>
-              <Titulo color={C.orange}>🔴 Nuevos · acepta o rechaza</Titulo>
-              {nuevos.map((d) => (
-                <Card key={d.id} accent={C.orange + "55"} style={{ background: "#1a1500" }}>
-                  <Cabecera d={d} ocultarTelefono />
-                  <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-                    <Boton onClick={() => aceptar(d)} color={C.accent}>✓ Aceptar</Boton>
-                    <Boton onClick={() => noPuedo(d)} color={C.red} outline small>No puedo</Boton>
-                  </div>
-                </Card>
-              ))}
-            </>
-          )}
-
-          {/* PRESUPUESTANDO */}
-          {sinPrecio.length > 0 && (
-            <>
-              <Titulo color={C.blue}>🔵 Pendientes de precio</Titulo>
-              {sinPrecio.map((d) => (
-                <Card key={d.id}>
-                  <Cabecera d={d} />
-                  <div style={{ marginTop: 12, marginBottom: 10 }}>
-                    <p style={{ fontSize: 11, color: C.mutedL, marginBottom: 7, fontWeight: 700 }}>¿Cómo va?</p>
-                    <Radios
-                      options={SUBSTAGES.map((s) => ({ id: s.id, label: s.label }))}
-                      value={d.substage || ""}
-                      onChange={(v) => {
-                        const opt = SUBSTAGES.find((s) => s.id === v);
-                        if (opt?.pideFecha) {
-                          const f = window.prompt("¿Qué día vas a visitarlo? (formato 2026-08-12)");
-                          if (f) marcarSubstage(d, v, f);
-                        } else marcarSubstage(d, v, "");
-                      }}
-                    />
-                  </div>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <Boton onClick={() => setMPrecio(d)} color={C.accent}>Poner precio</Boton>
-                    <Boton onClick={() => setMAparcar(d)} color={C.mutedL} outline small disabled={tieneSolicitud(d.id)}>
-                      {tieneSolicitud(d.id) ? "Pedido" : "Aparcar"}
-                    </Boton>
-                    <Boton onClick={() => setMDevolver(d)} color={C.red} outline small>Devolver</Boton>
-                  </div>
-                </Card>
-              ))}
-            </>
-          )}
-
-          {/* EN MARCHA */}
-          {enMarcha.length > 0 && (
-            <>
-              <Titulo color={C.green}>🟡 En marcha</Titulo>
-              {enMarcha.map((d) => (
-                <Card key={d.id}>
-                  <Cabecera d={d} />
-                  <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-                    {d.stage === "precio_acordado"
-                      ? <Boton onClick={() => setMFecha(d)} color={C.blue}>Fijar fecha</Boton>
-                      : <Boton onClick={() => guardar(d.id, { stage: "completado" }, "✓ Trabajo completado")} color={C.green}>Marcar completado</Boton>}
-                    <Boton onClick={() => setMPrecio(d)} color={C.mutedL} outline small>Editar precio</Boton>
-                    <Boton onClick={() => setMDevolver(d)} color={C.red} outline small>Devolver</Boton>
-                  </div>
-                </Card>
-              ))}
-            </>
-          )}
-
-          {/* ESPERANDO COBRO */}
-          {esperandoCobro.length > 0 && (
-            <>
-              <Titulo color={C.blue}>⏳ Esperando cobro del cliente</Titulo>
-              {esperandoCobro.map((d) => {
-                const parcial = Number(d.collected_amount) > 0 && Number(d.collected_amount) < Number(d.price || 0);
-                return (
-                  <Card key={d.id}>
-                    <Cabecera d={d} />
-                    {parcial && (
-                      <p style={{ fontSize: 12, color: C.orange, marginTop: 8, fontWeight: 700 }}>
-                        Cobrado {eur(d.collected_amount)} de {eur(d.price)} · quedan {eur(Number(d.price || 0) - Number(d.collected_amount))}
-                      </p>
-                    )}
-                    {d.unpaid_reason && (
-                      <p style={{ fontSize: 12, color: C.red, marginTop: 8 }}>
-                        Impago declarado: {labelDe(UNPAID_REASONS, d.unpaid_reason)}
-                        {d.unpaid_expected_date ? " · previsto " + fechaCorta(d.unpaid_expected_date) : ""}
-                      </p>
-                    )}
-                    <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-                      <Boton onClick={() => setMCobro(d)} color={C.green}>{parcial ? "Añadir cobro" : "Ya he cobrado"}</Boton>
-                      <Boton onClick={() => setMImpago(d)} color={C.red} outline small>No me ha pagado</Boton>
-                    </div>
-                  </Card>
-                );
-              })}
-            </>
-          )}
-        </>
-      )}
-
-      {/* ═══ EN ESPERA ═══ */}
-      {sub === "espera" && (
-        <>
-          {solicitudes.length > 0 && (
-            <>
-              <Titulo color={C.orange}>Pendientes de aprobación</Titulo>
-              {solicitudes.map((s) => {
-                const d = deals.find((x) => x.id === s.deal_id);
-                return (
-                  <Card key={s.id} accent={C.orange + "44"}>
-                    <p style={{ color: C.text, fontWeight: 700, fontSize: 14, margin: 0 }}>{d?.client_name || "Trabajo"}</p>
-                    <p style={{ color: C.mutedL, fontSize: 12, marginTop: 4 }}>
-                      Pediste aparcar hasta el {fechaCorta(s.requested_until)} · {labelDe(PAUSE_REASONS, s.reason)}
-                    </p>
-                    <p style={{ color: C.orange, fontSize: 12, marginTop: 8, fontWeight: 700 }}>
-                      ⏳ El reloj sigue corriendo hasta que OficioYa lo apruebe
-                    </p>
-                  </Card>
-                );
-              })}
-            </>
-          )}
-          {enEspera.length === 0 && solicitudes.length === 0 && (
-            <Card style={{ textAlign: "center", padding: 34 }}>
-              <p style={{ color: C.muted, fontSize: 13, margin: 0 }}>No tienes trabajos aparcados.</p>
-            </Card>
-          )}
-          {enEspera.map((d) => (
-            <Card key={d.id}>
-              <p style={{ fontSize: 11, color: C.mutedL, fontWeight: 800, marginBottom: 6 }}>
-                💤 Se reactiva el {fechaCorta(d.pause_until)}
-              </p>
-              <Cabecera d={d} />
-              <p style={{ color: C.mutedL, fontSize: 12, marginTop: 8 }}>{labelDe(PAUSE_REASONS, d.pause_reason)}</p>
-            </Card>
-          ))}
-        </>
-      )}
-
-      {/* ═══ SALDO ═══ */}
-      {sub === "saldo" && (
-        <>
-          <Card style={{ textAlign: "center", padding: "26px 16px" }}>
-            <p style={{ color: C.mutedL, fontSize: 12, marginBottom: 6 }}>Pendiente de liquidar</p>
-            <p style={{ color: pendiente > 0 ? C.accent : C.green, fontSize: 38, fontWeight: 900, margin: 0 }}>{eur(pendiente)}</p>
-            <p style={{ color: C.muted, fontSize: 11, marginTop: 8 }}>Comisión del 20% sobre lo que ya has cobrado</p>
-          </Card>
-
-          {pendiente > 0 && (
-            <Card>
-              <p style={{ fontSize: 11, color: C.mutedL, fontWeight: 800, marginBottom: 10 }}>DATOS PARA LA TRANSFERENCIA</p>
-              <Fila k="Titular" v={OY_TITULAR} />
-              <Fila k="IBAN" v={OY_IBAN} />
-              <Fila k="Concepto" v={concepto} />
-              <Fila k="Importe" v={eur(pendiente)} destacado />
-              <div style={{ marginTop: 12 }}><Boton full onClick={copiarDatos}>Copiar datos</Boton></div>
-            </Card>
-          )}
-
-          {dealsSaldo.length > 0 && (
-            <>
-              <Titulo color={C.mutedL}>Incluye estos trabajos</Titulo>
-              <Card>
-                {dealsSaldo.map((d, i) => (
-                  <div key={d.id} style={{
-                    display: "flex", justifyContent: "space-between", padding: "9px 0",
-                    borderTop: i === 0 ? "none" : "1px solid " + C.border,
-                  }}>
-                    <span style={{ color: C.text, fontSize: 13 }}>{d.client_name}</span>
-                    <span style={{ color: C.mutedL, fontSize: 13 }}>
-                      {eur(d.collected_amount)} → <b style={{ color: C.accent }}>{eur(d.commission_due)}</b>
-                    </span>
-                  </div>
-                ))}
-              </Card>
-            </>
-          )}
-
-          {pagado > 0 && (
-            <p style={{ textAlign: "center", color: C.green, fontSize: 12, marginTop: 10 }}>
-              ✓ Ya has liquidado {eur(pagado)} en total
-            </p>
-          )}
-        </>
-      )}
-
-      {/* ═══ HISTORIAL ═══ */}
-      {sub === "historial" && (
-        <>
-          <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
-            {(["liquidados", "cancelados"] as const).map((f) => (
-              <button key={f} onClick={() => setFiltroHist(f)} style={{
-                padding: "7px 12px", borderRadius: 8, cursor: "pointer", fontFamily: F, fontSize: 12, fontWeight: 700,
-                border: "1px solid " + (filtroHist === f ? C.mutedL : C.border),
-                background: "transparent", color: filtroHist === f ? C.text : C.muted,
-                textTransform: "capitalize" as const,
-              }}>{f}</button>
-            ))}
-          </div>
-
-          {facturas.length > 0 && filtroHist === "liquidados" && (
-            <>
-              <Titulo color={C.mutedL}>Facturas</Titulo>
-              {facturas.map((f) => (
-                <Card key={f.id}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div>
-                      <p style={{ color: C.text, fontWeight: 700, fontSize: 13, margin: 0 }}>Factura {f.number}</p>
-                      <p style={{ color: C.muted, fontSize: 11, marginTop: 3 }}>
-                        {fechaCorta(f.period_start)} – {fechaCorta(f.period_end)} · {eur(f.total)}
-                      </p>
-                    </div>
-                    <span style={{
-                      fontSize: 10, fontWeight: 800, padding: "4px 8px", borderRadius: 5,
-                      background: f.status === "cobrada" ? C.green + "22" : C.orange + "22",
-                      color: f.status === "cobrada" ? C.green : C.orange,
-                    }}>{f.status === "cobrada" ? "LIQUIDADA" : "PENDIENTE"}</span>
-                  </div>
-                </Card>
-              ))}
-            </>
-          )}
-
-          {(filtroHist === "liquidados" ? historialLiq : historialCanc).length === 0 && (
-            <Card style={{ textAlign: "center", padding: 34 }}>
-              <p style={{ color: C.muted, fontSize: 13, margin: 0 }}>Nada por aquí todavía.</p>
-            </Card>
-          )}
-
-          {(filtroHist === "liquidados" ? historialLiq : historialCanc).map((d) => (
-            <Card key={d.id} style={{ opacity: 0.75 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                <div style={{ flex: 1 }}>
-                  <p style={{ color: C.text, fontWeight: 700, fontSize: 13, margin: 0 }}>{d.client_name}</p>
-                  <p style={{ color: C.muted, fontSize: 11, marginTop: 3 }}>
-                    {d.trade}{d.zone ? " · " + d.zone : ""} · {fechaCorta(d.closed_at || d.settled_at || d.created_at)}
-                  </p>
-                  {d.close_reason && (
-                    <p style={{ color: C.mutedL, fontSize: 12, marginTop: 6 }}>
-                      {labelDe([...CLOSE_REASONS_CON_PRECIO, ...CLOSE_REASONS_SIN_PRECIO], d.close_reason)}
-                      {d.close_note ? " — " + d.close_note : ""}
-                    </p>
-                  )}
-                </div>
-                <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 10 }}>
-                  {d.settled_at
-                    ? <><p style={{ color: C.green, fontSize: 13, fontWeight: 800, margin: 0 }}>🔒 {eur(d.commission_due)}</p>
-                        <p style={{ color: C.muted, fontSize: 10, marginTop: 2 }}>liquidado</p></>
-                    : <p style={{ color: C.muted, fontSize: 12, margin: 0 }}>{d.close_price ? eur(d.close_price) : "—"}</p>}
-                </div>
-              </div>
-              {d.settled_at && (
-                <button onClick={() => setMFicha(d)} style={{
-                  marginTop: 10, background: "none", border: "1px solid " + C.border, borderRadius: 7,
-                  color: C.mutedL, fontSize: 11, padding: "6px 10px", cursor: "pointer", fontFamily: F,
-                }}>Solicitar corrección</button>
-              )}
-            </Card>
-          ))}
-        </>
-      )}
-
-      {/* ═══════════ MODALES ═══════════ */}
-      {mPrecio && <ModalPrecio d={mPrecio} onClose={() => setMPrecio(null)} onSave={async (p) => {
-        await guardar(mPrecio.id, { stage: "precio_acordado", price: p, deadline_at: null }, "✓ Precio guardado: " + eur(p));
-        setMPrecio(null);
-      }} />}
-
-      {mFecha && <ModalFecha d={mFecha} onClose={() => setMFecha(null)} onSave={async (f) => {
-        await guardar(mFecha.id, { stage: "programado", scheduled_for: f }, "✓ Fecha fijada");
-        setMFecha(null);
-      }} />}
-
-      {mCobro && <ModalCobro d={mCobro} onClose={() => setMCobro(null)} onSave={async (imp, fecha) => {
-        const total = Number(mCobro.collected_amount || 0) + imp;
-        await guardar(mCobro.id, {
-          stage: "cobrado_cliente", collected_amount: total, collected_at: fecha,
-          unpaid_reason: null, unpaid_expected_date: null, deadline_at: null,
-        }, "✓ Cobro registrado");
-        setMCobro(null);
-      }} />}
-
-      {mImpago && <ModalImpago d={mImpago} onClose={() => setMImpago(null)} onSave={async (motivo, fecha) => {
-        await guardar(mImpago.id, {
-          unpaid_reason: motivo, unpaid_expected_date: fecha || null,
-          deadline_at: fecha ? new Date(fecha + "T12:00:00").toISOString() : null,
-        }, "Impago registrado. OficioYa lo ha recibido.");
-        await evento(mImpago.id, "impago", labelDe(UNPAID_REASONS, motivo));
-        setMImpago(null);
-      }} />}
-
-      {mDevolver && <ModalDevolver d={mDevolver} onClose={() => setMDevolver(null)} onSave={async (precio, motivo, nota) => {
-        await guardar(mDevolver.id, {
-          stage: "cerrado", close_reason: motivo, close_price: precio, close_note: nota || null,
-          returned_to_admin: REASONS_REASIGNAR.includes(motivo), deadline_at: null,
-        }, "Devuelto a OficioYa");
-        setMDevolver(null);
-      }} />}
-
-      {mAparcar && <ModalAparcar d={mAparcar} onClose={() => setMAparcar(null)} onSave={async (hasta, motivo, nota) => {
-        const { error } = await db.from("deal_requests").insert({
-          deal_id: mAparcar.id, pro_id: user.id, pro_name: user.name, kind: "pausa",
-          requested_until: hasta, reason: motivo, note: nota || null,
-        });
-        if (error) { aviso("No se pudo enviar."); return; }
-        await evento(mAparcar.id, "solicitud_pausa", "Pide aparcar hasta " + hasta);
-        await cargar();
-        aviso("Solicitud enviada. El reloj sigue hasta que se apruebe.");
-        setMAparcar(null);
-      }} />}
-
-      {mFicha && <ModalCorreccion d={mFicha} onClose={() => setMFicha(null)} onSave={async (imp, nota) => {
-        await db.from("deal_requests").insert({
-          deal_id: mFicha.id, pro_id: user.id, pro_name: user.name, kind: "correccion",
-          new_amount: imp, note: nota,
-        });
-        await cargar();
-        aviso("Solicitud enviada a OficioYa.");
-        setMFicha(null);
-      }} />}
-    </div>
-  );
+export function fechaCorta(iso?: string | null) {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString("es-ES", { day: "numeric", month: "short" });
 }
 
-// ── SUB-COMPONENTES ─────────────────────────────────────────
-function Titulo({ children, color }: any) {
-  return (
-    <p style={{
-      fontSize: 11, color, fontWeight: 800, textTransform: "uppercase" as const,
-      letterSpacing: "0.07em", margin: "18px 0 9px",
-    }}>{children}</p>
-  );
+/** Devuelve el tiempo que queda hasta una fecha. negativo = vencido */
+export function tiempoRestante(iso?: string | null): { ms: number; texto: string; vencido: boolean } {
+  if (!iso) return { ms: 0, texto: "", vencido: false };
+  const ms = new Date(iso).getTime() - Date.now();
+  const vencido = ms < 0;
+  const abs = Math.abs(ms);
+  const min = Math.floor(abs / 60000);
+  const horas = Math.floor(min / 60);
+  const dias = Math.floor(horas / 24);
+  let texto = "";
+  if (dias >= 1) texto = dias + (dias === 1 ? " día" : " días");
+  else if (horas >= 1) texto = horas + " h";
+  else texto = min + " min";
+  return { ms, texto, vencido };
 }
 
-function Fila({ k, v, destacado }: { k: string; v: string; destacado?: boolean }) {
-  return (
-    <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0" }}>
-      <span style={{ color: C.muted, fontSize: 12 }}>{k}</span>
-      <span style={{ color: destacado ? C.accent : C.text, fontSize: 13, fontWeight: destacado ? 800 : 600 }}>{v}</span>
-    </div>
-  );
+/** Semana ISO tipo "S31" para el concepto de la transferencia */
+export function semanaISO(d: Date = new Date()) {
+  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dia = t.getUTCDay() || 7;
+  t.setUTCDate(t.getUTCDate() + 4 - dia);
+  const inicio = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+  const semana = Math.ceil(((t.getTime() - inicio.getTime()) / 86400000 + 1) / 7);
+  return "S" + semana;
 }
 
-function Cabecera({ d, ocultarTelefono }: { d: DealRow; ocultarTelefono?: boolean }) {
-  return (
-    <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
-        <div style={{ flex: 1 }}>
-          <p style={{ color: C.text, fontWeight: 800, fontSize: 15, margin: 0 }}>{d.client_name}</p>
-          <p style={{ color: C.muted, fontSize: 12, marginTop: 3 }}>
-            {d.trade}{d.zone ? " · " + d.zone : ""}{d.city_name ? " · " + d.city_name : ""}
-          </p>
-        </div>
-        <Reloj deal={d} />
-      </div>
-
-      {d.description && (
-        <p style={{ color: C.mutedL, fontSize: 13, marginTop: 8, lineHeight: 1.45 }}>{d.description}</p>
-      )}
-
-      {ocultarTelefono ? (
-        <p style={{ color: C.muted, fontSize: 11, marginTop: 8, fontStyle: "italic" }}>
-          🔒 Verás el teléfono al aceptar
-        </p>
-      ) : (
-        <a href={"tel:" + d.client_phone} style={{
-          display: "inline-block", marginTop: 8, color: C.accent, fontSize: 14,
-          fontWeight: 700, textDecoration: "none",
-        }}>📞 {d.client_phone}</a>
-      )}
-
-      {d.price != null && (
-        <p style={{ color: C.text, fontSize: 14, marginTop: 8, fontWeight: 700 }}>
-          {eur(d.price)}
-          <span style={{ color: C.muted, fontSize: 12, fontWeight: 500 }}> · comisión {eur(d.commission_committed)}</span>
-          {d.scheduled_for && <span style={{ color: C.mutedL, fontSize: 12, fontWeight: 500 }}> · {fechaCorta(d.scheduled_for)}</span>}
-        </p>
-      )}
-    </div>
-  );
-}
-
-// ── MODALES ─────────────────────────────────────────────────
-function ModalPrecio({ d, onClose, onSave }: any) {
-  const [v, setV] = useState(d.price ? String(d.price) : "");
-  const num = parseFloat(v.replace(",", "."));
-  const ok = !isNaN(num) && num > 0;
-  return (
-    <Modal title="Precio acordado con el cliente" onClose={onClose}>
-      <Campo label="Importe total del trabajo" value={v} onChange={setV} type="number" placeholder="400" sufijo="€" />
-      {ok && (
-        <p style={{ color: C.mutedL, fontSize: 13, marginBottom: 16 }}>
-          Comisión de OficioYa: <b style={{ color: C.accent }}>{eur(num * 0.2)}</b> (20%, IVA incluido)
-        </p>
-      )}
-      <Boton full disabled={!ok} onClick={() => onSave(num)}>Guardar precio</Boton>
-    </Modal>
-  );
-}
-
-function ModalFecha({ d, onClose, onSave }: any) {
-  const [f, setF] = useState(d.scheduled_for || "");
-  return (
-    <Modal title="¿Qué día haces el trabajo?" onClose={onClose}>
-      <Campo label="Fecha prevista" value={f} onChange={setF} type="date" />
-      <Boton full disabled={!f} onClick={() => onSave(f)}>Guardar fecha</Boton>
-    </Modal>
-  );
-}
-
-function ModalCobro({ d, onClose, onSave }: any) {
-  const restante = Number(d.price || 0) - Number(d.collected_amount || 0);
-  const [v, setV] = useState(restante > 0 ? String(restante) : "");
-  const [f, setF] = useState(new Date().toISOString().slice(0, 10));
-  const num = parseFloat(v.replace(",", "."));
-  const ok = !isNaN(num) && num > 0;
-  return (
-    <Modal title="¿Cuánto te ha pagado el cliente?" onClose={onClose}>
-      <Campo label="Importe cobrado" value={v} onChange={setV} type="number" sufijo="€" />
-      <Campo label="Fecha del cobro" value={f} onChange={setF} type="date" />
-      {ok && (
-        <p style={{ color: C.mutedL, fontSize: 13, marginBottom: 16 }}>
-          Comisión que se genera: <b style={{ color: C.accent }}>{eur(num * 0.2)}</b>
-          {num < restante && <span style={{ color: C.orange }}> · quedará pendiente {eur(restante - num)}</span>}
-        </p>
-      )}
-      <Boton full color={C.green} disabled={!ok} onClick={() => onSave(num, f)}>Confirmar cobro</Boton>
-    </Modal>
-  );
-}
-
-function ModalImpago({ onClose, onSave }: any) {
-  const [motivo, setMotivo] = useState("");
-  const [fecha, setFecha] = useState("");
-  return (
-    <Modal title="El cliente no me ha pagado" onClose={onClose}>
-      <p style={{ color: C.mutedL, fontSize: 13, marginBottom: 14, lineHeight: 1.5 }}>
-        No se genera comisión hasta que cobres. Dinos qué pasa para que no te reclamemos nada.
-      </p>
-      <p style={{ fontSize: 12, color: C.mutedL, marginBottom: 8, fontWeight: 700 }}>Motivo</p>
-      <Radios options={UNPAID_REASONS} value={motivo} onChange={setMotivo} />
-      <div style={{ height: 14 }} />
-      <Campo label="¿Cuándo esperas cobrar? (opcional)" value={fecha} onChange={setFecha} type="date" />
-      <Boton full color={C.red} disabled={!motivo} onClick={() => onSave(motivo, fecha)}>Enviar a OficioYa</Boton>
-    </Modal>
-  );
-}
-
-function ModalDevolver({ d, onClose, onSave }: any) {
-  const [sinPrecio, setSinPrecio] = useState(!d.price);
-  const [v, setV] = useState(d.price ? String(d.price) : "");
-  const [motivo, setMotivo] = useState("");
-  const [nota, setNota] = useState("");
-  const num = sinPrecio ? 0 : parseFloat(v.replace(",", "."));
-  const precioOk = sinPrecio || (!isNaN(num) && num > 0);
-  const lista = sinPrecio ? CLOSE_REASONS_SIN_PRECIO : CLOSE_REASONS_CON_PRECIO;
-  const notaOk = motivo !== "otros" || nota.trim().length > 2;
-  const ok = precioOk && !!motivo && notaOk;
-
-  return (
-    <Modal title="Devolver este trabajo a OficioYa" onClose={onClose}>
-      <p style={{ fontSize: 12, color: C.mutedL, marginBottom: 8, fontWeight: 700 }}>1. ¿Qué precio le diste al cliente?</p>
-      {!sinPrecio && <Campo label="" value={v} onChange={setV} type="number" placeholder="400" sufijo="€" />}
-      <button onClick={() => { setSinPrecio(!sinPrecio); setMotivo(""); }} style={{
-        display: "flex", alignItems: "center", gap: 9, background: "none", cursor: "pointer",
-        border: "1px solid " + (sinPrecio ? C.accent : C.border), borderRadius: 9,
-        padding: "10px 12px", width: "100%", marginBottom: 18, fontFamily: F,
-        color: sinPrecio ? C.text : C.mutedL, fontSize: 13, fontWeight: 600,
-      }}>
-        <span style={{
-          width: 16, height: 16, borderRadius: "50%", flexShrink: 0,
-          border: "2px solid " + (sinPrecio ? C.accent : C.muted),
-          background: sinPrecio ? C.accent : "transparent",
-        }} />
-        No llegué a dar precio (0 €)
-      </button>
-
-      <p style={{ fontSize: 12, color: C.mutedL, marginBottom: 8, fontWeight: 700 }}>2. ¿Por qué se cae?</p>
-      <Radios options={lista} value={motivo} onChange={setMotivo} />
-
-      {motivo === "otros" && (
-        <div style={{ marginTop: 14 }}>
-          <Campo label="Cuéntanos qué ha pasado" value={nota} onChange={setNota} placeholder="Escribe aquí…" />
-        </div>
-      )}
-
-      <div style={{ height: 8 }} />
-      <p style={{ color: C.muted, fontSize: 11, marginBottom: 12, lineHeight: 1.5 }}>
-        Al enviarlo dejarás de ver este trabajo. OficioYa decidirá si lo cierra o se lo pasa a otro profesional.
-      </p>
-      <Boton full color={C.red} disabled={!ok} onClick={() => onSave(num, motivo, nota)}>Devolver a OficioYa</Boton>
-    </Modal>
-  );
-}
-
-function ModalAparcar({ onClose, onSave }: any) {
-  const [hasta, setHasta] = useState("");
-  const [motivo, setMotivo] = useState("");
-  const [nota, setNota] = useState("");
-  const notaOk = motivo !== "otros" || nota.trim().length > 2;
-  const ok = !!hasta && !!motivo && notaOk;
-  return (
-    <Modal title="Pedir aparcar este trabajo" onClose={onClose}>
-      <p style={{ fontSize: 12, color: C.mutedL, marginBottom: 8, fontWeight: 700 }}>1. ¿Hasta cuándo?</p>
-      <Campo label="" value={hasta} onChange={setHasta} type="date" />
-      <p style={{ fontSize: 12, color: C.mutedL, marginBottom: 8, fontWeight: 700 }}>2. ¿Por qué?</p>
-      <Radios options={PAUSE_REASONS} value={motivo} onChange={setMotivo} />
-      {motivo === "otros" && (
-        <div style={{ marginTop: 14 }}>
-          <Campo label="Cuéntanos por qué" value={nota} onChange={setNota} placeholder="Escribe aquí…" />
-        </div>
-      )}
-      <div style={{ height: 8 }} />
-      <p style={{ color: C.muted, fontSize: 11, marginBottom: 12, lineHeight: 1.5 }}>
-        OficioYa tiene que aprobarlo. Mientras tanto el trabajo sigue activo.
-      </p>
-      <Boton full disabled={!ok} onClick={() => onSave(hasta, motivo, nota)}>Enviar solicitud</Boton>
-    </Modal>
-  );
-}
-
-function ModalCorreccion({ d, onClose, onSave }: any) {
-  const [v, setV] = useState(String(d.collected_amount || d.price || ""));
-  const [nota, setNota] = useState("");
-  const num = parseFloat(v.replace(",", "."));
-  const ok = !isNaN(num) && num > 0 && nota.trim().length > 2;
-  return (
-    <Modal title="Solicitar corrección" onClose={onClose}>
-      <p style={{ color: C.mutedL, fontSize: 13, marginBottom: 14, lineHeight: 1.5 }}>
-        Este trabajo ya está liquidado. Puedes pedir un cambio y OficioYa lo revisará.
-      </p>
-      <Campo label="Importe correcto" value={v} onChange={setV} type="number" sufijo="€" />
-      <Campo label="¿Qué hay que corregir?" value={nota} onChange={setNota} placeholder="Escribe aquí…" />
-      <Boton full disabled={!ok} onClick={() => onSave(num, nota)}>Enviar solicitud</Boton>
-    </Modal>
-  );
+/** Concepto fijo de transferencia: OY-MARCOS-S31 */
+export function conceptoTransferencia(proName?: string | null) {
+  const limpio = (proName || "PRO")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase()
+    .split(" ")[0]
+    .replace(/[^A-Z0-9]/g, "");
+  return "OY-" + limpio + "-" + semanaISO();
 }
