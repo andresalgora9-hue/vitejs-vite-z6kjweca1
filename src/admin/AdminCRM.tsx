@@ -133,6 +133,9 @@ export default function AdminCRM({ sub }: { sub: string }) {
   const [mDescartar, setMDescartar] = useState<DealRow | null>(null);
   const [mPago, setMPago] = useState<DealRow | null>(null);
   const [mFicha, setMFicha] = useState<DealRow | null>(null);
+  const [colDrop, setColDrop] = useState<string | null>(null);
+  const [mPidePrecio, setMPidePrecio] = useState<{ d: DealRow; destino: Stage } | null>(null);
+  const [mPideCobro, setMPideCobro] = useState<DealRow | null>(null);
 
   const aviso = (m: string) => { setToast(m); setTimeout(() => setToast(null), 3000); };
 
@@ -204,9 +207,25 @@ export default function AdminCRM({ sub }: { sub: string }) {
   const sinCiudad = deals.filter((d) => !d.city_id && d.stage !== "cerrado");
 
   const pagadoDe = (proId?: string | null) => pagos.filter((p) => p.pro_id === proId).reduce((a, p) => a + Number(p.amount || 0), 0);
+  const pagadoDeal = (dealId: string) => pagos.filter((p) => p.deal_id === dealId).reduce((a, p) => a + Number(p.amount || 0), 0);
 
   // ── ACCIONES ──
   const cualificar = (d: DealRow) => guardar(d.id, { stage: "cualificado" }, "Cualificado");
+
+  // Mover un trabajo de columna. Pide los datos que falten en vez de dejar huecos.
+  const moverDeal = async (d: DealRow, destino: Stage) => {
+    if (d.stage === destino) return;
+    if (destino === "asignado" && !d.pro_id) { setMAsignar(d); return; }
+    if (["precio_acordado", "programado"].includes(destino) && !Number(d.price)) { setMPidePrecio({ d, destino }); return; }
+    if (destino === "cobrado_cliente" && !Number(d.collected_amount)) { setMPideCobro(d); return; }
+
+    const cambios: any = { stage: destino };
+    if (destino === "aceptado" && !d.accepted_at) cambios.accepted_at = new Date().toISOString();
+    if (destino === "completado" && !d.completed_at) cambios.completed_at = new Date().toISOString();
+    if (destino === "en_espera") cambios.stage_before_pause = d.stage;
+    if (destino === "entrada" || destino === "cualificado") { cambios.deadline_at = null; }
+    await guardar(d.id, cambios, STAGE_LABEL[destino]);
+  };
 
   const asignar = async (d: DealRow, pro: any) => {
     await guardar(d.id, {
@@ -296,24 +315,31 @@ export default function AdminCRM({ sub }: { sub: string }) {
         const leads = periodo.length;
         const asign = periodo.filter((d) => d.assigned_at).length;
         const conPrecio = periodo.filter((d) => Number(d.price) > 0).length;
-        const comprometida = periodo.reduce((a, d) => a + Number(d.commission_committed || 0), 0);
+        // Comprometida = precio acordado pero el pro AÚN NO ha cobrado del cliente
+        const comprometida = periodo
+          .filter((d) => ["precio_acordado", "programado", "completado"].includes(d.stage))
+          .reduce((a, d) => a + Number(d.commission_committed || 0), 0);
+        // Generada = el pro ya cobró del cliente, la comisión existe
         const devengada = periodo.reduce((a, d) => a + Number(d.commission_due || 0), 0);
-        const liquidada = periodo.filter((d) => d.settled_at).reduce((a, d) => a + Number(d.commission_due || 0), 0);
+        // Cobrada = dinero que ya está en la cuenta de OficioYa
+        const cobrada = periodo.reduce((a, d) => a + pagadoDeal(d.id), 0);
+        const porCobrar = Math.max(0, devengada - cobrada);
         const perdidos = periodo.filter((d) => d.stage === "cerrado").length;
         const conv = leads ? Math.round((conPrecio / leads) * 100) : 0;
         const ticket = conPrecio ? periodo.filter((d) => Number(d.price) > 0).reduce((a, d) => a + Number(d.price), 0) / conPrecio : 0;
 
         const porGrupo = (key: (d: DealRow) => string) => {
-          const m: Record<string, { n: number; comp: number; dev: number; cerr: number }> = {};
+          const m: Record<string, { n: number; comp: number; dev: number; cob: number; cerr: number }> = {};
           periodo.forEach((d) => {
             const k = key(d) || "—";
-            if (!m[k]) m[k] = { n: 0, comp: 0, dev: 0, cerr: 0 };
+            if (!m[k]) m[k] = { n: 0, comp: 0, dev: 0, cob: 0, cerr: 0 };
             m[k].n++;
-            m[k].comp += Number(d.commission_committed || 0);
+            if (["precio_acordado", "programado", "completado"].includes(d.stage)) m[k].comp += Number(d.commission_committed || 0);
             m[k].dev += Number(d.commission_due || 0);
+            m[k].cob += pagadoDeal(d.id);
             if (Number(d.price) > 0) m[k].cerr++;
           });
-          return Object.entries(m).sort((a, b) => b[1].comp - a[1].comp);
+          return Object.entries(m).sort((a, b) => (b[1].dev + b[1].comp) - (a[1].dev + a[1].comp));
         };
 
         const tabla = (titulo: string, filas: [string, any][]) => (
@@ -325,7 +351,8 @@ export default function AdminCRM({ sub }: { sub: string }) {
                 <span style={{ flex: 1, color: C.muted, fontSize: 10, fontWeight: 700, textAlign: "right" }}>LEADS</span>
                 <span style={{ flex: 1, color: C.muted, fontSize: 10, fontWeight: 700, textAlign: "right" }}>CERRADOS</span>
                 <span style={{ flex: 1, color: C.muted, fontSize: 10, fontWeight: 700, textAlign: "right" }}>COMPROMET.</span>
-                <span style={{ flex: 1, color: C.muted, fontSize: 10, fontWeight: 700, textAlign: "right" }}>DEVENGADA</span>
+                <span style={{ flex: 1, color: C.muted, fontSize: 10, fontWeight: 700, textAlign: "right" }}>GENERADA</span>
+                <span style={{ flex: 1, color: C.muted, fontSize: 10, fontWeight: 700, textAlign: "right" }}>TE DEBEN</span>
               </div>
               {filas.length === 0 && <p style={{ color: C.muted, fontSize: 12, padding: 14, margin: 0 }}>Sin datos en este periodo.</p>}
               {filas.map(([k, v]) => (
@@ -333,8 +360,9 @@ export default function AdminCRM({ sub }: { sub: string }) {
                   <span style={{ flex: 2, color: C.text, fontSize: 12, fontWeight: 600 }}>{k}</span>
                   <span style={{ flex: 1, color: C.mutedL, fontSize: 12, textAlign: "right" }}>{v.n}</span>
                   <span style={{ flex: 1, color: C.mutedL, fontSize: 12, textAlign: "right" }}>{v.cerr} ({v.n ? Math.round((v.cerr / v.n) * 100) : 0}%)</span>
-                  <span style={{ flex: 1, color: C.accent, fontSize: 12, textAlign: "right", fontWeight: 700 }}>{eur(v.comp)}</span>
-                  <span style={{ flex: 1, color: C.green, fontSize: 12, textAlign: "right" }}>{eur(v.dev)}</span>
+                  <span style={{ flex: 1, color: C.orange, fontSize: 12, textAlign: "right" }}>{eur(v.comp)}</span>
+                  <span style={{ flex: 1, color: C.blue, fontSize: 12, textAlign: "right" }}>{eur(v.dev)}</span>
+                  <span style={{ flex: 1, color: C.accent, fontSize: 12, textAlign: "right", fontWeight: 700 }}>{eur(Math.max(0, v.dev - v.cob))}</span>
                 </div>
               ))}
             </Caja>
@@ -354,11 +382,14 @@ export default function AdminCRM({ sub }: { sub: string }) {
               <Kpi label="Conversión" valor={conv + "%"} color={C.purple} />
             </div>
             <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap" }}>
-              <Kpi label="Comisión comprometida" valor={eur(comprometida)} color={C.accent} />
-              <Kpi label="Comisión devengada" valor={eur(devengada)} color={C.blue} />
-              <Kpi label="Comisión liquidada" valor={eur(liquidada)} color={C.green} />
-              <Kpi label="Ticket medio" valor={eur(ticket)} color={C.mutedL} />
+              <Kpi label="Comprometida · sin cobrar aún" valor={eur(comprometida)} color={C.orange} />
+              <Kpi label="Generada · el pro ya cobró" valor={eur(devengada)} color={C.blue} />
+              <Kpi label="Cobrada · en tu cuenta" valor={eur(cobrada)} color={C.green} />
+              <Kpi label="Te deben ahora mismo" valor={eur(porCobrar)} color={C.accent} />
             </div>
+            <p style={{ color: C.muted, fontSize: 11, marginTop: -12, marginBottom: 18 }}>
+              Ticket medio {eur(ticket)} · la comisión solo nace cuando el profesional cobra del cliente
+            </p>
             {tabla("POR CIUDAD", porGrupo((d) => d.city_name || ""))}
             {tabla("POR OFICIO", porGrupo((d) => d.trade))}
             {tabla("POR PROFESIONAL", porGrupo((d) => d.pro_name || "sin asignar"))}
@@ -422,48 +453,85 @@ export default function AdminCRM({ sub }: { sub: string }) {
         </>
       )}
 
-      {/* ══ TABLERO ══ */}
-      {sub === "tablero" && (
-        <>
-          <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
-            {selCiudad}
-            <span style={{ color: C.muted, fontSize: 12, alignSelf: "center" }}>{abiertos.length} trabajos abiertos</span>
-          </div>
+      {/* ══ TABLERO KANBAN ══ */}
+      {sub === "tablero" && (() => {
+        const COLS: Stage[] = ["entrada","cualificado","asignado","aceptado","presupuestando","precio_acordado","programado","completado","cobrado_cliente","en_espera"];
+        return (
+          <>
+            <div style={{ display: "flex", gap: 10, marginBottom: 14, flexWrap: "wrap", alignItems: "center" }}>
+              {selCiudad}
+              <span style={{ color: C.muted, fontSize: 12 }}>{abiertos.length} trabajos abiertos</span>
+              <span style={{ color: C.muted, fontSize: 11 }}>· arrastra las tarjetas entre columnas</span>
+            </div>
 
-          {(["cualificado", "asignado", "aceptado", "presupuestando", "precio_acordado", "programado", "completado", "cobrado_cliente", "facturado", "en_espera"] as Stage[]).map((st) => {
-            const lista = abiertos.filter((d) => d.stage === st);
-            if (!lista.length) return null;
-            return (
-              <div key={st} style={{ marginBottom: 18 }}>
-                <p style={{ fontSize: 11, color: colorEstado(st), fontWeight: 800, textTransform: "uppercase" as const, letterSpacing: "0.07em", marginBottom: 8 }}>
-                  {STAGE_LABEL[st]} · {lista.length}
-                </p>
-                {lista.map((d) => {
-                  const t = tiempoRestante(d.deadline_at);
-                  return (
-                    <Caja key={d.id} borde={t.vencido && d.deadline_at ? C.red + "55" : C.border} style={{ padding: 11 }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-                        <div style={{ flex: 1, minWidth: 200 }}>
-                          <span style={{ color: C.text, fontWeight: 700, fontSize: 13 }}>{d.client_name}</span>
-                          <span style={{ color: C.muted, fontSize: 11 }}> · {d.trade} · {d.city_name || "—"}</span>
-                          <p style={{ color: C.mutedL, fontSize: 11, margin: "4px 0 0" }}>
-                            {d.pro_name || "sin asignar"}
-                            {d.price ? " · " + eur(d.price) + " → " + eur(d.commission_committed) : ""}
+            <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 16, alignItems: "flex-start" }}>
+              {COLS.map((st) => {
+                const lista = abiertos.filter((d) => d.stage === st);
+                const suma = lista.reduce((a, d) => a + Number(d.commission_committed || 0), 0);
+                const col = colorEstado(st);
+                return (
+                  <div key={st}
+                    onDragOver={(e) => { e.preventDefault(); setColDrop(st); }}
+                    onDragLeave={() => setColDrop(null)}
+                    onDrop={(e) => { e.preventDefault(); setColDrop(null); const id = e.dataTransfer.getData("text/plain"); const d = deals.find((x) => x.id === id); if (d) moverDeal(d, st); }}
+                    style={{
+                      minWidth: 250, maxWidth: 250, flexShrink: 0,
+                      background: colDrop === st ? col + "12" : C.bg,
+                      border: "1px solid " + (colDrop === st ? col : C.border),
+                      borderRadius: 10, padding: 9, minHeight: 130,
+                    }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 9, paddingBottom: 7, borderBottom: "2px solid " + col + "55" }}>
+                      <span style={{ color: col, fontSize: 11, fontWeight: 800, textTransform: "uppercase" as const, letterSpacing: "0.04em" }}>
+                        {STAGE_LABEL[st]}
+                      </span>
+                      <span style={{ color: C.muted, fontSize: 11, fontWeight: 700 }}>{lista.length}</span>
+                    </div>
+                    {suma > 0 && (
+                      <p style={{ color: C.accent, fontSize: 11, fontWeight: 700, margin: "0 0 8px" }}>{eur(suma)}</p>
+                    )}
+                    {lista.length === 0 && (
+                      <p style={{ color: C.border, fontSize: 11, textAlign: "center", padding: "14px 0", margin: 0 }}>—</p>
+                    )}
+                    {lista.map((d) => {
+                      const t = tiempoRestante(d.deadline_at);
+                      const rojo = t.vencido && !!d.deadline_at;
+                      return (
+                        <div key={d.id} draggable
+                          onDragStart={(e) => e.dataTransfer.setData("text/plain", d.id)}
+                          onClick={() => setMFicha(d)}
+                          style={{
+                            background: C.card, border: "1px solid " + (rojo ? C.red + "66" : C.border),
+                            borderLeft: "3px solid " + (rojo ? C.red : col),
+                            borderRadius: 8, padding: "9px 10px", marginBottom: 7, cursor: "grab",
+                          }}>
+                          <p style={{ color: C.text, fontWeight: 700, fontSize: 12.5, margin: 0 }}>{d.client_name}</p>
+                          <p style={{ color: C.muted, fontSize: 10.5, margin: "3px 0 0" }}>
+                            {d.trade}{d.zone ? " · " + d.zone : ""}
                           </p>
+                          {d.pro_name && (
+                            <p style={{ color: C.blue, fontSize: 10.5, margin: "4px 0 0", fontWeight: 600 }}>🔨 {d.pro_name}</p>
+                          )}
+                          {d.price ? (
+                            <p style={{ color: C.accent, fontSize: 11.5, margin: "5px 0 0", fontWeight: 700 }}>
+                              {eur(d.price)} <span style={{ color: C.muted, fontWeight: 500 }}>→ {eur(d.commission_committed)}</span>
+                            </p>
+                          ) : null}
+                          <div style={{ display: "flex", gap: 5, marginTop: 6, flexWrap: "wrap" }}>
+                            {d.deadline_at && <Etiqueta texto={t.vencido ? "⚠ " + t.texto : t.texto} color={rojo ? C.red : C.mutedL} />}
+                            {d.urgency === 2 && <Etiqueta texto="URGENTE" color={C.red} />}
+                            {!d.city_id && <Etiqueta texto="SIN CIUDAD" color={C.orange} />}
+                            {d.pause_until && <Etiqueta texto={"💤 " + fechaCorta(d.pause_until)} color={C.purple} />}
+                          </div>
                         </div>
-                        <div style={{ display: "flex", gap: 7, alignItems: "center" }}>
-                          {d.deadline_at && <Etiqueta texto={t.vencido ? "vencido " + t.texto : t.texto} color={t.vencido ? C.red : C.mutedL} />}
-                          <Bt small ghost color={C.mutedL} onClick={() => setMFicha(d)}>Ver</Bt>
-                        </div>
-                      </div>
-                    </Caja>
-                  );
-                })}
-              </div>
-            );
-          })}
-        </>
-      )}
+                      );
+                    })}
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        );
+      })()}
 
       {/* ══ COBROS ══ */}
       {sub === "cobros" && (
@@ -643,7 +711,17 @@ export default function AdminCRM({ sub }: { sub: string }) {
 
       {mPago && <ModalPago d={mPago} onClose={() => setMPago(null)} onSave={(imp: number, f: string, ref: string) => registrarPago(mPago, imp, f, ref)} />}
 
-      {mFicha && <ModalFicha d={mFicha} onClose={() => setMFicha(null)} />}
+      {mFicha && <ModalFicha d={mFicha} onClose={() => setMFicha(null)} onMover={(st: Stage) => { setMFicha(null); moverDeal(mFicha, st); }} />}
+
+      {mPidePrecio && <ModalPrecioAdmin d={mPidePrecio.d} onClose={() => setMPidePrecio(null)} onSave={async (precio: number) => {
+        await guardar(mPidePrecio.d.id, { stage: mPidePrecio.destino, price: precio, deadline_at: null }, "Precio " + eur(precio));
+        setMPidePrecio(null);
+      }} />}
+
+      {mPideCobro && <ModalCobroAdmin d={mPideCobro} onClose={() => setMPideCobro(null)} onSave={async (imp: number, fecha: string) => {
+        await guardar(mPideCobro.id, { stage: "cobrado_cliente", collected_amount: imp, collected_at: fecha, deadline_at: null }, "Cobro registrado");
+        setMPideCobro(null);
+      }} />}
     </div>
   );
 }
@@ -769,7 +847,7 @@ function ModalPago({ d, onClose, onSave }: any) {
   );
 }
 
-function ModalFicha({ d, onClose }: any) {
+function ModalFicha({ d, onClose, onMover }: any) {
   const [eventos, setEventos] = useState<any[]>([]);
   useEffect(() => {
     db.from("deal_events").select("*").eq("deal_id", d.id).order("created_at", { ascending: true })
@@ -786,6 +864,18 @@ function ModalFicha({ d, onClose }: any) {
         {d.pro_name && <Etiqueta texto={d.pro_name} color={C.blue} />}
         {d.price ? <Etiqueta texto={eur(d.price) + " → " + eur(d.commission_committed)} color={C.accent} /> : null}
       </div>
+      {onMover && (
+        <div style={{ marginBottom: 16 }}>
+          <p style={{ fontSize: 11, color: C.mutedL, fontWeight: 800, marginBottom: 6 }}>MOVER A</p>
+          <select defaultValue="" onChange={(e) => { if (e.target.value) onMover(e.target.value); }}
+            style={{ width: "100%", padding: "9px 11px", background: C.bg, border: "1px solid " + C.border, borderRadius: 8, color: C.text, fontSize: 13, fontFamily: F }}>
+            <option value="">— elegir etapa —</option>
+            {(["entrada","cualificado","asignado","aceptado","presupuestando","precio_acordado","programado","completado","cobrado_cliente","en_espera","cerrado"] as Stage[])
+              .filter((x) => x !== d.stage)
+              .map((x) => <option key={x} value={x}>{STAGE_LABEL[x]}</option>)}
+          </select>
+        </div>
+      )}
       <p style={{ fontSize: 11, color: C.mutedL, fontWeight: 800, marginBottom: 8 }}>HISTORIAL</p>
       {eventos.length === 0 && <p style={{ color: C.muted, fontSize: 12 }}>Sin movimientos.</p>}
       {eventos.map((e) => (
@@ -797,6 +887,40 @@ function ModalFicha({ d, onClose }: any) {
           <span style={{ color: C.text, fontSize: 12, flex: 1 }}>{e.detail || e.event}</span>
         </div>
       ))}
+    </Modal>
+  );
+}
+
+function ModalPrecioAdmin({ d, onClose, onSave }: any) {
+  const [v, setV] = useState(d.price ? String(d.price) : "");
+  const num = parseFloat(String(v).replace(",", "."));
+  const ok = !isNaN(num) && num > 0;
+  return (
+    <Modal title="Falta el precio acordado" onClose={onClose} ancho={400}>
+      <p style={{ color: C.mutedL, fontSize: 12, marginBottom: 14 }}>
+        {d.client_name} · {d.trade}{d.pro_name ? " · " + d.pro_name : ""}
+      </p>
+      <In label="Precio del trabajo (€)" req type="number" value={v} onChange={setV} ph="400" />
+      {ok && <p style={{ color: C.mutedL, fontSize: 12, marginBottom: 12 }}>Comisión: <b style={{ color: C.accent }}>{eur(num * Number(d.commission_rate || 0.2))}</b></p>}
+      <Bt full color={C.accent} disabled={!ok} onClick={() => onSave(num)}>Guardar y mover</Bt>
+    </Modal>
+  );
+}
+
+function ModalCobroAdmin({ d, onClose, onSave }: any) {
+  const [v, setV] = useState(d.price ? String(d.price) : "");
+  const [f, setF] = useState(new Date().toISOString().slice(0, 10));
+  const num = parseFloat(String(v).replace(",", "."));
+  const ok = !isNaN(num) && num > 0;
+  return (
+    <Modal title="¿Cuánto ha cobrado el profesional?" onClose={onClose} ancho={400}>
+      <p style={{ color: C.mutedL, fontSize: 12, marginBottom: 14 }}>
+        {d.client_name} · {d.pro_name || "sin asignar"}
+      </p>
+      <In label="Importe cobrado del cliente (€)" req type="number" value={v} onChange={setV} />
+      <In label="Fecha del cobro" req type="date" value={f} onChange={setF} />
+      {ok && <p style={{ color: C.mutedL, fontSize: 12, marginBottom: 12 }}>Comisión que nace: <b style={{ color: C.accent }}>{eur(num * Number(d.commission_rate || 0.2))}</b></p>}
+      <Bt full color={C.green} disabled={!ok} onClick={() => onSave(num, f)}>Confirmar</Bt>
     </Modal>
   );
 }
