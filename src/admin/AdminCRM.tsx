@@ -257,6 +257,24 @@ export default function AdminCRM({ sub, rol = "admin", ciudadesGestor }: { sub: 
       deadline_at: new Date(Date.now() + 30 * 60000).toISOString(),
       returned_to_admin: false, close_reason: null, closed_at: null,
     }, "Asignado a " + pro.name);
+    try {
+      await db.from("messages").insert({
+        from_id: "00000000-0000-0000-0000-000000000001",
+        to_id: pro.id,
+        text: `🔴 *TRABAJO ASIGNADO*|DEAL_ID:${d.id}|${d.client_name} · ${d.trade} · ${d.city_name || ""}${d.zone ? " (" + d.zone + ")" : ""}\n📝 ${d.description || ""}\n📞 ${d.client_phone}\n\nTienes 30 minutos para aceptarlo.`,
+        read: false, is_lead_alert: true,
+      });
+      await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/send-push", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: pro.id,
+          title: "🔴 Trabajo asignado · " + d.trade,
+          body: d.client_name + " · " + (d.city_name || "") + (d.zone ? " (" + d.zone + ")" : ""),
+          url: "/",
+        }),
+      });
+    } catch (e) { /* si falla el aviso, la asignación ya está guardada */ }
     setMAsignar(null);
   };
 
