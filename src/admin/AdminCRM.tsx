@@ -829,8 +829,7 @@ export default function AdminCRM({ sub, rol = "admin", ciudadesGestor }: { sub: 
         setMGestion(null);
       }} />}
 
-      {mFicha && <ModalFicha d={mFicha} onClose={() => setMFicha(null)} onMover={(st: Stage) => { setMFicha(null); moverDeal(mFicha, st); }} />}
-
+      {mFicha && <ModalFicha d={mFicha} cities={cities} onClose={() => setMFicha(null)} onMover={(st: Stage) => { setMFicha(null); moverDeal(mFicha, st); }} onGuardar={async (cambios: any) => { await guardar(mFicha.id, cambios, "Ficha actualizada"); setMFicha(null); }} />}
       {mPidePrecio && <ModalPrecioAdmin d={mPidePrecio.d} onClose={() => setMPidePrecio(null)} onSave={async (precio: number) => {
         await guardar(mPidePrecio.d.id, { stage: mPidePrecio.destino, price: precio, deadline_at: null }, "Precio " + eur(precio));
         setMPidePrecio(null);
@@ -965,23 +964,81 @@ function ModalPago({ d, onClose, onSave }: any) {
   );
 }
 
-function ModalFicha({ d, onClose, onMover }: any) {
+function ModalFicha({ d, cities, onClose, onMover, onGuardar }: any) {
   const [eventos, setEventos] = useState<any[]>([]);
+  const [editando, setEditando] = useState(false);
+  const [cityId, setCityId] = useState(d.city_id || "");
+  const [zona, setZona] = useState(d.zone || "");
+  const [tel, setTel] = useState(d.client_phone === "—" ? "" : (d.client_phone || ""));
   useEffect(() => {
     db.from("deal_events").select("*").eq("deal_id", d.id).order("created_at", { ascending: true })
       .then(({ data }: any) => setEventos(data || []));
   }, [d.id]);
+  const ciudadSel = (cities || []).find((c: any) => c.id === cityId);
+  const puedeGuardar = !!cityId && tel.trim().length >= 6;
+  const canal = d.source === "google_ads" ? "Google Ads" : d.source === "seo" ? "Búsqueda natural" : d.source === "llamada" ? "Llamada directa" : d.source || "—";
   return (
     <Modal title={"#" + d.ref + " · " + d.client_name} onClose={onClose}>
-      <p style={{ color: C.mutedL, fontSize: 13, marginBottom: 6 }}>
-        {d.trade} · {d.city_name || "—"}{d.zone ? " · " + d.zone : ""} · 📞 {d.client_phone}
-      </p>
-      <p style={{ color: C.text, fontSize: 13, marginBottom: 12 }}>{d.description}</p>
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
+      {!d.city_id && (
+        <Caja borde={C.orange} style={{ background: C.orange + "18" }}>
+          <p style={{ color: C.orange, fontSize: 12, fontWeight: 800, margin: 0 }}>
+            ⚠ Este lead no tiene ciudad. Ponla aquí abajo para poder cualificarlo.
+          </p>
+        </Caja>
+      )}
+
+      {!editando && (
+        <>
+          <p style={{ color: C.mutedL, fontSize: 13, marginBottom: 6 }}>
+            {d.trade} · {d.city_name || "SIN CIUDAD"}{d.zone ? " · " + d.zone : ""} · 📞 {d.client_phone}
+          </p>
+          <p style={{ color: C.text, fontSize: 13, marginBottom: 10 }}>{d.description}</p>
+          <div style={{ marginBottom: 16 }}>
+            <Bt small ghost onClick={() => setEditando(true)}>✎ Corregir ciudad, barrio o teléfono</Bt>
+          </div>
+        </>
+      )}
+
+      {editando && (
+        <Caja style={{ background: C.bg }}>
+          <Sel label="Ciudad" req value={cityId} onChange={setCityId}
+            options={(cities || []).map((c: any) => ({ v: c.id, l: c.name }))} />
+          <In label="Barrio o pueblo" value={zona} onChange={setZona} ph="Triana, Nervión, Dos Hermanas…" />
+          <In label="Teléfono del cliente" req value={tel} onChange={setTel} ph="600000000" />
+          <div style={{ display: "flex", gap: 8 }}>
+            <Bt disabled={!puedeGuardar} onClick={() => onGuardar({
+              city_id: cityId,
+              city_name: ciudadSel ? ciudadSel.name : null,
+              zone: zona.trim() || null,
+              client_phone: tel.trim(),
+            })}>Guardar</Bt>
+            <Bt ghost color={C.muted} onClick={() => setEditando(false)}>Cancelar</Bt>
+          </div>
+        </Caja>
+      )}
+
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
         <Etiqueta texto={STAGE_LABEL[d.stage as Stage]} color={colorEstado(d.stage)} />
         {d.pro_name && <Etiqueta texto={d.pro_name} color={C.blue} />}
         {d.price ? <Etiqueta texto={eur(d.price) + " → " + eur(d.commission_committed)} color={C.accent} /> : null}
       </div>
+
+      <Caja style={{ background: C.bg, marginBottom: 16 }}>
+        <p style={{ fontSize: 11, color: C.mutedL, fontWeight: 800, margin: "0 0 8px" }}>DE DÓNDE VIENE</p>
+        <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: "5px 12px", fontSize: 12 }}>
+          <span style={{ color: C.muted }}>Canal</span>
+          <span style={{ color: C.text }}>{canal}</span>
+          <span style={{ color: C.muted }}>Página</span>
+          <span style={{ color: C.text }}>{d.landing && d.landing !== "app" && d.landing !== "historico" ? d.landing : "—"}</span>
+          <span style={{ color: C.muted }}>Campaña</span>
+          <span style={{ color: C.text }}>{d.utm_campaign || "—"}</span>
+          <span style={{ color: C.muted }}>Anuncio</span>
+          <span style={{ color: C.text }}>{d.utm_content || "—"}</span>
+          <span style={{ color: C.muted }}>Entró el</span>
+          <span style={{ color: C.text }}>{fechaCorta(d.created_at)}</span>
+        </div>
+      </Caja>
+
       {onMover && (
         <div style={{ marginBottom: 16 }}>
           <p style={{ fontSize: 11, color: C.mutedL, fontWeight: 800, marginBottom: 6 }}>MOVER A</p>
