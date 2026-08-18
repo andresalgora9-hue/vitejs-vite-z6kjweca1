@@ -2466,7 +2466,8 @@ function ClientHome({user,onLogout,onUpdate,deepLinkChatWith,onLogin}:{user:User
   const [qrDesc,setQrDesc]=useState("");
   const [qrSending,setQrSending]=useState(false);
   const [qrErr,setQrErr]=useState("");
-  const handleQuickRequest=async(override?:{name:string;email:string;phone:string;oficio:string;desc:string})=>{
+  const handleQuickRequest=async(override?:{name:string;email:string;phone:string;oficio:string;desc:string;ciudad?:string;zona?:string;landing?:string;utm_source?:string;utm_campaign?:string;utm_content?:string;gclid?:string})=>{
+    const ciudadReq=override?.ciudad||"Sevilla";
     const name=override?.name??qrName;
     const email=override?.email??qrEmail;
     const phone=override?.phone??qrPhone;
@@ -2485,7 +2486,7 @@ function ClientHome({user,onLogout,onUpdate,deepLinkChatWith,onLogin}:{user:User
       }
       const u=data.user;
       const norm=(s:string)=>s?.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim()||"";
-      const{data:req}=await db.from("budget_requests").insert({client_id:u.id,client_name:name.trim(),oficio:oficioReq,zona:"Sevilla",description:desc.trim(),max_budget:null,status:"open",notified_pros:[]}).select().single();
+      const{data:req}=await db.from("budget_requests").insert({client_id:u.id,client_name:name.trim(),oficio:oficioReq,zona:ciudadReq,description:desc.trim(),max_budget:null,status:"open",notified_pros:[],city_slug:(override?.ciudad||"sevilla").toLowerCase(),landing:override?.landing||"app",utm_source:override?.utm_source||null,utm_campaign:override?.utm_campaign||null,utm_content:override?.utm_content||null,gclid:override?.gclid||null}).select().single();
       if(req){
         const{data:allPros}=await db.from("users").select("id,name,trade,zone,service_zones,plan").eq("type","profesional").eq("available",true).in("plan",["elite","pro"]);
         const eligibles=((allPros||[]) as any[]).filter((w:any)=>norm(w.trade||"")===norm(oficioReq));
@@ -2500,7 +2501,7 @@ function ClientHome({user,onLogout,onUpdate,deepLinkChatWith,onLogin}:{user:User
           notifiedIds.push(pro.id);
         }
         await db.from("budget_requests").update({notified_pros:notifiedIds,last_notified_at:new Date().toISOString()}).eq("id",req.id);
-        fetch(`${SUPABASE_FUNCTIONS_URL}/notify-admin`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({type:"sin_profesional",cliente:name,oficio:oficioReq,zona:"Sevilla",descripcion:desc,telefono:phone,email:email,request_id:req.id})}).catch(()=>{});
+        fetch(`${SUPABASE_FUNCTIONS_URL}/notify-admin`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({type:"sin_profesional",cliente:name,oficio:oficioReq,zona:ciudadReq,descripcion:desc,telefono:phone,email:email,request_id:req.id})}).catch(()=>{});
       }
       gtagEvent("generate_lead",{content_name:"quick_request",oficio:oficioReq});
       fbqEvent("Lead",{content_name:"quick_request",content_category:oficioReq});
@@ -2520,10 +2521,17 @@ function ClientHome({user,onLogout,onUpdate,deepLinkChatWith,onLogin}:{user:User
       const emailParam=p.get("email")||"";
       const oficioParam=p.get("oficio")||qrOficio;
       const descParam=p.get("desc")||"";
+      const ciudadParam=p.get("ciudad")||"Sevilla";
+      const zonaParam=p.get("zona")||"";
+      const landingParam=p.get("landing")||"app";
+      const utmSourceParam=p.get("utm_source")||"";
+      const utmCampaignParam=p.get("utm_campaign")||"";
+      const utmContentParam=p.get("utm_content")||"";
+      const gclidParam=p.get("gclid")||"";
      setQrOficio(oficioParam);setQrName(nombreParam);setQrPhone(telefonoParam);setQrEmail(emailParam);setQrDesc(descParam);
       setShowQuickRequest(true);
       window.history.replaceState({},"",window.location.pathname);
-      handleQuickRequest({name:nombreParam,email:emailParam,phone:telefonoParam,oficio:oficioParam,desc:descParam});
+      handleQuickRequest({name:nombreParam,email:emailParam,phone:telefonoParam,oficio:oficioParam,desc:descParam,ciudad:ciudadParam,zona:zonaParam,landing:landingParam,utm_source:utmSourceParam,utm_campaign:utmCampaignParam,utm_content:utmContentParam,gclid:gclidParam});
     }
   },[]);
   const pendingActionRef=useRef<(()=>void)|null>(null);
