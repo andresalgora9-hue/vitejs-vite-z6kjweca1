@@ -2487,20 +2487,7 @@ function ClientHome({user,onLogout,onUpdate,deepLinkChatWith,onLogin}:{user:User
       const u=data.user;
       const norm=(s:string)=>s?.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim()||"";
       const{data:req}=await db.from("budget_requests").insert({client_id:u.id,client_name:name.trim(),oficio:oficioReq,zona:ciudadReq,description:desc.trim(),max_budget:null,status:"open",notified_pros:[],city_slug:(override?.ciudad||"sevilla").toLowerCase(),landing:override?.landing||"app",utm_source:override?.utm_source||null,utm_campaign:override?.utm_campaign||null,utm_content:override?.utm_content||null,gclid:override?.gclid||null}).select().single();
-      if(req){
-        const{data:allPros}=await db.from("users").select("id,name,trade,zone,service_zones,plan").eq("type","profesional").eq("available",true).in("plan",["elite","pro"]);
-        const eligibles=((allPros||[]) as any[]).filter((w:any)=>norm(w.trade||"")===norm(oficioReq));
-        const shuffle=(arr:any[])=>[...arr].sort(()=>Math.random()-0.5);
-        const elites=shuffle(eligibles.filter((w:any)=>w.plan==="elite"));
-        const pros=shuffle(eligibles.filter((w:any)=>w.plan==="pro"));
-        const toNotify=[...elites.slice(0,2),...pros.slice(0,1)];
-        const notifiedIds:string[]=[];
-        for(const pro of toNotify){
-          await db.from("messages").insert({from_id:"00000000-0000-0000-0000-000000000001",to_id:pro.id,text:`🔴 *NUEVO LEAD*|REQUEST_ID:${req.id}|${name} necesita ${oficioReq} en Sevilla.\n📝 ${desc}\n📞 ${phone}`,read:false,is_lead_alert:true});
-          fetch(`${SUPABASE_FUNCTIONS_URL}/send-push`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({user_id:pro.id,title:"🔴 Nuevo lead · "+oficioReq,body:name+" necesita "+oficioReq+" en Sevilla",url:"/"})}).catch(()=>{});
-          notifiedIds.push(pro.id);
-        }
-        await db.from("budget_requests").update({notified_pros:notifiedIds,last_notified_at:new Date().toISOString()}).eq("id",req.id);
+            if(req){
         fetch(`${SUPABASE_FUNCTIONS_URL}/notify-admin`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({type:"sin_profesional",cliente:name,oficio:oficioReq,zona:ciudadReq,descripcion:desc,telefono:phone,email:email,request_id:req.id})}).catch(()=>{});
       }
       gtagEvent("generate_lead",{content_name:"quick_request",oficio:oficioReq});
