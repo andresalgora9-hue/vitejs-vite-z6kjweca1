@@ -111,7 +111,7 @@ function ImageModal({url,onClose}:{url:string;onClose:()=>void}){
 }
 
 // ── NAV ───────────────────────────────────────────────────────────────────────
-const NAV:{id:Section;icon:string;label:string;subs:{id:string;label:string}[]}[]=[
+const NAV_ADMIN:{id:Section;icon:string;label:string;subs:{id:string;label:string}[]}[]=[
   {id:"crm",         icon:"⬢",  label:"CRM",           subs:[{id:"resumen",label:"Resumen"},{id:"bandeja",label:"Bandeja"},{id:"tablero",label:"Tablero"},{id:"cobros",label:"Cobros"},{id:"pros",label:"Profesionales"},{id:"ciudades",label:"Ciudades"},{id:"decisiones",label:"Decisiones"}]},
   {id:"monitor",      icon:"◉",  label:"Monitor",       subs:[{id:"salud",label:"Salud"},{id:"alertas",label:"Alertas"},{id:"fuga",label:"Bloqueos"}]},
   {id:"profesionales",icon:"🔨", label:"Profesionales", subs:[{id:"todos",label:"Todos"},{id:"trial",label:"En trial"},{id:"sin_tarjeta",label:"Sin tarjeta"},{id:"pagando",label:"Pagando"},{id:"expirado",label:"Expirados"},{id:"sinleads",label:"Sin leads"}]},
@@ -122,11 +122,15 @@ const NAV:{id:Section;icon:string;label:string;subs:{id:string;label:string}[]}[
   {id:"finanzas",     icon:"◆",  label:"Finanzas",      subs:[{id:"mrr",label:"MRR"},{id:"planes",label:"Por plan"},{id:"ltv",label:"LTV"}]},
   {id:"flujo",        icon:"⟳",  label:"Funnel",        subs:[{id:"funnel",label:"Funnel"},{id:"leads",label:"Leads landing"},{id:"leads_clientes",label:"Leads clientes"},{id:"buscar",label:"Buscador"}]},
 ];
+const NAV_GESTOR:{id:Section;icon:string;label:string;subs:{id:string;label:string}[]}[]=[
+  {id:"crm", icon:"⬢", label:"Mis trabajos", subs:[{id:"bandeja",label:"Bandeja"},{id:"tablero",label:"Tablero"},{id:"decisiones",label:"Avisos"}]},
+];
 
 // ── MAIN COMPONENT ────────────────────────────────────────────────────────────
-export default function Admin({onLogout}:{onLogout:()=>void}){
+export default function Admin({onLogout,rolGestor,ciudadesGestor}:{onLogout:()=>void;rolGestor?:boolean;ciudadesGestor?:string[]}){
+const NAV = rolGestor ? NAV_GESTOR : NAV_ADMIN;
 const [section, setSection] = useState<Section>("crm");
-  const [sub, setSub]         = useState<string>("resumen");;
+  const [sub, setSub]         = useState<string>(rolGestor?"bandeja":"resumen");
   const [users, setUsers]     = useState<UserRow[]>([]);
   const usersRef = useRef<UserRow[]>([]);
   useEffect(()=>{usersRef.current=users;},[users]);
