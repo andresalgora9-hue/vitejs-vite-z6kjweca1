@@ -1276,8 +1276,8 @@ const [section, setSection] = useState<Section>("crm");
 
   // ── ROUTER ────────────────────────────────────────────────────────────────
 const renderContent=()=>{
-    if(section==="crm"){
-            return <AdminCRM sub={sub} rol={rolGestor?"gestor":"admin"} ciudadesGestor={rolGestor?(ciudadesGestor||[]):null} />;
+        if(section==="crm"){
+      return <AdminCRM sub={sub} rol={rolGestor?"gestor":"admin"} ciudadesGestor={rolGestor?(ciudadesGestor||[]):null} />;
     }
     if(section==="monitor"){
       if(sub==="salud")  return renderSalud();
