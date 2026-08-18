@@ -2142,34 +2142,6 @@ function SolicitudesTab({user,workers,onWorkerSelect,onChat,autoOpen=false,onSol
   }).select().single();
 
   if(req){
-    // Solo elite y pro, filtrados por oficio y zona
-    const {data:allPros}=await db.from("users").select("id,name,trade,zone,service_zones,rating,reviews,jobs,verified,available,plan,bio,price,phone,whatsapp,trial_end,joined_at,type,photos,specialties,experience_years,free_quote,schedule,response_time,company_name").eq("type","profesional").eq("available",true).in("plan",["elite","pro"]);
-const norm=(s:string)=>s?.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim()||"";
-const eligibles=((allPros||[]) as UserRow[]).filter(w=>norm(w.trade||"")===norm(oficio)&&(norm(w.zone||"")===norm(zona)||(w.service_zones||[]).some((z:string)=>norm(z)===norm(zona))));
-    // Separar y barajar aleatoriamente
-    const shuffle=(arr:UserRow[])=>[...arr].sort(()=>Math.random()-0.5);
-    const elites=shuffle(eligibles.filter(w=>w.plan==="elite"));
-    const pros=shuffle(eligibles.filter(w=>w.plan==="pro"));
-    // 2 elite + 1 pro
-    const toNotify=[...elites.slice(0,2),...pros.slice(0,1)];
-
-    const notifiedIds:string[]=[];
-    for(const pro of toNotify){
-      await db.from("messages").insert({
-        from_id:"00000000-0000-0000-0000-000000000001",
-        to_id:pro.id,
-        text:`🔴 *NUEVO LEAD*|REQUEST_ID:${req.id}|${user.name} necesita ${oficio} en ${zona}.\n📝 ${desc}${maxBudget?"\n💰 Máx: "+maxBudget+"€":""}`,
-        read:false,
-        is_lead_alert:true,
-      });
-      fetch(`${SUPABASE_FUNCTIONS_URL}/send-push`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({user_id:pro.id,title:"🔴 Nuevo lead · "+oficio,body:user.name+" necesita "+oficio+" en "+zona,url:"/"})}).catch(()=>{});
-      notifiedIds.push(pro.id);
-    }
-    // Guardar quién fue notificado para la rotación
-    await db.from("budget_requests").update({
-      notified_pros:notifiedIds,
-      last_notified_at:new Date().toISOString(),
-    }).eq("id",req.id);
 
     // Notificar admin siempre
     fetch(`${SUPABASE_FUNCTIONS_URL}/notify-admin`,{
