@@ -142,6 +142,9 @@ export default function AdminCRM({ sub, rol = "admin", ciudadesGestor }: { sub: 
   const [mDescartar, setMDescartar] = useState<DealRow | null>(null);
   const [mPago, setMPago] = useState<DealRow | null>(null);
   const [mFicha, setMFicha] = useState<DealRow | null>(null);
+  const [proF, setProF] = useState("");
+  const [desdeF, setDesdeF] = useState("");
+  const [hastaF, setHastaF] = useState("");
   const [colDrop, setColDrop] = useState<string | null>(null);
   const [mPidePrecio, setMPidePrecio] = useState<{ d: DealRow; destino: Stage } | null>(null);
   const [mPideCobro, setMPideCobro] = useState<DealRow | null>(null);
@@ -345,6 +348,34 @@ export default function AdminCRM({ sub, rol = "admin", ciudadesGestor }: { sub: 
     </select>
   );
 
+  const inputEstilo = { padding: "7px 10px", background: C.card, border: "1px solid " + C.border, borderRadius: 8, color: C.text, fontSize: 12, fontFamily: F };
+
+  const selPro = (
+    <select value={proF} onChange={(e) => setProF(e.target.value)} style={inputEstilo}>
+      <option value="">Todos los profesionales</option>
+      {pros.map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}
+    </select>
+  );
+
+  const filtroFechas = esAdmin ? (
+    <>
+      <input type="date" value={desdeF} onChange={(e) => setDesdeF(e.target.value)} style={inputEstilo} title="Entraron desde" />
+      <input type="date" value={hastaF} onChange={(e) => setHastaF(e.target.value)} style={inputEstilo} title="Entraron hasta" />
+      {(desdeF || hastaF || proF) && (
+        <button onClick={() => { setDesdeF(""); setHastaF(""); setProF(""); }}
+          style={{ ...inputEstilo, cursor: "pointer", color: C.muted }}>✕ limpiar</button>
+      )}
+    </>
+  ) : null;
+
+  const aplicaExtra = (d: DealRow) => {
+    if (proF && d.pro_id !== proF) return false;
+    const f = String(d.created_at).slice(0, 10);
+    if (desdeF && f < desdeF) return false;
+    if (hastaF && f > hastaF) return false;
+    return true;
+  };
+
   return (
     <div style={{ fontFamily: F }}>
       {toast && (
@@ -496,20 +527,36 @@ export default function AdminCRM({ sub, rol = "admin", ciudadesGestor }: { sub: 
 
       {/* ══ TABLERO KANBAN ══ */}
       {sub === "tablero" && (() => {
-        const COLS: Stage[] = ["entrada","cualificado","asignado","aceptado","presupuestando","precio_acordado","programado","completado","cobrado_cliente","en_espera"];
+        const hoy = new Date().toISOString().slice(0, 10);
+        const mes = hoy.slice(0, 7);
+        const GRUPOS: { id: string; label: string; stages: Stage[]; destino: Stage; color: string; dinero: boolean; soloMes?: boolean }[] = [
+          { id: "nuevos",     label: "Leads nuevos",          stages: ["entrada", "cualificado"],       destino: "entrada",         color: C.mutedL, dinero: false },
+          { id: "enviado",    label: "Enviado al pro",        stages: ["asignado"],                     destino: "asignado",        color: C.blue,   dinero: false },
+          { id: "contactado", label: "Contactado",            stages: ["aceptado"],                     destino: "aceptado",        color: C.blue,   dinero: false },
+          { id: "presu",      label: "Esperando presupuesto", stages: ["presupuestando"],               destino: "presupuestando",  color: C.purple, dinero: false },
+          { id: "precio",     label: "Precio acordado",       stages: ["precio_acordado"],              destino: "precio_acordado", color: C.accent, dinero: true },
+          { id: "proceso",    label: "En proceso",            stages: ["programado"],                   destino: "programado",      color: C.accent, dinero: true },
+          { id: "hecho",      label: "Trabajo completado",    stages: ["completado"],                   destino: "completado",      color: C.green,  dinero: true },
+          { id: "pendiente",  label: "Pendiente de comisión", stages: ["cobrado_cliente", "facturado"], destino: "cobrado_cliente", color: C.orange, dinero: true },
+          { id: "pagada",     label: "Comisión pagada",       stages: ["liquidado"],                    destino: "liquidado",       color: C.green,  dinero: true, soloMes: true },
+        ];
+
+        const base = filtra(deals.filter((d) => d.stage !== "cerrado" && !d.returned_to_admin)).filter(aplicaExtra);
+        const activos = base.filter((d) => d.stage !== "liquidado");
+
         return (
           <>
             <div style={{ display: "flex", gap: 10, marginBottom: 14, flexWrap: "wrap", alignItems: "center" }}>
               {selCiudad}
-              <span style={{ color: C.muted, fontSize: 12 }}>{abiertos.length} trabajos abiertos</span>
-              <span style={{ color: C.muted, fontSize: 11 }}>· arrastra las tarjetas entre columnas</span>
+              {selPro}
+              {filtroFechas}
+              <span style={{ color: C.muted, fontSize: 12 }}>{activos.length} trabajos abiertos</span>
             </div>
 
             <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 16, alignItems: "flex-start" }}>
               {(() => {
-                const hoy = new Date().toISOString().slice(0, 10);
-                const paraHoy = abiertos.filter((d) => d.next_followup_at && d.next_followup_at <= hoy);
-                const sinNada = abiertos.filter((d) => !d.next_followup_at && !["completado","cobrado_cliente"].includes(d.stage));
+                const paraHoy = activos.filter((d) => d.next_followup_at && d.next_followup_at <= hoy);
+                const sinNada = activos.filter((d) => !d.next_followup_at && !["completado", "cobrado_cliente", "facturado"].includes(d.stage));
                 const lista = [...paraHoy, ...sinNada];
                 return (
                   <div style={{ minWidth: 250, maxWidth: 250, flexShrink: 0, background: C.orange + "0C", border: "1px solid " + C.orange + "55", borderRadius: 10, padding: 9, minHeight: 130 }}>
@@ -535,58 +582,83 @@ export default function AdminCRM({ sub, rol = "admin", ciudadesGestor }: { sub: 
                   </div>
                 );
               })()}
-              {COLS.map((st) => {
-                const lista = abiertos.filter((d) => d.stage === st);
-                const suma = lista.reduce((a, d) => a + Number(d.commission_committed || 0), 0);
-                const col = colorEstado(st);
+
+              {GRUPOS.map((g) => {
+                let lista = base.filter((d) => g.stages.includes(d.stage));
+                if (g.soloMes) lista = lista.filter((d) => String(d.updated_at || d.created_at).slice(0, 7) === mes);
+                const sumaTrabajo = lista.reduce((a, d) => a + Number(d.price || 0), 0);
+                const sumaComision = lista.reduce((a, d) => a + Number(g.id === "pagada" ? (d.commission_due || 0) : (d.commission_committed || 0)), 0);
+                const conPrecio = lista.filter((d) => Number(d.price || 0) > 0).length;
+                const col = g.color;
                 return (
-                  <div key={st}
-                    onDragOver={(e) => { e.preventDefault(); setColDrop(st); }}
+                  <div key={g.id}
+                    onDragOver={(e) => { e.preventDefault(); setColDrop(g.id); }}
                     onDragLeave={() => setColDrop(null)}
-                    onDrop={(e) => { e.preventDefault(); setColDrop(null); const id = e.dataTransfer.getData("text/plain"); const d = deals.find((x) => x.id === id); if (d) moverDeal(d, st); }}
+                    onDrop={(e) => { e.preventDefault(); setColDrop(null); const id = e.dataTransfer.getData("text/plain"); const d = deals.find((x) => x.id === id); if (d && !g.stages.includes(d.stage)) moverDeal(d, g.destino); }}
                     style={{
                       minWidth: 250, maxWidth: 250, flexShrink: 0,
-                      background: colDrop === st ? col + "12" : C.bg,
-                      border: "1px solid " + (colDrop === st ? col : C.border),
+                      background: colDrop === g.id ? col + "12" : C.bg,
+                      border: "1px solid " + (colDrop === g.id ? col : C.border),
                       borderRadius: 10, padding: 9, minHeight: 130,
                     }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 9, paddingBottom: 7, borderBottom: "2px solid " + col + "55" }}>
-                      <span style={{ color: col, fontSize: 11, fontWeight: 800, textTransform: "uppercase" as const, letterSpacing: "0.04em" }}>
-                        {STAGE_LABEL[st]}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 7, paddingBottom: 7, borderBottom: "2px solid " + col + "55" }}>
+                      <span style={{ color: col, fontSize: 10.5, fontWeight: 800, textTransform: "uppercase" as const, letterSpacing: "0.03em", lineHeight: 1.2 }}>
+                        {g.label}
                       </span>
                       <span style={{ color: C.muted, fontSize: 11, fontWeight: 700 }}>{lista.length}</span>
                     </div>
-                    {suma > 0 && (
-                      <p style={{ color: C.accent, fontSize: 11, fontWeight: 700, margin: "0 0 8px" }}>{eur(suma)}</p>
+
+                    {g.dinero && verDinero && lista.length > 0 && (
+                      <div style={{ background: C.card2, borderRadius: 7, padding: "7px 8px", marginBottom: 8 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
+                          <span style={{ color: C.muted, fontSize: 10 }}>Trabajos</span>
+                          <span style={{ color: C.text, fontSize: 11.5, fontWeight: 700 }}>{eur(sumaTrabajo)}</span>
+                        </div>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}>
+                          <span style={{ color: C.muted, fontSize: 10 }}>{g.id === "pagada" ? "Cobrado" : g.id === "pendiente" ? "Te deben" : "Comisión"}</span>
+                          <span style={{ color: g.id === "pendiente" ? C.orange : C.accent, fontSize: 11.5, fontWeight: 800 }}>{eur(sumaComision)}</span>
+                        </div>
+                        {conPrecio < lista.length && (
+                          <p style={{ color: C.muted, fontSize: 9.5, margin: "5px 0 0", fontStyle: "italic" }}>
+                            {lista.length - conPrecio} sin precio todavía
+                          </p>
+                        )}
+                      </div>
                     )}
+
                     {lista.length === 0 && (
                       <p style={{ color: C.border, fontSize: 11, textAlign: "center", padding: "14px 0", margin: 0 }}>—</p>
                     )}
+
                     {lista.map((d) => {
                       const t = tiempoRestante(d.deadline_at);
                       const rojo = t.vencido && !!d.deadline_at;
+                      const sinRevisar = g.id === "nuevos" && d.stage === "entrada";
                       return (
                         <div key={d.id} draggable
                           onDragStart={(e) => e.dataTransfer.setData("text/plain", d.id)}
                           onClick={() => setMFicha(d)}
                           style={{
-                            background: C.card, border: "1px solid " + (rojo ? C.red + "66" : C.border),
-                            borderLeft: "3px solid " + (rojo ? C.red : col),
+                            background: C.card, border: "1px solid " + (rojo ? C.red + "66" : sinRevisar ? C.orange + "55" : C.border),
+                            borderLeft: "3px solid " + (rojo ? C.red : sinRevisar ? C.orange : col),
                             borderRadius: 8, padding: "9px 10px", marginBottom: 7, cursor: "grab",
                           }}>
                           <p style={{ color: C.text, fontWeight: 700, fontSize: 12.5, margin: 0 }}>{d.client_name}</p>
                           <p style={{ color: C.muted, fontSize: 10.5, margin: "3px 0 0" }}>
-                            {d.trade}{d.zone ? " · " + d.zone : ""}
+                            {d.trade}{d.city_name ? " · " + d.city_name : ""}{d.zone && d.zone !== d.city_name ? " (" + d.zone + ")" : ""}
                           </p>
-                          {d.pro_name && (
+                          {d.pro_name ? (
                             <p style={{ color: C.blue, fontSize: 10.5, margin: "4px 0 0", fontWeight: 600 }}>🔨 {d.pro_name}</p>
+                          ) : (
+                            <p style={{ color: C.muted, fontSize: 10.5, margin: "4px 0 0", fontStyle: "italic" }}>sin profesional</p>
                           )}
-                          {d.price ? (
+                          {d.price && verDinero ? (
                             <p style={{ color: C.accent, fontSize: 11.5, margin: "5px 0 0", fontWeight: 700 }}>
                               {eur(d.price)} <span style={{ color: C.muted, fontWeight: 500 }}>→ {eur(d.commission_committed)}</span>
                             </p>
                           ) : null}
                           <div style={{ display: "flex", gap: 5, marginTop: 6, flexWrap: "wrap" }}>
+                            {sinRevisar && <Etiqueta texto="SIN REVISAR" color={C.orange} />}
                             {d.deadline_at && <Etiqueta texto={t.vencido ? "⚠ " + t.texto : t.texto} color={rojo ? C.red : C.mutedL} />}
                             {d.urgency === 2 && <Etiqueta texto="URGENTE" color={C.red} />}
                             {!d.city_id && <Etiqueta texto="SIN CIUDAD" color={C.orange} />}
