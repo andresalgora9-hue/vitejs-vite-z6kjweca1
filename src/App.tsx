@@ -5419,6 +5419,7 @@ if(!_lastVisit){
 @keyframes fadeSlideUp{from{transform:translateY(12px);opacity:0;}to{transform:translateY(0);opacity:1;}}
     `}</style>
     {user&&user.type==="admin"&&<Admin onLogout={logout} />}
+    {user&&(user as any).type==="gestor"&&<Admin onLogout={logout} rolGestor ciudadesGestor={(user as any).managed_cities||[]} />}
     {user&&user.type==="profesional"&&<ProDashboard user={user} onLogout={logout} onUpdate={update} deepLinkChatWith={deepLinkChatWith} />}
 {(!user||user.type==="cliente")&&<ClientHome user={user} onLogout={logout} onUpdate={update} deepLinkChatWith={deepLinkChatWith} onLogin={login} />}
 </Sentry.ErrorBoundary>);
