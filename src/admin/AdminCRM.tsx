@@ -811,12 +811,14 @@ export default function AdminCRM({ sub, rol = "admin", ciudadesGestor }: { sub: 
 
       {mPago && <ModalPago d={mPago} onClose={() => setMPago(null)} onSave={(imp: number, f: string, ref: string) => registrarPago(mPago, imp, f, ref)} />}
 
-      {mSeguimiento && <ModalSeguimiento d={mSeguimiento} onClose={() => setMSeguimiento(null)} onSave={async (nota: string, proxima: string, pausa: string) => {
+            {mSeguimiento && <ModalSeguimiento d={mSeguimiento} onClose={() => setMSeguimiento(null)} onSave={async (nota: string, proxima: string, pausa: string, destino: string) => {
         const cambios: any = { last_contact_at: new Date().toISOString(), last_contact_note: nota || null, next_followup_at: proxima || null };
         if (pausa) { cambios.pause_until = pausa; cambios.stage = "en_espera"; cambios.stage_before_pause = mSeguimiento.stage; }
         await guardar(mSeguimiento.id, cambios, "Seguimiento guardado");
         await evt(mSeguimiento.id, "seguimiento", nota + (proxima ? " · volver el " + proxima : ""));
+        const d = mSeguimiento;
         setMSeguimiento(null);
+        if (destino && !pausa && destino !== d.stage) moverDeal(d, destino as Stage);
       }} />}
 
       {mGestion && <ModalGestion d={mGestion} onClose={() => setMGestion(null)} onSave={async (fecha: string, nota: string) => {
@@ -1122,7 +1124,19 @@ function ModalSeguimiento({ d, onClose, onSave }: any) {
   const [nota, setNota] = useState("");
   const [prox, setProx] = useState(d.next_followup_at || "");
   const [pausa, setPausa] = useState("");
+  const [destino, setDestino] = useState("");
   const ok = nota.trim().length > 2;
+  const SIGUIENTES: Record<string, string[]> = {
+    entrada: ["cualificado", "cerrado"],
+    cualificado: ["asignado", "cerrado"],
+    asignado: ["aceptado", "cerrado"],
+    aceptado: ["presupuestando", "cerrado"],
+    presupuestando: ["precio_acordado", "cerrado"],
+    precio_acordado: ["programado", "cerrado"],
+    programado: ["completado", "cerrado"],
+    completado: ["cobrado_cliente", "cerrado"],
+  };
+  const opciones = SIGUIENTES[d.stage] || [];
   return (
     <Modal title={"Seguimiento · " + d.client_name} onClose={onClose} ancho={440}>
       <p style={{ color: C.mutedL, fontSize: 12, marginBottom: 4 }}>
@@ -1139,11 +1153,38 @@ function ModalSeguimiento({ d, onClose, onSave }: any) {
         </Caja>
       )}
       <In label="¿Qué ha pasado?" req value={nota} onChange={setNota} ph="Le mandé WhatsApp pidiendo el vídeo otra vez" />
+
+      {opciones.length > 0 && !pausa && (
+        <div style={{ marginBottom: 12 }}>
+          <label style={{ display: "block", fontSize: 11, color: C.mutedL, marginBottom: 6, fontWeight: 600 }}>
+            ¿Hay que moverlo de etapa?
+          </label>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            <button onClick={() => setDestino("")} style={{
+              padding: "7px 12px", borderRadius: 8, cursor: "pointer", fontFamily: F, fontSize: 12, fontWeight: 700,
+              background: destino === "" ? C.accent : "transparent",
+              border: "1px solid " + (destino === "" ? C.accent : C.border),
+              color: destino === "" ? "#000" : C.mutedL,
+            }}>Se queda igual</button>
+            {opciones.map((o) => (
+              <button key={o} onClick={() => setDestino(o)} style={{
+                padding: "7px 12px", borderRadius: 8, cursor: "pointer", fontFamily: F, fontSize: 12, fontWeight: 700,
+                background: destino === o ? (o === "cerrado" ? C.red : C.green) : "transparent",
+                border: "1px solid " + (destino === o ? (o === "cerrado" ? C.red : C.green) : C.border),
+                color: destino === o ? "#fff" : C.mutedL,
+              }}>{o === "cerrado" ? "Descartar" : "→ " + STAGE_LABEL[o as Stage]}</button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <In label="¿Cuándo hay que volver a llamar?" type="date" value={prox} onChange={setProx} />
       <div style={{ borderTop: "1px solid " + C.border, paddingTop: 12, marginBottom: 12 }}>
         <In label="Aparcar hasta (opcional — lo saca del pipeline activo)" type="date" value={pausa} onChange={setPausa} />
       </div>
-      <Bt full color={C.accent} disabled={!ok} onClick={() => onSave(nota, prox, pausa)}>Guardar seguimiento</Bt>
+      <Bt full color={C.accent} disabled={!ok} onClick={() => onSave(nota, prox, pausa, destino)}>
+        {destino ? "Guardar y mover a " + (destino === "cerrado" ? "descartado" : STAGE_LABEL[destino as Stage]) : "Guardar seguimiento"}
+      </Bt>
     </Modal>
   );
 }
