@@ -112,7 +112,7 @@ function ImageModal({url,onClose}:{url:string;onClose:()=>void}){
 
 // ── NAV ───────────────────────────────────────────────────────────────────────
 const NAV_ADMIN:{id:Section;icon:string;label:string;subs:{id:string;label:string}[]}[]=[
-  {id:"crm",         icon:"⬢",  label:"CRM",           subs:[{id:"resumen",label:"Resumen"},{id:"bandeja",label:"Bandeja"},{id:"tablero",label:"Tablero"},{id:"cobros",label:"Cobros"},{id:"pros",label:"Profesionales"},{id:"ciudades",label:"Ciudades"},{id:"decisiones",label:"Decisiones"}]},
+  {id:"crm",         icon:"⬢",  label:"CRM",           subs:[{id:"resumen",label:"Resumen"},{id:"bandeja",label:"Bandeja"},{id:"tablero",label:"Tablero"},{id:"cobros",label:"Cobros"},{id:"pros",label:"Profesionales"},{id:"ciudades",label:"Ciudades"},{id:"decisiones",label:"Decisiones"},{id:"cerrados",label:"Cerrados"}]},
   {id:"monitor",      icon:"◉",  label:"Monitor",       subs:[{id:"salud",label:"Salud"},{id:"alertas",label:"Alertas"},{id:"fuga",label:"Bloqueos"}]},
   {id:"profesionales",icon:"🔨", label:"Profesionales", subs:[{id:"todos",label:"Todos"},{id:"trial",label:"En trial"},{id:"sin_tarjeta",label:"Sin tarjeta"},{id:"pagando",label:"Pagando"},{id:"expirado",label:"Expirados"},{id:"sinleads",label:"Sin leads"}]},
   {id:"clientes",     icon:"👤", label:"Clientes",      subs:[{id:"todos",label:"Todos"},{id:"nuevos",label:"Nuevos 7d"}]},
