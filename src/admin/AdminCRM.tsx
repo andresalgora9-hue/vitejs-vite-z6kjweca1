@@ -822,6 +822,73 @@ export default function AdminCRM({ sub, rol = "admin", ciudadesGestor }: { sub: 
       )}
 
       {/* ══ DECISIONES ══ */}
+            {sub === "cerrados" && (() => {
+        const TODOS = [...MOTIVOS_DESCARTE, ...CLOSE_REASONS_CON_PRECIO, ...CLOSE_REASONS_SIN_PRECIO];
+        const cerrados = periodo.filter((d) => d.stage === "cerrado" && d.close_reason).filter(aplicaExtra);
+        const porMotivo: Record<string, DealRow[]> = {};
+        cerrados.forEach((d) => { const k = d.close_reason || "—"; (porMotivo[k] = porMotivo[k] || []).push(d); });
+        const ranking = Object.entries(porMotivo).sort((a, b) => b[1].length - a[1].length);
+        const total = cerrados.length;
+        return (
+          <div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
+              {esAdmin && (
+                <select value={ciudadF} onChange={(e) => setCiudadF(e.target.value)} style={inputEstilo}>
+                  <option value="">Todas las ciudades</option>
+                  {cities.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              )}
+              <select value={rango} onChange={(e) => setRango(e.target.value as any)} style={inputEstilo}>
+                <option value="7d">Últimos 7 días</option>
+                <option value="30d">Últimos 30 días</option>
+                <option value="mes">Este mes</option>
+                <option value="todo">Todo</option>
+              </select>
+              {filtroFechas}
+            </div>
+
+            <div style={{ background: C.card, border: "1px solid " + C.border, borderRadius: 12, padding: 16, marginBottom: 16 }}>
+              <p style={{ color: C.muted, fontSize: 11, margin: "0 0 12px", letterSpacing: 1, textTransform: "uppercase" }}>
+                Por qué se pierden los leads · {total} cerrados
+              </p>
+              {total === 0 && <p style={{ color: C.muted, fontSize: 13, margin: 0 }}>Ningún lead cerrado en este periodo.</p>}
+              {ranking.map(([motivo, lista]) => {
+                const pct = Math.round((lista.length / total) * 100);
+                return (
+                  <div key={motivo} style={{ marginBottom: 11 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+                      <span style={{ color: C.text, fontSize: 13, fontWeight: 600 }}>{labelDe(TODOS, motivo)}</span>
+                      <span style={{ color: C.mutedL, fontSize: 12 }}>{lista.length} · {pct}%</span>
+                    </div>
+                    <div style={{ height: 6, background: C.card2, borderRadius: 99, overflow: "hidden" }}>
+                      <div style={{ width: pct + "%", height: "100%", background: C.red, borderRadius: 99 }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div style={{ background: C.card, border: "1px solid " + C.border, borderRadius: 12, overflow: "hidden" }}>
+              {cerrados.sort((a, b) => String(b.closed_at || b.created_at).localeCompare(String(a.closed_at || a.created_at))).map((d) => (
+                <div key={d.id} onClick={() => setMFicha(d)}
+                  style={{ padding: "11px 14px", borderBottom: "1px solid " + C.border, cursor: "pointer", display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
+                  <div style={{ minWidth: 0 }}>
+                    <p style={{ color: C.text, fontSize: 13, fontWeight: 600, margin: 0 }}>{d.client_name} · {d.trade}</p>
+                    <p style={{ color: C.muted, fontSize: 11, margin: "3px 0 0" }}>
+                      {d.city_name || "sin ciudad"}{d.pro_name ? " · " + d.pro_name : ""} · {fechaCorta(d.closed_at || d.created_at)}
+                    </p>
+                    {d.close_note && <p style={{ color: C.mutedL, fontSize: 11, margin: "4px 0 0", fontStyle: "italic" }}>"{d.close_note}"</p>}
+                  </div>
+                  <span style={{ color: C.red, fontSize: 11, fontWeight: 700, background: "rgba(255,68,85,.12)", border: "1px solid rgba(255,68,85,.3)", borderRadius: 7, padding: "4px 9px", whiteSpace: "nowrap" }}>
+                    {labelDe(TODOS, d.close_reason)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+
       {sub === "decisiones" && (
         <>
           {reqs.length === 0 && deals.filter((d) => d.unpaid_reason).length === 0 && (
