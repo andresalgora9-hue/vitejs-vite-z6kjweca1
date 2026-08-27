@@ -42,9 +42,9 @@
     {"@type":"Place","name":"Cruz de Humilladero"},
     {"@type":"Place","name":"Ciudad Jardín"},
     {"@type":"Place","name":"Puerto de la Torre"},
-    {"@type":"City","name":"Torremolinos"},
-    {"@type":"City","name":"Rincón de la Victoria"},
-    {"@type":"City","name":"Alhaurín de la Torre"}
+    {"@type":"Place","name":"Churriana"},
+    {"@type":"Place","name":"Campanillas"},
+    {"@type":"Place","name":"Bailén-Miraflores"}
   ],
   "hasOfferCatalog":{
     "@type":"OfferCatalog",
@@ -70,11 +70,11 @@
     {"@type":"Question","name":"¿Cuánto tardan en atender una fuga de agua urgente?","acceptedAnswer":{"@type":"Answer","text":"En cuanto envía su solicitud, se notifica al momento a los fontaneros disponibles en su zona de Málaga. Usted ve quién puede atenderle y en qué plazo, antes de decidir."}},
     {"@type":"Question","name":"¿Hay fontaneros para urgencias el mismo día en Málaga?","acceptedAnswer":{"@type":"Answer","text":"Sí. Puede ver en tiempo real qué fontaneros están disponibles hoy en su zona de Málaga."}},
     {"@type":"Question","name":"¿Es gratis buscar fontanero en OficioYa?","acceptedAnswer":{"@type":"Answer","text":"Sí, buscar y ver perfiles de profesionales es completamente gratuito. Solo necesita cuenta cuando quiere enviar un mensaje o crear una solicitud."}},
-    {"@type":"Question","name":"¿En qué zonas de Málaga hay fontanero?","acceptedAnswer":{"@type":"Answer","text":"OficioYa tiene profesionales en toda Málaga capital y su área metropolitana: Centro, Teatinos, El Palo, Carretera de Cádiz, Cruz de Humilladero, Torremolinos, Rincón de la Victoria y más."}},
+    {"@type":"Question","name":"¿En qué zonas de Málaga hay fontanero?","acceptedAnswer":{"@type":"Answer","text":"OficioYa cubre todos los distritos de Málaga capital: Centro, Teatinos, El Palo, Pedregalejo, Carretera de Cádiz, Cruz de Humilladero, Ciudad Jardín, Puerto de la Torre, Churriana y Campanillas."}},
     {"@type":"Question","name":"¿Hay fontanero 24 horas en Málaga?","acceptedAnswer":{"@type":"Answer","text":"Sí. En OficioYa puede ver qué fontaneros de su zona de Málaga están disponibles en este momento, incluidas urgencias fuera del horario habitual."}},
     {"@type":"Question","name":"¿Cuánto cuesta reparar una fuga de agua en Málaga?","acceptedAnswer":{"@type":"Answer","text":"Una reparación de fuga sencilla parte de unos 35 € y el rango orientativo habitual va de 65 € a 250 € según dónde esté la fuga y si hay que picar. El fontanero confirma el precio exacto al ver el problema."}},
-    {"@type":"Question","name":"¿Hay fontanero cerca de mí en Málaga?","acceptedAnswer":{"@type":"Answer","text":"Su solicitud se envía a los fontaneros verificados que trabajan en su zona concreta, tanto en Málaga capital como en el área metropolitana."}},
-    {"@type":"Question","name":"¿Hay fontanero en Torremolinos?","acceptedAnswer":{"@type":"Answer","text":"Sí, OficioYa cubre Torremolinos y su entorno, además de Rincón de la Victoria, Alhaurín de la Torre, Benalmádena y Cártama."}}
+    {"@type":"Question","name":"¿Hay fontanero cerca de mí en Málaga?","acceptedAnswer":{"@type":"Answer","text":"Su solicitud se envía a los fontaneros verificados que trabajan en su distrito concreto de Málaga capital."}},
+    {"@type":"Question","name":"¿Hay fontanero en El Palo o Pedregalejo?","acceptedAnswer":{"@type":"Answer","text":"Sí. OficioYa cubre el distrito Este completo, incluidos El Palo, Pedregalejo y El Limonar, igual que el resto de distritos de Málaga capital."}}
   ]
 }
 </script>
@@ -502,7 +502,7 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
     <div class="zones">
       <span class="zone-chip">Centro</span><span class="zone-chip">Teatinos</span><span class="zone-chip">El Palo</span>
       <span class="zone-chip">Carretera de Cádiz</span><span class="zone-chip">Cruz de Humilladero</span><span class="zone-chip">Ciudad Jardín</span>
-      <span class="zone-chip">Torremolinos</span><span class="zone-chip">Rincón de la Victoria</span>
+      <span class="zone-chip">Churriana</span><span class="zone-chip">Campanillas</span>
     </div>
   </section>
 
@@ -551,7 +551,7 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
   <section class="section" id="urgencias">
     <p class="sec-label">Urgencias</p>
     <h2 class="sec-h2">Fontanero urgente 24 horas en Málaga</h2>
-    <p class="sec-p">Una fuga activa o un atasco que sube no espera al lunes. En OficioYa ve qué fontaneros de su zona de Málaga están disponibles ahora mismo, con su precio orientativo antes de llamar a nadie.</p>
+    <p class="sec-p">Una fuga activa o un atasco que sube no espera al lunes. En OficioYa ve qué fontaneros de su distrito de Málaga están disponibles ahora mismo, con su precio orientativo antes de llamar a nadie.</p>
     <div class="svc-grid">
       <div class="svc">
         <h3>Fontanero de urgencia el mismo día</h3>
@@ -605,7 +605,7 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
   <section class="section" id="zonas">
     <p class="sec-label">Cobertura</p>
     <h2 class="sec-h2">Fontanero cerca de ti, en tu barrio de Málaga</h2>
-    <p class="sec-p">Su solicitud no se manda a un centro de llamadas: llega a los fontaneros verificados que de verdad trabajan en su zona, tanto en Málaga capital como en el área metropolitana.</p>
+    <p class="sec-p">Su solicitud no se manda a un centro de llamadas: llega a los fontaneros verificados que de verdad trabajan en su distrito de Málaga capital.</p>
     <div class="zone-grid">
       <div class="zone-card"><strong>Centro</strong><span>Málaga capital</span></div>
       <div class="zone-card"><strong>Teatinos</strong><span>Málaga capital</span></div>
@@ -616,9 +616,9 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
       <div class="zone-card"><strong>Bailén-Miraflores</strong><span>Málaga capital</span></div>
       <div class="zone-card"><strong>Puerto de la Torre</strong><span>Málaga capital</span></div>
       <div class="zone-card"><strong>Churriana</strong><span>Málaga capital</span></div>
-      <div class="zone-card"><strong>Torremolinos</strong><span>Área metropolitana</span></div>
-      <div class="zone-card"><strong>Rincón de la Victoria</strong><span>Área metropolitana</span></div>
-      <div class="zone-card"><strong>Alhaurín de la Torre</strong><span>Área metropolitana</span></div>
+      <div class="zone-card"><strong>Palma-Palmilla</strong><span>Málaga capital</span></div>
+      <div class="zone-card"><strong>Campanillas</strong><span>Málaga capital</span></div>
+      <div class="zone-card"><strong>Pedregalejo · El Limonar</strong><span>Málaga capital</span></div>
     </div>
   </section>
 
@@ -652,10 +652,10 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
       <div class="faq"><h3>¿Cuánto tardan en atender una fuga de agua urgente?</h3><p>En cuanto envía su solicitud, se notifica al momento a los fontaneros disponibles en su zona de Málaga. Usted ve quién puede atenderle y en qué plazo, antes de decidir.</p></div>
       <div class="faq"><h3>¿Hay fontanero 24 horas en Málaga?</h3><p>Sí. Puede ver en tiempo real qué fontaneros de su zona están disponibles en este momento, incluidas urgencias fuera del horario habitual y fines de semana.</p></div>
       <div class="faq"><h3>¿Cuánto cuesta reparar una fuga de agua en Málaga?</h3><p>Una reparación sencilla parte de unos 35 €, y el rango habitual va de 65 € a 250 € según dónde esté la fuga y si hay que picar pared. Verá el rango orientativo antes de contactar con nadie.</p></div>
-      <div class="faq"><h3>¿Hay fontanero cerca de mí?</h3><p>Su solicitud llega a los fontaneros verificados que trabajan en su zona concreta, no a un listado general. Cubrimos Málaga capital y el área metropolitana.</p></div>
-      <div class="faq"><h3>¿Hay fontanero en Torremolinos?</h3><p>Sí. Además de Málaga capital, OficioYa cubre Torremolinos, Rincón de la Victoria, Alhaurín de la Torre, Benalmádena, Cártama y Alhaurín el Grande.</p></div>
+      <div class="faq"><h3>¿Hay fontanero cerca de mí?</h3><p>Su solicitud llega a los fontaneros verificados que trabajan en su distrito concreto, no a un listado general. Cubrimos Málaga capital al completo.</p></div>
+      <div class="faq"><h3>¿Hay fontanero en El Palo o Pedregalejo?</h3><p>Sí. Cubrimos el distrito Este completo — El Palo, Pedregalejo, El Limonar — y el resto de distritos de Málaga capital, de Churriana a Campanillas.</p></div>
       <div class="faq"><h3>¿Es gratis buscar fontanero en OficioYa?</h3><p>Sí, buscar profesionales y ver sus perfiles y reseñas es completamente gratuito. Solo necesita crear una cuenta cuando quiera enviar un mensaje o crear una solicitud.</p></div>
-      <div class="faq"><h3>¿En qué zonas de Málaga hay fontanero?</h3><p>OficioYa tiene profesionales en toda Málaga capital y área metropolitana — Centro, Teatinos, El Palo, Pedregalejo, Carretera de Cádiz, Cruz de Humilladero, Ciudad Jardín, Puerto de la Torre, Torremolinos y más.</p></div>
+      <div class="faq"><h3>¿En qué zonas de Málaga hay fontanero?</h3><p>En todos los distritos de Málaga capital — Centro, Teatinos, El Palo, Pedregalejo, Carretera de Cádiz, Cruz de Humilladero, Ciudad Jardín, Bailén-Miraflores, Palma-Palmilla, Puerto de la Torre, Churriana y Campanillas.</p></div>
     </div>
   </section>
 
