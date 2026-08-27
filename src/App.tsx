@@ -2437,6 +2437,13 @@ function ClientHome({user,onLogout,onUpdate,deepLinkChatWith,onLogin}:{user:User
   const [qrOficio,setQrOficio]=useState("Fontanería");
   const [qrDesc,setQrDesc]=useState("");
   const [qrSending,setQrSending]=useState(false);
+  const [quickBooting,setQuickBooting]=useState(()=>{
+    try{ return new URLSearchParams(window.location.search).get("quick")==="1"; }catch(e){ return false; }
+  });
+  const [quickStep,setQuickStep]=useState(0);
+  const [quickOficio,setQuickOficio]=useState(()=>{
+    try{ return new URLSearchParams(window.location.search).get("oficio")||""; }catch(e){ return ""; }
+  });
   const [qrErr,setQrErr]=useState("");
   const handleQuickRequest=async(override?:{name:string;email:string;phone:string;oficio:string;desc:string;ciudad?:string;zona?:string;landing?:string;utm_source?:string;utm_campaign?:string;utm_content?:string;gclid?:string})=>{
     const ciudadReq=override?.ciudad||"Sevilla";
@@ -2453,12 +2460,14 @@ function ClientHome({user,onLogout,onUpdate,deepLinkChatWith,onLogin}:{user:User
       const res=await fetch(SUPABASE_FUNCTIONS_URL+"/auth-handler",{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({action:"register",name:name.trim(),email:email.toLowerCase().trim(),password:pw,type:"cliente",phone:phone.trim(),trial_end:""})});
       const data=await res.json();
       if(!data.success){
-        if(data.error?.includes("Ya existe")){setQrErr("Ya tienes cuenta con ese email. Inicia sesión arriba.");setQrSending(false);return;}
-        setQrErr(data.error||"Error al crear cuenta");setQrSending(false);return;
+        if(data.error?.includes("Ya existe")){setQrErr("Ya tienes cuenta con ese email. Inicia sesión arriba.");setQrSending(false);setQuickBooting(false);return;}
+        setQrErr(data.error||"Error al crear cuenta");setQrSending(false);setQuickBooting(false);return;
       }
       const u=data.user;
+      setQuickStep(1);
       const norm=(s:string)=>s?.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim()||"";
       const{data:req}=await db.from("budget_requests").insert({client_id:u.id,client_name:name.trim(),oficio:oficioReq,zona:ciudadReq,description:desc.trim(),max_budget:null,status:"open",notified_pros:[],city_slug:(override?.ciudad||"sevilla").toLowerCase(),landing:override?.landing||"app",utm_source:override?.utm_source||null,utm_campaign:override?.utm_campaign||null,utm_content:override?.utm_content||null,gclid:override?.gclid||null}).select().single();
+            setQuickStep(2);
             if(req){
         fetch(`${SUPABASE_FUNCTIONS_URL}/notify-admin`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({type:"sin_profesional",cliente:name,oficio:oficioReq,zona:ciudadReq,descripcion:desc,telefono:phone,email:email,request_id:req.id})}).catch(()=>{});
       }
@@ -2467,10 +2476,10 @@ function ClientHome({user,onLogout,onUpdate,deepLinkChatWith,onLogin}:{user:User
       localStorage.setItem("oy_user",JSON.stringify(u));
       onLogin(u);
       setQuickSent(true);
-      setQrSending(false);
+      setQrSending(false);setQuickBooting(false);
       setShowQuickRequest(false);
       setTab("solicitudes");
-    }catch(e:any){setQrErr(e.message||"Error");setQrSending(false);}
+    }catch(e:any){setQrErr(e.message||"Error");setQrSending(false);setQuickBooting(false);}
   };
   useEffect(()=>{
     const p=new URLSearchParams(window.location.search);
@@ -2719,6 +2728,39 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
   return(
     <div data-scroll style={{minHeight:"100dvh",background:C.bg,backgroundImage:"radial-gradient(ellipse at 15% 0%,#1a0a3a22,transparent 50%),radial-gradient(ellipse at 85% 100%,#0a1a3a22,transparent 50%)",paddingBottom:72,overflowY:"auto",height:"100dvh"}}>
 <ScrollToTop />
+            {quickBooting&&(()=>{
+        const PLURAL:Record<string,string>={"Fontanero":"fontaneros","Electricista":"electricistas","Carpintero":"carpinteros","Pintor":"pintores","Albañil":"albañiles","Cerrajero":"cerrajeros","Reformas Integrales":"profesionales"};
+        const gremio=PLURAL[quickOficio]||"profesionales";
+        const PASOS=["Solicitud registrada","Buscando "+gremio+" cerca de ti","Preparando tu presupuesto"];
+        return (
+        <div style={{position:"fixed",inset:0,zIndex:9999,background:C.bg,display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
+          <div style={{maxWidth:300,width:"100%",textAlign:"center" as const}}>
+            <div style={{fontSize:13,fontWeight:700,color:C.accent,letterSpacing:".04em",marginBottom:32}}>Oficio<span style={{color:C.text}}>Ya</span></div>
+            <div style={{position:"relative",width:104,height:104,margin:"0 auto 24px",display:"flex",alignItems:"center",justifyContent:"center"}}>
+              {[0,1,2].map(i=>(<span key={i} style={{position:"absolute",inset:0,borderRadius:"50%",border:"1px solid "+C.accent,opacity:0,animation:"oyPulse 2.4s ease-out infinite",animationDelay:(i*0.8)+"s"}} />))}
+              <div style={{width:58,height:58,borderRadius:"50%",background:"rgba(255,184,0,.12)",border:"1px solid rgba(255,184,0,.35)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:26}}>🔧</div>
+            </div>
+            <div style={{fontSize:19,fontWeight:800,color:C.text,marginBottom:6}}>Solicitud recibida</div>
+            <div style={{fontSize:13,color:C.muted,lineHeight:1.6,marginBottom:28}}>Estamos avisando a los {gremio} de tu ciudad</div>
+            <div style={{display:"flex",flexDirection:"column" as const,gap:11,textAlign:"left" as const}}>
+              {PASOS.map((t,i)=>{
+                const hecho=i<quickStep, activo=i===quickStep;
+                return (
+                <div key={i} style={{display:"flex",alignItems:"center",gap:11}}>
+                  <span style={{width:19,height:19,borderRadius:"50%",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,background:hecho?C.accent:"transparent",border:"1px solid "+(hecho||activo?C.accent:"#2c2c3a"),color:hecho?"#000":"transparent"}}>✓</span>
+                  <span style={{fontSize:13,color:(hecho||activo)?C.text:C.muted}}>{t}</span>
+                </div>);
+              })}
+            </div>
+            <div style={{width:"100%",height:3,background:"rgba(255,255,255,.07)",borderRadius:99,overflow:"hidden",marginTop:28}}>
+              <div style={{width:"35%",height:"100%",background:C.accent,borderRadius:99,animation:"oyBar 1.6s ease-in-out infinite"}} />
+            </div>
+            <div style={{fontSize:11.5,color:C.muted,marginTop:14}}>No cierres esta pantalla</div>
+            {qrErr&&<p style={{color:"#ff6b6b",fontSize:13,marginTop:18}}>{qrErr}</p>}
+          </div>
+          <style>{"@keyframes oyPulse{0%{transform:scale(.55);opacity:.55}100%{transform:scale(1);opacity:0}}@keyframes oyBar{0%{transform:translateX(-110%)}100%{transform:translateX(340%)}}"}</style>
+        </div>);
+      })()}
       {showOnboarding&&<OnboardingModal tipo="cliente" onClose={handleCloseOnboarding} />}
       {showNotifModal&&(
   <div style={{
