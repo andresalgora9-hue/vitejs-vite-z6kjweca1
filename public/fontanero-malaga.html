@@ -186,6 +186,11 @@ nav{background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px
 .field textarea{width:100%;font-family:'Inter';font-size:14px;font-weight:500;color:var(--ink);background:var(--bg-soft);border:1.5px solid var(--line);border-radius:9px;padding:12px;min-height:70px;resize:vertical}
 .field textarea:focus{border-color:var(--gold)}
 .field-tag-optional{display:inline-block;background:var(--bg-soft);color:var(--ink-faint);font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:7px;letter-spacing:.2px;text-transform:none;vertical-align:middle}
+.field-tag-req{display:inline-block;background:#FDECEC;color:#C0392B;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:7px;letter-spacing:.2px;text-transform:none;vertical-align:middle}
+.field-hint{font-size:11.5px;font-weight:500;color:var(--ink-faint);margin:5px 0 0;line-height:1.4}
+.field input.input-error{border-color:#C0392B;background:#FDECEC}
+.field-error{display:none;font-size:11.5px;font-weight:700;color:#C0392B;margin:5px 0 0}
+.field-error.show{display:block}
 
 /* ── STATS STRIP ── */
 .stats{background:var(--bg-soft);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
@@ -401,8 +406,10 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
               <input id="leadNombre" type="text" placeholder="¿Cómo se llama?" autocomplete="name">
             </div>
             <div class="field">
-              <label for="leadTelefono">Teléfono o WhatsApp</label>
-              <input id="leadTelefono" type="tel" placeholder="600 000 000" autocomplete="tel">
+              <label for="leadTelefono">Teléfono o WhatsApp<span class="field-tag-req">Obligatorio</span></label>
+              <input id="leadTelefono" type="tel" inputmode="numeric" maxlength="9" pattern="[0-9]{9}" placeholder="600000000" autocomplete="tel" aria-describedby="telHint">
+              <p class="field-hint" id="telHint">9 dígitos, sin prefijo (no escriba +34 ni 0034). Sin el teléfono el fontanero no puede llamarle.</p>
+              <p class="field-error" id="telError">Introduzca un teléfono válido de 9 dígitos, sin prefijo.</p>
             </div>
             <p class="lead-privacy">🔒 Solo lo verá el fontanero que acepte esta solicitud, y únicamente para contactarle por este trabajo. Nunca lo compartimos con nadie más.</p>
 
@@ -801,6 +808,24 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
     }catch(e){ return {}; }
   }
 
+  // Teléfono: solo dígitos, máximo 9, sin prefijo. Limpia el prefijo si el usuario lo pega.
+  var inputTel = document.getElementById('leadTelefono');
+  var errTel = document.getElementById('telError');
+  if(inputTel){
+    inputTel.addEventListener('input', function(){
+      var v = inputTel.value.replace(/\D/g,'');
+      if(v.indexOf('0034') === 0){ v = v.slice(4); }
+      else if(v.length > 9 && v.indexOf('34') === 0){ v = v.slice(2); }
+      inputTel.value = v.slice(0,9);
+      inputTel.classList.remove('input-error');
+      if(errTel){ errTel.classList.remove('show'); }
+    });
+  }
+
+  function telefonoValido(v){
+    return /^[6789][0-9]{8}$/.test(v);
+  }
+
   function enviarSolicitud(){
     if(!selected){
       alert('Elija primero qué tipo de avería tiene.');
@@ -808,9 +833,21 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
       return;
     }
     var nombre = document.getElementById('leadNombre').value.trim();
-    var telefono = document.getElementById('leadTelefono').value.trim();
-    if(!nombre || !telefono){
-      alert('Indique su nombre y un teléfono de contacto para que el fontanero pueda escribirle.');
+    var telefono = document.getElementById('leadTelefono').value.replace(/\D/g,'');
+    if(!nombre){
+      alert('Indique su nombre para que el fontanero sepa con quién habla.');
+      document.getElementById('leadNombre').focus();
+      return;
+    }
+    if(!telefonoValido(telefono)){
+      if(errTel){ errTel.classList.add('show'); }
+      inputTel.classList.add('input-error');
+      inputTel.value = telefono;
+      inputTel.focus();
+      inputTel.scrollIntoView({behavior:'smooth', block:'center'});
+      if (typeof gtag === 'function') {
+        gtag('event','form_error',{'event_category':'solicitud_fontanero','event_label':'telefono_invalido'});
+      }
       return;
     }
 
@@ -818,7 +855,7 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
     var desc = selected.desc + (nota ? ' — ' + nota : '');
 
     // Email sintético e invisible — la cuenta de cliente lo necesita por detrás, pero no se lo pedimos al usuario
-    var telefonoLimpio = telefono.replace(/\D/g,'') || Date.now().toString();
+    var telefonoLimpio = telefono;
     var emailSintetico = 'lead' + telefonoLimpio + '@aficioya-lead.com';
 
     var paramsObj = {quick:'1', oficio:'Fontanero', nombre:nombre, telefono:telefono, email:emailSintetico, desc:desc,
