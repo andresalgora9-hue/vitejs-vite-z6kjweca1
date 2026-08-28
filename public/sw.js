@@ -1,11 +1,25 @@
 const VAPID_PUBLIC_KEY = "BMrAW5LQ8VwjrILPDpsnq98IodkFOoA0p7eUJV0uXN6UdXX83MNVlb9fXpXbZR30rIv5IFKYqs_QjFoKh9KlpvQ";
-const CACHE_NAME = "oficioya-v3";
-const SHELL = ["/icon-192.png", "/icon-512.png", "/manifest.json"];
+const CACHE_NAME = "oficioya-v4";
+const SHELL = ["/index.html", "/icon-192.png", "/icon-512.png", "/manifest.json"];
 
-// INSTALL — solo cachea assets estáticos, NO rutas de la app
+// Respuesta de último recurso — garantiza que respondWith SIEMPRE recibe un Response
+function fallbackResponse() {
+  return new Response(
+    '<!doctype html><meta charset="utf-8"><title>Sin conexion</title>' +
+    '<body style="font-family:system-ui;padding:40px;text-align:center">' +
+    '<h1>Sin conexion</h1><p>Comprueba tu conexion y vuelve a intentarlo.</p>' +
+    '<button onclick="location.reload()">Reintentar</button></body>',
+    { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+  );
+}
+
+// INSTALL — cachea assets estáticos. addAll falla entero si un archivo falla,
+// por eso se cachea uno a uno y se ignoran los que no estén disponibles.
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(SHELL))
+    caches.open(CACHE_NAME).then(cache =>
+      Promise.all(SHELL.map(url => cache.add(url).catch(() => null)))
+    )
   );
   self.skipWaiting();
 });
@@ -22,15 +36,19 @@ self.addEventListener('activate', e => {
 // FETCH — network first siempre, caché solo para iconos/imágenes
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
-  const url = new URL(e.request.url);
+
+  let url;
+  try { url = new URL(e.request.url); } catch (err) { return; }
 
   // Supabase y APIs externas — nunca interceptar
   if (url.origin !== location.origin) return;
 
-  // Rutas de la app (HTML) — siempre network, nunca caché
+  // Rutas de la app (HTML) — siempre network, caché solo como red de seguridad
   if (url.pathname === '/' || !url.pathname.includes('.')) {
     e.respondWith(
-      fetch(e.request).catch(() => caches.match('/index.html'))
+      fetch(e.request).catch(() =>
+        caches.match('/index.html').then(cached => cached || fallbackResponse())
+      )
     );
     return;
   }
@@ -39,20 +57,21 @@ self.addEventListener('fetch', e => {
   if (url.pathname.match(/\.(png|jpg|jpeg|svg|ico|webp)$/)) {
     e.respondWith(
       caches.match(e.request).then(cached => {
-        return cached || fetch(e.request).then(res => {
+        if (cached) return cached;
+        return fetch(e.request).then(res => {
           if (res && res.status === 200) {
             const clone = res.clone();
             caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
           }
           return res;
         });
-      })
+      }).catch(() => fallbackResponse())
     );
     return;
   }
 
   // Todo lo demás — network first sin caché
-  e.respondWith(fetch(e.request));
+  e.respondWith(fetch(e.request).catch(() => fallbackResponse()));
 });
 
 // PUSH
