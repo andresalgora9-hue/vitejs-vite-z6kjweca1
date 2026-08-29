@@ -2931,11 +2931,11 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
               <h1 style={{fontWeight:900,fontSize:"clamp(28px,6.5vw,42px)",lineHeight:1.08,marginBottom:12,letterSpacing:"-0.035em",color:C.accent}}>
                 no debería ser una lotería.
               </h1>
-              {/* 1 · Oficio */}
+             {/* 1 · Oficio */}
               <div style={{marginBottom:14}}>
                 <p style={{fontSize:10,color:C.mutedL,fontWeight:800,letterSpacing:"0.07em",textTransform:"uppercase" as const,marginBottom:8}}>1 · ¿Qué necesitas?</p>
                 <div style={{display:"flex",gap:6,flexWrap:"wrap" as const}}>
-                  {[...Array.from(new Set(workers.map(w=>w.trade).filter(Boolean) as string[])).sort((a,b)=>a.localeCompare(b,"es")),"Otro"].map(t=>(
+                  {["Fontanero","Electricista","Pintor","Cerrajero","Climatización","Reformas Integrales","Manitas a Domicilio","Servicio Doméstico / Limpieza","Otro"].map(t=>(
                     <button key={t} onClick={()=>setQrOficio(t)} style={{padding:"8px 13px",borderRadius:99,border:"1.5px solid "+(qrOficio===t?C.accent:C.border+"88"),background:qrOficio===t?C.accent+"22":"rgba(255,255,255,0.02)",color:qrOficio===t?C.accent:C.mutedL,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:qrOficio===t?800:500,whiteSpace:"nowrap" as const,transition:"all 0.15s"}}>{t}</button>
                   ))}
                 </div>
