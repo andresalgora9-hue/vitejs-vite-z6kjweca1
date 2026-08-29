@@ -2446,6 +2446,42 @@ function ClientHome({user,onLogout,onUpdate,deepLinkChatWith,onLogin}:{user:User
     try{ return new URLSearchParams(window.location.search).get("oficio")||""; }catch(e){ return ""; }
   });
   const [qrErr,setQrErr]=useState("");
+    const enviarDesdeHero=async()=>{
+    const desc=qrDesc.trim();
+    const tel=qrPhone.trim();
+    const digits=tel.replace(/\D/g,"");
+    if(!desc){setQrErr("Cuéntanos qué necesitas");return;}
+    if(!ciudadSel){setQrErr("Elige tu ciudad");return;}
+    if(digits.length<9){setQrErr("Escribe un teléfono válido");return;}
+    setQrErr("");setQrSending(true);
+    const slugify=(s:string)=>s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g,"-").trim();
+    const base={oficio:qrOficio,zona:ciudadSel,description:desc,max_budget:null,status:"open",notified_pros:[],city_slug:slugify(ciudadSel),landing:"app",utm_source:null,utm_campaign:null,utm_content:null,gclid:null};
+    const avisar=(rid:string,nom:string,mail:string)=>{fetch(`${SUPABASE_FUNCTIONS_URL}/notify-admin`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({type:"sin_profesional",cliente:nom,oficio:qrOficio,zona:ciudadSel,descripcion:desc,telefono:digits,email:mail,request_id:rid})}).catch(()=>{});};
+    try{
+      if(user){
+        const{data:req}=await db.from("budget_requests").insert({...base,client_id:user.id,client_name:user.name}).select().single();
+        if(req)avisar(req.id,user.name,user.email||"");
+      }else{
+        const emailSint=digits+"@cliente.oficioya.com";
+        const nombre="Cliente "+digits;
+        const pw=Math.random().toString(36).slice(-8)+"A1";
+        const res=await fetch(SUPABASE_FUNCTIONS_URL+"/auth-handler",{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({action:"register",name:nombre,email:emailSint,password:pw,type:"cliente",phone:digits,trial_end:""})});
+        const data=await res.json();
+        let cid="";let cname=nombre;
+        if(data.success){cid=data.user.id;cname=data.user.name||nombre;try{localStorage.setItem("oy_user",JSON.stringify(data.user));}catch{}onLogin(data.user);}
+        else{
+          const{data:ex}=await db.from("users").select("id,name").eq("email",emailSint).maybeSingle();
+          if(!ex){setQrErr(data.error||"No hemos podido enviar tu solicitud");setQrSending(false);return;}
+          cid=ex.id;cname=ex.name||nombre;
+        }
+        const{data:req}=await db.from("budget_requests").insert({...base,client_id:cid,client_name:cname}).select().single();
+        if(req)avisar(req.id,cname,emailSint);
+      }
+      gtagEvent("generate_lead",{content_name:"hero_request",oficio:qrOficio});
+      fbqEvent("Lead",{content_name:"hero_request",content_category:qrOficio});
+      setQrSending(false);setShowQuickRequest(false);setQuickSent(true);
+    }catch(e:any){setQrErr(e.message||"Error al enviar");setQrSending(false);}
+  };
   const handleQuickRequest=async(override?:{name:string;email:string;phone:string;oficio:string;desc:string;ciudad?:string;zona?:string;landing?:string;utm_source?:string;utm_campaign?:string;utm_content?:string;gclid?:string})=>{
     const ciudadReq=override?.ciudad||"Sevilla";
     const name=override?.name??qrName;
@@ -2916,16 +2952,25 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
               <div style={{marginBottom:16}}>
                 <p style={{fontSize:10,color:C.mutedL,fontWeight:800,letterSpacing:"0.07em",textTransform:"uppercase" as const,marginBottom:8}}>3 · Cuéntanoslo con tus palabras</p>
                 <textarea value={qrDesc} onChange={e=>setQrDesc(e.target.value)} rows={3} placeholder="Ej: Se me ha roto una tubería bajo el fregadero y pierde agua desde anoche" style={{width:"100%",background:C.surface,border:"1px solid "+C.border,borderRadius:10,padding:"12px",color:C.text,fontFamily:"'DM Sans',sans-serif",fontSize:14,outline:"none",resize:"vertical" as const,boxSizing:"border-box" as const,lineHeight:1.5}} />
+                            </div>
+
+              {/* 4 · Teléfono */}
+              <div style={{marginBottom:16}}>
+                <p style={{fontSize:10,color:C.mutedL,fontWeight:800,letterSpacing:"0.07em",textTransform:"uppercase" as const,marginBottom:8}}>4 · ¿A qué teléfono te llamamos?</p>
+                <input value={qrPhone} onChange={e=>setQrPhone(e.target.value)} type="tel" placeholder="612 345 678" style={{width:"100%",background:C.surface,border:"1px solid "+C.border,borderRadius:10,padding:"12px",color:C.text,fontFamily:"'DM Sans',sans-serif",fontSize:14,outline:"none",boxSizing:"border-box" as const}} />
               </div>
+
+              {qrErr&&<div style={{color:C.red,fontSize:13,marginBottom:12,padding:"10px 12px",background:C.red+"15",borderRadius:8,border:"1px solid "+C.red+"33"}}>{qrErr}</div>}
 
               {/* Botón pedir presupuesto GRANDE */}
               <button
-                onClick={(e)=>{e.stopPropagation();if(!user){setShowQuickRequest(true);setQuickSent(false);}else{setAutoOpenSolicitud(true);setTab("solicitudes");}}}
+                                onClick={(e)=>{e.stopPropagation();enviarDesdeHero();}}
+                disabled={qrSending}
                 style={{width:"100%",padding:"18px 24px",background:"linear-gradient(135deg,#FFFFFF 0%,#F0E6C0 50%,#FFD700 100%)",border:"2px solid rgba(255,215,0,0.6)",borderRadius:16,color:"#1a1200",fontFamily:"'DM Sans',sans-serif",fontWeight:900,fontSize:17,cursor:"pointer",textAlign:"center" as const,display:"flex",alignItems:"center",justifyContent:"center",gap:10,boxShadow:"0 6px 30px rgba(255,215,0,0.4),0 2px 8px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.6)",letterSpacing:"-0.02em",position:"relative" as const,overflow:"hidden",transition:"transform 0.15s ease,box-shadow 0.15s ease"}}
                 onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 10px 40px rgba(255,215,0,0.55),0 4px 12px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.6)";}}
                 onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow="0 6px 30px rgba(255,215,0,0.4),0 2px 8px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.6)";}}
               >
-                                Pedir presupuesto gratis
+                                                {qrSending?"Enviando...":"Pedir presupuesto gratis"}
               </button>
               <div style={{display:"flex",justifyContent:"center",gap:8,marginTop:10}}>
                 <span style={{fontSize:11,color:C.accent,fontWeight:800,background:C.accent+"14",border:"1px solid "+C.accent+"33",borderRadius:99,padding:"5px 12px",letterSpacing:"-0.01em"}}>100% gratis</span>
