@@ -3057,21 +3057,6 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
                 {search&&<button onClick={()=>setSearch("")} style={{padding:"0 13px",background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:14}}>✕</button>}
               </div>
 
-             {/* Zona */}
-              <div style={{marginBottom:11}}>
-                <p style={{fontSize:10,color:C.muted,fontWeight:700,letterSpacing:"0.06em",textTransform:"uppercase" as const,marginBottom:7}}>Zona</p>
-                <div style={{display:"flex",alignItems:"center",gap:4}}>
-                  <button onClick={()=>{const el=document.getElementById("zona-scroll-main");if(el)el.scrollLeft-=150;}} style={{flexShrink:0,background:C.surface,border:"1px solid "+C.border,borderRadius:8,color:C.muted,cursor:"pointer",fontSize:14,padding:"4px 8px"}}>‹</button>
-                  <div id="zona-scroll-main" style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:4,scrollbarWidth:"none",flex:1} as any}>
-                    {["Todas",...Array.from(new Set(workers.flatMap(w=>[w.zone,...(w.service_zones||[])]).filter(Boolean) as string[])).filter(z=>ZONAS.includes(z)).sort((a,b)=>a.localeCompare(b,"es"))].map(z=>(
-                      <button key={z} onClick={()=>setZonas(prev=>z==="Todas"?[]:prev.includes(z)?prev.filter(x=>x!==z):[...prev,z])} style={{flexShrink:0,padding:"7px 12px",borderRadius:99,border:"1.5px solid "+((z==="Todas"?zonas.length===0:zonas.includes(z))?C.accent:C.border+"88"),background:(z==="Todas"?zonas.length===0:zonas.includes(z))?"linear-gradient(135deg,"+C.accent+"22,"+C.orange+"11)":"rgba(255,255,255,0.02)",color:(z==="Todas"?zonas.length===0:zonas.includes(z))?C.accent:C.mutedL,cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:(z==="Todas"?zonas.length===0:zonas.includes(z))?700:400,whiteSpace:"nowrap" as const,transition:"all 0.15s"}}>
-                        {z}
-                      </button>
-                    ))}
-                  </div>
-                  <button onClick={()=>{const el=document.getElementById("zona-scroll-main");if(el)el.scrollLeft+=150;}} style={{flexShrink:0,background:C.surface,border:"1px solid "+C.border,borderRadius:8,color:C.muted,cursor:"pointer",fontSize:14,padding:"4px 8px"}}>›</button>
-                </div>
-              </div>
             </div>
 
             {/* Stats */}
