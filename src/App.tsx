@@ -2875,11 +2875,11 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
         // Esto empuja el contenido debajo de la Isla Dinámica/Notch
         paddingTop: "env(safe-area-inset-top)"
       }}>
-        <div style={{maxWidth:900,margin:"0 auto",padding:"0 16px",display:"flex",alignItems:"center",justifyContent:"space-between",height:52}}>
+       <div style={{maxWidth:1180,margin:"0 auto",padding:"0 16px",display:"flex",alignItems:"center",justifyContent:"space-between",height:52}}>
           <button onClick={()=>setTab("buscar")} style={{display:"flex",alignItems:"center",gap:8,background:"none",border:"none",cursor:"pointer",padding:0}}>
             <div style={{width:28,height:28,borderRadius:8,background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14}}>🔨</div>
             <span style={{fontWeight:900,fontSize:19,letterSpacing:"-0.03em"}}><span style={{color:C.text}}>Oficio</span><span style={{color:C.accent}}>Ya</span></span>
-            <span style={{fontSize:9,color:C.accent,background:C.accent+"15",padding:"2px 7px",borderRadius:3,fontWeight:700}}>SEVILLA</span>
+            {ciudadSel&&<span style={{fontSize:9,color:C.accent,background:C.accent+"15",padding:"2px 7px",borderRadius:3,fontWeight:700}}>{ciudadSel.toUpperCase()}</span>}
           </button>
           {user?(
             <button onClick={onLogout} style={{background:"none",border:"1px solid "+C.border,borderRadius:6,color:C.muted,cursor:"pointer",padding:"4px 10px",fontSize:11}}>Salir</button>
@@ -2892,7 +2892,7 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
         </div>
       </header>
 
-      <div style={{maxWidth:900,margin:"0 auto",padding:"0 16px"}}>
+      <div style={{maxWidth:1180,margin:"0 auto",padding:"0 16px"}}>
         {tab==="buscar"&&(<>
           <div style={{padding:"14px 0 0"}}>
 
@@ -2922,7 +2922,9 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
                                 <span style={{fontSize:9,color:C.green,fontWeight:800,letterSpacing:"0.07em"}}>PROFESIONALES DISPONIBLES</span>
               </div>
 
-                            {/* Titular — gancho */}
+                                         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))",gap:32,alignItems:"start"}}>
+              <div>
+              {/* Titular — gancho */}
                             <h1 style={{fontWeight:900,fontSize:"clamp(28px,6.5vw,42px)",color:C.text,lineHeight:1.08,marginBottom:2,letterSpacing:"-0.035em"}}>
                 Buscar un buen profesional
               </h1>
@@ -2933,14 +2935,15 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
               <div style={{marginBottom:14}}>
                 <p style={{fontSize:10,color:C.mutedL,fontWeight:800,letterSpacing:"0.07em",textTransform:"uppercase" as const,marginBottom:8}}>1 · ¿Qué necesitas?</p>
                 <div style={{display:"flex",gap:6,flexWrap:"wrap" as const}}>
-                  {Array.from(new Set(workers.map(w=>w.trade).filter(Boolean) as string[])).sort((a,b)=>a.localeCompare(b,"es")).slice(0,8).map(t=>(
+                  {[...Array.from(new Set(workers.map(w=>w.trade).filter(Boolean) as string[])).sort((a,b)=>a.localeCompare(b,"es")),"Otro"].map(t=>(
                     <button key={t} onClick={()=>setQrOficio(t)} style={{padding:"8px 13px",borderRadius:99,border:"1.5px solid "+(qrOficio===t?C.accent:C.border+"88"),background:qrOficio===t?C.accent+"22":"rgba(255,255,255,0.02)",color:qrOficio===t?C.accent:C.mutedL,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:qrOficio===t?800:500,whiteSpace:"nowrap" as const,transition:"all 0.15s"}}>{t}</button>
                   ))}
                 </div>
               </div>
 
-              {/* 2 · Ciudad */}
-              <div style={{marginBottom:14}}>
+             {/* 2 · Ciudad */}
+              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:14,marginBottom:14}}>
+              <div>
                 <p style={{fontSize:10,color:C.mutedL,fontWeight:800,letterSpacing:"0.07em",textTransform:"uppercase" as const,marginBottom:8}}>2 · ¿Dónde?</p>
                 <select value={ciudadSel} onChange={e=>{setCiudadSel(e.target.value);try{localStorage.setItem("oy_ciudad",e.target.value);}catch{}}} style={{width:"100%",background:C.surface,border:"1px solid "+C.border,borderRadius:10,padding:"12px",color:ciudadSel?C.text:C.muted,fontFamily:"'DM Sans',sans-serif",fontSize:14,outline:"none",boxSizing:"border-box" as const}}>
                   <option value="" style={{background:C.card}}>Elige tu ciudad</option>
@@ -2950,14 +2953,14 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
 
               {/* 3 · Descripción */}
               <div style={{marginBottom:16}}>
-                <p style={{fontSize:10,color:C.mutedL,fontWeight:800,letterSpacing:"0.07em",textTransform:"uppercase" as const,marginBottom:8}}>3 · Cuéntanoslo con tus palabras</p>
+                <p style={{fontSize:10,color:C.mutedL,fontWeight:800,letterSpacing:"0.07em",textTransform:"uppercase" as const,marginBottom:8}}>4 · Cuéntanoslo con tus palabras</p>
                 <textarea value={qrDesc} onChange={e=>setQrDesc(e.target.value)} rows={3} placeholder="Ej: Se me ha roto una tubería bajo el fregadero y pierde agua desde anoche" style={{width:"100%",background:C.surface,border:"1px solid "+C.border,borderRadius:10,padding:"12px",color:C.text,fontFamily:"'DM Sans',sans-serif",fontSize:14,outline:"none",resize:"vertical" as const,boxSizing:"border-box" as const,lineHeight:1.5}} />
                             </div>
 
-              {/* 4 · Teléfono */}
-              <div style={{marginBottom:16}}>
-                <p style={{fontSize:10,color:C.mutedL,fontWeight:800,letterSpacing:"0.07em",textTransform:"uppercase" as const,marginBottom:8}}>4 · ¿A qué teléfono te llamamos?</p>
+              <div>
+                <p style={{fontSize:10,color:C.mutedL,fontWeight:800,letterSpacing:"0.07em",textTransform:"uppercase" as const,marginBottom:8}}>3 · ¿A qué teléfono te llamamos?</p>
                 <input value={qrPhone} onChange={e=>setQrPhone(e.target.value)} type="tel" placeholder="612 345 678" style={{width:"100%",background:C.surface,border:"1px solid "+C.border,borderRadius:10,padding:"12px",color:C.text,fontFamily:"'DM Sans',sans-serif",fontSize:14,outline:"none",boxSizing:"border-box" as const}} />
+              </div>
               </div>
 
               {qrErr&&<div style={{color:C.red,fontSize:13,marginBottom:12,padding:"10px 12px",background:C.red+"15",borderRadius:8,border:"1px solid "+C.red+"33"}}>{qrErr}</div>}
