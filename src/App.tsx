@@ -3060,11 +3060,14 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
             </div>
 
             {/* Stats */}
-            <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginBottom:16}}>
-              {[{l:"Profesionales",v:workers.length+"+"},{l:"Trabajos",v:"1.8K"},{l:"Ciudades",v:"15"},{l:"Valoración",v:"4.8★"}].map(s=>(
-                <div key={s.l} style={{background:C.surface,borderRadius:10,padding:"10px 8px",textAlign:"center" as const,border:"1px solid "+C.border}}>
-                  <p style={{fontWeight:800,fontSize:16,color:C.accent}}>{s.v}</p>
-                  <p style={{fontSize:9,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.05em"}}>{s.l}</p>
+                        <div style={{display:"flex",gap:8,marginBottom:16}}>
+              {[
+                {l:"Verificados",n:workers.filter(w=>w.verified).length},
+                {l:"Oficios",n:new Set(workers.map(w=>w.trade).filter(Boolean)).size},
+              ].filter(s=>s.n>0).map(s=>(
+                <div key={s.l} style={{flex:1,background:C.surface,borderRadius:10,padding:"10px 8px",textAlign:"center" as const,border:"1px solid "+C.border}}>
+                  <p style={{fontWeight:800,fontSize:16,color:C.accent}}>{s.n}</p>
+                  <p style={{fontSize:9,color:C.mutedL,textTransform:"uppercase" as const,letterSpacing:"0.05em"}}>{s.l}</p>
                 </div>
               ))}
             </div>
