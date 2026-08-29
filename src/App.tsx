@@ -2951,16 +2951,16 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
                 </select>
               </div>
 
-              {/* 3 · Descripción */}
-              <div style={{marginBottom:16}}>
-                <p style={{fontSize:10,color:C.mutedL,fontWeight:800,letterSpacing:"0.07em",textTransform:"uppercase" as const,marginBottom:8}}>4 · Cuéntanoslo con tus palabras</p>
-                <textarea value={qrDesc} onChange={e=>setQrDesc(e.target.value)} rows={3} placeholder="Ej: Se me ha roto una tubería bajo el fregadero y pierde agua desde anoche" style={{width:"100%",background:C.surface,border:"1px solid "+C.border,borderRadius:10,padding:"12px",color:C.text,fontFamily:"'DM Sans',sans-serif",fontSize:14,outline:"none",resize:"vertical" as const,boxSizing:"border-box" as const,lineHeight:1.5}} />
-                            </div>
-
               <div>
                 <p style={{fontSize:10,color:C.mutedL,fontWeight:800,letterSpacing:"0.07em",textTransform:"uppercase" as const,marginBottom:8}}>3 · ¿A qué teléfono te llamamos?</p>
                 <input value={qrPhone} onChange={e=>setQrPhone(e.target.value)} type="tel" placeholder="612 345 678" style={{width:"100%",background:C.surface,border:"1px solid "+C.border,borderRadius:10,padding:"12px",color:C.text,fontFamily:"'DM Sans',sans-serif",fontSize:14,outline:"none",boxSizing:"border-box" as const}} />
               </div>
+              </div>
+
+                            {/* 4 · Descripción */}
+              <div style={{marginBottom:16}}>
+                <p style={{fontSize:10,color:C.mutedL,fontWeight:800,letterSpacing:"0.07em",textTransform:"uppercase" as const,marginBottom:8}}>4 · Cuéntanoslo con tus palabras</p>
+                <textarea value={qrDesc} onChange={e=>setQrDesc(e.target.value)} rows={3} placeholder="Ej: Se me ha roto una tubería bajo el fregadero y pierde agua desde anoche" style={{width:"100%",background:C.surface,border:"1px solid "+C.border,borderRadius:10,padding:"12px",color:C.text,fontFamily:"'DM Sans',sans-serif",fontSize:14,outline:"none",resize:"vertical" as const,boxSizing:"border-box" as const,lineHeight:1.5}} />
               </div>
 
               {qrErr&&<div style={{color:C.red,fontSize:13,marginBottom:12,padding:"10px 12px",background:C.red+"15",borderRadius:8,border:"1px solid "+C.red+"33"}}>{qrErr}</div>}
