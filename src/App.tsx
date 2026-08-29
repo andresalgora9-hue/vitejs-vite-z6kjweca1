@@ -2460,7 +2460,16 @@ function ClientHome({user,onLogout,onUpdate,deepLinkChatWith,onLogin}:{user:User
       const res=await fetch(SUPABASE_FUNCTIONS_URL+"/auth-handler",{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({action:"register",name:name.trim(),email:email.toLowerCase().trim(),password:pw,type:"cliente",phone:phone.trim(),trial_end:""})});
       const data=await res.json();
       if(!data.success){
-        if(data.error?.includes("Ya existe")){setQrErr("Ya tienes cuenta con ese email. Inicia sesión arriba.");setQrSending(false);setQuickBooting(false);return;}
+               if(data.error?.includes("Ya existe")){
+          const{data:ex}=await db.from("users").select("id,name").eq("email",email.toLowerCase().trim()).maybeSingle();
+          if(!ex){setQrErr("Ya tienes cuenta con ese email. Inicia sesión arriba.");setQrSending(false);setQuickBooting(false);return;}
+          const{data:req2}=await db.from("budget_requests").insert({client_id:ex.id,client_name:ex.name||name.trim(),oficio:oficioReq,zona:ciudadReq,description:desc.trim(),max_budget:null,status:"open",notified_pros:[],city_slug:(override?.ciudad||"sevilla").toLowerCase(),landing:override?.landing||"app",utm_source:override?.utm_source||null,utm_campaign:override?.utm_campaign||null,utm_content:override?.utm_content||null,gclid:override?.gclid||null}).select().single();
+          if(req2){fetch(`${SUPABASE_FUNCTIONS_URL}/notify-admin`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({type:"sin_profesional",cliente:ex.name||name.trim(),oficio:oficioReq,zona:ciudadReq,descripcion:desc,telefono:phone,email:email,request_id:req2.id})}).catch(()=>{});}
+          gtagEvent("generate_lead",{content_name:"quick_request_recurrente",oficio:oficioReq});
+          fbqEvent("Lead",{content_name:"quick_request_recurrente",content_category:oficioReq});
+          setQuickSent(true);setQrSending(false);setQuickBooting(false);setShowQuickRequest(false);
+          return;
+        }
         setQrErr(data.error||"Error al crear cuenta");setQrSending(false);setQuickBooting(false);return;
       }
       const u=data.user;
@@ -2559,7 +2568,7 @@ const activarNotificacionesCliente = async()=>{
       if(!mapaZones.some(z=>wz.includes(z)))return false;
     } else if(zonas.length>0){
   const wz=[w.zone,...(w.service_zones||[])].filter(Boolean);
-  if(!zonas.some(z=>wz.includes(z))&&!wz.includes("Sevilla"))return false;
+  const nz=(s:string)=>s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();   const wzn=wz.map(x=>nz(x as string));   if(!zonas.some(z=>wzn.includes(nz(z)))&&!wzn.includes("sevilla"))return false;
 }
     if(oficio!=="Todos"&&w.trade!==oficio)return false;
     if(search){const s=search.toLowerCase();const tradeMatch=OFICIOS.some(o=>o.toLowerCase().includes(s));if(tradeMatch){if(!(w.trade||"").toLowerCase().includes(s))return false;}else{if(!w.name.toLowerCase().includes(s)&&!(w.trade||"").toLowerCase().includes(s)&&!(w.bio||"").toLowerCase().includes(s))return false;}}
@@ -2876,14 +2885,14 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
                 <span style={{fontSize:9,color:C.green,fontWeight:800,letterSpacing:"0.07em"}}>{workers.filter(w=>w.available).length} DISPONIBLES AHORA</span>
               </div>
 
-              {/* Titular */}
+                            {/* Titular — gancho */}
               <h1 style={{fontWeight:900,fontSize:26,color:C.text,lineHeight:1.1,marginBottom:4,letterSpacing:"-0.03em"}}>
-                El profesional que necesitas,
+                Buscar un buen profesional
               </h1>
-              <h1 style={{fontWeight:900,fontSize:26,lineHeight:1.1,marginBottom:8,letterSpacing:"-0.03em",color:C.accent}}>
-                en tu ciudad.
+              <h1 style={{fontWeight:900,fontSize:26,lineHeight:1.1,marginBottom:10,letterSpacing:"-0.03em",color:C.accent}}>
+                no debería ser una lotería.
               </h1>
-              <p style={{fontSize:12,color:C.mutedL,marginBottom:22}}>Presupuesto gratis · Sin compromiso · Pago directo al profesional</p>
+              <p style={{fontSize:13,color:C.mutedL,marginBottom:20,lineHeight:1.5}}>O llamas al primero que sale en Google y cruzas los dedos, o le pides el teléfono a un vecino y esperas dos semanas.</p>
 
               {/* Botón pedir presupuesto GRANDE */}
               <button
@@ -2892,16 +2901,34 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
                 onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 10px 40px rgba(255,215,0,0.55),0 4px 12px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.6)";}}
                 onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow="0 6px 30px rgba(255,215,0,0.4),0 2px 8px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.6)";}}
               >
-                <span style={{fontSize:20}}>⚡</span>
-                Recibir presupuesto en minutos
+                Cuéntanos qué necesitas
               </button>
               <div style={{display:"flex",justifyContent:"center",gap:8,marginTop:10}}>
                 <span style={{fontSize:11,color:C.accent,fontWeight:800,background:C.accent+"14",border:"1px solid "+C.accent+"33",borderRadius:99,padding:"5px 12px",letterSpacing:"-0.01em"}}>100% gratis</span>
-                <span style={{fontSize:11,color:C.accent,fontWeight:800,background:C.accent+"14",border:"1px solid "+C.accent+"33",borderRadius:99,padding:"5px 12px",letterSpacing:"-0.01em"}}>En 5 min</span>
+                <span style={{fontSize:11,color:C.accent,fontWeight:800,background:C.accent+"14",border:"1px solid "+C.accent+"33",borderRadius:99,padding:"5px 12px",letterSpacing:"-0.01em"}}>Sin compromiso</span>
               </div>
               <p style={{textAlign:"center" as const,fontSize:11,color:C.mutedL,marginTop:12,fontWeight:600}}>Tu solicitud llega a <span style={{color:C.text,fontWeight:800}}>+50 profesionales</span> de tu zona</p>
            </div>
 
+            {/* ════════════════════════════════════════════
+                POR QUÉ OFICIOYA — 3 razones
+                ════════════════════════════════════════════ */}
+            <div style={{background:C.card,borderRadius:16,border:"1px solid "+C.border,padding:"18px 16px",marginBottom:16}}>
+              <p style={{fontSize:13,color:C.mutedL,marginBottom:16,lineHeight:1.5}}>Te lo decimos claro: aquí no entra cualquiera a trabajar en tu casa.</p>
+              {[
+                {n:"1",t:"Verificamos a cada profesional",d:"Antes de que trabaje contigo comprobamos quién es y a qué se dedica."},
+                {n:"2",t:"Una persona lee tu solicitud",d:"No es un robot repartiendo avisos. Elegimos quién encaja con lo que necesitas."},
+                {n:"3",t:"Pagas al profesional, no a nosotros",d:"Tu dinero no pasa por la plataforma en ningún momento."},
+              ].map(r=>(
+                <div key={r.n} style={{display:"flex",gap:12,marginBottom:12,alignItems:"flex-start"}}>
+                  <span style={{flexShrink:0,width:24,height:24,borderRadius:99,background:C.accent+"1A",border:"1px solid "+C.accent+"44",color:C.accent,fontSize:12,fontWeight:800,display:"flex",alignItems:"center",justifyContent:"center"}}>{r.n}</span>
+                  <div>
+                    <p style={{fontSize:14,fontWeight:800,color:C.text,marginBottom:2}}>{r.t}</p>
+                    <p style={{fontSize:12,color:C.mutedL,lineHeight:1.45}}>{r.d}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
             {/* ════════════════════════════════════════════
                 FORMULARIO RÁPIDO sin cuenta
                 ════════════════════════════════════════════ */}
@@ -2935,7 +2962,7 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
               <div style={{background:"linear-gradient(135deg,#0d1a0d,#131320)",borderRadius:16,border:"1.5px solid "+C.green+"44",padding:"32px 20px",marginBottom:16,textAlign:"center" as const,animation:"fadeSlideUp 0.3s ease"}}>
                 <div style={{fontSize:48,marginBottom:12}}>✅</div>
                 <p style={{fontWeight:900,fontSize:20,color:C.text,marginBottom:8}}>¡Solicitud enviada!</p>
-                <p style={{fontSize:14,color:C.mutedL,marginBottom:4}}>Un profesional te contactará en <strong style={{color:C.accent}}>menos de 5 minutos</strong></p>
+                <p style={{fontSize:14,color:C.mutedL,marginBottom:4}}>Revisamos tu solicitud y te llamamos para <strong style={{color:C.accent}}>confirmar los detalles</strong></p>
                 <p style={{fontSize:13,color:C.muted,marginBottom:20}}>Revisa tu teléfono ({qrPhone})</p>
                 <button onClick={()=>{setShowQuickRequest(false);setQuickSent(false);}} style={{padding:"12px 24px",background:C.accent,border:"none",borderRadius:10,color:"#000",fontWeight:700,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>Ver profesionales disponibles</button>
               </div>
@@ -2964,7 +2991,7 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
                 <div style={{display:"flex",alignItems:"center",gap:4}}>
                   <button onClick={()=>{const el=document.getElementById("zona-scroll-main");if(el)el.scrollLeft-=150;}} style={{flexShrink:0,background:C.surface,border:"1px solid "+C.border,borderRadius:8,color:C.muted,cursor:"pointer",fontSize:14,padding:"4px 8px"}}>‹</button>
                   <div id="zona-scroll-main" style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:4,scrollbarWidth:"none",flex:1} as any}>
-                    {["Todas","Sevilla",...SEVILLA_ZONAS,...ZONAS.filter(z=>z!=="Sevilla")].map(z=>(
+                    {["Todas",...Array.from(new Set(workers.flatMap(w=>[w.zone,...(w.service_zones||[])]).filter(Boolean) as string[])).sort((a,b)=>a.localeCompare(b,"es"))].map(z=>(
                       <button key={z} onClick={()=>setZonas(prev=>z==="Todas"?[]:prev.includes(z)?prev.filter(x=>x!==z):[...prev,z])} style={{flexShrink:0,padding:"7px 12px",borderRadius:99,border:"1.5px solid "+((z==="Todas"?zonas.length===0:zonas.includes(z))?C.accent:C.border+"88"),background:(z==="Todas"?zonas.length===0:zonas.includes(z))?"linear-gradient(135deg,"+C.accent+"22,"+C.orange+"11)":"rgba(255,255,255,0.02)",color:(z==="Todas"?zonas.length===0:zonas.includes(z))?C.accent:C.mutedL,cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:(z==="Todas"?zonas.length===0:zonas.includes(z))?700:400,whiteSpace:"nowrap" as const,transition:"all 0.15s"}}>
                         {z}
                       </button>
