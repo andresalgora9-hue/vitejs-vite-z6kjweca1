@@ -2979,9 +2979,9 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
                 <span style={{fontSize:11,color:C.accent,fontWeight:800,background:C.accent+"14",border:"1px solid "+C.accent+"33",borderRadius:99,padding:"5px 12px",letterSpacing:"-0.01em"}}>100% gratis</span>
                 <span style={{fontSize:11,color:C.accent,fontWeight:800,background:C.accent+"14",border:"1px solid "+C.accent+"33",borderRadius:99,padding:"5px 12px",letterSpacing:"-0.01em"}}>Sin compromiso</span>
               </div>
-        
-           </div>
-
+            </div>
+            </div>
+            </div>
             {/* ════════════════════════════════════════════
                 POR QUÉ OFICIOYA — 3 razones
                 ════════════════════════════════════════════ */}
