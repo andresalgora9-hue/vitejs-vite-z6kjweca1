@@ -2435,7 +2435,8 @@ function ClientHome({user,onLogout,onUpdate,deepLinkChatWith,onLogin}:{user:User
   };
   const [qrPhone,setQrPhone]=useState("");
   const [qrOficio,setQrOficio]=useState("Fontanería");
-  const [qrDesc,setQrDesc]=useState("");
+    const [qrDesc,setQrDesc]=useState("");
+  const [ciudadSel,setCiudadSel]=useState<string>(()=>{try{return localStorage.getItem("oy_ciudad")||"";}catch{return "";}});
   const [qrSending,setQrSending]=useState(false);
   const [quickBooting,setQuickBooting]=useState(()=>{
     try{ return new URLSearchParams(window.location.search).get("quick")==="1"; }catch(e){ return false; }
@@ -2882,17 +2883,40 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
               {/* Badge disponibles */}
               <div style={{display:"inline-flex",alignItems:"center",gap:5,background:C.green+"1A",border:"1px solid "+C.green+"33",borderRadius:99,padding:"4px 10px",marginBottom:12}}>
                 <span style={{width:6,height:6,borderRadius:"50%",background:C.green,display:"inline-block",boxShadow:"0 0 6px "+C.green}} />
-                <span style={{fontSize:9,color:C.green,fontWeight:800,letterSpacing:"0.07em"}}>{workers.filter(w=>w.available).length} DISPONIBLES AHORA</span>
+                                <span style={{fontSize:9,color:C.green,fontWeight:800,letterSpacing:"0.07em"}}>PROFESIONALES DISPONIBLES</span>
               </div>
 
                             {/* Titular — gancho */}
-              <h1 style={{fontWeight:900,fontSize:26,color:C.text,lineHeight:1.1,marginBottom:4,letterSpacing:"-0.03em"}}>
+                            <h1 style={{fontWeight:900,fontSize:"clamp(28px,6.5vw,42px)",color:C.text,lineHeight:1.08,marginBottom:2,letterSpacing:"-0.035em"}}>
                 Buscar un buen profesional
               </h1>
-              <h1 style={{fontWeight:900,fontSize:26,lineHeight:1.1,marginBottom:10,letterSpacing:"-0.03em",color:C.accent}}>
+              <h1 style={{fontWeight:900,fontSize:"clamp(28px,6.5vw,42px)",lineHeight:1.08,marginBottom:12,letterSpacing:"-0.035em",color:C.accent}}>
                 no debería ser una lotería.
               </h1>
-              <p style={{fontSize:13,color:C.mutedL,marginBottom:20,lineHeight:1.5}}>O llamas al primero que sale en Google y cruzas los dedos, o le pides el teléfono a un vecino y esperas dos semanas.</p>
+              {/* 1 · Oficio */}
+              <div style={{marginBottom:14}}>
+                <p style={{fontSize:10,color:C.mutedL,fontWeight:800,letterSpacing:"0.07em",textTransform:"uppercase" as const,marginBottom:8}}>1 · ¿Qué necesitas?</p>
+                <div style={{display:"flex",gap:6,flexWrap:"wrap" as const}}>
+                  {Array.from(new Set(workers.map(w=>w.trade).filter(Boolean) as string[])).sort((a,b)=>a.localeCompare(b,"es")).slice(0,8).map(t=>(
+                    <button key={t} onClick={()=>setQrOficio(t)} style={{padding:"8px 13px",borderRadius:99,border:"1.5px solid "+(qrOficio===t?C.accent:C.border+"88"),background:qrOficio===t?C.accent+"22":"rgba(255,255,255,0.02)",color:qrOficio===t?C.accent:C.mutedL,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:qrOficio===t?800:500,whiteSpace:"nowrap" as const,transition:"all 0.15s"}}>{t}</button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 2 · Ciudad */}
+              <div style={{marginBottom:14}}>
+                <p style={{fontSize:10,color:C.mutedL,fontWeight:800,letterSpacing:"0.07em",textTransform:"uppercase" as const,marginBottom:8}}>2 · ¿Dónde?</p>
+                <select value={ciudadSel} onChange={e=>{setCiudadSel(e.target.value);try{localStorage.setItem("oy_ciudad",e.target.value);}catch{}}} style={{width:"100%",background:C.surface,border:"1px solid "+C.border,borderRadius:10,padding:"12px",color:ciudadSel?C.text:C.muted,fontFamily:"'DM Sans',sans-serif",fontSize:14,outline:"none",boxSizing:"border-box" as const}}>
+                  <option value="" style={{background:C.card}}>Elige tu ciudad</option>
+                  {ZONAS.map(z=><option key={z} value={z} style={{background:C.card}}>{z}</option>)}
+                </select>
+              </div>
+
+              {/* 3 · Descripción */}
+              <div style={{marginBottom:16}}>
+                <p style={{fontSize:10,color:C.mutedL,fontWeight:800,letterSpacing:"0.07em",textTransform:"uppercase" as const,marginBottom:8}}>3 · Cuéntanoslo con tus palabras</p>
+                <textarea value={qrDesc} onChange={e=>setQrDesc(e.target.value)} rows={3} placeholder="Ej: Se me ha roto una tubería bajo el fregadero y pierde agua desde anoche" style={{width:"100%",background:C.surface,border:"1px solid "+C.border,borderRadius:10,padding:"12px",color:C.text,fontFamily:"'DM Sans',sans-serif",fontSize:14,outline:"none",resize:"vertical" as const,boxSizing:"border-box" as const,lineHeight:1.5}} />
+              </div>
 
               {/* Botón pedir presupuesto GRANDE */}
               <button
@@ -2901,13 +2925,13 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
                 onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 10px 40px rgba(255,215,0,0.55),0 4px 12px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.6)";}}
                 onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow="0 6px 30px rgba(255,215,0,0.4),0 2px 8px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.6)";}}
               >
-                Cuéntanos qué necesitas
+                                Pedir presupuesto gratis
               </button>
               <div style={{display:"flex",justifyContent:"center",gap:8,marginTop:10}}>
                 <span style={{fontSize:11,color:C.accent,fontWeight:800,background:C.accent+"14",border:"1px solid "+C.accent+"33",borderRadius:99,padding:"5px 12px",letterSpacing:"-0.01em"}}>100% gratis</span>
                 <span style={{fontSize:11,color:C.accent,fontWeight:800,background:C.accent+"14",border:"1px solid "+C.accent+"33",borderRadius:99,padding:"5px 12px",letterSpacing:"-0.01em"}}>Sin compromiso</span>
               </div>
-              <p style={{textAlign:"center" as const,fontSize:11,color:C.mutedL,marginTop:12,fontWeight:600}}>Tu solicitud llega a <span style={{color:C.text,fontWeight:800}}>+50 profesionales</span> de tu zona</p>
+        
            </div>
 
             {/* ════════════════════════════════════════════
@@ -2991,7 +3015,7 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
                 <div style={{display:"flex",alignItems:"center",gap:4}}>
                   <button onClick={()=>{const el=document.getElementById("zona-scroll-main");if(el)el.scrollLeft-=150;}} style={{flexShrink:0,background:C.surface,border:"1px solid "+C.border,borderRadius:8,color:C.muted,cursor:"pointer",fontSize:14,padding:"4px 8px"}}>‹</button>
                   <div id="zona-scroll-main" style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:4,scrollbarWidth:"none",flex:1} as any}>
-                    {["Todas",...Array.from(new Set(workers.flatMap(w=>[w.zone,...(w.service_zones||[])]).filter(Boolean) as string[])).sort((a,b)=>a.localeCompare(b,"es"))].map(z=>(
+                    {["Todas",...Array.from(new Set(workers.flatMap(w=>[w.zone,...(w.service_zones||[])]).filter(Boolean) as string[])).filter(z=>ZONAS.includes(z)).sort((a,b)=>a.localeCompare(b,"es"))].map(z=>(
                       <button key={z} onClick={()=>setZonas(prev=>z==="Todas"?[]:prev.includes(z)?prev.filter(x=>x!==z):[...prev,z])} style={{flexShrink:0,padding:"7px 12px",borderRadius:99,border:"1.5px solid "+((z==="Todas"?zonas.length===0:zonas.includes(z))?C.accent:C.border+"88"),background:(z==="Todas"?zonas.length===0:zonas.includes(z))?"linear-gradient(135deg,"+C.accent+"22,"+C.orange+"11)":"rgba(255,255,255,0.02)",color:(z==="Todas"?zonas.length===0:zonas.includes(z))?C.accent:C.mutedL,cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:(z==="Todas"?zonas.length===0:zonas.includes(z))?700:400,whiteSpace:"nowrap" as const,transition:"all 0.15s"}}>
                         {z}
                       </button>
