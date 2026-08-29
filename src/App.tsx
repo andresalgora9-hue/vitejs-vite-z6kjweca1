@@ -3040,25 +3040,6 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
               </div>
             )}
 
-            {/* ════════════════════════════════════════════
-                BUSCADOR con scroll de TODAS las profesiones
-                ════════════════════════════════════════════ */}
-            <div style={{background:C.card,borderRadius:16,border:"1px solid "+C.border,padding:"14px",marginBottom:14}}>
-
-              {/* Input texto */}
-              <div style={{display:"flex",background:C.bg,borderRadius:11,border:"1px solid "+C.border,overflow:"hidden",marginBottom:11}}>
-                <span style={{padding:"0 13px",display:"flex",alignItems:"center",color:C.muted,fontSize:15}}>🔍</span>
-                <input
-                  value={search}
-                  onChange={e=>{setSearch(e.target.value);if(e.target.value)setOficio("Todos");}}
-                  placeholder="Electricista, fontanero, pintor..."
-                  style={{flex:1,padding:"12px 0",background:"transparent",border:"none",color:C.text,fontFamily:"inherit",fontSize:14,outline:"none"}}
-                />
-                {search&&<button onClick={()=>setSearch("")} style={{padding:"0 13px",background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:14}}>✕</button>}
-              </div>
-
-            </div>
-
             {/* Stats */}
                         <div style={{display:"flex",gap:8,marginBottom:16}}>
               {[
