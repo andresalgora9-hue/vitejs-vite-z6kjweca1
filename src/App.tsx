@@ -52,7 +52,6 @@ function OnboardingModal({tipo,onClose}:{tipo:"cliente"|"profesional";onClose:()
     {icon:"⭐",title:"Valora cuando termines",desc:"Tu opinión ayuda a otros usuarios y mejora la calidad de la plataforma."},
   ];
   const stepsPro=[
-    {icon:"✅",title:"Completa tu perfil",desc:"Añade foto, especialidades y precio por hora. Un perfil completo recibe 3x más contactos."},
     {icon:"🔴",title:"Recibe leads al instante",desc:"Cuando un cliente busca tu oficio en tu zona, te llegará una alerta en tiempo real."},
     {icon:"💳",title:"Cobra directamente",desc:"Acuerda el precio con el cliente y cobra tú mismo. OficioYa no cobra comisión por trabajo."},
   ];
@@ -4317,6 +4316,8 @@ function ProDashboard({user,onLogout,onUpdate,deepLinkChatWith}:{user:UserRow;on
 const [lastMsgByUser,setLastMsgByUser]=useState<Record<string,any>>({});
 const [chatUser,setChatUser]=useState<UserRow|null>(null);
   const [stats,setStats]=useState({visits:0,contacts:0,reviews:0});
+  const [proStats,setProStats]=useState({facturado30:0,clientes30:0,prevision7:"—",porCobrar:0});
+  const [hoy,setHoy]=useState<any[]>([]);
  const [urgentLead,setUrgentLead]=useState<{msg:string;desc?:string;fromId:string;isNuevoLead?:boolean;requestId?:string|null}|null>(null);
   const [showPresupuestoForm,setShowPresupuestoForm]=useState<{requestId:string;clientName:string;oficio:string;desc:string}|null>(null);
   const [inAppNotif,setInAppNotif]=useState<{msg:string;from:string;fromId:string;isAdmin:boolean}|null>(null);
@@ -4372,7 +4373,24 @@ const [chatUser,setChatUser]=useState<UserRow|null>(null);
     db.from("messages").select("id",{count:"exact"} as any).eq("to_id",user.id).then(({count}:any)=>setStats(s=>({...s,contacts:count||0})));
     db.from("reviews").select("id",{count:"exact"} as any).eq("worker_id",user.id).then(({count}:any)=>setStats(s=>({...s,reviews:count||0})));
     // Count unread
-    db.from("messages").select("id",{count:"exact"} as any).eq("to_id",user.id).eq("read",false).neq("from_id","00000000-0000-0000-0000-000000000001").then(({count}:any)=>setUnreadMsgs(count||0));
+        db.from("messages").select("id",{count:"exact"} as any).eq("to_id",user.id).eq("read",false).neq("from_id","00000000-0000-0000-0000-000000000001").then(({count}:any)=>setUnreadMsgs(count||0));
+  },[user.id]);
+
+  useEffect(()=>{
+    const desde=new Date(Date.now()-30*864e5).toISOString();
+    db.from("deals").select("price,collected_amount,collected_at,client_phone,created_at,stage").eq("pro_id",user.id).then(({data}:any)=>{
+      const d=data||[];
+      const cobrados=d.filter((x:any)=>x.collected_at&&x.collected_at>=desde);
+      const fact=cobrados.reduce((s:number,x:any)=>s+Number(x.collected_amount||0),0);
+      const clientes=new Set(d.filter((x:any)=>x.created_at>=desde&&x.client_phone).map((x:any)=>x.client_phone)).size;
+      const pend=d.filter((x:any)=>x.stage==="completado").reduce((s:number,x:any)=>s+Number(x.price||0),0);
+      setProStats({
+        facturado30:Math.round(fact),
+        clientes30:clientes,
+        prevision7:cobrados.length<4?"—":Math.round(fact/30*7)+" €",
+        porCobrar:Math.round(pend)
+      });
+    });
   },[user.id]);
 
   
@@ -4833,15 +4851,11 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
             <span style={{fontWeight:900,fontSize:19,letterSpacing:"-0.03em"}}><span style={{color:C.text}}>Oficio</span><span style={{color:C.accent}}>Ya</span></span>
           </div>
           <div style={{display:"flex",gap:8,alignItems:"center"}}>
-            <Badge plan={user.plan} />
+
             <button onClick={onLogout} style={{background:"none",border:"1px solid "+C.border,borderRadius:6,color:C.muted,cursor:"pointer",padding:"4px 10px",fontSize:11}}>Salir</button>
           </div>
         </div>
       </header>
-
-      {!user.has_stripe&&daysLeft<=7&&<div style={{background:"linear-gradient(135deg,"+C.red+"18,"+C.orange+"11)",borderBottom:"1px solid "+C.red+"22",padding:"8px 16px",textAlign:"center"}}>
-        <p style={{fontSize:12,color:daysLeft>0?C.orange:C.red,fontWeight:700}}>{daysLeft>0?"⚠ "+daysLeft+" días de prueba · Activa un plan para no perder tu perfil":"⛔ Trial expirado · Tu perfil no es visible"}</p>
-      </div>}
 
       <div style={{maxWidth:900,margin:"0 auto",padding:"0 16px"}}>
 
@@ -4860,14 +4874,11 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
             </div>
           </div>
 
-          <LeadsCounter user={user} onUpgrade={()=>setTab("planes")} />
-
           <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10,marginBottom:16}}>
-            {[{l:"Visitas al perfil",v:stats.visits,c:C.blue,i:"👁"},{l:"Mensajes recibidos",v:stats.contacts,c:C.green,i:"💬"},{l:"Reseñas",v:stats.reviews,c:C.accent,i:"⭐"},{l:"Días de trial",v:daysLeft,c:daysLeft>7?C.mutedL:C.red,i:"⏱"}].map(s=>(
-              <GCard key={s.l} style={{textAlign:"center",padding:"14px 10px"}}>
-                <div style={{fontSize:18,marginBottom:4}}>{s.i}</div>
-                <p style={{fontWeight:800,fontSize:24,color:s.c}}>{s.v}</p>
-                <p style={{fontSize:11,color:C.muted}}>{s.l}</p>
+                        {[{l:"Facturado · 30 días",v:proStats.facturado30+" €",c:C.green},{l:"Clientes nuevos · 30 días",v:proStats.clientes30,c:C.blue},{l:"Previsión · 7 días",v:proStats.prevision7,c:C.accent},{l:"Por cobrar",v:proStats.porCobrar+" €",c:C.orange}].map(s=>(
+              <GCard key={s.l} style={{padding:"14px 12px"}}>
+                <p style={{fontWeight:800,fontSize:24,color:s.c,letterSpacing:"-0.03em"}}>{s.v}</p>
+                <p style={{fontSize:11,color:C.muted,marginTop:3,lineHeight:1.35}}>{s.l}</p>
               </GCard>
             ))}
           </div>
@@ -4884,7 +4895,6 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
             </GCard>
           )}
 
-          <Btn full onClick={()=>setTab("planes")} color={C.accent}>Mejorar mi plan →</Btn>
         </>)}
 
         {tab==="chats"&&(<>
@@ -4959,10 +4969,7 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
             </div>
             <p style={{fontWeight:700,color:C.text,fontSize:13,marginBottom:12}}>Información básica</p>
             <Inp label="Descripción profesional" value={bio} onChange={setBio} placeholder="Describe tu experiencia, especialidades y servicios..." multiline />
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-              <Inp label="Precio por hora (€)" value={price} onChange={setPrice} type="number" />
-              <Inp label="Años de experiencia" value={expYears} onChange={setExpYears} type="number" />
-            </div>
+           <Inp label="Años de experiencia" value={expYears} onChange={setExpYears} type="number" />
             <Inp label="WhatsApp / Teléfono" value={whatsapp} onChange={setWhatsapp} placeholder="+34 600 000 000" />
             <Toggle value={freeQuote} onChange={setFreeQuote} label="Ofrezco presupuesto gratuito" />
             <Toggle value={available} onChange={v=>{setAvailable(v);db.from("users").update({available:v}).eq("id",user.id);onUpdate({...user,available:v});}} label="Disponible para nuevos trabajos" />
@@ -5119,65 +5126,53 @@ setShowStripeModal({priceId:pl==="elite"?elitePriceId:PRICE_MAP[pl],plan:pl});
               paddingBottom:2,
               opacity:0.7,
             }}>¿Cómo funciona la cancelación?</a>
-            {user.plan!=="gratis"&&(
-              <div style={{marginTop:12}}>
-                <button onClick={async()=>{
-                  await db.from("messages").insert({
-                    from_id:user.id,
-                    to_id:"00000000-0000-0000-0000-000000000002",
-                    text:`Solicitud de cancelación de plan ${user.plan.toUpperCase()} de ${user.name} (${user.email}). Por favor, gestiona la baja.`,
-                    read:false,
-                  });
-                  showToast("✓ Solicitud enviada al equipo");
-                }} style={{
-                  background:"none",
-                  border:"1px solid "+C.border,
-                  borderRadius:8,
-                  color:C.muted,
-                  fontSize:11,
-                  padding:"6px 14px",
-                  cursor:"pointer",
-                  fontFamily:"'DM Sans',sans-serif",
-                  opacity:0.6,
-                }}>Solicitar cancelación de suscripción</button>
-              </div>
-            )}
           </div>
           <div style={{height:30}} />
         </>)}
       </div>
-    <nav style={{
+        <nav style={{
         position:"fixed",
         bottom:0,
         left:0,
         right:0,
-        background:"rgba(10,10,15,0.98)",
-        backdropFilter:"blur(25px) saturate(200%)",
-        borderTop:"1px solid "+C.border,
+        background:"#ffffff",
+        borderTop:"1px solid #e4e8ee",
         display:"flex",
+        justifyContent:"center",
         zIndex:200,
-        paddingBottom: "calc(10px + env(safe-area-inset-bottom))", // Fix para iPhone
-        paddingTop: "10px"
+        paddingBottom: "calc(11px + env(safe-area-inset-bottom))",
+        paddingTop: "9px"
       }}>
-        {([["inicio","🏠","Inicio"],["chats","💬","Mensajes"],["trabajos","🔨","Trabajos"],["perfil","👤","Perfil"]] as const).map(([id,icon,label])=>(
-          <button key={id} onClick={()=>setTab(id as any)} style={{flex:1,padding:"8px 2px 10px",background:"none",border:"none",color:tab===id?C.accent:C.muted,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:2,transition:"color 0.15s",position:"relative"}}>
-            <span style={{fontSize:18,position:"relative"}}>
-              {icon}
-              {id==="chats"&&unreadMsgs>0&&tab!=="chats"&&(
-                <span style={{position:"absolute",top:-4,right:-4,background:C.red,color:"#fff",borderRadius:99,minWidth:16,height:16,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:900,border:"1.5px solid "+C.bg,padding:"0 3px"}}>
-                  {unreadMsgs>9?"9+":unreadMsgs}
-                </span>
-              )}
-              {id==="trabajos"&&jobs.filter(j=>j.status==="pending").length>0&&tab!=="trabajos"&&(
-                <span style={{position:"absolute",top:-4,right:-4,background:C.orange,color:"#000",borderRadius:99,minWidth:16,height:16,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:900,border:"1.5px solid "+C.bg,padding:"0 3px"}}>
-                  {jobs.filter(j=>j.status==="pending").length}
-                </span>
-              )}
-            </span>
-            <span style={{fontSize:9,fontWeight:600,letterSpacing:"0.02em"}}>{label}</span>
-            {tab===id&&<div style={{position:"absolute",top:0,left:"50%",transform:"translateX(-50%)",width:24,height:2,background:"linear-gradient(90deg,"+C.accent+","+C.orange+")",borderRadius:"0 0 2px 2px"}} />}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1.35fr 1fr 1fr",alignItems:"end",width:"100%",maxWidth:520}}>
+        {([["inicio","Inicio"],["trabajos","Trabajos"],["chats","Mensajes"],["perfil","Perfil"]] as const).map(([id,label])=>{
+          const act=tab===id;
+          const esTrab=id==="trabajos";
+          const col=act?C.orange:"#8b93a1";
+          const sz=esTrab?31:23;
+          return (
+          <button key={id} onClick={()=>setTab(id as any)} style={{padding:"5px 2px",background:"none",border:"none",color:col,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:5,position:"relative",fontFamily:"'DM Sans',sans-serif"}}>
+            {esTrab&&<span style={{position:"absolute",top:-1,left:"50%",transform:"translateX(-50%)",width:46,height:46,borderRadius:"50%",background:"radial-gradient(circle, rgba(232,134,42,0.16) 0%, rgba(232,134,42,0) 70%)",pointerEvents:"none"}} />}
+            <svg viewBox="0 0 24 24" width={sz} height={sz} fill="none" stroke="currentColor" strokeWidth={esTrab?2:1.9} strokeLinecap="round" strokeLinejoin="round" style={{position:"relative"}}>
+              {id==="inicio"&&<><path d="M3 10.5 12 3.5l9 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M9.8 20v-5.4h4.4V20"/></>}
+              {id==="trabajos"&&<path d="M14.6 6.1a3.9 3.9 0 0 0 5.1 5L21 12.4a4.6 4.6 0 0 1-6.5 0l-.3-.3-6.6 6.6a2 2 0 0 1-2.9-2.9l6.6-6.6-.3-.3a4.6 4.6 0 0 1 0-6.5l1.3 1.3a3.9 3.9 0 0 0 2.3 2.4z"/>}
+              {id==="chats"&&<path d="M20.5 12.2c0 3.9-3.8 7-8.5 7a10 10 0 0 1-2.6-.34L4.2 20.5l1.5-3.7A6.7 6.7 0 0 1 3.5 12.2c0-3.9 3.8-7 8.5-7s8.5 3.1 8.5 7z"/>}
+              {id==="perfil"&&<><circle cx="12" cy="8.4" r="3.7"/><path d="M4.8 20c.6-3.6 3.6-5.6 7.2-5.6s6.6 2 7.2 5.6"/></>}
+            </svg>
+            <span style={{fontSize:esTrab?14:11.5,fontWeight:esTrab?800:700,letterSpacing:esTrab?"-0.01em":"0.01em",textShadow:esTrab&&act?"0 1px 0 rgba(255,255,255,0.9), 0 2px 7px rgba(232,134,42,0.42)":"0 1px 0 rgba(255,255,255,0.8)"}}>{label}</span>
+            {id==="chats"&&unreadMsgs>0&&tab!=="chats"&&(
+              <span style={{position:"absolute",top:0,right:"22%",background:C.red,color:"#fff",borderRadius:99,minWidth:16,height:16,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:800,padding:"0 4px"}}>
+                {unreadMsgs>9?"9+":unreadMsgs}
+              </span>
+            )}
+            {esTrab&&hoy.length>0&&tab!=="trabajos"&&(
+              <span style={{position:"absolute",top:0,right:"16%",background:C.orange,color:"#fff",borderRadius:99,minWidth:17,height:17,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10.5,fontWeight:800,padding:"0 5px"}}>
+                {hoy.length}
+              </span>
+            )}
+            {act&&<div style={{position:"absolute",top:-10,left:"50%",transform:"translateX(-50%)",width:esTrab?34:24,height:3,background:C.orange,borderRadius:"0 0 3px 3px"}} />}
           </button>
-        ))}
+        );})}
+        </div>
       </nav>
 
 {showMapaPro&&(
