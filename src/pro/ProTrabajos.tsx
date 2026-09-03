@@ -216,7 +216,7 @@ export default function ProTrabajos({ user, onToast }: { user: { id: string; nam
   const aceptar = (d: DealRow) => guardar(d.id, { stage: "aceptado" }, "✓ Trabajo aceptado. Ya puedes ver el teléfono.");
 
   const noPuedo = (d: DealRow) =>
-    guardar(d.id, { stage: "cerrado", close_reason: "no_puedo", close_price: 0, returned_to_admin: true },
+    guardar(d.id, { stage: "cerrado", close_reason: "pro_no_atiende", close_price: 0, returned_to_admin: true },
       "Devuelto a OficioYa. Se lo asignaremos a otro.");
 
   const marcarSubstage = async (d: DealRow, id: string, fecha: string) => {
