@@ -59,36 +59,37 @@ export const SUBSTAGES = [
   { id: "fotos", label: "Esperando fotos o vídeo", pideFecha: false },
   { id: "confirma", label: "Esperando que me confirme", pideFecha: false },
 ] as const;
-
 // ── MOTIVOS DE DEVOLUCIÓN (cancelar) ──
+// OJO: los ids tienen que coincidir con el CHECK deals_close_reason_chk de la base de datos.
 // Si NO llegó a dar precio (0 €)
 export const CLOSE_REASONS_SIN_PRECIO = [
-  { id: "no_contesta", label: "No consigo hablar con el cliente" },
-  { id: "ya_no_necesita", label: "El cliente ya no lo necesita" },
-  { id: "no_puedo", label: "No puedo atenderlo (agenda)" },
-  { id: "fuera_zona", label: "Está fuera de mi zona" },
+  { id: "cliente_no_responde", label: "No consigo hablar con el cliente" },
+  { id: "cliente_cancela", label: "El cliente ya no lo necesita" },
+  { id: "pro_no_atiende", label: "No puedo atenderlo (agenda)" },
+  { id: "fuera_de_zona", label: "Está fuera de mi zona" },
   { id: "otros", label: "Otros" },
 ];
 
 // Si SÍ dio precio
 export const CLOSE_REASONS_CON_PRECIO = [
-  { id: "caro", label: "Le pareció caro" },
-  { id: "otro_presupuesto", label: "Eligió otro presupuesto" },
-  { id: "aplazado", label: "Lo ha aplazado" },
-  { id: "no_contesta_tras", label: "No contesta desde que le pasé el presupuesto" },
-  { id: "no_puedo", label: "No puedo atenderlo yo" },
+  { id: "precio_alto", label: "Le pareció caro" },
+  { id: "cerro_con_otro", label: "Eligió otro presupuesto" },
+  { id: "cliente_cancela", label: "Lo ha aplazado" },
+  { id: "cliente_no_contesta", label: "No contesta desde que le pasé el presupuesto" },
+  { id: "pro_no_atiende", label: "No puedo atenderlo yo" },
   { id: "otros", label: "Otros" },
 ];
 
 // Motivos que devuelven el lead a la bandeja de admin para reasignar
-export const REASONS_REASIGNAR = ["no_puedo", "fuera_zona", "no_contesta", "no_contesta_tras"];
+export const REASONS_REASIGNAR = ["pro_no_atiende", "fuera_de_zona", "cliente_no_responde", "cliente_no_contesta"];
 
 // ── MOTIVOS PARA APARCAR ──
+// OJO: los ids tienen que coincidir con el CHECK deals_pause_reason_chk de la base de datos.
 export const PAUSE_REASONS = [
-  { id: "aplazado", label: "El cliente lo ha aplazado" },
-  { id: "tercero", label: "Espera decisión de otra persona (propietario, comunidad, pareja)" },
-  { id: "obra", label: "Obra o reforma sin terminar" },
-  { id: "fuera", label: "El cliente está fuera" },
+  { id: "sin_presupuesto_ahora", label: "El cliente lo ha aplazado" },
+  { id: "espera_a_tercero", label: "Espera decisión de otra persona (propietario, comunidad, pareja)" },
+  { id: "obra_futura", label: "Obra o reforma sin terminar" },
+  { id: "cliente_ausente", label: "El cliente está fuera" },
   { id: "seguro", label: "Tema de seguro o peritaje" },
   { id: "otros", label: "Otros" },
 ];
