@@ -385,11 +385,13 @@ export default function ProTrabajos({ user, onToast }: { user: { id: string; nam
                 return (
                   <Card key={s.id} accent={C.orange + "44"}>
                     <p style={{ color: C.text, fontWeight: 700, fontSize: 14, margin: 0 }}>{d?.client_name || "Trabajo"}</p>
-                    <p style={{ color: C.mutedL, fontSize: 12, marginTop: 4 }}>
-                      Pediste aparcar hasta el {fechaCorta(s.requested_until)} · {labelDe(PAUSE_REASONS, s.reason)}
+                                       <p style={{ color: C.mutedL, fontSize: 12, marginTop: 4 }}>
+                      {s.kind === "correccion"
+                        ? "Pediste corregir la ficha" + (s.note ? ": " + s.note : "")
+                        : "Pediste aparcar hasta el " + fechaCorta(s.requested_until) + " · " + labelDe(PAUSE_REASONS, s.reason)}
                     </p>
                     <p style={{ color: C.orange, fontSize: 12, marginTop: 8, fontWeight: 700 }}>
-                      ⏳ El reloj sigue corriendo hasta que OficioYa lo apruebe
+                                            {s.kind === "correccion" ? "⏳ Pendiente de que OficioYa lo revise" : "⏳ El reloj sigue corriendo hasta que OficioYa lo apruebe"}
                     </p>
                   </Card>
                 );
