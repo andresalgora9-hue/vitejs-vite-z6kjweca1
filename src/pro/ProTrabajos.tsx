@@ -304,7 +304,7 @@ export default function ProTrabajos({ user, onToast }: { user: { id: string; nam
               <Titulo color={C.orange}>🔴 Nuevos · acepta o rechaza</Titulo>
               {nuevos.map((d) => (
                 <Card key={d.id} accent={C.orange + "55"} style={{ background: "#1a1500" }}>
-                  <Cabecera d={d} ocultarTelefono />
+                  <Cabecera d={d} ocultarTelefono onFicha={() => abrirNotas(d)} />
                   <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
                     <Boton onClick={() => aceptar(d)} color={C.accent}>✓ Aceptar</Boton>
                     <Boton onClick={() => noPuedo(d)} color={C.red} outline small>No puedo</Boton>
@@ -320,7 +320,7 @@ export default function ProTrabajos({ user, onToast }: { user: { id: string; nam
               <Titulo color={C.blue}>🔵 Pendientes de precio</Titulo>
               {sinPrecio.map((d) => (
                 <Card key={d.id}>
-                  <Cabecera d={d} />
+                  <Cabecera d={d} onFicha={() => abrirNotas(d)} />
                   <div style={{ marginTop: 12, marginBottom: 10 }}>
                     <p style={{ fontSize: 11, color: C.mutedL, marginBottom: 7, fontWeight: 700 }}>¿Cómo va?</p>
                     <Radios
@@ -353,7 +353,7 @@ export default function ProTrabajos({ user, onToast }: { user: { id: string; nam
               <Titulo color={C.green}>🟡 En marcha</Titulo>
               {enMarcha.map((d) => (
                 <Card key={d.id}>
-                  <Cabecera d={d} />
+                  <Cabecera d={d} onFicha={() => abrirNotas(d)} />
                   <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
                     {d.stage === "precio_acordado"
                       ? <Boton onClick={() => setMFecha(d)} color={C.blue}>Fijar fecha</Boton>
@@ -374,7 +374,7 @@ export default function ProTrabajos({ user, onToast }: { user: { id: string; nam
                 const parcial = Number(d.collected_amount) > 0 && Number(d.collected_amount) < Number(d.price || 0);
                 return (
                   <Card key={d.id}>
-                    <Cabecera d={d} />
+                    <Cabecera d={d} onFicha={() => abrirNotas(d)} />
                     {parcial && (
                       <p style={{ fontSize: 12, color: C.orange, marginTop: 8, fontWeight: 700 }}>
                         Cobrado {eur(d.collected_amount)} de {eur(d.price)} · quedan {eur(Number(d.price || 0) - Number(d.collected_amount))}
@@ -432,7 +432,7 @@ export default function ProTrabajos({ user, onToast }: { user: { id: string; nam
               <p style={{ fontSize: 11, color: C.mutedL, fontWeight: 800, marginBottom: 6 }}>
                 💤 Se reactiva el {fechaCorta(d.pause_until)}
               </p>
-              <Cabecera d={d} />
+              <Cabecera d={d} onFicha={() => abrirNotas(d)} />
               <p style={{ color: C.mutedL, fontSize: 12, marginTop: 8 }}>{labelDe(PAUSE_REASONS, d.pause_reason)}</p>
             </Card>
           ))}
@@ -620,6 +620,7 @@ export default function ProTrabajos({ user, onToast }: { user: { id: string; nam
         aviso("Solicitud enviada a OficioYa.");
         setMFicha(null);
       }} />}
+       {mNotas && <ModalFichaTecnica d={mNotas} notas={notas} cargando={cargandoNotas} onClose={() => setMNotas(null)} onAddNota={anadirNota} />}
     </div>
   );
 }
@@ -643,12 +644,12 @@ function Fila({ k, v, destacado }: { k: string; v: string; destacado?: boolean }
   );
 }
 
-function Cabecera({ d, ocultarTelefono }: { d: DealRow; ocultarTelefono?: boolean }) {
+function Cabecera({ d, ocultarTelefono, onFicha, notas }: { d: DealRow; ocultarTelefono?: boolean; onFicha?: () => void; notas?: number }) {
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
         <div style={{ flex: 1 }}>
-          <p style={{ color: C.text, fontWeight: 800, fontSize: 15, margin: 0 }}>{d.client_name}</p>
+          {onFicha ? (             <button onClick={onFicha} style={{               background: "none", border: "none", padding: 0, cursor: "pointer", fontFamily: F,               color: C.text, fontWeight: 800, fontSize: 15, textAlign: "left",               display: "flex", alignItems: "center", gap: 7,             }}>               {d.client_name}               <span style={{                 fontSize: 10, fontWeight: 800, padding: "2px 7px", borderRadius: 999,                 background: C.border, color: C.mutedL,               }}>{notas ? "📝 " + notas : "ficha"}</span>             </button>           ) : (             <p style={{ color: C.text, fontWeight: 800, fontSize: 15, margin: 0 }}>{d.client_name}</p>           )}
           <p style={{ color: C.muted, fontSize: 12, marginTop: 3 }}>
             {d.trade}{d.zone ? " · " + d.zone : ""}{d.city_name ? " · " + d.city_name : ""}
           </p>
