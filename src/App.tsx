@@ -4378,7 +4378,7 @@ const [chatUser,setChatUser]=useState<UserRow|null>(null);
 
   useEffect(()=>{
     const desde=new Date(Date.now()-30*864e5).toISOString();
-    db.from("deals").select("price,collected_amount,collected_at,client_phone,created_at,stage").eq("pro_id",user.id).then(({data}:any)=>{
+    db.from("deals").select("id,title,client_name,zone,price,collected_amount,collected_at,client_phone,created_at,stage,scheduled_for").eq("pro_id",user.id).then(({data}:any)=>{
       const d=data||[];
       const cobrados=d.filter((x:any)=>x.collected_at&&x.collected_at>=desde);
       const fact=cobrados.reduce((s:number,x:any)=>s+Number(x.collected_amount||0),0);
@@ -4388,8 +4388,10 @@ const [chatUser,setChatUser]=useState<UserRow|null>(null);
         facturado30:Math.round(fact),
         clientes30:clientes,
         prevision7:cobrados.length<4?"—":Math.round(fact/30*7)+" €",
-        porCobrar:Math.round(pend)
+                porCobrar:Math.round(pend)
       });
+      const hoyStr=new Date().toISOString().slice(0,10);
+      setHoy(d.filter((x:any)=>x.scheduled_for===hoyStr&&x.stage!=="cerrado"));
     });
   },[user.id]);
 
@@ -4883,17 +4885,21 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
             ))}
           </div>
 
-          {jobs.filter(j=>j.status==="pending").length>0&&(
-            <GCard style={{marginBottom:14,border:"1px solid "+C.orange+"44"}}>
-              <p style={{fontWeight:700,color:C.orange,fontSize:13,marginBottom:10}}>🔔 {jobs.filter(j=>j.status==="pending").length} solicitud(es) pendiente(s)</p>
-              {jobs.filter(j=>j.status==="pending").slice(0,2).map(j=>(
-                <div key={j.id} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0",borderBottom:"1px solid "+C.border}}>
-                  <div style={{flex:1}}><p style={{fontSize:13,color:C.text,fontWeight:600}}>{j.title}</p><p style={{fontSize:11,color:C.muted}}>{j.client_name} · {timeAgo(j.created_at)}</p></div>
-                  <button onClick={()=>setTab("trabajos")} style={{background:C.orange+"22",border:"1px solid "+C.orange+"44",borderRadius:6,color:C.orange,cursor:"pointer",padding:"4px 8px",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:700}}>Ver →</button>
-                </div>
-              ))}
+                   <p style={{fontSize:12,fontWeight:700,letterSpacing:"0.09em",textTransform:"uppercase",color:C.muted,margin:"6px 0 11px"}}>Tareas de hoy</p>
+          {hoy.length===0?(
+            <GCard style={{marginBottom:14,padding:"16px 14px"}}>
+              <p style={{fontSize:14,color:C.muted}}>Nada programado para hoy.</p>
+              <button onClick={()=>setTab("trabajos")} style={{marginTop:8,background:"none",border:"none",padding:0,color:C.accent,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>Ver todos mis trabajos →</button>
             </GCard>
-          )}
+          ):hoy.map((d:any)=>(
+            <button key={d.id} onClick={()=>setTab("trabajos")} style={{display:"flex",alignItems:"center",gap:12,width:"100%",textAlign:"left",background:C.card,border:"1px solid "+C.border,borderRadius:13,padding:"13px 14px",marginBottom:9,color:C.text,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>
+              <span style={{flex:1,minWidth:0}}>
+                <span style={{display:"block",fontSize:15,fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{d.title||"Trabajo"}</span>
+                <span style={{display:"block",fontSize:12.5,color:C.muted,marginTop:1}}>{d.client_name}{d.zone?" · "+d.zone:""}{d.price?" · "+Math.round(d.price)+" €":" · sin precio"}</span>
+              </span>
+              <span style={{color:C.mutedL,fontSize:18}}>›</span>
+            </button>
+          ))}
 
         </>)}
 
