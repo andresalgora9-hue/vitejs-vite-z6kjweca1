@@ -142,6 +142,9 @@ export default function ProTrabajos({ user, onToast }: { user: { id: string; nam
   const [mDevolver, setMDevolver] = useState<DealRow | null>(null);
   const [mAparcar, setMAparcar] = useState<DealRow | null>(null);
   const [mFicha, setMFicha] = useState<DealRow | null>(null);
+    const [mNotas, setMNotas] = useState<DealRow | null>(null);
+  const [notas, setNotas] = useState<any[]>([]);
+  const [cargandoNotas, setCargandoNotas] = useState(false);
 
   const aviso = (m: string) => { if (onToast) onToast(m); };
 
@@ -181,11 +184,32 @@ export default function ProTrabajos({ user, onToast }: { user: { id: string; nam
     return true;
   };
 
-  const evento = async (dealId: string, event: string, detail: string) => {
+    const evento = async (dealId: string, event: string, detail: string) => {
     await db.from("deal_events").insert({
       deal_id: dealId, actor_id: user.id, actor_name: user.name,
       actor_role: "pro", event, detail,
     });
+  };
+
+  const cargarNotas = useCallback(async (dealId: string) => {
+    setCargandoNotas(true);
+    const { data } = await db.from("deal_events").select("*").eq("deal_id", dealId).order("created_at", { ascending: false });
+    setNotas(data || []);
+    setCargandoNotas(false);
+  }, []);
+
+  const abrirNotas = (d: DealRow) => { setMNotas(d); setNotas([]); cargarNotas(d.id); };
+
+  const anadirNota = async (dealId: string, texto: string) => {
+    const t = texto.trim();
+    if (!t) return false;
+    const { error } = await db.from("deal_events").insert({
+      deal_id: dealId, actor_id: user.id, actor_name: user.name,
+      actor_role: "pro", event: "nota", detail: t,
+    });
+    if (error) { aviso("No se pudo guardar la nota."); return false; }
+    await cargarNotas(dealId);
+    return true;
   };
 
   // ── CLASIFICACIÓN ──
@@ -810,6 +834,92 @@ function ModalCorreccion({ d, onClose, onSave }: any) {
       <Campo label="Importe correcto" value={v} onChange={setV} type="number" sufijo="€" />
       <Campo label="¿Qué hay que corregir?" value={nota} onChange={setNota} placeholder="Escribe aquí…" />
       <Boton full disabled={!ok} onClick={() => onSave(num, nota)}>Enviar solicitud</Boton>
+    </Modal>
+  );
+}
+function ModalFichaTecnica({ d, notas, cargando, onClose, onAddNota }: any) {
+  const [texto, setTexto] = useState("");
+  const [enviando, setEnviando] = useState(false);
+
+  const ICONO: any = {
+    nota: "📝", estado: "🔄", precio: "💶", cobro: "💰", creado: "🆕",
+    asignacion: "👤", liquidado: "🔒", seguimiento: "👀", impago: "⚠️", solicitud_pausa: "⏸",
+  };
+
+  const enviar = async () => {
+    setEnviando(true);
+    const ok = await onAddNota(d.id, texto);
+    if (ok) setTexto("");
+    setEnviando(false);
+  };
+
+  const fechaLarga = (iso?: string | null) => {
+    if (!iso) return "—";
+    const f = new Date(iso);
+    if (isNaN(f.getTime())) return "—";
+    return f.toLocaleString("es-ES", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  };
+
+  return (
+    <Modal title={d.client_name} onClose={onClose}>
+      <div style={{ background: C.bg, border: "1px solid " + C.border, borderRadius: 10, padding: "4px 12px", marginBottom: 16 }}>
+        <Fila k="Referencia" v={"#" + d.ref} />
+        <Fila k="Estado" v={d.stage} />
+        <Fila k="Teléfono" v={d.client_phone || "—"} />
+        <Fila k="Oficio" v={d.trade || "—"} />
+        <Fila k="Zona" v={[d.zone, d.city_name].filter(Boolean).join(" · ") || "—"} />
+        {d.price != null && <Fila k="Precio" v={eur(d.price)} />}
+        {d.price != null && <Fila k="Comisión" v={eur(d.commission_committed)} destacado />}
+        {Number(d.collected_amount) > 0 && <Fila k="Cobrado del cliente" v={eur(d.collected_amount)} />}
+        <Fila k="Entró el" v={fechaLarga(d.created_at)} />
+        {d.scheduled_for && <Fila k="Programado" v={fechaCorta(d.scheduled_for)} />}
+        {d.completed_at && <Fila k="Terminado" v={fechaLarga(d.completed_at)} />}
+        {d.collected_at && <Fila k="Cobrado" v={fechaLarga(d.collected_at)} />}
+        {d.settled_at && <Fila k="Liquidado" v={fechaLarga(d.settled_at)} />}
+        {d.close_reason && <Fila k="Motivo de cierre" v={labelDe([...CLOSE_REASONS_CON_PRECIO, ...CLOSE_REASONS_SIN_PRECIO], d.close_reason)} />}
+      </div>
+
+      {d.description && (
+        <p style={{ color: C.mutedL, fontSize: 13, lineHeight: 1.5, marginBottom: 16 }}>{d.description}</p>
+      )}
+
+      <p style={{ fontSize: 11, color: C.mutedL, fontWeight: 800, letterSpacing: "0.07em", marginBottom: 10 }}>AÑADIR NOTA</p>
+      <textarea
+        value={texto}
+        onChange={(e) => setTexto(e.target.value)}
+        placeholder="Lo que quieras dejar apuntado…"
+        rows={3}
+        style={{
+          width: "100%", padding: "11px 12px", background: C.bg, border: "1px solid " + C.border,
+          borderRadius: 9, color: C.text, fontSize: 14, fontFamily: F, outline: "none",
+          resize: "vertical" as const, marginBottom: 10, boxSizing: "border-box" as const,
+        }}
+      />
+      <Boton full disabled={!texto.trim() || enviando} onClick={enviar}>
+        {enviando ? "Guardando…" : "Guardar nota"}
+      </Boton>
+
+      <p style={{ fontSize: 11, color: C.mutedL, fontWeight: 800, letterSpacing: "0.07em", margin: "22px 0 10px" }}>HISTORIAL</p>
+      {cargando && <p style={{ color: C.muted, fontSize: 13 }}>Cargando…</p>}
+      {!cargando && notas.length === 0 && <p style={{ color: C.muted, fontSize: 13 }}>Todavía no hay nada apuntado.</p>}
+      {notas.map((n: any) => (
+        <div key={n.id} style={{
+          display: "flex", gap: 10, padding: "10px 0", borderBottom: "1px solid " + C.border,
+        }}>
+          <span style={{ fontSize: 14, flexShrink: 0 }}>{ICONO[n.event] || "•"}</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{
+              color: n.event === "nota" ? C.text : C.mutedL,
+              fontSize: 13, margin: 0, lineHeight: 1.45,
+              fontWeight: n.event === "nota" ? 600 : 400,
+            }}>{n.detail}</p>
+            <p style={{ color: C.muted, fontSize: 11, marginTop: 3 }}>
+              {fechaLarga(n.created_at)}{n.actor_name ? " · " + n.actor_name : n.actor_role === "sistema" ? " · sistema" : ""}
+            </p>
+          </div>
+        </div>
+      ))}
+      <div style={{ height: 10 }} />
     </Modal>
   );
 }
