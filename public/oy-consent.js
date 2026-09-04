@@ -118,6 +118,11 @@
       var v = qs.get(k);
       if (v) { try { localStorage.setItem("oy_" + k, v); } catch (e) {} }
     });
+    // gclid / wbraid / gbraid — algunas landings no lo capturan por su cuenta
+    ["gclid", "wbraid", "gbraid"].forEach(function (k) {
+      var v = qs.get(k);
+      if (v) { try { localStorage.setItem("oy_" + k, JSON.stringify({ v: v, t: Date.now() })); } catch (e) {} }
+    });
   } catch (e) {}
 
   function leerUtm() {
@@ -224,8 +229,21 @@
   window.OYConsent = { abrir: abrirPanel };
 
   /* ---------- 5. CASILLA DE CONDICIONES ---------- */
+  function buscarBotonEnvio() {
+    // Cada plantilla de landing usa un id/clase distinto. Lo fiable es
+    // localizar el elemento cuyo onclick llama a enviarSolicitud().
+    var todos = document.querySelectorAll("button, a, input[type=button], input[type=submit]");
+    for (var i = 0; i < todos.length; i++) {
+      var oc = todos[i].getAttribute("onclick") || "";
+      if (oc.indexOf("enviarSolicitud") > -1) return todos[i];
+    }
+    return document.getElementById("resultCta") ||
+           document.querySelector(".btn-send") ||
+           document.querySelector(".btn-result-cta");
+  }
+
   function inyectarCasilla() {
-    var btn = document.getElementById("resultCta");
+    var btn = buscarBotonEnvio();
     if (!btn || document.getElementById("oyTerms")) return;
 
     var lab = document.createElement("label");
