@@ -20,9 +20,14 @@
 <meta property="og:image" content="https://www.aficioya.com/icon-512.png"/>
 <meta property="og:type" content="website"/>
 <meta name="theme-color" content="#C98A12"/>
+<!-- ── VELOCIDAD: fuentes sin bloquear el render + menos pesos ── -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://www.googletagmanager.com">
+<link rel="dns-prefetch" href="https://www.googletagmanager.com">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Sora:wght@700;800&family=Inter:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@700;800&family=Inter:wght@400;600;700&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@700;800&family=Inter:wght@400;600;700&display=swap"></noscript>
 
 <script type="application/ld+json">
 {
@@ -74,6 +79,14 @@
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
+/* ── VELOCIDAD: no se pinta lo que está fuera de pantalla ── */
+.section{content-visibility:auto;contain-intrinsic-size:auto 640px}
+.hero,.hero *{content-visibility:visible}
+img{content-visibility:auto}
+/* ── ENLACES INTERNOS ── */
+.ilinks{display:flex;flex-wrap:wrap;gap:9px;margin-top:20px}
+.ilink{font-size:13px;font-weight:600;color:var(--ink-soft);background:#fff;border:1px solid var(--line);border-radius:20px;padding:8px 15px}
+.ilink:hover{border-color:var(--gold);color:var(--gold-deep)}
 body{font-family:'Inter',Arial,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased}
 a{text-decoration:none;color:inherit}
 h1,h2,h3{font-family:'Sora',Arial,sans-serif}
@@ -631,6 +644,22 @@ section[id],div[id]{scroll-margin-top:90px}
       </p>
     </div>
   </section>
+
+  <section class="section" style="padding-top:0" id="mas">
+    <p class="sec-label">M&aacute;s sobre pintura en Sevilla</p>
+    <h2 class="sec-h2">Otras p&aacute;ginas que te pueden servir</h2>
+    <div class="ilinks">
+      <a class="ilink" href="/pintores-sevilla.html">Pintores en Sevilla</a>
+      <a class="ilink" href="/pintores-baratos-sevilla.html">Pintores econ&oacute;micos en Sevilla</a>
+      <a class="ilink" href="/precio-pintor-sevilla.html">Cu&aacute;nto cuesta pintar un piso</a>
+      <a class="ilink" href="/quitar-gotele-sevilla.html">Quitar gotel&eacute; en Sevilla</a>
+      <a class="ilink" href="/precio-pintar-fachada-sevilla.html">Precio de pintar fachada</a>
+      <a class="ilink" href="/pintor-dos-hermanas.html">Pintor en Dos Hermanas</a>
+      <a class="ilink" href="/pintor-mairena-del-aljarafe.html">Pintor en Mairena del Aljarafe</a>
+      <a class="ilink" href="/pintor-alcala-de-guadaira.html">Pintor en Alcal&aacute; de Guada&iacute;ra</a>
+      <a class="ilink" href="/pintores-aljarafe.html">Pintores en el Aljarafe</a>
+    </div>
+  </section>
 </div>
 
 <div class="sticky-cta" id="stickyCta">
@@ -679,10 +708,16 @@ section[id],div[id]{scroll-margin-top:90px}
         o.landing = archivo;
         var partes = archivo.split('-');
         if(partes.length > 1){
-          var resto = partes.slice(1).join('-');
+          var resto  = partes.slice(1).join('-');
+          var ultimo = partes[partes.length - 1];
           if(CIUDADES.indexOf(resto) !== -1){
+            // pintor-sevilla  ->  ciudad sevilla, sin zona
             o.city_slug = resto;
+          } else if(CIUDADES.indexOf(ultimo) !== -1){
+            // pintores-baratos-sevilla  ->  ciudad sevilla, sin zona basura
+            o.city_slug = ultimo;
           } else {
+            // pintor-dos-hermanas  ->  ciudad sevilla, zona dos-hermanas
             o.city_slug = 'sevilla';
             o.zona = resto;
           }
