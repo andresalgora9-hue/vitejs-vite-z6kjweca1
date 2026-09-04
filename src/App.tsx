@@ -3,7 +3,7 @@ import Admin from "./Admin";
 import EliteLanding from "./EliteLanding";
 import Terminos from "./Terminos";
 import Privacidad from "./Privacidad";
-import Cancelacion from "./Cancelacion";
+import Cancelacion from "./Cancelacion"; import Cookies from "./Cookies";
 import { db, STORAGE_URL, ADMIN_USER } from "./supabase";
 import type { UserRow, MessageRow, JobRow, CertRow, Plan, PhotoRow } from "./supabase";
 import { MapaZonas, MapaProModal } from './MapaZonas';
@@ -623,7 +623,7 @@ function LegalFooter(){
     <div style={{padding:"24px 20px",borderTop:"1px solid #1E1E30",textAlign:"center" as const,background:"#080810",marginTop:40}}>
       <p style={{fontSize:12,color:"#44445A",marginBottom:10}}>© {new Date().getFullYear()} oficioya. Todos los derechos reservados.</p>
       <div style={{display:"flex",justifyContent:"center",gap:16,flexWrap:"wrap" as const}}>
-        {[["Términos y Condiciones","/terminos"],["Política de Privacidad","/privacidad"],["Política de Cancelación","/cancelacion"]].map(([l,h])=>(
+                {[["Condiciones de Uso","/terminos"],["Política de Privacidad","/privacidad"],["Política de Cookies","/cookies"]].map(([l,h])=>(
           <a key={l} href={h} style={{color:"#44445A",fontSize:11,textDecoration:"none"}}>{l}</a>
         ))}
       </div>
@@ -5473,7 +5473,7 @@ if(!_lastVisit){
   if(window.location.pathname==="/elite-gratis")return <EliteLanding />;
   if(window.location.pathname==="/terminos")return <Terminos />;
   if(window.location.pathname==="/privacidad")return <Privacidad />;
-  if(window.location.pathname==="/cancelacion")return <Cancelacion />;
+  if(window.location.pathname==="/cancelacion")return <Cancelacion />;   if(window.location.pathname==="/cookies")return <Cookies />;
   if(window.location.pathname==="/confirmar-baja")return <ConfirmarBaja />;
   return (<Sentry.ErrorBoundary fallback={<div style={{minHeight:"100dvh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:16,padding:24}}><div style={{fontSize:40}}>⚠️</div><p style={{color:C.text,fontWeight:700,fontSize:18,textAlign:"center"}}>Algo salió mal</p><p style={{color:C.muted,fontSize:13,textAlign:"center"}}>Hemos registrado el error automáticamente. Recarga la página.</p><button onClick={()=>window.location.reload()} style={{padding:"12px 24px",background:C.accent,borderRadius:10,border:"none",color:"#000",fontWeight:700,cursor:"pointer"}}>Recargar</button></div>}>
     <style>{`
