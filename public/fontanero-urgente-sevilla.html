@@ -1,326 +1,623 @@
-/* ============================================================
-   OficioYa · oy-consent.js  ·  v1.0
-   Un solo archivo para las 363 landings de /public.
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <!-- ── CONSENTIMIENTO Y COOKIES ── -->
+<script src="/oy-consent.js"></script>
 
-   Hace cuatro cosas:
-     1. Consent Mode v2 en denegado por defecto + banner de cookies
-     2. Casilla obligatoria de Condiciones de Uso en el formulario
-     3. Captura de ciudad desde el nombre del archivo o utm_campaign
-     4. Añade el enlace a /cookies en el pie
+<!-- ── FAVICON: Google lo rastrea desde la landing de destino, no desde el index ── -->
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
-   INSTALACIÓN: en el <head>, ANTES del bloque de gtag:
-     <script src="/oy-consent.js"></script>
+<title>Fontanero urgente 24h en Sevilla — Llame ahora | OficioYa</title>
+<meta name="description" content="Fontanero de urgencia en Sevilla, disponible ahora — de noche, fines de semana y festivos. Llame directamente o cuéntenos qué pasa y le contactamos en minutos. Verificados, sin recargos inventados."/>
+<meta name="keywords" content="fontanero urgente Sevilla, fontanero 24 horas Sevilla, fontanero urgencias precio, fuga de agua urgente Sevilla, fontanero de noche Sevilla"/>
+<meta name="robots" content="index, follow"/>
+<link rel="canonical" href="https://www.aficioya.com/fontanero-urgente-sevilla"/>
+<meta property="og:title" content="Fontanero urgente 24h en Sevilla — Llame ahora | OficioYa"/>
+<meta property="og:description" content="Fontanero de urgencia en Sevilla, disponible ahora. Llame directamente o cuéntenos qué pasa y le contactamos en minutos."/>
+<meta property="og:url" content="https://www.aficioya.com/fontanero-urgente-sevilla"/>
+<meta property="og:image" content="https://www.aficioya.com/icon-512.png"/>
+<meta property="og:type" content="website"/>
+<meta name="theme-color" content="#D92D20"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-   INTERRUPTOR: OY.BLOQUEAR_HASTA_CONSENTIR
-     false → el banner se muestra pero GA4/Ads siguen midiendo (fase 1)
-     true  → nada mide hasta que el usuario acepta (fase 2, tras
-             cerrar la ventana de observación de los sitelinks)
-   ============================================================ */
-(function () {
-  "use strict";
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"EmergencyService",
+  "name":"Fontanero urgente 24h en Sevilla — OficioYa",
+  "description":"Fontanero de urgencia en Sevilla disponible las 24 horas, incluidos fines de semana y festivos. Verificados, con reseñas reales.",
+  "provider":{"@type":"LocalBusiness","name":"OficioYa","url":"https://www.aficioya.com","telephone":"+34656398014"},
+  "areaServed":[
+    {"@type":"City","name":"Sevilla"},
+    {"@type":"Place","name":"Triana"},
+    {"@type":"Place","name":"Nervión"},
+    {"@type":"Place","name":"Los Remedios"},
+    {"@type":"Place","name":"Macarena"},
+    {"@type":"City","name":"Dos Hermanas"},
+    {"@type":"City","name":"Mairena del Aljarafe"},
+    {"@type":"City","name":"Alcalá de Guadaíra"}
+  ],
+  "openingHoursSpecification":{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],"opens":"00:00","closes":"23:59"},
+  "serviceType":"Fontanero de urgencia"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"BreadcrumbList",
+  "itemListElement":[
+    {"@type":"ListItem","position":1,"name":"Inicio","item":"https://www.aficioya.com/"},
+    {"@type":"ListItem","position":2,"name":"Fontanero Sevilla","item":"https://www.aficioya.com/fontanero-sevilla"},
+    {"@type":"ListItem","position":3,"name":"Urgente 24h","item":"https://www.aficioya.com/fontanero-urgente-sevilla"}
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"FAQPage",
+  "mainEntity":[
+    {"@type":"Question","name":"¿Qué cobra un fontanero urgente en Sevilla?","acceptedAnswer":{"@type":"Answer","text":"Orientativamente 90-150 € por la salida más la primera hora en horario de urgencia (noche, fin de semana, festivo). Las horas adicionales rondan 40-70 €/h. El fontanero confirma el precio exacto al ver el problema."}},
+    {"@type":"Question","name":"¿Qué hago ante una fuga importante mientras llega el fontanero?","acceptedAnswer":{"@type":"Answer","text":"Cierra de inmediato la llave de paso general para cortar el agua y limitar el daño. Si el agua toca cerca de enchufes o cuadro eléctrico, baja también el diferencial. Si hay riesgo de afectar al vecino de abajo, avísale."}},
+    {"@type":"Question","name":"¿Cuándo es una urgencia real de fontanería?","acceptedAnswer":{"@type":"Answer","text":"Cuando hay una fuga que inunda o se acerca a instalaciones eléctricas, se ha quedado sin agua por avería, o un atasco desborda y amenaza al vecino. Un grifo que gotea o un atasco leve pueden esperar a horario normal."}},
+    {"@type":"Question","name":"¿Hay fontaneros disponibles de noche y festivos en Sevilla?","acceptedAnswer":{"@type":"Answer","text":"Sí. Al enviar su solicitud se avisa al momento a los fontaneros disponibles en su zona de Sevilla, y usted ve quién puede atenderle y en qué plazo antes de decidir."}},
+    {"@type":"Question","name":"¿Cuánto tardan en llegar en una urgencia?","acceptedAnswer":{"@type":"Answer","text":"Depende de la disponibilidad en su zona en ese momento. Por eso se lo mostramos en tiempo real, en vez de hacerle esperar una llamada de vuelta sin saber cuánto tardará."}},
+    {"@type":"Question","name":"¿Tiene recargo llamar de madrugada o en festivo?","acceptedAnswer":{"@type":"Answer","text":"El horario de urgencia suele llevar un recargo sobre la tarifa normal, ya incluido en el rango orientativo que ve antes de llamar. El fontanero se lo confirma siempre antes de empezar."}}
+  ]
+}
+</script>
 
-  var OY = {
-    BLOQUEAR_HASTA_CONSENTIR: false,   // ← cámbialo a true cuando cierre la ventana de Ads
-    TERMINOS_VERSION: "2.0",
-    COOKIES_VERSION: "1.0",
-    DIAS_CONSENTIMIENTO: 180,
-    DOMINIO_COOKIE: ".aficioya.com"
-  };
-  window.OY = OY;
+<style>
+:root{
+  --bg:#FFFFFF;
+  --bg-soft:#F6F7FA;
+  --ink:#10182C;
+  --ink-soft:#5B6472;
+  --ink-faint:#8891A0;
+  --line:#E7E9EE;
+  --gold:#D92D20;
+  --gold-deep:#B42318;
+  --gold-soft:#FEF3F2;
+  --cta:#D92D20;
+  --cta-hover:#B42318;
+  --cta-ink:#FFFFFF;
+  --green:#1F8A5F;
+  --green-soft:#EAF6EF;
+  --radius:14px;
+  --shadow:0 2px 6px rgba(16,24,44,.04), 0 10px 30px rgba(16,24,44,.06);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',Arial,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased}
+a{text-decoration:none;color:inherit}
+h1,h2,h3{font-family:'Sora',Arial,sans-serif}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+.wrap-narrow{max-width:760px;margin:0 auto;padding:0 24px}
+img{max-width:100%}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+@media(prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 
-  /* ---------- utilidades ---------- */
-  function setCookie(n, v, dias) {
-    try {
-      var d = new Date();
-      d.setTime(d.getTime() + dias * 864e5);
-      document.cookie = n + "=" + encodeURIComponent(v) +
-        ";expires=" + d.toUTCString() + ";path=/;SameSite=Lax" +
-        (location.hostname.indexOf("aficioya.com") > -1 ? ";domain=" + OY.DOMINIO_COOKIE : "");
-    } catch (e) {}
-  }
-  function getCookie(n) {
-    try {
-      var m = document.cookie.match("(^|;)\\s*" + n + "\\s*=\\s*([^;]+)");
-      return m ? decodeURIComponent(m[2]) : null;
-    } catch (e) { return null; }
-  }
-  function leerConsent() {
-    var raw = getCookie("oy_consent");
-    if (!raw) { try { raw = localStorage.getItem("oy_consent"); } catch (e) {} }
-    if (!raw) return null;
-    try { return JSON.parse(raw); } catch (e) { return null; }
-  }
-  function guardarConsent(obj) {
-    obj.v = OY.COOKIES_VERSION;
-    obj.t = new Date().toISOString();
-    var s = JSON.stringify(obj);
-    setCookie("oy_consent", s, OY.DIAS_CONSENTIMIENTO);
-    try { localStorage.setItem("oy_consent", s); } catch (e) {}
-  }
+/* ── TOPBAR ── */
+.topbar{background:var(--ink);color:#fff;font-size:12.5px;text-align:center;padding:8px 16px}
+.topbar a{color:#FFB4AC;font-weight:600}
+.topbar .pulse{display:inline-block;width:7px;height:7px;border-radius:50%;background:#FF6B5B;margin-right:6px;animation:pulse 1.6s ease infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
 
-  /* ---------- 1. CONSENT MODE (antes de que cargue gtag) ---------- */
+/* ── NAV ── */
+nav{background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:100}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;max-width:1120px;margin:0 auto;padding:14px 24px;gap:14px}
+.logo{display:flex;align-items:center;gap:8px;font-family:'Sora';font-size:19px;font-weight:800;color:var(--ink);white-space:nowrap}
+.logo-word{white-space:nowrap}
+.logo em{color:var(--gold);font-style:normal}
+.logo span{color:var(--ink-faint);font-size:12px;font-weight:500}
+.nav-actions{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.nav-phone{display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:800;color:#fff;background:var(--gold);border-radius:9px;padding:10px 15px;white-space:nowrap;box-shadow:0 6px 16px rgba(217,45,32,.28)}
+.nav-phone:hover{background:var(--gold-hover,var(--cta-hover))}
+@media(max-width:640px){.nav-phone span.txt{display:none}}
+
+/* ── HERO ── */
+.hero{padding:44px 0 40px}
+@media(max-width:640px){.hero{padding:20px 0 24px}.nav-inner{padding:10px 20px}}
+.eyebrow{display:inline-flex;align-items:center;gap:7px;background:var(--gold-soft);border:1px solid #F5C6C0;color:var(--gold-deep);font-size:12.5px;font-weight:700;padding:6px 14px;border-radius:20px;margin-bottom:20px;letter-spacing:.2px}
+.eyebrow .pulse{width:7px;height:7px;border-radius:50%;background:var(--gold);animation:pulse 1.6s ease infinite}
+.hero h1{font-size:clamp(28px,4.4vw,44px);font-weight:800;line-height:1.16;letter-spacing:-.5px;color:var(--ink);margin-bottom:16px;max-width:760px}
+.hero h1 em{color:var(--gold-deep);font-style:normal}
+.hero-sub{font-size:17px;color:var(--ink-soft);line-height:1.7;max-width:600px;margin-bottom:26px}
+.hero-sub strong{color:var(--ink)}
+.trust-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:28px}
+.trust-chip{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--ink);background:var(--bg-soft);border:1px solid var(--line);border-radius:9px;padding:7px 12px}
+.hero-ctas{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.btn-call-main{display:inline-flex;align-items:center;gap:10px;background:var(--cta);color:#fff;font-weight:800;font-size:17px;padding:18px 30px;border-radius:12px;letter-spacing:-.1px;border:none;cursor:pointer;box-shadow:0 10px 26px rgba(217,45,32,.35)}
+.btn-call-main:hover{background:var(--cta-hover)}
+.btn-secondary-link{font-size:14px;font-weight:700;color:var(--ink-soft);border-bottom:1.5px solid var(--line)}
+.btn-secondary-link:hover{color:var(--ink);border-color:var(--ink)}
+.hero-note{font-size:12.5px;color:var(--ink-faint);margin-top:14px}
+
+/* ── VERIFICACIÓN MINI ── */
+.verif-mini{display:flex;align-items:center;gap:12px;background:var(--green-soft);border:1px solid #BFE3D0;border-radius:12px;padding:12px 15px;margin-top:18px;max-width:560px}
+.verif-seal{flex-shrink:0;width:34px;height:34px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800}
+.verif-mini strong{display:block;font-size:13px;font-weight:700;color:#12694A;line-height:1.35}
+.verif-mini span.vsub{display:block;font-size:11.5px;color:#2E7D5B;line-height:1.45;margin-top:2px}
+
+/* ── TICKET / FORMULARIO (justo debajo del hero) ── */
+.ticket-section{padding:8px 0 40px}
+.ticket-shell{max-width:640px;margin:0 auto}
+.ticket{background:#fff;border:1px solid var(--line);border-radius:16px 16px 0 0;box-shadow:var(--shadow);padding:28px 28px 24px;position:relative}
+.ticket-zigzag{height:16px;background:
+  linear-gradient(-45deg, var(--bg) 8px, transparent 0) 0 0/16px 16px repeat-x,
+  linear-gradient(45deg, var(--bg) 8px, transparent 0) 0 0/16px 16px repeat-x;
+  background-color:#fff;margin-top:-1px;max-width:640px;margin-left:auto;margin-right:auto}
+.ticket-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.ticket-title{font-family:'Sora';font-weight:700;font-size:16.5px;color:var(--ink)}
+.ticket-badge{font-size:11px;font-weight:700;color:var(--green);background:var(--green-soft);border-radius:6px;padding:3px 8px}
+.ticket-sub{font-size:12.5px;color:var(--ink-faint);margin-bottom:18px}
+.ticket-call-alt{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:var(--gold-deep);background:var(--gold-soft);border:1px solid #F5C6C0;border-radius:9px;padding:9px 12px;margin-bottom:18px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;font-weight:700;color:var(--ink-soft);margin-bottom:6px;letter-spacing:.2px;text-transform:uppercase}
+.btn-calc{width:100%;background:var(--ink);color:#fff;font-weight:700;font-size:14.5px;padding:13px;border-radius:9px;border:none;cursor:pointer;margin-top:6px}
+.result{display:none;margin-top:18px;border-top:1px dashed var(--line);padding-top:16px}
+.result.show{display:block}
+.result-range{font-family:'Sora';font-size:26px;font-weight:800;color:var(--gold-deep)}
+.result-label{font-size:12px;color:var(--ink-faint);margin-bottom:10px}
+.result-disc{font-size:11.5px;color:var(--ink-faint);line-height:1.5;margin-bottom:14px}
+.old-range{font-size:13px;color:var(--ink-faint);text-decoration:line-through;margin-bottom:4px}
+.btn-result-cta{display:block;width:100%;text-align:center;background:var(--cta);color:#fff;font-weight:700;font-size:14.5px;padding:14px;border-radius:9px;border:none;cursor:pointer;font-family:'Inter'}
+.btn-result-cta:hover{background:var(--cta-hover)}
+.field input{width:100%;font-family:'Inter';font-size:14.5px;font-weight:600;color:var(--ink);background:var(--bg-soft);border:1.5px solid var(--line);border-radius:9px;padding:12px 12px}
+.field input:focus{border-color:var(--gold)}
+.field textarea{width:100%;font-family:'Inter';font-size:14px;font-weight:500;color:var(--ink);background:var(--bg-soft);border:1.5px solid var(--line);border-radius:9px;padding:12px;min-height:70px;resize:vertical}
+.field textarea:focus{border-color:var(--gold)}
+.field-tag-optional{display:inline-block;background:var(--bg-soft);color:var(--ink-faint);font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:7px;letter-spacing:.2px;text-transform:none;vertical-align:middle}
+.lead-privacy{display:flex;gap:6px;align-items:flex-start;font-size:11.5px;color:var(--ink-faint);line-height:1.5;margin:2px 0 14px}
+.chip-grid{display:flex;flex-direction:column;gap:8px}
+.chip-opt{display:flex;align-items:center;gap:10px;text-align:left;width:100%;background:var(--bg-soft);border:1.5px solid var(--line);border-radius:9px;padding:12px 13px;cursor:pointer;font-family:'Inter';font-size:13.5px;font-weight:600;color:var(--ink);transition:border-color .15s,background .15s}
+.chip-opt:hover{border-color:var(--gold)}
+.chip-opt.sel{background:var(--ink);border-color:var(--ink);color:#fff}
+
+/* ── STATS STRIP ── */
+.stats{background:var(--bg-soft);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.stats-inner{display:flex;justify-content:center;gap:44px;padding:26px 0;flex-wrap:wrap;max-width:1120px;margin:0 auto}
+.stat{text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px}
+.stat-ic{font-size:20px}
+.stat-l{font-size:12.5px;font-weight:600;color:var(--ink-soft)}
+
+/* ── SECCIONES ── */
+.section{padding:56px 0}
+.sec-label{font-size:11.5px;font-weight:700;color:var(--gold-deep);letter-spacing:1.6px;text-transform:uppercase;margin-bottom:12px}
+.sec-h2{font-size:clamp(22px,3.4vw,30px);font-weight:800;line-height:1.28;margin-bottom:14px;color:var(--ink)}
+.sec-p{font-size:15.5px;color:var(--ink-soft);line-height:1.75;max-width:640px}
+.section-soft{background:var(--bg-soft)}
+
+/* ── MIENTRAS LLEGA EL FONTANERO ── */
+.checks{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:26px}
+@media(max-width:800px){.checks{grid-template-columns:1fr}}
+.check{display:flex;gap:13px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px}
+.check-tick{flex-shrink:0;width:30px;height:30px;border-radius:50%;background:var(--gold-soft);color:var(--gold-deep);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;border:1px solid #F5C6C0}
+.check h3{font-size:14.5px;font-weight:700;color:var(--ink);margin-bottom:5px}
+.check p{font-size:13px;color:var(--ink-soft);line-height:1.6;margin:0}
+
+/* ── SERVICIOS / SVC ── */
+.svc-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:24px}
+@media(max-width:700px){.svc-grid{grid-template-columns:1fr}}
+.svc{background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px}
+.svc h3{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:7px}
+.svc p{font-size:13.5px;color:var(--ink-soft);line-height:1.65;margin:0}
+
+/* ── ZONAS ── */
+.zone-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-top:22px}
+.zone-card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:13px 15px}
+.zone-card strong{display:block;font-size:13.5px;font-weight:700;color:var(--ink);margin-bottom:3px}
+.zone-card span{font-size:12px;color:var(--ink-faint)}
+
+/* ── TABLA DE PRECIOS ── */
+.ptable{margin-top:24px;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff}
+.prow{display:grid;grid-template-columns:1.6fr 1fr 1fr;align-items:center}
+.prow:not(:last-child){border-bottom:1px solid var(--line)}
+.prow.head{background:var(--ink);color:#fff}
+.prow.head .pcell{font-family:'Sora';font-weight:700;font-size:13px;text-align:center}
+.prow.head .pcell:first-child{text-align:left}
+.pcell{padding:13px 16px;font-size:13.5px}
+.prow:not(.head) .pcell:first-child{font-weight:600;color:var(--ink)}
+.prow:not(.head) .pcell:nth-child(2){text-align:center;font-weight:700;color:var(--gold-deep);background:var(--gold-soft)}
+.prow:not(.head) .pcell:nth-child(3){text-align:center;color:var(--ink-faint)}
+@media(max-width:600px){.pcell{padding:11px 9px;font-size:12.5px}}
+.ptable-note{font-size:12px;color:var(--ink-faint);margin-top:12px;line-height:1.6}
+
+/* ── FAQ ── */
+.faqs{margin-top:28px;display:flex;flex-direction:column;gap:10px}
+.faq{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px 20px}
+.faq h3{font-size:14.5px;font-weight:700;color:var(--ink);margin-bottom:7px}
+.faq p{font-size:13.5px;color:var(--ink-soft);line-height:1.7;margin:0}
+
+/* ── CTA FINAL ── */
+.cta-box{background:var(--ink);border-radius:20px;padding:52px 40px;text-align:center;margin:0}
+@media(max-width:480px){.cta-box{padding:36px 22px}}
+.cta-box h2{font-family:'Sora';font-size:clamp(22px,3.6vw,28px);font-weight:800;margin-bottom:12px;color:#fff}
+.cta-box h2 em{color:#FF8A7C;font-style:normal}
+.cta-box p{font-size:14.5px;color:#B9C0CE;margin-bottom:28px;line-height:1.7}
+.cta-btn{display:inline-block;background:var(--cta);color:#fff;font-weight:800;font-size:16px;padding:17px 42px;border-radius:12px}
+.cta-btn:hover{background:var(--cta-hover)}
+.cta-note{font-size:12px;color:#8892A3;margin-top:16px;line-height:1.6}
+.cta-note a{color:#FF8A7C;border-bottom:1px solid transparent}
+
+/* ── FOOTER ── */
+footer{border-top:1px solid var(--line);padding:26px 0}
+.foot-inner{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;max-width:1120px;margin:0 auto;padding:0 24px}
+footer p{font-size:12.5px;color:var(--ink-faint)}
+.foot-links{display:flex;gap:18px}
+.foot-links a{font-size:12.5px;color:var(--ink-faint)}
+.foot-links a:hover{color:var(--ink)}
+
+/* ── BARRA CTA FIJA EN MÓVIL — llamar dominante ── */
+.mcta{display:none}
+@media(max-width:768px){
+  .mcta{display:block;position:fixed;left:0;right:0;bottom:0;z-index:200;background:rgba(255,255,255,.97);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:9px 14px calc(9px + env(safe-area-inset-bottom));box-shadow:0 -4px 20px rgba(16,24,44,.10)}
+  .mcta-note{font-size:11px;color:var(--ink-faint);text-align:center;margin-bottom:6px}
+  .mcta-note strong{color:var(--ink)}
+  .mcta-row{display:flex;gap:9px;align-items:center}
+  .mcta-main{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--cta);color:#fff;font-weight:800;font-size:15px;height:48px;border-radius:10px;border:none;font-family:'Inter'}
+  .mcta-alt{display:flex;align-items:center;justify-content:center;height:48px;padding:0 14px;flex-shrink:0;border-radius:10px;border:1.5px solid var(--line);background:#fff;font-size:12.5px;font-weight:700;color:var(--ink-soft)}
+  body{padding-bottom:98px}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar"><span class="pulse"></span>Fontanero de urgencia en Sevilla — <strong>disponible ahora</strong>, también de noche y festivos</div>
+
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="logo"><img src="/icon-512.png" alt="OficioYa" style="height:34px;width:34px;border-radius:8px;object-fit:cover;flex-shrink:0"><span class="logo-word">Oficio<em>Ya</em></span><span>Sevilla</span></a>
+    <div class="nav-actions">
+      <a href="tel:+34656398014" class="nav-phone" onclick="if(typeof gtag==='function'){gtag('event','click',{'event_category':'llamada','event_label':'nav'});}">📞 <span class="txt">656 398 014</span></a>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap">
+  <section class="hero">
+    <div class="eyebrow"><span class="pulse"></span>Sevilla · Urgencias 24h, todos los días</div>
+    <h1>Fontanero de <em>urgencia</em> en Sevilla — disponible ahora mismo</h1>
+    <p class="hero-sub">Una fuga o un atasco no espera al horario de oficina. Llame directamente o cuéntenos qué pasa y <strong>le contactamos en minutos</strong> con un fontanero verificado de su zona.</p>
+    <div class="trust-row">
+      <div class="trust-chip">🌙 Noches, fines de semana y festivos</div>
+      <div class="trust-chip">✅ Verificados antes de entrar</div>
+      <div class="trust-chip">🛡️ Sin recargos inventados de última hora</div>
+    </div>
+    <div class="hero-ctas">
+      <a href="tel:+34656398014" class="btn-call-main" onclick="if(typeof gtag==='function'){gtag('event','click',{'event_category':'llamada','event_label':'hero'});}">📞 Llamar ahora: 656 398 014</a>
+      <a href="#formulario" class="btn-secondary-link" onclick="event.preventDefault();document.getElementById('formulario').scrollIntoView({behavior:'smooth',block:'center'});">o cuéntenos qué pasa y le llamamos ↓</a>
+    </div>
+    <div class="verif-mini">
+      <span class="verif-seal">✓</span>
+      <div>
+        <strong>Todos los fontaneros pasan verificación antes de entrar</strong>
+        <span class="vsub">Acuerdo firmado, actividad comprobada y solo reseñas de clientes que han contratado.</span>
+      </div>
+    </div>
+  </section>
+</div>
+
+<section class="ticket-section" id="formulario">
+  <div class="ticket-shell">
+    <div class="ticket">
+      <div class="ticket-head">
+        <span class="ticket-title">Cuéntenos qué pasa</span>
+        <span class="ticket-badge">Respuesta en minutos</span>
+      </div>
+      <p class="ticket-sub">Sin compromiso. El precio final lo confirma el fontanero al ver el problema.</p>
+      <a href="tel:+34656398014" class="ticket-call-alt" onclick="if(typeof gtag==='function'){gtag('event','click',{'event_category':'llamada','event_label':'formulario'});}">📞 ¿Prefiere hablar ya? Llame al 656 398 014</a>
+
+      <div class="field">
+        <label>¿Qué le está pasando?</label>
+        <div class="chip-grid" id="chipGrid">
+          <button type="button" class="chip-opt" data-id="fuga" data-label="💧 Fuga o inundación" data-low="90" data-high="250" data-floor="65" data-desc="Fuga de agua o inundación (urgente)">💧 Fuga o inundación</button>
+          <button type="button" class="chip-opt" data-id="atasco" data-label="🚿 Atasco que desborda" data-low="80" data-high="220" data-floor="55" data-desc="Atasco o desagüe que desborda (urgente)">🚿 Atasco que desborda</button>
+          <button type="button" class="chip-opt" data-id="sinagua" data-label="🚱 Me he quedado sin agua" data-low="90" data-high="220" data-floor="65" data-desc="Avería que ha cortado el suministro (urgente)">🚱 Me he quedado sin agua</button>
+          <button type="button" class="chip-opt" data-id="calentador" data-label="🔥 Calentador averiado" data-low="100" data-high="220" data-floor="70" data-desc="Avería urgente en calentador o termo">🔥 Calentador averiado</button>
+          <button type="button" class="chip-opt" data-id="otro" data-label="🛠️ Otra urgencia" data-low="90" data-high="250" data-floor="65" data-desc="Otra urgencia de fontanería">🛠️ Otra urgencia</button>
+        </div>
+      </div>
+
+      <div class="result" id="resultBox">
+        <p class="old-range" id="oldRange">—</p>
+        <p class="result-label">En horario de urgencia, esto es lo que suele costar en Sevilla</p>
+        <p class="result-range" id="priceRange">—</p>
+        <p class="result-disc">Precio mínimo orientativo para el caso más sencillo dentro de esta avería, con recargo de urgencia ya incluido. El fontanero confirma el precio exacto según lo que encuentre.</p>
+
+        <div class="field">
+          <label for="descProblema">Cuéntenos qué está pasando<span class="field-tag-optional">Opcional</span></label>
+          <textarea id="descProblema" placeholder="Ej: se ha roto una tubería y está saliendo mucha agua..."></textarea>
+        </div>
+        <div class="field">
+          <label for="leadNombre">Su nombre</label>
+          <input id="leadNombre" type="text" placeholder="¿Cómo se llama?" autocomplete="name">
+        </div>
+        <div class="field">
+          <label for="leadTelefono">Teléfono o WhatsApp</label>
+          <input id="leadTelefono" type="tel" placeholder="600 000 000" autocomplete="tel">
+        </div>
+        <p class="lead-privacy">🔒 Solo lo verá el fontanero que acepte esta solicitud, y únicamente para contactarle por este trabajo. Nunca lo compartimos con nadie más.</p>
+
+        <button type="button" class="btn-result-cta" id="resultCta" onclick="enviarSolicitud()">Enviar y que me llamen ya →</button>
+      </div>
+    </div>
+    <div class="ticket-zigzag"></div>
+  </div>
+</section>
+
+<div class="wrap">
+  <section class="section" style="padding-top:8px" id="mientras-llega">
+    <p class="sec-label">Mientras llega</p>
+    <h2 class="sec-h2">Qué hacer mientras llega el fontanero</h2>
+    <p class="sec-p">Estos tres gestos pueden evitar que el daño vaya a más antes de que llegue ayuda.</p>
+    <div class="checks">
+      <div class="check">
+        <span class="check-tick">1</span>
+        <div>
+          <h3>Cierre la llave de paso</h3>
+          <p>Corta el agua general (o la de esa zona si la tiene independiente) para frenar la fuga mientras espera.</p>
+        </div>
+      </div>
+      <div class="check">
+        <span class="check-tick">2</span>
+        <div>
+          <h3>Baje el diferencial si hay riesgo eléctrico</h3>
+          <p>Si el agua se acerca a enchufes, cuadros o electrodomésticos, corte la luz de esa zona por seguridad.</p>
+        </div>
+      </div>
+      <div class="check">
+        <span class="check-tick">3</span>
+        <div>
+          <h3>Avise al vecino si puede afectarle</h3>
+          <p>Si hay riesgo de que el agua baje a la vivienda de abajo, avíselo cuanto antes para limitar el daño.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="stats">
+  <div class="stats-inner">
+    <div class="stat"><div class="stat-ic">🌙</div><div class="stat-l">24 horas, todos los días</div></div>
+    <div class="stat"><div class="stat-ic">✅</div><div class="stat-l">Todos verificados</div></div>
+    <div class="stat"><div class="stat-ic">⭐</div><div class="stat-l">Reseñas reales</div></div>
+    <div class="stat"><div class="stat-ic">💰</div><div class="stat-l">Precio claro antes de llamar</div></div>
+  </div>
+</div>
+
+<div class="wrap">
+  <section class="section" id="urgencias">
+    <p class="sec-label">Por qué OficioYa en una urgencia</p>
+    <h2 class="sec-h2">No es un número al azar de Google</h2>
+    <p class="sec-p">Con el agua corriendo, no hay tiempo para llamar a cinco números sin saber a quién está contratando. Así es distinto con OficioYa.</p>
+    <div class="svc-grid">
+      <div class="svc">
+        <h3>Disponibilidad real, no una promesa</h3>
+        <p>Su solicitud llega al momento a los fontaneros verificados de su zona. Ve quién puede atenderle y en qué plazo, antes de decidir.</p>
+      </div>
+      <div class="svc">
+        <h3>Sin recargo inventado de última hora</h3>
+        <p>Ve el rango de precio de urgencia habitual en Sevilla antes de hablar con el profesional. Nada de sorpresas con el suelo ya mojado.</p>
+      </div>
+      <div class="svc">
+        <h3>Verificados, no anónimos</h3>
+        <p>Cada fontanero firma un acuerdo y pasa comprobación de actividad antes de poder recibir un solo aviso.</p>
+      </div>
+      <div class="svc">
+        <h3>Si el de siempre no puede</h3>
+        <p>Cuando su fontanero habitual no está disponible, aquí tiene alternativas verificadas con reseñas reales, no un cartel pegado en una farola.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-soft" style="margin:0 -24px;padding:56px 24px;border-radius:0" id="precios">
+    <div class="wrap" style="padding:0">
+      <p class="sec-label">Precios de urgencia</p>
+      <h2 class="sec-h2">Cuánto cuesta un fontanero urgente en Sevilla</h2>
+      <p class="sec-p">Rangos orientativos para horario de urgencia (noche, fin de semana, festivo), recargo ya incluido. El precio final lo confirma el fontanero al ver el problema.</p>
+      <div class="ptable">
+        <div class="prow head">
+          <div class="pcell">Tipo de urgencia</div>
+          <div class="pcell">Desde</div>
+          <div class="pcell">Rango habitual</div>
+        </div>
+        <div class="prow"><div class="pcell">Fuga o inundación</div><div class="pcell">65 €</div><div class="pcell">90 € – 250 €</div></div>
+        <div class="prow"><div class="pcell">Atasco que desborda</div><div class="pcell">55 €</div><div class="pcell">80 € – 220 €</div></div>
+        <div class="prow"><div class="pcell">Corte de suministro</div><div class="pcell">65 €</div><div class="pcell">90 € – 220 €</div></div>
+        <div class="prow"><div class="pcell">Calentador averiado</div><div class="pcell">70 €</div><div class="pcell">100 € – 220 €</div></div>
+      </div>
+      <p class="ptable-note">Buscar y comparar es gratis. OficioYa no cobra al cliente: usted paga directamente al fontanero el trabajo que acepte.</p>
+    </div>
+  </section>
+
+  <section class="section" id="zonas">
+    <p class="sec-label">Cobertura</p>
+    <h2 class="sec-h2">Fontanero urgente cerca de ti, en Sevilla</h2>
+    <p class="sec-p">Su solicitud no se manda a un centro de llamadas: llega a los fontaneros verificados que de verdad trabajan en su zona.</p>
+    <div class="zone-grid">
+      <div class="zone-card"><strong>Triana</strong><span>Sevilla capital</span></div>
+      <div class="zone-card"><strong>Nervión</strong><span>Sevilla capital</span></div>
+      <div class="zone-card"><strong>Los Remedios</strong><span>Sevilla capital</span></div>
+      <div class="zone-card"><strong>Macarena</strong><span>Sevilla capital</span></div>
+      <div class="zone-card"><strong>Cerro-Amate</strong><span>Sevilla capital</span></div>
+      <div class="zone-card"><strong>Sevilla Este</strong><span>Sevilla capital</span></div>
+      <div class="zone-card"><strong>Dos Hermanas</strong><span>Área metropolitana</span></div>
+      <div class="zone-card"><strong>Alcalá de Guadaíra</strong><span>Área metropolitana</span></div>
+      <div class="zone-card"><strong>Mairena del Aljarafe</strong><span>Aljarafe</span></div>
+    </div>
+  </section>
+
+  <section class="section" id="faq">
+    <p class="sec-label">Preguntas frecuentes</p>
+    <h2 class="sec-h2">Lo que más nos preguntan sobre urgencias</h2>
+    <div class="faqs">
+      <div class="faq"><h3>¿Qué cobra un fontanero urgente en Sevilla?</h3><p>Orientativamente 90-150 € por la salida más la primera hora en horario de urgencia. Las horas adicionales rondan 40-70 €/h. El fontanero confirma el precio exacto al ver el problema.</p></div>
+      <div class="faq"><h3>¿Qué hago ante una fuga importante mientras llega el fontanero?</h3><p>Cierre de inmediato la llave de paso general para cortar el agua y limitar el daño. Si el agua se acerca a enchufes o al cuadro eléctrico, baje también el diferencial. Si hay riesgo de afectar al vecino de abajo, avísele.</p></div>
+      <div class="faq"><h3>¿Cuándo es una urgencia real de fontanería?</h3><p>Cuando hay una fuga que inunda o se acerca a instalaciones eléctricas, se ha quedado sin agua por avería, o un atasco desborda y amenaza al vecino. Un grifo que gotea o un atasco leve pueden esperar a horario normal.</p></div>
+      <div class="faq"><h3>¿Hay fontaneros disponibles de noche y festivos en Sevilla?</h3><p>Sí. Al enviar su solicitud se avisa al momento a los fontaneros disponibles en su zona de Sevilla, y usted ve quién puede atenderle y en qué plazo antes de decidir.</p></div>
+      <div class="faq"><h3>¿Cuánto tardan en llegar en una urgencia?</h3><p>Depende de la disponibilidad en su zona en ese momento. Por eso se lo mostramos en tiempo real, en vez de hacerle esperar una llamada de vuelta sin saber cuánto tardará.</p></div>
+      <div class="faq"><h3>¿Tiene recargo llamar de madrugada o en festivo?</h3><p>El horario de urgencia suele llevar un recargo sobre la tarifa normal, ya incluido en el rango orientativo que ve antes de llamar. El fontanero se lo confirma siempre antes de empezar.</p></div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:0">
+    <div class="cta-box">
+      <h2>No deje que la avería <em>espere</em></h2>
+      <p>Fontaneros verificados en Sevilla, disponibles ahora. Llame directamente o cuéntenos qué pasa.</p>
+      <a href="tel:+34656398014" class="cta-btn" onclick="if(typeof gtag==='function'){gtag('event','click',{'event_category':'llamada','event_label':'cta_final'});}">📞 Llamar ahora: 656 398 014</a>
+      <p class="cta-note">
+        O <a href="#formulario" onclick="event.preventDefault();document.getElementById('formulario').scrollIntoView({behavior:'smooth',block:'center'});">rellene el formulario</a> y le contactamos en minutos<br>
+        ¿Es fontanero en Sevilla? <a href="/elite-gratis">Regístrese aquí — primer mes gratis</a>
+      </p>
+    </div>
+  </section>
+</div>
+
+<footer>
+  <div class="foot-inner">
+    <p>© 2026 OficioYa · Profesionales verificados en Sevilla</p>
+    <div class="foot-links">
+      <a href="/terminos">Términos</a>
+      <a href="/privacidad">Privacidad</a>
+      <a href="/">Inicio</a>
+    </div>
+  </div>
+</footer>
+
+<!-- ── BARRA CTA FIJA (solo móvil — llamar es la acción dominante) ── -->
+<div class="mcta">
+  <p class="mcta-note">Fontanero de urgencia · <strong>Disponible ahora</strong></p>
+  <div class="mcta-row">
+    <a href="tel:+34656398014" class="mcta-main" onclick="if(typeof gtag==='function'){gtag('event','click',{'event_category':'llamada','event_label':'barra_fija'});}">📞 Llamar ahora</a>
+    <button type="button" class="mcta-alt" onclick="document.getElementById('formulario').scrollIntoView({behavior:'smooth',block:'center'});">Escribir</button>
+  </div>
+</div>
+
+<!-- Google Ads + GA4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=AW-401-649-4560"></script>
+<script>
   window.dataLayer = window.dataLayer || [];
-  function gtagLocal() { window.dataLayer.push(arguments); }
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'AW-401-649-4560');
+  gtag('config', 'G-S6F18YG34M');
+</script>
 
-  var previo = leerConsent();
-  var concedido = previo
-    ? { analytics: !!previo.analytics, ads: !!previo.ads }
-    : { analytics: !OY.BLOQUEAR_HASTA_CONSENTIR, ads: !OY.BLOQUEAR_HASTA_CONSENTIR };
 
-  gtagLocal("consent", "default", {
-    ad_storage: concedido.ads ? "granted" : "denied",
-    ad_user_data: concedido.ads ? "granted" : "denied",
-    ad_personalization: concedido.ads ? "granted" : "denied",
-    analytics_storage: concedido.analytics ? "granted" : "denied",
-    functionality_storage: "granted",
-    security_storage: "granted",
-    wait_for_update: 500
+<script>
+  // ── Presupuesto orientativo de urgencia ── mismo patrón que fontanero-sevilla.html
+  var chipsWrap = document.getElementById('chipGrid');
+  var selected = null; // {id, label, low, high, floor, desc}
+
+  chipsWrap.addEventListener('click', function(e){
+    var btn = e.target.closest('.chip-opt');
+    if(!btn) return;
+    Array.prototype.forEach.call(chipsWrap.querySelectorAll('.chip-opt'), function(c){ c.classList.remove('sel'); });
+    btn.classList.add('sel');
+
+    selected = {
+      id: btn.dataset.id,
+      label: btn.dataset.label,
+      low: parseInt(btn.dataset.low, 10),
+      high: parseInt(btn.dataset.high, 10),
+      floor: parseInt(btn.dataset.floor, 10),
+      desc: btn.dataset.desc
+    };
+
+    document.getElementById('oldRange').textContent = 'Rango orientativo: ' + selected.low + '€ – ' + selected.high + '€';
+    document.getElementById('priceRange').textContent = 'Desde ' + selected.floor + '€';
+    document.getElementById('resultBox').classList.add('show');
+    document.getElementById('resultBox').scrollIntoView({behavior:'smooth', block:'nearest'});
+
+    var textarea = document.getElementById('descProblema');
+    var EJEMPLOS = {
+      fuga: 'Ej: se ha roto una tubería y está saliendo mucha agua...',
+      atasco: 'Ej: el atasco ha empezado a desbordar y está entrando agua en el baño...',
+      sinagua: 'Ej: desde esta mañana no sale agua en toda la casa...',
+      calentador: 'Ej: el calentador ha dejado de funcionar y no hay agua caliente...',
+      otro: 'Cuéntenos qué está pasando...'
+    };
+    textarea.placeholder = EJEMPLOS[selected.id] || 'Cuéntenos qué está pasando...';
+
+    // Micro-conversión: interés en presupuesto (aún sin datos de contacto)
+    if (typeof gtag === 'function') {
+      gtag('event', 'view_item', {'event_category':'presupuesto_calculado', 'event_label': selected.id});
+    }
   });
 
-  function actualizarConsent(c) {
-    gtagLocal("consent", "update", {
-      ad_storage: c.ads ? "granted" : "denied",
-      ad_user_data: c.ads ? "granted" : "denied",
-      ad_personalization: c.ads ? "granted" : "denied",
-      analytics_storage: c.analytics ? "granted" : "denied"
-    });
+  // ── Captura de gclid / wbraid / gbraid ──
+  // Necesario para poder subir conversiones offline (comisión real) más adelante.
+  // Se guarda 90 días y viaja con el lead en la URL final.
+  (function(){
+    try{
+      var qs = new URLSearchParams(window.location.search);
+      ['gclid','wbraid','gbraid'].forEach(function(k){
+        var v = qs.get(k);
+        if(v){ localStorage.setItem('oy_'+k, JSON.stringify({v:v, t:Date.now()})); }
+      });
+    }catch(e){}
+  })();
+
+  function leerClickId(){
+    try{
+      var out = {};
+      ['gclid','wbraid','gbraid'].forEach(function(k){
+        var raw = localStorage.getItem('oy_'+k);
+        if(!raw) return;
+        var o = JSON.parse(raw);
+        if(Date.now() - o.t < 90*24*60*60*1000){ out[k] = o.v; }
+      });
+      return out;
+    }catch(e){ return {}; }
   }
 
-  /* ---------- 2. CIUDAD DESDE EL NOMBRE DEL ARCHIVO ---------- */
-  var CIUDADES = {
-    sevilla: "Sevilla", malaga: "Málaga", granada: "Granada", cordoba: "Córdoba",
-    almeria: "Almería", jerez: "Jerez", huelva: "Huelva", cadiz: "Cádiz", jaen: "Jaén",
-    "dos-hermanas": "Sevilla", "alcala-de-guadaira": "Sevilla",
-    "mairena-del-aljarafe": "Sevilla", tomares: "Sevilla", camas: "Sevilla",
-    bormujos: "Sevilla", "san-juan-de-aznalfarache": "Sevilla", gelves: "Sevilla",
-    "la-rinconada": "Sevilla", "coria-del-rio": "Sevilla", montequinto: "Sevilla"
-  };
-  function detectarCiudad() {
-    var ruta = location.pathname.toLowerCase().replace(/\.html?$/, "");
-    var claves = Object.keys(CIUDADES).sort(function (a, b) { return b.length - a.length; });
-    for (var i = 0; i < claves.length; i++) {
-      if (ruta.indexOf(claves[i]) > -1) return CIUDADES[claves[i]];
+  function enviarSolicitud(){
+    if(!selected){
+      alert('Elija primero qué tipo de urgencia tiene.');
+      document.getElementById('chipGrid').scrollIntoView({behavior:'smooth', block:'center'});
+      return;
     }
-    try {
-      var camp = (new URLSearchParams(location.search).get("utm_campaign") || "").toLowerCase();
-      for (var j = 0; j < claves.length; j++) {
-        if (camp.indexOf(claves[j]) > -1) return CIUDADES[claves[j]];
-      }
-    } catch (e) {}
-    return "";   // en blanco → aparece en amarillo en el admin
-  }
-  OY.ciudad = detectarCiudad();
-  OY.landing = location.pathname.replace(/^\//, "").replace(/\.html?$/, "") || "index";
-
-  try {
-    var qs = new URLSearchParams(location.search);
-    ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"].forEach(function (k) {
-      var v = qs.get(k);
-      if (v) { try { localStorage.setItem("oy_" + k, v); } catch (e) {} }
-    });
-    // gclid / wbraid / gbraid — algunas landings no lo capturan por su cuenta
-    ["gclid", "wbraid", "gbraid"].forEach(function (k) {
-      var v = qs.get(k);
-      if (v) { try { localStorage.setItem("oy_" + k, JSON.stringify({ v: v, t: Date.now() })); } catch (e) {} }
-    });
-  } catch (e) {}
-
-  function leerUtm() {
-    var out = {};
-    ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"].forEach(function (k) {
-      try { var v = localStorage.getItem("oy_" + k); if (v) out[k] = v; } catch (e) {}
-    });
-    return out;
-  }
-  OY.leerUtm = leerUtm;
-
-  /* ---------- 3. ESTILOS ---------- */
-  function inyectarEstilos() {
-    var s = document.createElement("style");
-    s.textContent = [
-      "#oyCk{position:fixed;left:0;right:0;bottom:0;z-index:9000;background:#fff;border-top:1px solid #E7E9EE;box-shadow:0 -6px 28px rgba(16,24,44,.14);padding:16px 20px calc(16px + env(safe-area-inset-bottom));font-family:Inter,Arial,sans-serif;animation:oyUp .28s ease both}",
-      "@keyframes oyUp{from{transform:translateY(100%)}to{transform:translateY(0)}}",
-      "#oyCk .oyIn{max-width:1120px;margin:0 auto;display:flex;gap:18px;align-items:center;flex-wrap:wrap}",
-      "#oyCk p{flex:1;min-width:240px;font-size:13px;line-height:1.6;color:#5B6472;margin:0}",
-      "#oyCk a{color:#8C670C;text-decoration:underline}",
-      "#oyCk .oyBt{display:flex;gap:8px;flex-wrap:wrap}",
-      "#oyCk button{font-family:inherit;font-size:13.5px;font-weight:700;padding:11px 20px;border-radius:9px;cursor:pointer;border:1px solid #E7E9EE;background:#fff;color:#5B6472}",
-      "#oyCk button.oyOk{background:#F0A93B;border-color:#F0A93B;color:#1D1305}",
-      "#oyCk button:hover{border-color:#B7860F}",
-      "@media(max-width:768px){#oyCk{bottom:0;padding-bottom:calc(14px + env(safe-area-inset-bottom))}#oyCk .oyIn{gap:12px}#oyCk .oyBt{width:100%}#oyCk .oyBt button{flex:1}.mcta{bottom:auto!important}}",
-      "#oyCfg{position:fixed;inset:0;z-index:9100;background:rgba(16,24,44,.55);display:flex;align-items:center;justify-content:center;padding:20px;font-family:Inter,Arial,sans-serif}",
-      "#oyCfg .oyBox{background:#fff;border-radius:16px;max-width:460px;width:100%;padding:26px;max-height:86vh;overflow:auto}",
-      "#oyCfg h3{font-size:17px;font-weight:800;color:#10182C;margin:0 0 6px}",
-      "#oyCfg .oyRow{display:flex;gap:12px;align-items:flex-start;padding:14px 0;border-top:1px solid #E7E9EE}",
-      "#oyCfg .oyRow strong{display:block;font-size:13.5px;color:#10182C;margin-bottom:3px}",
-      "#oyCfg .oyRow span{font-size:12.5px;color:#5B6472;line-height:1.55}",
-      "#oyCfg input[type=checkbox]{width:19px;height:19px;margin-top:2px;accent-color:#B7860F;flex-shrink:0}",
-      "#oyTerms{display:flex;gap:9px;align-items:flex-start;margin:2px 0 12px;cursor:pointer;padding:2px 0}",
-      "#oyTerms input{width:18px;height:18px;margin-top:1px;accent-color:#B7860F;flex-shrink:0;cursor:pointer}",
-      "#oyTerms span{font-size:11.5px;line-height:1.5;color:#8891A0}",
-      "#oyTerms a{color:#8C670C;text-decoration:underline}",
-      "#oyTerms.err span{color:#B42318}",
-      "#oyTerms.err input{outline:2px solid #B42318;outline-offset:2px;border-radius:3px}",
-      "#oyTermsErr{display:none;font-size:11.5px;color:#B42318;font-weight:600;margin:-8px 0 12px;padding-left:27px}",
-      "#oyTermsErr.on{display:block}",
-      "@keyframes oyShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}",
-      ".oyShake{animation:oyShake .3s ease}"
-    ].join("");
-    document.head.appendChild(s);
-  }
-
-  /* ---------- 4. BANNER ---------- */
-  function pintarBanner() {
-    if (document.getElementById("oyCk")) return;
-    var d = document.createElement("div");
-    d.id = "oyCk";
-    d.setAttribute("role", "dialog");
-    d.setAttribute("aria-label", "Preferencias de cookies");
-    d.innerHTML =
-      '<div class="oyIn">' +
-        '<p>Usamos cookies propias necesarias y, con su permiso, cookies de análisis y publicidad para medir nuestras campañas. Puede aceptarlas, rechazarlas o elegir. Más detalle en la <a href="/cookies">Política de Cookies</a>.</p>' +
-        '<div class="oyBt">' +
-          '<button type="button" id="oyCfgBtn">Configurar</button>' +
-          '<button type="button" id="oyNo">Rechazar</button>' +
-          '<button type="button" class="oyOk" id="oySi">Aceptar</button>' +
-        '</div>' +
-      '</div>';
-    document.body.appendChild(d);
-
-    document.getElementById("oySi").onclick = function () { decidir(true, true); };
-    document.getElementById("oyNo").onclick = function () { decidir(false, false); };
-    document.getElementById("oyCfgBtn").onclick = abrirPanel;
-  }
-
-  function decidir(analytics, ads) {
-    var c = { analytics: analytics, ads: ads };
-    guardarConsent(c);
-    actualizarConsent(c);
-    var b = document.getElementById("oyCk"); if (b) b.remove();
-    var p = document.getElementById("oyCfg"); if (p) p.remove();
-  }
-
-  function abrirPanel() {
-    if (document.getElementById("oyCfg")) return;
-    var prev = leerConsent() || { analytics: false, ads: false };
-    var d = document.createElement("div");
-    d.id = "oyCfg";
-    d.innerHTML =
-      '<div class="oyBox">' +
-        '<h3>Configurar cookies</h3>' +
-        '<div class="oyRow"><input type="checkbox" checked disabled>' +
-          '<div><strong>Necesarias</strong><span>Imprescindibles para que la web funcione. No se pueden desactivar.</span></div></div>' +
-        '<div class="oyRow"><input type="checkbox" id="oyA"' + (prev.analytics ? " checked" : "") + '>' +
-          '<div><strong>Análisis</strong><span>Nos permiten saber qué páginas se visitan para mejorar el servicio (Google Analytics).</span></div></div>' +
-        '<div class="oyRow"><input type="checkbox" id="oyP"' + (prev.ads ? " checked" : "") + '>' +
-          '<div><strong>Publicidad</strong><span>Miden la eficacia de nuestros anuncios (Google Ads y Meta).</span></div></div>' +
-        '<div style="display:flex;gap:8px;margin-top:18px">' +
-          '<button type="button" id="oyCancel" style="flex:1;font-family:inherit;font-size:13.5px;font-weight:700;padding:11px;border-radius:9px;border:1px solid #E7E9EE;background:#fff;color:#5B6472;cursor:pointer">Cancelar</button>' +
-          '<button type="button" id="oySave" style="flex:1;font-family:inherit;font-size:13.5px;font-weight:700;padding:11px;border-radius:9px;border:none;background:#F0A93B;color:#1D1305;cursor:pointer">Guardar</button>' +
-        '</div>' +
-      '</div>';
-    document.body.appendChild(d);
-    document.getElementById("oySave").onclick = function () {
-      decidir(document.getElementById("oyA").checked, document.getElementById("oyP").checked);
-    };
-    document.getElementById("oyCancel").onclick = function () { d.remove(); };
-  }
-  OY.abrir = abrirPanel;
-  window.OYConsent = { abrir: abrirPanel };
-
-  /* ---------- 5. CASILLA DE CONDICIONES ---------- */
-  function buscarBotonEnvio() {
-    // Cada plantilla de landing usa un id/clase distinto. Lo fiable es
-    // localizar el elemento cuyo onclick llama a enviarSolicitud().
-    var todos = document.querySelectorAll("button, a, input[type=button], input[type=submit]");
-    for (var i = 0; i < todos.length; i++) {
-      var oc = todos[i].getAttribute("onclick") || "";
-      if (oc.indexOf("enviarSolicitud") > -1) return todos[i];
+    var nombre = document.getElementById('leadNombre').value.trim();
+    var telefono = document.getElementById('leadTelefono').value.trim();
+    if(!nombre || !telefono){
+      alert('Indique su nombre y un teléfono de contacto para que el fontanero pueda escribirle.');
+      return;
     }
-    return document.getElementById("resultCta") ||
-           document.querySelector(".btn-send") ||
-           document.querySelector(".btn-result-cta");
+
+    var nota = document.getElementById('descProblema').value.trim();
+    var desc = selected.desc + (nota ? ' — ' + nota : '');
+
+    // Email sintético e invisible — la cuenta de cliente lo necesita por detrás, pero no se lo pedimos al usuario
+    var telefonoLimpio = telefono.replace(/\D/g,'') || Date.now().toString();
+    var emailSintetico = 'lead' + telefonoLimpio + '@aficioya-lead.com';
+
+    var paramsObj = {quick:'1', oficio:'Fontanero', nombre:nombre, telefono:telefono, email:emailSintetico, desc:desc};
+    var ids = leerClickId();
+    Object.keys(ids).forEach(function(k){ paramsObj[k] = ids[k]; });
+    var params = new URLSearchParams(paramsObj);
+
+    // Conversión real — Google Ads lee este evento vía GA4 (acción "Solicitud de presupuesto" importada de generate_lead)
+    // value = comisión media esperada por lead de fontanero (comisión media × tasa de cierre)
+    if (typeof gtag === 'function') {
+      gtag('event', 'generate_lead', {
+        'value': 17.40,
+        'currency': 'EUR',
+        'event_category':'solicitud_fontanero',
+        'event_label': selected.id,
+        'zona': 'urgente-sevilla'
+      });
+    }
+    window.location.href = '/?' + params.toString();
   }
+</script>
 
-  function inyectarCasilla() {
-    var btn = buscarBotonEnvio();
-    if (!btn || document.getElementById("oyTerms")) return;
-
-    var lab = document.createElement("label");
-    lab.id = "oyTerms";
-    lab.innerHTML =
-      '<input type="checkbox" id="oyTermsCk">' +
-      '<span>He leído y acepto las <a href="/terminos" target="_blank" rel="noopener">Condiciones de Uso</a> y la <a href="/privacidad" target="_blank" rel="noopener">Política de Privacidad</a>.</span>';
-
-    var err = document.createElement("p");
-    err.id = "oyTermsErr";
-    err.textContent = "Debe aceptar las condiciones para continuar";
-
-    btn.parentNode.insertBefore(lab, btn);
-    btn.parentNode.insertBefore(err, btn);
-
-    document.getElementById("oyTermsCk").addEventListener("change", function () {
-      if (this.checked) { lab.classList.remove("err"); err.classList.remove("on"); }
-    });
-
-    // Envolvemos la función de envío de la landing
-    var orig = window.enviarSolicitud;
-    if (typeof orig !== "function") return;
-
-    window.enviarSolicitud = function () {
-      var ck = document.getElementById("oyTermsCk");
-      if (ck && !ck.checked) {
-        lab.classList.add("err");
-        err.classList.add("on");
-        lab.classList.remove("oyShake");
-        void lab.offsetWidth;
-        lab.classList.add("oyShake");
-        lab.scrollIntoView({ behavior: "smooth", block: "center" });
-        return;
-      }
-      // Registro de la aceptación para que la app lo guarde en legal_acceptances
-      guardarAceptacion();
-      return orig.apply(this, arguments);
-    };
-  }
-
-  function guardarAceptacion() {
-    var reg = {
-      terminos: OY.TERMINOS_VERSION,
-      privacidad: OY.TERMINOS_VERSION,
-      at: new Date().toISOString(),
-      punto: "landing:" + OY.landing,
-      ciudad: OY.ciudad,
-      ua: navigator.userAgent.slice(0, 180)
-    };
-    var s = JSON.stringify(reg);
-    setCookie("oy_terms", s, 30);
-    try { localStorage.setItem("oy_terms", s); } catch (e) {}
-    try {
-      localStorage.setItem("oy_ciudad", OY.ciudad);
-      localStorage.setItem("oy_landing", OY.landing);
-    } catch (e) {}
-  }
-
-  /* ---------- 6. ENLACE A COOKIES EN EL PIE ---------- */
-  function arreglarPie() {
-    var fl = document.querySelector(".foot-links");
-    if (!fl || fl.querySelector('[href="/cookies"]')) return;
-    var a = document.createElement("a");
-    a.href = "/cookies";
-    a.textContent = "Cookies";
-    var inicio = fl.querySelector('[href="/"]');
-    if (inicio) fl.insertBefore(a, inicio); else fl.appendChild(a);
-  }
-
-  /* ---------- ARRANQUE ---------- */
-  function init() {
-    inyectarEstilos();
-    arreglarPie();
-    inyectarCasilla();
-    if (!leerConsent()) pintarBanner();
-  }
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else { init(); }
-})();
+</body>
+</html>
