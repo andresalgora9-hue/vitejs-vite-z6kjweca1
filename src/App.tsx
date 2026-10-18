@@ -52,12 +52,12 @@ function OnboardingModal({tipo,onClose}:{tipo:"cliente"|"profesional";onClose:()
 
   const stepsCliente=[
     {icon:"🔍",title:"Encuentra tu profesional",desc:"Busca por oficio y barrio. Filtra por disponibilidad, valoración y precio."},
-    {icon:"💬",title:"Escríbele directamente",desc:"Contacta sin intermediarios. Chatea, pide presupuesto y acuerda el trabajo."},
+    {icon:"📋",title:"Pide presupuesto gratis",desc:"Rellena un formulario corto. OficioYa revisa tu solicitud, te llama y te confirma el profesional."},
     {icon:"⭐",title:"Valora cuando termines",desc:"Tu opinión ayuda a otros usuarios y mejora la calidad de la plataforma."},
   ];
   const stepsPro=[
     {icon:"🔴",title:"Recibe leads al instante",desc:"Cuando un cliente busca tu oficio en tu zona, te llegará una alerta en tiempo real."},
-    {icon:"💳",title:"Cobra directamente",desc:"Acuerda el precio con el cliente y cobra tú mismo. OficioYa no cobra comisión por trabajo."},
+    {icon:"💳",title:"Pagas solo por cliente",desc:"Cada cliente que te enviamos tiene un precio fijo. Sin comisión por trabajo: lo que cobres es tuyo. Factura a mes vencido."},
   ];
 
   const steps=isCliente?stepsCliente:stepsPro;
@@ -1844,7 +1844,7 @@ const WorkerCardIdealista=React.memo(({w,onSelect,onChat}:{w:UserRow;onSelect:()
           </div>
           <div style={{display:"flex",gap:8}}>
             <button onClick={onChat} style={{flex:1,padding:"11px",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:10,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:6,boxShadow:"0 4px 14px "+C.accent+"33"}}>
-              💬 Escribir mensaje
+              📋 Solicitar presupuesto
             </button>
             <button onClick={onSelect} style={{padding:"11px 14px",background:"transparent",border:"1px solid "+C.border,borderRadius:10,color:C.mutedL,fontFamily:"'DM Sans',sans-serif",fontWeight:600,fontSize:12,cursor:"pointer"}}>
               Ver perfil
@@ -1926,7 +1926,7 @@ useEffect(()=>{
           <div style={{display:"flex",gap:7,alignItems:"center",flexWrap:"wrap",marginBottom:3}}>
             <p style={{fontWeight:800,fontSize:19,color:C.text}}>{worker.name}</p>
             {worker.verified&&<span style={{fontSize:10,color:C.green,border:"1px solid "+C.green+"44",padding:"1px 6px",borderRadius:99}}>✓ Verificado</span>}
-            <Badge plan={worker.plan} />
+            {(worker.plan==="elite"||worker.plan==="pro")&&<Badge plan={worker.plan} />}
           </div>
           <p style={{color:col,fontWeight:600,fontSize:13,marginBottom:3}}>{OFICIO_ICONS[worker.trade||""]||"🔧"} {worker.trade} · {worker.zone}</p>
           <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
@@ -1938,15 +1938,14 @@ useEffect(()=>{
         <button onClick={onClose} style={{background:"none",border:"1px solid "+C.border,borderRadius:8,color:C.muted,cursor:"pointer",padding:"5px 10px",fontSize:14,flexShrink:0}}>✕</button>
       </div>
 
-      {currentUser&&currentUser.type==="cliente"&&(
+      {(!currentUser||currentUser.type==="cliente")&&(
         <div style={{marginBottom:14}}>
           <button onClick={()=>onChat(worker)} style={{width:"100%",padding:"13px",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:12,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:15,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,boxShadow:"0 4px 18px "+C.accent+"44"}}>
-            💬 Escribir mensaje
+            📋 Solicitar presupuesto
           </button>
-          <p style={{fontSize:11,color:C.muted,textAlign:"center",marginTop:6}}>🔒 Todo el contacto se gestiona dentro de la app</p>
+          <p style={{fontSize:11,color:C.muted,textAlign:"center",marginTop:6}}>Gratis y sin compromiso · OficioYa revisa tu solicitud y te confirma el profesional</p>
         </div>
       )}
-      {!currentUser&&<div style={{padding:"12px",background:C.surface,borderRadius:10,border:"1px solid "+C.border,textAlign:"center",marginBottom:14}}><p style={{fontSize:13,color:C.muted}}>Regístrate gratis para contactar con este profesional</p></div>}
       {currentUser&&(
         <>
         {reportModal&&(
@@ -2299,7 +2298,7 @@ if(Notification.permission !== "granted"){
                         if(pro)onChat(pro);
                         loadSolicitudes();
                       }} style={{flex:2,padding:"9px",background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",border:"none",borderRadius:8,color:"#000",fontFamily:"'DM Sans',sans-serif",fontSize:13,fontWeight:800,cursor:"pointer"}}>
-                        ✓ Elegir y chatear →
+                        ✓ Elegir este profesional →
                       </button>
                     </div>
                   )}
@@ -2412,6 +2411,7 @@ function ClientHome({user,onLogout,onUpdate,deepLinkChatWith,onLogin}:{user:User
   const [chatWorker,setChatWorker]=useState<UserRow|null>(null);
   const [authModal,setAuthModal]=useState<null|{mode:"login"|"pick"}>(null);
   const [showQuickRequest,setShowQuickRequest]=useState(false);
+  const [proSolicitado,setProSolicitado]=useState<UserRow|null>(null);
   const [quickSent,setQuickSent]=useState(false);
   const [qrName,setQrName]=useState("");
   const [qrEmail,setQrEmail]=useState("");
@@ -2503,7 +2503,7 @@ function ClientHome({user,onLogout,onUpdate,deepLinkChatWith,onLogin}:{user:User
                if(data.error?.includes("Ya existe")){
           const{data:ex}=await db.from("users").select("id,name").eq("email",email.toLowerCase().trim()).maybeSingle();
           if(!ex){setQrErr("Ya tienes cuenta con ese email. Inicia sesión arriba.");setQrSending(false);setQuickBooting(false);return;}
-          const{data:req2}=await db.from("budget_requests").insert({client_id:ex.id,client_name:ex.name||name.trim(),oficio:oficioReq,zona:ciudadReq,description:desc.trim(),max_budget:null,status:"open",notified_pros:[],city_slug:(override?.ciudad||"sevilla").toLowerCase(),landing:override?.landing||"app",utm_source:override?.utm_source||null,utm_campaign:override?.utm_campaign||null,utm_content:override?.utm_content||null,gclid:override?.gclid||null}).select().single();
+          const{data:req2}=await db.from("budget_requests").insert({client_id:ex.id,client_name:ex.name||name.trim(),oficio:oficioReq,zona:ciudadReq,description:desc.trim(),max_budget:null,status:"open",notified_pros:[],city_slug:(override?.ciudad||"sevilla").toLowerCase(),landing:override?.landing||"app",utm_source:override?.utm_source||null,utm_campaign:override?.utm_campaign||null,utm_content:override?.utm_content||null,gclid:override?.gclid||null,pro_solicitado:proSolicitado?.id||null}).select().single();
           if(req2){fetch(`${SUPABASE_FUNCTIONS_URL}/notify-admin`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({type:"sin_profesional",cliente:ex.name||name.trim(),oficio:oficioReq,zona:ciudadReq,descripcion:desc,telefono:phone,email:email,request_id:req2.id})}).catch(()=>{});}
           gtagEvent("generate_lead",{content_name:"quick_request_recurrente",oficio:oficioReq});
           fbqEvent("Lead",{content_name:"quick_request_recurrente",content_category:oficioReq});
@@ -2515,7 +2515,7 @@ function ClientHome({user,onLogout,onUpdate,deepLinkChatWith,onLogin}:{user:User
       const u=data.user;
       setQuickStep(1);
       const norm=(s:string)=>s?.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim()||"";
-      const{data:req}=await db.from("budget_requests").insert({client_id:u.id,client_name:name.trim(),oficio:oficioReq,zona:ciudadReq,description:desc.trim(),max_budget:null,status:"open",notified_pros:[],city_slug:(override?.ciudad||"sevilla").toLowerCase(),landing:override?.landing||"app",utm_source:override?.utm_source||null,utm_campaign:override?.utm_campaign||null,utm_content:override?.utm_content||null,gclid:override?.gclid||null}).select().single();
+      const{data:req}=await db.from("budget_requests").insert({client_id:u.id,client_name:name.trim(),oficio:oficioReq,zona:ciudadReq,description:desc.trim(),max_budget:null,status:"open",notified_pros:[],city_slug:(override?.ciudad||"sevilla").toLowerCase(),landing:override?.landing||"app",utm_source:override?.utm_source||null,utm_campaign:override?.utm_campaign||null,utm_content:override?.utm_content||null,gclid:override?.gclid||null,pro_solicitado:proSolicitado?.id||null}).select().single();
             setQuickStep(2);
             if(req){
         fetch(`${SUPABASE_FUNCTIONS_URL}/notify-admin`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({type:"sin_profesional",cliente:name,oficio:oficioReq,zona:ciudadReq,descripcion:desc,telefono:phone,email:email,request_id:req.id})}).catch(()=>{});
@@ -2565,9 +2565,9 @@ function ClientHome({user,onLogout,onUpdate,deepLinkChatWith,onLogin}:{user:User
     if(cb)setTimeout(cb,80);
   };
   useEffect(()=>{
-    if(!deepLinkChatWith||!user)return;
+    if(!deepLinkChatWith)return;
     db.from("users").select("id,name,trade,zone,rating,reviews,jobs,verified,available,plan,bio,price,phone,whatsapp,type,photos,specialties,experience_years,free_quote,schedule,response_time,company_name,joined_at,trial_end").eq("id",deepLinkChatWith).single().then(({data})=>{
-      if(data){setTab("chats");setChatWorker(data as UserRow);}
+      if(data&&(data as any).type==="profesional")solicitarA(data as UserRow);
     });
   },[deepLinkChatWith]);
   const [chatPartners,setChatPartners]=useState<UserRow[]>([]);
@@ -2676,7 +2676,7 @@ const adminUser=ADMIN_USER;
 const {data:ws}=await db.from("users").select("id,name,trade,zone,rating,reviews,jobs,verified,available,plan,bio,price,phone,whatsapp,type,photos,specialties,experience_years,free_quote,schedule,response_time,company_name,joined_at,trial_end").in("id",ids);
 if(!ws)return;
 const wsFiltered=ws.filter((u:any)=>u.id!=="00000000-0000-0000-0000-000000000002");
-const allWs=ids.includes("00000000-0000-0000-0000-000000000002")?[...wsFiltered,adminUser]:wsFiltered;
+const allWs=ids.includes("00000000-0000-0000-0000-000000000002")?[adminUser]:[]; // los clientes solo hablan con OficioYa
   const lastMsg:Record<string,any>={};
   allMsgs.forEach((m:any)=>{
     const partnerId=m.from_id===user.id?m.to_id:m.from_id;
@@ -2718,7 +2718,19 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
     gtagEvent("contacto_profesional",{content_name:"chat",trade:w.trade});
     setSelectedWorker(null);setChatWorker(w);
   };
-  const handleChat=(w:UserRow)=>{requireAuth(()=>doChat(w));};
+  // Los clientes ya no escriben a los profesionales: piden presupuesto y OficioYa lo asigna
+  const solicitarA=(w:UserRow)=>{
+    setSelectedWorker(null);setChatWorker(null);
+    setProSolicitado(w);
+    const t=(w.trade||"").toLowerCase().slice(0,4);
+    const of=OFICIOS.find(o=>t&&o.toLowerCase().startsWith(t))||OFICIOS.find(o=>t&&o.toLowerCase().includes(t));
+    if(of)setQrOficio(of);
+    if(user){setQrName(n=>n||user.name||"");setQrPhone(p=>p||(user as any).phone||"");setQrEmail(e=>e||user.email||"");}
+    setQuickSent(false);setShowQuickRequest(true);setTab("buscar");
+    gtagEvent("solicitar_profesional",{content_name:"perfil",trade:w.trade});
+    setTimeout(()=>{document.getElementById("form-solicitud")?.scrollIntoView({behavior:"smooth",block:"start"});},200);
+  };
+  const handleChat=(w:UserRow)=>{solicitarA(w);};
 
   const handleWizardResult=async(oficio:string,zonaResult:string,urgency:string)=>{
     if(!user)return;
@@ -3008,10 +3020,20 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
                 FORMULARIO RÁPIDO sin cuenta
                 ════════════════════════════════════════════ */}
             {showQuickRequest&&!quickSent&&(
-              <div style={{background:C.card,borderRadius:16,border:"1.5px solid "+C.accent+"44",padding:"20px",marginBottom:16,animation:"fadeSlideUp 0.3s ease"}}>
+              <div id="form-solicitud" style={{background:C.card,borderRadius:16,border:"1.5px solid "+C.accent+"44",padding:"20px",marginBottom:16,animation:"fadeSlideUp 0.3s ease",scrollMarginTop:70}}>
+                {proSolicitado&&(
+                  <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:C.accent+"12",border:"1px solid "+C.accent+"44",borderRadius:10,marginBottom:14}}>
+                    <Ava s={(proSolicitado.name||"P").substring(0,2).toUpperCase()} size={34} color={C.accent} imgUrl={(proSolicitado as any).avatar_url||""} />
+                    <div style={{flex:1,minWidth:0}}>
+                      <p style={{fontSize:13,color:C.text,fontWeight:700}}>Solicitud para {proSolicitado.name}{proSolicitado.trade?" · "+proSolicitado.trade:""}</p>
+                      <p style={{fontSize:11.5,color:C.mutedL,marginTop:2}}>OficioYa revisa tu solicitud y te confirma el profesional.</p>
+                    </div>
+                    <button onClick={()=>setProSolicitado(null)} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:12,textDecoration:"underline",fontFamily:"'DM Sans',sans-serif"}}>Quitar</button>
+                  </div>
+                )}
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
                   <p style={{fontWeight:800,fontSize:16,color:C.text}}>📋 ¿Qué necesitas?</p>
-                  <button onClick={()=>setShowQuickRequest(false)} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:16}}>✕</button>
+                  <button onClick={()=>{setShowQuickRequest(false);setProSolicitado(null);}} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:16}}>✕</button>
                 </div>
                 {qrErr&&<div style={{color:C.red,fontSize:13,marginBottom:12,padding:"10px 12px",background:C.red+"15",borderRadius:8,border:"1px solid "+C.red+"33"}}>{qrErr}</div>}
                 <div style={{marginBottom:12}}>
@@ -3039,7 +3061,7 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
                 <p style={{fontWeight:900,fontSize:20,color:C.text,marginBottom:8}}>¡Solicitud enviada!</p>
                 <p style={{fontSize:14,color:C.mutedL,marginBottom:4}}>Revisamos tu solicitud y te llamamos para <strong style={{color:C.accent}}>confirmar los detalles</strong></p>
                 <p style={{fontSize:13,color:C.muted,marginBottom:20}}>Revisa tu teléfono ({qrPhone})</p>
-                <button onClick={()=>{setShowQuickRequest(false);setQuickSent(false);}} style={{padding:"12px 24px",background:C.accent,border:"none",borderRadius:10,color:"#000",fontWeight:700,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>Ver profesionales disponibles</button>
+                <button onClick={()=>{setShowQuickRequest(false);setQuickSent(false);setProSolicitado(null);}} style={{padding:"12px 24px",background:C.accent,border:"none",borderRadius:10,color:"#000",fontWeight:700,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>Ver profesionales disponibles</button>
               </div>
             )}
 
