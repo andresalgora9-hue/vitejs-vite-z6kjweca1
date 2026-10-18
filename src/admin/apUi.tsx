@@ -44,7 +44,7 @@ export interface Factura {
 export interface Solicitud {
   id: string; created_at: string; client_id: string | null; client_name: string | null; oficio: string | null;
   zona: string | null; description: string | null; status: string | null; city_slug: string | null; landing: string | null;
-  gclid: string | null; canal: string | null;
+  gclid: string | null; canal: string | null; pro_solicitado: string | null;
 }
 export interface Routing { trade_key: string; city_slug: string; pro_id: string; active: boolean; }
 export interface Gasto {

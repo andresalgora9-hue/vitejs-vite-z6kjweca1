@@ -166,13 +166,14 @@ function SinAsignar({ d, recargar, aviso, lista }: SeccionProps & { lista: Solic
     });
   }, [lista]);
 
-  const sugeridos = (oficio: string | null) => {
+  const sugeridos = (oficio: string | null, pedido?: string | null) => {
     const o = oficioDe(oficio);
-    return [...d.pros].sort((a, b) => Number(oficioDe(b.trade) === o) - Number(oficioDe(a.trade) === o));
+    return [...d.pros].sort((a, b) =>
+      Number(b.id === pedido) - Number(a.id === pedido) || Number(oficioDe(b.trade) === o) - Number(oficioDe(a.trade) === o));
   };
 
   const asignar = async (s: Solicitud) => {
-    const pro = elegido[s.id] || sugeridos(s.oficio)[0]?.id;
+    const pro = elegido[s.id] || sugeridos(s.oficio, s.pro_solicitado)[0]?.id;
     if (!pro) return;
     setOcupado(s.id);
     const { error } = await db.rpc("oy_asignar_solicitud", { p_br: s.id, p_pro: pro });
@@ -196,13 +197,15 @@ function SinAsignar({ d, recargar, aviso, lista }: SeccionProps & { lista: Solic
     <div>
       {lista.map((s) => {
         const c = s.client_id ? contactos[s.client_id] : undefined;
-        const opts = sugeridos(s.oficio);
+        const opts = sugeridos(s.oficio, s.pro_solicitado);
+        const pedido = s.pro_solicitado ? d.proPorId[s.pro_solicitado] : null;
         return (
           <Card key={s.id} accent={C.orange + "66"}>
             <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginBottom: 6 }}>
               <Pill texto={oficioDe(s.oficio)} color={C.orange} />
               <span style={{ fontSize: 12, color: C.mutedL }}>{fechaHora(s.created_at)} · hace {hace(s.created_at)}</span>
               {s.gclid && <Pill texto="Google Ads" color={C.blue} />}
+              {s.pro_solicitado && <Pill texto={"Lo pidió a " + (pedido?.name || "un profesional")} color={C.accent} />}
             </div>
             <div style={{ fontWeight: 800, fontSize: 15 }}>{s.client_name || "Sin nombre"}{s.zona ? <span style={{ color: C.mutedL, fontWeight: 600 }}> · {s.zona}</span> : null}</div>
             {s.description && <div style={{ fontSize: 13, color: C.mutedL, marginTop: 4 }}>{s.description}</div>}

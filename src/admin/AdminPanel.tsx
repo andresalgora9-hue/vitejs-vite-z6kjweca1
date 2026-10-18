@@ -48,7 +48,7 @@ export default function AdminPanel({ onLogout, nombre }: { onLogout: () => void;
       db.from("users").select("id,name,email,phone,whatsapp,trade,zone,company_name,cif,fiscal_address,fiscal_zip,fiscal_city,billing_email,joined_at,created_at,activacion_estado,activacion_invoice_id,deleted,banned,plan").eq("type", "profesional"),
       db.from("pro_leads").select("*").order("created_at", { ascending: false }).limit(5000),
       db.from("lead_invoices").select("*").order("issued_at", { ascending: false }).limit(5000),
-      db.from("budget_requests").select("id,created_at,client_id,client_name,oficio,zona,description,status,city_slug,landing,gclid,canal").order("created_at", { ascending: false }).limit(5000),
+      db.from("budget_requests").select("id,created_at,client_id,client_name,oficio,zona,description,status,city_slug,landing,gclid,canal,pro_solicitado").order("created_at", { ascending: false }).limit(5000),
       db.from("lead_routing").select("*"),
       db.from("ad_spend").select("*").order("desde", { ascending: false }),
       db.from("lead_prices").select("*"),
@@ -64,8 +64,8 @@ export default function AdminPanel({ onLogout, nombre }: { onLogout: () => void;
     ((cfg.data || []) as any[]).forEach((c) => { config[c.clave] = Number(c.valor); });
     setD({
       pros: listaPros,
-      leads: (leads.data || []) as Lead[],
-      facturas: (facts.data || []) as Factura[],
+      leads: ((leads.data || []) as Lead[]).filter((l) => proPorId[l.pro_id]),
+      facturas: ((facts.data || []) as Factura[]).filter((f) => proPorId[f.pro_id]),
       solicitudes: (sols.data || []) as Solicitud[],
       routing: (rout.data || []) as Routing[],
       gastos: (gastos.data || []) as Gasto[],
