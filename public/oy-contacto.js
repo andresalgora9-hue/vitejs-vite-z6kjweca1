@@ -172,6 +172,40 @@
         descripcion: extra.detalle ? ((esWa ? "Quiere hablar por WhatsApp. " : "Quiere hablar por teléfono. ") + extra.detalle) : ""
       };
 
+      // Si el servidor falla o tarda, el cliente llama igualmente a OficioYa: nunca se pierde la llamada
+      var RESPALDO = { ok: true, nuevo: false, telefono: "+34656398014", whatsapp: "34656398014", profesional: null, respaldo: true };
+      var terminado = false;
+      function continuar(res) {
+        if (terminado) return;
+        terminado = true;
+        var destino = esWa
+          ? "https://wa.me/" + res.whatsapp + "?text=" + encodeURIComponent(
+              "Hola, soy " + nombre + " (" + tel + "). Vengo de OficioYa y necesito un " + GREMIO +
+              (cuerpo.zona ? " en " + cuerpo.zona : "") + "." + (extra.detalle ? " Mi caso: " + extra.detalle + "." : ""))
+          : "tel:" + res.telefono;
+
+        var seguido = false;
+        function seguir() {
+          if (seguido) return;
+          seguido = true;
+          mostrarOk(f, esWa, destino, res);
+          location.href = destino;
+        }
+        if (res.nuevo && typeof gtag === "function") {
+          gtag("event", "generate_lead", {
+            event_category: "solicitud_" + canal, event_label: o.landing || OFICIO,
+            value: VALOR, currency: "EUR",
+            event_callback: seguir, event_timeout: 900
+          });
+          if (typeof fbq === "function") { try { fbq("track", "Lead", { content_name: canal, content_category: OFICIO }); } catch (e3) {} }
+          setTimeout(seguir, 1100);
+        } else {
+          if (typeof gtag === "function") gtag("event", "contact", { event_category: "contacto_" + canal, event_label: res.respaldo ? "respaldo" : "repetido" });
+          seguir();
+        }
+      }
+      var reloj = setTimeout(function () { continuar(RESPALDO); }, 8000);
+
       fetch(RPC, {
         method: "POST",
         headers: { "Content-Type": "application/json", apikey: KEY, Authorization: "Bearer " + KEY },
@@ -179,44 +213,18 @@
       })
         .then(function (r) { return r.json(); })
         .then(function (res) {
-          if (!res || !res.ok) {
+          if (terminado) return;
+          if (res && !res.ok && (res.error === "telefono" || res.error === "nombre")) {
+            clearTimeout(reloj);
             btn.disabled = false;
             btn.textContent = (esWa ? "💬 " : "📞 ") + textoBoton;
-            err.textContent = res && res.error === "telefono" ? "Escribe un teléfono válido (9 cifras)." :
-                              res && res.error === "nombre" ? "Escribe tu nombre." : "No se ha podido enviar. Inténtalo de nuevo.";
+            err.textContent = res.error === "telefono" ? "Escribe un teléfono válido (9 cifras)." : "Escribe tu nombre.";
             return;
           }
-          var destino = esWa
-            ? "https://wa.me/" + res.whatsapp + "?text=" + encodeURIComponent(
-                "Hola, soy " + nombre + ". Vengo de OficioYa y necesito un " + GREMIO +
-                (cuerpo.zona ? " en " + cuerpo.zona : "") + "." + (extra.detalle ? " Mi caso: " + extra.detalle + "." : ""))
-            : "tel:" + res.telefono;
-
-          var seguido = false;
-          function seguir() {
-            if (seguido) return;
-            seguido = true;
-            mostrarOk(f, esWa, destino, res);
-            location.href = destino;
-          }
-          if (res.nuevo && typeof gtag === "function") {
-            gtag("event", "generate_lead", {
-              event_category: "solicitud_" + canal, event_label: o.landing || OFICIO,
-              value: VALOR, currency: "EUR",
-              event_callback: seguir, event_timeout: 900
-            });
-            if (typeof fbq === "function") { try { fbq("track", "Lead", { content_name: canal, content_category: OFICIO }); } catch (e3) {} }
-            setTimeout(seguir, 1100);
-          } else {
-            if (typeof gtag === "function") gtag("event", "contact", { event_category: "contacto_" + canal, event_label: "repetido" });
-            seguir();
-          }
+          clearTimeout(reloj);
+          continuar(res && res.ok ? res : RESPALDO);
         })
-        .catch(function () {
-          btn.disabled = false;
-          btn.textContent = (esWa ? "💬 " : "📞 ") + textoBoton;
-          err.textContent = "No se ha podido enviar. Revisa tu conexión e inténtalo de nuevo.";
-        });
+        .catch(function () { clearTimeout(reloj); continuar(RESPALDO); });
     });
   }
 
