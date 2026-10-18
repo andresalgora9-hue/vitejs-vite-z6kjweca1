@@ -9,6 +9,9 @@ import type { UserRow, MessageRow, JobRow, CertRow, Plan, PhotoRow } from "./sup
 import { MapaZonas, MapaProModal } from './MapaZonas';
 import { PRICE_MAP } from "./constants";
 import ProTrabajos from "./pro/ProLeads";
+import ProInicio from "./pro/ProInicio";
+import ProFacturas from "./pro/ProFacturas";
+import ProNegocio from "./pro/ProNegocio";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI";
 const SUPABASE_FUNCTIONS_URL = "https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1";
 const SUPABASE_HEADERS = {
@@ -4293,7 +4296,7 @@ function ProDeleteAccountButton({user,onLogout}:{user:UserRow;onLogout:()=>void}
 function ProDashboard({user,onLogout,onUpdate,deepLinkChatWith}:{user:UserRow;onLogout:()=>void;onUpdate:(u:UserRow)=>void;deepLinkChatWith?:string|null}){
   const [showOnboarding,setShowOnboarding]=useState(()=>!localStorage.getItem("oy_onboarded_"+user.id));
   const handleCloseOnboarding=()=>{localStorage.setItem("oy_onboarded_"+user.id,"1");setShowOnboarding(false);};
-  const [tab,setTab]=useState<"inicio"|"chats"|"trabajos"|"perfil"|"planes">("inicio");
+  const [tab,setTab]=useState<"inicio"|"chats"|"trabajos"|"facturas"|"perfil"|"planes">("inicio");
   const [toast,setToast]=useState<string|null>(null);
   const [saving,setSaving]=useState(false);
   const [bio,setBio]=useState(user.bio||"");
@@ -4318,6 +4321,15 @@ const [chatUser,setChatUser]=useState<UserRow|null>(null);
   const [stats,setStats]=useState({visits:0,contacts:0,reviews:0});
   const [proStats,setProStats]=useState({facturado30:0,clientes30:0,prevision7:"—",porCobrar:0});
   const [hoy,setHoy]=useState<any[]>([]);
+  const [nuevosLeads,setNuevosLeads]=useState(0);
+  useEffect(()=>{
+    const contar=()=>{db.from("pro_leads").select("id",{count:"exact",head:true} as any).eq("pro_id",user.id).eq("estado","nuevo").eq("anulado",false).then(({count}:any)=>setNuevosLeads(count||0));};
+    contar();
+    const reloj=setInterval(contar,60000);
+    const alVolver=()=>{if(document.visibilityState==="visible")contar();};
+    document.addEventListener("visibilitychange",alVolver);
+    return()=>{clearInterval(reloj);document.removeEventListener("visibilitychange",alVolver);};
+  },[user.id,tab]);
  const [urgentLead,setUrgentLead]=useState<{msg:string;desc?:string;fromId:string;isNuevoLead?:boolean;requestId?:string|null}|null>(null);
   const [showPresupuestoForm,setShowPresupuestoForm]=useState<{requestId:string;clientName:string;oficio:string;desc:string}|null>(null);
   const [inAppNotif,setInAppNotif]=useState<{msg:string;from:string;fromId:string;isAdmin:boolean}|null>(null);
@@ -4338,14 +4350,15 @@ const [chatUser,setChatUser]=useState<UserRow|null>(null);
   const [showMapaPro,setShowMapaPro]=useState(false);
   const [showPosMap,setShowPosMap]=useState(false);
   const [showStripeModal,setShowStripeModal]=useState<{priceId:string;plan:Plan}|null>(null);
-  const photoLimit=PLAN_GATES.photos[user.plan as Plan] as number;
-  const canAddPhoto=photoLimit===999||photos.length<photoLimit;
+  const photoLimit=999; // sin planes: fotos sin límite
+  const canAddPhoto=true;
 
   // Pedir permiso de notificaciones push
   // Pedir permiso de notificaciones push y suscribir
   useEffect(()=>{
     const setupPush=async()=>{
       if(!("Notification" in window)||!("serviceWorker" in navigator))return;
+      try{if(localStorage.getItem("oy_push_off")==="1")return;}catch{}
       let perm=Notification.permission;
       if(perm==="default"){
         await new Promise(r=>setTimeout(r,3000));
@@ -4861,47 +4874,9 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
 
       <div style={{maxWidth:900,margin:"0 auto",padding:"0 16px"}}>
 
-        {tab==="inicio"&&(<>
-          <div style={{padding:"22px 0 16px"}}>
-            <div style={{display:"flex",gap:12,alignItems:"center",marginBottom:18}}>
-              <Ava s={user.name.substring(0,2).toUpperCase()} size={50} color={C.accent} online={available} imgUrl={user.avatar_url||""} />
-              <div style={{flex:1}}>
-                <p style={{fontWeight:800,fontSize:18,color:C.text}}>{user.name}</p>
-                <p style={{fontSize:13,color:C.accent,fontWeight:600}}>{OFICIO_ICONS[user.trade||""]||"🔧"} {user.trade} · {user.zone}</p>
-                <button onClick={toggleAvail} style={{marginTop:5,display:"inline-flex",alignItems:"center",gap:6,background:"none",border:"1px solid "+(available?C.green+"44":C.border),borderRadius:99,padding:"4px 10px",cursor:"pointer",color:available?C.green:C.muted,fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:600}}>
-                  <span style={{width:6,height:6,borderRadius:"50%",background:available?C.green:C.muted,display:"inline-block"}} />
-                  {available?"Disponible · Cambiar":"Ocupado · Cambiar"}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10,marginBottom:16}}>
-                        {[{l:"Facturado · 30 días",v:proStats.facturado30+" €",c:C.green},{l:"Clientes nuevos · 30 días",v:proStats.clientes30,c:C.blue},{l:"Previsión · 7 días",v:proStats.prevision7,c:C.accent},{l:"Por cobrar",v:proStats.porCobrar+" €",c:C.orange}].map(s=>(
-              <GCard key={s.l} style={{padding:"14px 12px"}}>
-                <p style={{fontWeight:800,fontSize:24,color:s.c,letterSpacing:"-0.03em"}}>{s.v}</p>
-                <p style={{fontSize:11,color:C.muted,marginTop:3,lineHeight:1.35}}>{s.l}</p>
-              </GCard>
-            ))}
-          </div>
-
-                   <p style={{fontSize:12,fontWeight:700,letterSpacing:"0.09em",textTransform:"uppercase",color:C.muted,margin:"6px 0 11px"}}>Tareas de hoy</p>
-          {hoy.length===0?(
-            <GCard style={{marginBottom:14,padding:"16px 14px"}}>
-              <p style={{fontSize:14,color:C.muted}}>Nada programado para hoy.</p>
-              <button onClick={()=>setTab("trabajos")} style={{marginTop:8,background:"none",border:"none",padding:0,color:C.accent,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>Ver todos mis trabajos →</button>
-            </GCard>
-          ):hoy.map((d:any)=>(
-            <button key={d.id} onClick={()=>setTab("trabajos")} style={{display:"flex",alignItems:"center",gap:12,width:"100%",textAlign:"left",background:C.card,border:"1px solid "+C.border,borderRadius:13,padding:"13px 14px",marginBottom:9,color:C.text,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>
-              <span style={{flex:1,minWidth:0}}>
-                <span style={{display:"block",fontSize:15,fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{d.title||"Trabajo"}</span>
-                <span style={{display:"block",fontSize:12.5,color:C.muted,marginTop:1}}>{d.client_name}{d.zone?" · "+d.zone:""}{d.price?" · "+Math.round(d.price)+" €":" · sin precio"}</span>
-              </span>
-              <span style={{color:C.mutedL,fontSize:18}}>›</span>
-            </button>
-          ))}
-
-        </>)}
+        {tab==="inicio"&&(
+          <ProInicio user={{id:user.id,name:user.name,trade:user.trade,zone:user.zone}} onIrALeads={()=>setTab("trabajos")} onToast={showToast} />
+        )}
 
         {tab==="chats"&&(<>
           <div style={{padding:"22px 0 16px"}}><h2 style={{fontWeight:800,fontSize:22,color:C.text}}>Mensajes de clientes</h2></div>
@@ -4958,8 +4933,13 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
 {tab==="trabajos"&&(
           <ProTrabajos user={{id:user.id,name:user.name}} onToast={showToast} />
         )}
+
+        {tab==="facturas"&&(
+          <ProFacturas user={{id:user.id,name:user.name}} onIrAPerfil={()=>setTab("perfil")} onToast={showToast} />
+        )}
         
         {tab==="perfil"&&(<>
+          <ProNegocio user={user} onUpdate={onUpdate} onToast={showToast} />
           <div style={{padding:"22px 0 16px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
             <h2 style={{fontWeight:800,fontSize:22,color:C.text}}>Mi perfil público</h2>
             <Btn small onClick={saveProfile} disabled={saving}>{saving?"Guardando...":"Guardar"}</Btn>
@@ -5090,51 +5070,6 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
           <Btn full outline danger onClick={onLogout} color={C.red}>Cerrar sesión</Btn>
           <ProDeleteAccountButton user={user} onLogout={onLogout}/>
             </>)}
-        {tab==="planes"&&(<>
-          <div style={{padding:"22px 0 16px",textAlign:"center"}}>
-            <h2 style={{fontWeight:900,fontSize:26,letterSpacing:"-0.03em",color:C.text,marginBottom:4}}>Elige tu <span style={{color:C.accent}}>plan</span></h2>
-            <p style={{fontSize:13,color:C.muted}}>30 días gratis · Sin tarjeta · Cancela cuando quieras</p>
-          </div>
-          <div style={{display:"flex",flexDirection:"column",gap:12}}>
-            {(["gratis","basico","pro","elite"] as Plan[]).map(pl=>{
-              const col=PLAN_COLORS[pl]; const isCurrent=user.plan===pl;
-              return <div key={pl} style={{background:pl==="pro"?"linear-gradient(160deg,#1a1a2e,#0d0d1a)":C.card,borderRadius:14,border:(isCurrent?"2px":"1px")+" solid "+(isCurrent?col+"AA":pl==="pro"?col+"44":C.border),padding:"18px",position:"relative",boxShadow:pl==="pro"?"0 0 28px "+col+"15":"none"}}>
-                {pl==="pro"&&!isCurrent&&<div style={{position:"absolute",top:-11,right:14,background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",color:"#000",borderRadius:99,padding:"2px 10px",fontSize:9,fontWeight:900}}>MÁS POPULAR</div>}
-                {isCurrent&&<div style={{position:"absolute",top:-11,left:14,background:col,color:"#000",borderRadius:99,padding:"2px 10px",fontSize:9,fontWeight:900}}>✓ PLAN ACTUAL</div>}
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-                  <span style={{fontWeight:800,fontSize:17,color:col}}>{pl.toUpperCase()}</span>
-                  <span style={{fontWeight:800,fontSize:21,color:C.text}}>{PLAN_PRICES[pl]===0?"GRATIS":PLAN_PRICES[pl]+"€/mes"}</span>
-                </div>
-                <div style={{display:"flex",flexWrap:"wrap",gap:5,marginBottom:isCurrent?0:14}}>
-                  {PLAN_FEATURES[pl].map(f=><span key={f} style={{fontSize:11,color:C.mutedL,background:C.surface,padding:"3px 8px",borderRadius:99,border:"1px solid "+C.border}}>✓ {f}</span>)}
-                </div>
-              {!isCurrent&&<button onClick={async()=>{
-  if(pl==="gratis"){
-    await db.from("users").update({plan:"gratis",stripe_subscription_id:null}).eq("id",user.id);
-    onUpdate({...user,plan:"gratis"});
-    showToast("✓ Vuelto a plan gratuito");
-    return;
-  }
-  const elitePriceId=(user as any).stripe_customer_id?PRICE_MAP.elite_recurrente:PRICE_MAP.elite;
-setShowStripeModal({priceId:pl==="elite"?elitePriceId:PRICE_MAP[pl],plan:pl});
-}} style={{marginTop:14,width:"100%",padding:"11px",background:pl==="pro"?"linear-gradient(135deg,"+col+","+C.orange+")":"transparent",border:"1px solid "+col+"66",borderRadius:8,color:pl==="pro"?"#000":col,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:14,cursor:"pointer"}}>
-  {pl==="gratis"?"Volver a gratuito →":"Activar "+pl.toUpperCase()+" por "+PLAN_PRICES[pl]+"€/mes →"}
-</button>}
-              </div>;
-            })}
-         </div>
-          <div style={{height:20}} />
-          <div style={{textAlign:"center",padding:"0 20px 8px"}}>
-            <a href="/cancelacion" target="_blank" style={{
-              fontSize:11,color:C.muted,
-              textDecoration:"none",
-              borderBottom:"1px dashed "+C.border,
-              paddingBottom:2,
-              opacity:0.7,
-            }}>¿Cómo funciona la cancelación?</a>
-          </div>
-          <div style={{height:30}} />
-        </>)}
       </div>
         <nav style={{
         position:"fixed",
@@ -5150,7 +5085,7 @@ setShowStripeModal({priceId:pl==="elite"?elitePriceId:PRICE_MAP[pl],plan:pl});
         paddingTop: "9px"
       }}>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1.35fr 1fr 1fr",alignItems:"end",width:"100%",maxWidth:520}}>
-        {([["inicio","Inicio"],["trabajos","Trabajos"],["chats","Mensajes"],["perfil","Perfil"]] as const).map(([id,label])=>{
+        {([["inicio","Inicio"],["trabajos","Leads"],["facturas","Facturas"],["perfil","Perfil"]] as const).map(([id,label])=>{
           const act=tab===id;
           const esTrab=id==="trabajos";
           const col=act?C.orange:"#8b93a1";
@@ -5161,7 +5096,7 @@ setShowStripeModal({priceId:pl==="elite"?elitePriceId:PRICE_MAP[pl],plan:pl});
             <svg viewBox="0 0 24 24" width={sz} height={sz} fill="none" stroke="currentColor" strokeWidth={esTrab?2:1.9} strokeLinecap="round" strokeLinejoin="round" style={{position:"relative"}}>
               {id==="inicio"&&<><path d="M3 10.5 12 3.5l9 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M9.8 20v-5.4h4.4V20"/></>}
               {id==="trabajos"&&<path d="M14.6 6.1a3.9 3.9 0 0 0 5.1 5L21 12.4a4.6 4.6 0 0 1-6.5 0l-.3-.3-6.6 6.6a2 2 0 0 1-2.9-2.9l6.6-6.6-.3-.3a4.6 4.6 0 0 1 0-6.5l1.3 1.3a3.9 3.9 0 0 0 2.3 2.4z"/>}
-              {id==="chats"&&<path d="M20.5 12.2c0 3.9-3.8 7-8.5 7a10 10 0 0 1-2.6-.34L4.2 20.5l1.5-3.7A6.7 6.7 0 0 1 3.5 12.2c0-3.9 3.8-7 8.5-7s8.5 3.1 8.5 7z"/>}
+              {id==="facturas"&&<><path d="M6.5 3.5h8l4 4v13h-12z"/><path d="M14.5 3.5v4h4"/><path d="M9.5 12h6"/><path d="M9.5 15.5h6"/></>}
               {id==="perfil"&&<><circle cx="12" cy="8.4" r="3.7"/><path d="M4.8 20c.6-3.6 3.6-5.6 7.2-5.6s6.6 2 7.2 5.6"/></>}
             </svg>
             <span style={{fontSize:esTrab?14:11.5,fontWeight:esTrab?800:700,letterSpacing:esTrab?"-0.01em":"0.01em",textShadow:esTrab&&act?"0 1px 0 rgba(255,255,255,0.9), 0 2px 7px rgba(232,134,42,0.42)":"0 1px 0 rgba(255,255,255,0.8)"}}>{label}</span>
@@ -5170,9 +5105,9 @@ setShowStripeModal({priceId:pl==="elite"?elitePriceId:PRICE_MAP[pl],plan:pl});
                 {unreadMsgs>9?"9+":unreadMsgs}
               </span>
             )}
-            {esTrab&&hoy.length>0&&tab!=="trabajos"&&(
+            {esTrab&&nuevosLeads>0&&tab!=="trabajos"&&(
               <span style={{position:"absolute",top:0,right:"16%",background:C.orange,color:"#fff",borderRadius:99,minWidth:17,height:17,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10.5,fontWeight:800,padding:"0 5px"}}>
-                {hoy.length}
+                {nuevosLeads>9?"9+":nuevosLeads}
               </span>
             )}
             {act&&<div style={{position:"absolute",top:-10,left:"50%",transform:"translateX(-50%)",width:esTrab?34:24,height:3,background:C.orange,borderRadius:"0 0 3px 3px"}} />}
