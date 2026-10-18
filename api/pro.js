@@ -21,54 +21,54 @@ const TRADE_CONTENT = {
     words: ["Averías", "Instalaciones", "Cuadros eléctricos", "Iluminación", "Urgencias"],
     servicios: [["🔌","Averías eléctricas"],["⚡","Instalaciones nuevas"],["💡","Iluminación y LED"],["🔧","Cuadros y diferenciales"],["📺","Antenas y porteros"],["🏠","Reformas eléctricas"]],
     faq: [
-      ["¿Qué tipo de averías eléctricas atiende?","Cortes de luz, diferenciales que saltan, enchufes sin corriente, problemas en el cuadro eléctrico y fallos de instalación. Describe tu avería por el chat de OficioYa y recibirás respuesta directa."],
-      ["¿Hace instalaciones completas?","Consulta directamente por el chat: cada profesional detalla su experiencia en instalaciones de vivienda, local u oficina y te orienta sin compromiso."],
+      ["¿Qué tipo de averías eléctricas atiende?","Cortes de luz, diferenciales que saltan, enchufes sin corriente, problemas en el cuadro eléctrico y fallos de instalación. Descríbela en la solicitud de presupuesto y OficioYa te pone en contacto."],
+      ["¿Hace instalaciones completas?","Indícalo en tu solicitud de presupuesto: cada profesional detalla su experiencia en instalaciones de vivienda, local u oficina y te orienta sin compromiso."],
     ],
   },
   "Fontanero": {
     words: ["Fugas", "Desatascos", "Termos", "Grifería", "Urgencias"],
     servicios: [["💧","Fugas y humedades"],["🚿","Grifería y sanitarios"],["🔥","Termos y calentadores"],["🌀","Desatascos"],["🛁","Reformas de baño"],["🔧","Tuberías e instalación"]],
     faq: [
-      ["¿Atiende urgencias de fontanería?","Escríbele por OficioYa describiendo la urgencia; verás su tiempo medio de respuesta en el perfil y podrás valorar si encaja con tu necesidad."],
-      ["¿Cambia termos y calentadores?","Sí, es uno de los trabajos habituales del oficio. Detalla el modelo actual y el que quieres instalar por el chat y recibirás una valoración."],
+      ["¿Atiende urgencias de fontanería?","Solicita presupuesto indicando que es urgente y OficioYa te confirma disponibilidad para tu zona."],
+      ["¿Cambia termos y calentadores?","Sí, es uno de los trabajos habituales del oficio. Detalla el modelo actual y el que quieres instalar en la solicitud y recibirás una valoración."],
     ],
   },
   "Pintor": {
     words: ["Interiores", "Fachadas", "Alisados", "Lacados", "Acabados"],
     servicios: [["🎨","Pintura de interiores"],["🏢","Fachadas y exteriores"],["🧱","Alisado de paredes"],["🚪","Lacado de puertas"],["✨","Papel pintado"],["🛡️","Antihumedad"]],
     faq: [
-      ["¿Cómo pido presupuesto para pintar mi piso?","Envía por el chat los metros aproximados, número de habitaciones y estado de las paredes. Con eso podrá darte una estimación orientativa sin visita."],
-      ["¿Trabaja con alisado de gotelé?","Consúltalo por el chat: es un trabajo habitual del oficio y te confirmará plazos y método."],
+      ["¿Cómo pido presupuesto para pintar mi piso?","Indica en la solicitud los metros aproximados, número de habitaciones y estado de las paredes. Con eso podrá darte una estimación orientativa sin visita."],
+      ["¿Trabaja con alisado de gotelé?","Indícalo en tu solicitud: es un trabajo habitual del oficio y te confirmará plazos y método."],
     ],
   },
   "Reformas Integrales": {
     words: ["Baños", "Cocinas", "Pisos completos", "Locales", "Llave en mano"],
     servicios: [["🛁","Reformas de baño"],["🍳","Reformas de cocina"],["🏠","Pisos completos"],["🏢","Locales comerciales"],["🧱","Albañilería"],["📐","Proyectos llave en mano"]],
     faq: [
-      ["¿Hace reformas completas o también parciales?","Ambas. Describe tu proyecto por el chat de OficioYa — desde cambiar un baño hasta reformar el piso entero — y recibirás una primera valoración."],
-      ["¿Cuánto tarda una reforma de baño?","Depende del alcance. Al contactar por OficioYa puedes pedir una estimación de plazos junto al presupuesto, sin compromiso."],
+      ["¿Hace reformas completas o también parciales?","Ambas. Describe tu proyecto en la solicitud de presupuesto — desde cambiar un baño hasta reformar el piso entero — y recibirás una primera valoración."],
+      ["¿Cuánto tarda una reforma de baño?","Depende del alcance. Al solicitar presupuesto puedes pedir una estimación de plazos junto al presupuesto, sin compromiso."],
     ],
   },
   "Cerrajero": {
     words: ["Aperturas", "Cerraduras", "Bombines", "Persianas", "Urgencias"],
     servicios: [["🔑","Apertura de puertas"],["🔒","Cambio de cerraduras"],["🛡️","Bombines de seguridad"],["🚪","Puertas blindadas"],["🪟","Persianas"],["🏢","Cierres de local"]],
     faq: [
-      ["¿Atiende aperturas urgentes?","Contacta por OficioYa y verás su tiempo medio de respuesta. En el chat puedes confirmar disponibilidad inmediata para tu zona."],
-      ["¿Cambia cerraduras el mismo día?","Consúltalo directamente: indica el tipo de puerta y cerradura por el chat y te confirmará disponibilidad."],
+      ["¿Atiende aperturas urgentes?","Solicita presupuesto indicando que es urgente y OficioYa te confirma disponibilidad para tu zona."],
+      ["¿Cambia cerraduras el mismo día?","Consúltalo directamente: indica el tipo de puerta y cerradura en la solicitud y te confirmaremos disponibilidad."],
     ],
   },
 };
 const DEFAULT_CONTENT = {
   words: ["Profesional", "De confianza", "En tu zona", "Verificado"],
-  servicios: [["🛠️","Servicio profesional"],["📋","Presupuesto sin compromiso"],["📍","Desplazamiento en tu zona"],["💬","Contacto directo por chat"],["⭐","Valoraciones reales"],["🤝","Trato directo"]],
+  servicios: [["🛠️","Servicio profesional"],["📋","Presupuesto sin compromiso"],["📍","Desplazamiento en tu zona"],["📞","OficioYa te llama y lo organiza"],["⭐","Valoraciones reales"],["🤝","Trato directo"]],
   faq: [
-    ["¿Cómo pido presupuesto?","Pulsa \"Contactar\" y descríbele tu necesidad por el chat de OficioYa. Recibirás respuesta directa del profesional, sin intermediarios ni compromiso."],
+    ["¿Cómo pido presupuesto?","Pulsa \"Solicitar presupuesto\", describe lo que necesitas y OficioYa te llama para confirmarlo. Gratis y sin compromiso."],
   ],
 };
 
 const FAQ_COMUNES = [
-  ["¿El presupuesto tiene coste?","No. Contactar y pedir presupuesto a través de OficioYa es gratis y sin compromiso."],
-  ["¿Cómo contacto con este profesional?","Pulsa cualquier botón \"Contactar\" de esta página: entrarás en OficioYa y se abrirá el chat directo con él. Sin llamadas comerciales ni datos compartidos con terceros."],
+  ["¿El presupuesto tiene coste?","No. Pedir presupuesto a través de OficioYa es gratis y sin compromiso."],
+  ["¿Cómo contacto con este profesional?","Pulsa \"Solicitar presupuesto\": rellenas un formulario corto y OficioYa revisa tu solicitud y te confirma el profesional. Sin datos compartidos con terceros."],
   ["¿Qué es OficioYa?","La plataforma de profesionales verificados de Sevilla. Los clientes contactan gratis y valoran cada trabajo, para que elijas con información real."],
 ];
 
@@ -106,7 +106,7 @@ function renderPage(pro, slug, gallery) {
   const c = TRADE_CONTENT[pro.trade] || DEFAULT_CONTENT;
   const zonas = (pro.service_zones && pro.service_zones.length ? pro.service_zones : [pro.zone]).filter(Boolean);
   const zonaTxt = zonas.length ? zonas.join(", ") : "Sevilla";
-  const ctaUrl = "https://aficioya.com/?pro=" + slug;
+  const ctaUrl = "https://www.aficioya.com/?with=" + pro.id; // abre la solicitud de presupuesto con este profesional
   const hasRating = Number(pro.reviews) > 0 && Number(pro.rating) > 0;
   const specialties = (pro.specialties || []).filter(Boolean);
   const servicios = specialties.length >= 3 ? specialties.map(s => ["✅", s]) : c.servicios;
@@ -255,7 +255,7 @@ footer a{color:var(--accent);font-weight:700}
     <img src="${LOGO_URL}" alt="OficioYa" onerror="this.style.display='none'">
     <span style="display:flex;flex-direction:column;line-height:1.15"><span style="color:var(--text)">Oficio<span>Ya</span></span><span class="tagline">${esc(SLOGAN)}</span></span>
   </a>
-  <a class="mini" href="${ctaUrl}">Contactar</a>
+  <a class="mini" href="${ctaUrl}">Solicitar</a>
 </div></div>
 
 <header class="hero"><div class="wrap">
@@ -271,7 +271,7 @@ footer a{color:var(--accent);font-weight:700}
     </div>
   </div>
   <div class="cta-row reveal d3">
-    <a class="cta" href="${ctaUrl}">💬 Contactar gratis →</a>
+    <a class="cta" href="${ctaUrl}">📋 Solicitar presupuesto →</a>
     ${gallery.length ? `<a class="cta ghost" href="#trabajos">Ver sus trabajos</a>` : ""}
   </div>
   ${stats.length ? `<div class="stats">${stats.map((s, i) => `<div class="stat reveal d${i + 1}">${s.n !== "" ? `<div class="n" data-count="${esc(s.n)}">0${esc(s.suf)}</div>` : `<div class="n">${esc(s.suf)}</div>`}<div class="l">${esc(s.label)}</div></div>`).join("")}</div>` : ""}
@@ -300,10 +300,10 @@ ${gallery.length ? `<section id="trabajos" style="padding-top:0"><div class="wra
 
 <section style="padding-top:0"><div class="wrap">
   <p class="eyebrow reveal">Cómo funciona</p>
-  <h2 class="reveal">Contacta en 3 pasos, gratis</h2>
+  <h2 class="reveal">Pide presupuesto en 3 pasos, gratis</h2>
   <div class="steps">
-    <div class="step reveal d1"><span class="num">1</span><h3>Pulsa "Contactar"</h3><p>Entras en OficioYa y se abre el chat directo con ${esc((pro.name || "").split(" ")[0])}. Sin llamadas comerciales.</p></div>
-    <div class="step reveal d2"><span class="num">2</span><h3>Cuéntale tu necesidad</h3><p>Describe el trabajo, añade fotos si quieres y pide presupuesto sin compromiso.</p></div>
+    <div class="step reveal d1"><span class="num">1</span><h3>Pulsa "Solicitar presupuesto"</h3><p>Rellenas un formulario corto. OficioYa revisa tu solicitud y te confirma el profesional.</p></div>
+    <div class="step reveal d2"><span class="num">2</span><h3>Te llamamos</h3><p>Confirmamos contigo los detalles del trabajo y te pasamos el contacto del profesional.</p></div>
     <div class="step reveal d3"><span class="num">3</span><h3>Cierra el trabajo</h3><p>Acordáis precio y fecha directamente. Después podrás dejar tu reseña.</p></div>
   </div>
 </div></section>
@@ -323,8 +323,8 @@ ${zonas.length > 1 ? `<section style="padding-top:0"><div class="wrap">
 <section style="padding-top:0"><div class="wrap">
   <div class="final reveal">
     <h2>¿Necesitas un ${esc((pro.trade || "profesional").toLowerCase())} en ${esc(zonas[0] || "Sevilla")}?</h2>
-    <p>Contacta con ${esc((pro.name || "").split(" ")[0])} ahora — gratis y sin compromiso.</p>
-    <a class="cta" href="${ctaUrl}">💬 Contactar con ${esc((pro.name || "").split(" ")[0])} →</a>
+    <p>Pide presupuesto ahora — gratis y sin compromiso.</p>
+    <a class="cta" href="${ctaUrl}">📋 Solicitar presupuesto →</a>
   </div>
 </div></section>
 
@@ -337,7 +337,7 @@ ${zonas.length > 1 ? `<section style="padding-top:0"><div class="wrap">
   <a href="https://aficioya.com">Ver más profesionales →</a>
 </div></footer>
 
-<div class="sticky-cta" id="stickyCta"><a class="cta" href="${ctaUrl}" style="width:100%;max-width:480px">💬 Contactar gratis →</a></div>
+<div class="sticky-cta" id="stickyCta"><a class="cta" href="${ctaUrl}" style="width:100%;max-width:480px">📋 Solicitar presupuesto →</a></div>
 
 <script>
 (function(){
