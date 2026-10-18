@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Admin from "./Admin";
+import AdminPanel from "./admin/AdminPanel";
 import EliteLanding from "./EliteLanding";
 import Terminos from "./Terminos";
 import Privacidad from "./Privacidad";
@@ -5464,8 +5465,8 @@ if(!_lastVisit){
 @keyframes shimmer{0%{background-position:-200% center;}100%{background-position:200% center;}}
 @keyframes fadeSlideUp{from{transform:translateY(12px);opacity:0;}to{transform:translateY(0);opacity:1;}}
     `}</style>
-    {user&&user.type==="admin"&&<Admin onLogout={logout} />}
-    {user&&(user as any).type==="gestor"&&<Admin onLogout={logout} rolGestor ciudadesGestor={(user as any).managed_cities||[]} />}
+    {user&&user.type==="admin"&&<AdminPanel onLogout={logout} nombre={user.name} />}
+    {user&&(user as any).type==="gestor"&&<AdminPanel onLogout={logout} nombre={(user as any).name} />}
     {user&&user.type==="profesional"&&<ProDashboard user={user} onLogout={logout} onUpdate={update} deepLinkChatWith={deepLinkChatWith} />}
 {(!user||user.type==="cliente")&&<ClientHome user={user} onLogout={logout} onUpdate={update} deepLinkChatWith={deepLinkChatWith} onLogin={login} />}
 </Sentry.ErrorBoundary>);
