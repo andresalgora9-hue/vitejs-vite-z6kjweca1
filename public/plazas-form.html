@@ -505,7 +505,7 @@ function enviar(){
     utm_campaign: ORIGEN.utm_campaign, utm_content: ORIGEN.utm_content, fbclid: ORIGEN.fbclid
   };
 
-  fetch(SB_URL + '/rest/v1/leads_landing', {
+  fetch(SB_URL + '/rest/v1/captacion_leads', {
     method: 'POST',
     headers: Object.assign({ 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }, HEADERS),
     body: JSON.stringify(fila)
