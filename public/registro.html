@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>OficioYa · Plazas para profesionales</title>
+<meta name="theme-color" content="#07090D">
+<script>
+/* Prueba A/B de la landing de profesionales.
+   Reparte las visitas 50/50 entre plazas-mapa.html y plazas-form.html.
+   Cada persona ve siempre la misma versión (se guarda en su navegador).
+   Para cerrar la prueba y quedarte con una: cambia REPARTO a 1 (solo mapa) o 0 (solo formulario). */
+(function(){
+  var REPARTO = 0.5;               // proporción que va a la versión con mapa
+  var CLAVE = 'oy_ab_plazas';
+  var v = null;
+  try { v = localStorage.getItem(CLAVE); } catch(e) {}
+  if (REPARTO === 1) v = 'mapa';
+  else if (REPARTO === 0) v = 'form';
+  else if (v !== 'mapa' && v !== 'form') {
+    v = Math.random() < REPARTO ? 'mapa' : 'form';
+    try { localStorage.setItem(CLAVE, v); } catch(e) {}
+  }
+  var q = location.search ? location.search + '&ab=' + v : '?ab=' + v;
+  location.replace('/plazas-' + v + '.html' + q + location.hash);
+})();
+</script>
+<noscript><meta http-equiv="refresh" content="0;url=/plazas-form.html"></noscript>
+<style>html,body{background:#07090D;margin:0}</style>
+</head>
+<body></body>
+</html>
