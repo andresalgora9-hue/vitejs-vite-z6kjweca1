@@ -232,7 +232,12 @@ function fbAdvancedMatch(email?:string,phone?:string){
   }catch{}
 }
 function gtagEvent(event:string, data?:Record<string,any>){
-  try{if((window as any).gtag)(window as any).gtag("event",event,data||{});}catch{}
+  let d:Record<string,any>=data||{};
+  if(event==="generate_lead"&&d.value===undefined){
+    const of=String(d.oficio||"").toLowerCase();
+    d={...d,value:of.includes("pint")?80:40,currency:"EUR"};
+  }
+  try{if((window as any).gtag)(window as any).gtag("event",event,d);}catch{}
 }
 const ZONAS = [
   "Sevilla","Madrid","Barcelona","Valencia","Málaga","Bilbao","Zaragoza","Alicante","Granada","Cádiz","Córdoba","Huelva",
