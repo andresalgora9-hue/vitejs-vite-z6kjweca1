@@ -1,0 +1,773 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Captación · OficioYa</title>
+<meta name="theme-color" content="#0B0E14">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700&family=Fredoka:wght@600;700&display=swap">
+<style>
+:root{
+  color-scheme: light;
+  --bg:#F4F2EE; --surface:#FFFFFF; --surface-2:#F1EEE8; --line:rgba(20,20,30,.10); --line-strong:rgba(20,20,30,.22);
+  --ink:#16181D; --ink-soft:#5B616E; --ink-faint:#8A909C;
+  --naranja:#E8862A; --azul:#2F7FD8; --ok:#1E9E5A; --aviso:#D9472B; --ambar:#C98512;
+  --cta:#E8862A; --cta-ink:#FFFFFF;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    color-scheme: dark;
+    --bg:#0B0E14; --surface:#141922; --surface-2:#1B212C; --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.2);
+    --ink:#F2EFE9; --ink-soft:#AEB4BF; --ink-faint:#7D8491;
+    --naranja:#F5A33C; --azul:#4C9EF2; --ok:#5DCB8E; --aviso:#F08A5D; --ambar:#E8B04A;
+    --cta:#F5A33C; --cta-ink:#1B1206;
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg)}
+body{color:var(--ink);font-family:'Barlow',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased;padding:env(safe-area-inset-top,0px) 0 calc(70px + env(safe-area-inset-bottom,0px))}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{font-family:'Fredoka','Barlow',sans-serif;line-height:1.1}
+.wrap{max-width:980px;margin:0 auto;padding:0 16px}
+[hidden]{display:none!important}
+
+/* Acceso */
+.acceso{min-height:100vh;display:grid;place-items:center;padding:24px}
+.acceso .caja{width:100%;max-width:380px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:26px}
+.acceso h1{font-size:28px;margin-bottom:6px}
+.acceso h1 b{color:var(--naranja)}
+.acceso p{color:var(--ink-soft);margin-bottom:18px}
+input,select,textarea{width:100%;background:var(--surface-2);border:1.5px solid var(--line-strong);border-radius:11px;padding:12px 13px;min-height:48px}
+textarea{min-height:80px;resize:vertical}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--naranja);outline-offset:1px}
+.btn{appearance:none;border:0;border-radius:11px;min-height:48px;padding:0 16px;font-weight:700;font-size:16px;cursor:pointer;background:var(--cta);color:var(--cta-ink);display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none}
+.btn.sec{background:var(--surface-2);color:var(--ink);border:1.5px solid var(--line-strong)}
+.btn.ok{background:var(--ok);color:#fff}
+.btn.full{width:100%}
+.btn:disabled{opacity:.5;cursor:default}
+.err{color:var(--aviso);font-size:14.5px;margin-top:10px}
+.err:empty{display:none}
+
+/* Cabecera y pestañas */
+header.barra{position:sticky;top:0;z-index:10;background:var(--bg);border-bottom:1px solid var(--line)}
+header.barra .wrap{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:12px;padding-bottom:10px}
+.marca{font-family:'Fredoka',sans-serif;font-weight:700;font-size:20px}
+.marca b{color:var(--naranja)} .marca span{color:var(--ink-soft);font-family:'Barlow',sans-serif;font-weight:600;font-size:15px;margin-left:6px}
+.quien{color:var(--ink-soft);font-size:14px;display:flex;align-items:center;gap:10px}
+.quien button{background:none;border:0;text-decoration:underline;cursor:pointer;color:var(--ink-soft);font-size:14px}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav.tabs .wrap{display:grid;grid-template-columns:repeat(var(--ntabs,4),1fr)}
+nav.tabs button{background:none;border:0;padding:10px 2px 9px;font-weight:600;font-size:12.5px;color:var(--ink-soft);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px}
+nav.tabs button svg{width:22px;height:22px}
+nav.tabs button[aria-current="page"]{color:var(--naranja)}
+@media (min-width:860px){
+  body{padding-bottom:20px}
+  nav.tabs{position:static;border-top:0;border-bottom:1px solid var(--line);background:var(--bg)}
+  nav.tabs .wrap{display:flex;gap:6px}
+  nav.tabs button{flex-direction:row;font-size:15px;padding:12px 14px;border-bottom:2px solid transparent}
+  nav.tabs button[aria-current="page"]{border-bottom-color:var(--naranja)}
+  nav.tabs button svg{width:18px;height:18px}
+}
+main{padding:16px 0 24px}
+.titulo-sec{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:22px 0 10px}
+.titulo-sec h2{font-size:21px}
+.titulo-sec small{color:var(--ink-soft);font-size:14px}
+
+/* Cifras */
+.cifras{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media (min-width:700px){.cifras{grid-template-columns:repeat(4,1fr)}}
+.cifra{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px}
+.cifra strong{display:block;font-family:'Fredoka',sans-serif;font-size:30px;line-height:1.05}
+.cifra span{color:var(--ink-soft);font-size:14px}
+.cifra.alerta strong{color:var(--aviso)}
+.cifra.verde strong{color:var(--ok)}
+
+/* Tarjetas de lead */
+.lista{display:grid;gap:8px}
+.lead{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--line-strong);border-radius:12px;padding:12px 14px;cursor:pointer;text-align:left;width:100%}
+.lead:hover{border-color:var(--line-strong)}
+.lead.urgente{border-left-color:var(--aviso)}
+.lead.f{--of:var(--azul)} .lead.p{--of:var(--naranja)}
+.lead .nom{font-weight:700;font-size:16.5px}
+.lead .meta{color:var(--ink-soft);font-size:14px;grid-column:1/2}
+.lead .der{grid-row:1/3;grid-column:2;text-align:right;font-size:13.5px;color:var(--ink-soft)}
+.of{display:inline-flex;align-items:center;gap:6px}
+.of i{width:9px;height:9px;border-radius:50%;background:var(--of,var(--ink-faint));display:inline-block}
+.estado{display:inline-block;font-size:12.5px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--surface-2);color:var(--ink-soft);white-space:nowrap}
+.estado.nuevo{color:var(--azul)} .estado.pagado{color:var(--ok)} .estado.no_interesado{color:var(--aviso)} .estado.interesado,.estado.contrato_enviado{color:var(--naranja)}
+.rojo{color:var(--aviso);font-weight:700}
+.vacio{color:var(--ink-faint);background:var(--surface);border:1px dashed var(--line-strong);border-radius:12px;padding:16px;text-align:center}
+
+/* Filtros */
+.filtros{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.filtros input{grid-column:1/-1}
+@media (min-width:700px){.filtros{grid-template-columns:2fr 1fr 1fr 1fr}.filtros input{grid-column:auto}}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px;scrollbar-width:none}
+.chips button{flex:none;border:1.5px solid var(--line-strong);background:var(--surface);border-radius:999px;padding:6px 12px;font-weight:600;font-size:14px;cursor:pointer;white-space:nowrap}
+.chips button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+/* Ficha */
+.velo{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:40}
+.ficha{position:fixed;z-index:41;left:0;right:0;bottom:0;max-height:92vh;overflow:auto;background:var(--surface);border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));box-shadow:0 -16px 50px rgba(0,0,0,.35)}
+@media (min-width:760px){.ficha{left:auto;right:0;top:0;bottom:0;width:480px;max-height:none;border-radius:0}}
+.ficha .cab{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.ficha h2{font-size:26px}
+.cerrar{width:40px;height:40px;border-radius:50%;border:0;background:var(--surface-2);cursor:pointer;font-size:22px;color:var(--ink-soft);flex:none}
+.acciones{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0}
+.datos{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:15px;margin:6px 0 14px}
+.datos dt{color:var(--ink-soft)} .datos dd{font-weight:600}
+.bloque{border-top:1px solid var(--line);padding-top:14px;margin-top:14px}
+.bloque h3{font-size:17px;margin-bottom:10px}
+.estados{display:flex;flex-wrap:wrap;gap:6px}
+.estados button{border:1.5px solid var(--line-strong);background:var(--surface-2);border-radius:10px;padding:8px 10px;font-weight:600;font-size:14px;cursor:pointer}
+.estados button[aria-pressed="true"]{border-color:var(--naranja);background:rgba(232,134,42,.14)}
+.fila{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.lbl{display:block;font-weight:700;font-size:14px;margin:10px 0 6px}
+.historial{list-style:none;display:grid;gap:10px}
+.historial li{font-size:14.5px;border-left:2px solid var(--line-strong);padding-left:10px}
+.historial time{display:block;color:var(--ink-faint);font-size:12.5px}
+.aviso-plaza{font-size:14px;padding:10px 12px;border-radius:10px;background:var(--surface-2);margin-top:8px}
+
+/* Tablas */
+.tabla{width:100%;border-collapse:collapse;font-size:14.5px;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.tabla th,.tabla td{padding:9px 10px;text-align:left;border-top:1px solid var(--line);white-space:nowrap}
+.tabla th{color:var(--ink-soft);font-weight:600;background:var(--surface-2);border-top:0}
+.tabla td.n,.tabla th.n{text-align:right}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:12px}
+.barras{display:flex;align-items:flex-end;gap:3px;height:120px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 10px 22px;position:relative}
+.barras div{flex:1;background:var(--naranja);border-radius:3px 3px 0 0;min-height:2px;position:relative}
+.barras div span{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:10.5px;color:var(--ink-faint);white-space:nowrap}
+.nota{color:var(--ink-faint);font-size:13.5px;margin-top:8px}
+.toast{position:fixed;left:50%;bottom:calc(80px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;z-index:60;font-size:15px}
+
+.quien #como-sandra{background:var(--surface);border:1.5px solid var(--line-strong);border-radius:999px;padding:5px 11px;text-decoration:none;color:var(--ink);font-weight:600;font-size:13.5px}
+.aviso-vista{background:var(--naranja);color:#fff;text-align:center;font-weight:600;font-size:14px;padding:6px 10px}
+.herr{display:grid;gap:10px}
+.tarjeta-h{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px}
+.tarjeta-h b{display:block;font-size:16.5px}
+.tarjeta-h span{color:var(--ink-soft);font-size:14px}
+.tarjeta-h .acc{display:flex;gap:8px}
+.pasos-h{padding-left:22px;display:grid;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 14px 14px 34px}
+.guion{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:10px}
+.guion p{font-size:15.5px}
+.docs{list-style:none;display:grid;gap:8px;margin-top:10px}
+.docs li{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--surface-2);border-radius:10px;padding:10px 12px}
+.docs li span{font-weight:600;font-size:14.5px;word-break:break-all}
+.docs small{display:block;color:var(--ink-faint);font-weight:500;font-size:12.5px}
+.estado.completado{color:var(--ok)}
+.estado.contrato_enviado{color:var(--naranja)}
+</style>
+</head>
+<body>
+
+<!-- ACCESO -->
+<section class="acceso" id="vista-acceso">
+  <div class="caja">
+    <h1>Oficio<b>Ya</b> · Captación</h1>
+    <p>Introduce tu clave de acceso.</p>
+    <input id="clave" type="password" autocomplete="current-password" placeholder="Clave" aria-label="Clave de acceso">
+    <label style="display:flex;gap:8px;align-items:center;margin:12px 0 16px;color:var(--ink-soft);font-size:14.5px">
+      <input type="checkbox" id="recordar" checked style="width:18px;min-height:18px"> Recordar en este dispositivo
+    </label>
+    <button class="btn full" id="entrar">Entrar</button>
+    <p class="err" id="err-acceso"></p>
+  </div>
+</section>
+
+<!-- APP -->
+<div id="vista-app" hidden>
+  <header class="barra">
+    <div class="wrap">
+      <div class="marca">Oficio<b>Ya</b><span>Captación</span></div>
+      <div class="quien"><button id="como-sandra" hidden></button><span id="quien"></span><button id="salir">Salir</button></div>
+    </div>
+  </header>
+  <div class="aviso-vista" id="aviso-vista" hidden>Estás viendo el CRM como lo ve Sandra.</div>
+  <nav class="tabs" aria-label="Secciones">
+    <div class="wrap" id="tabs-wrap">
+      <button data-tab="metricas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3v18h18M7 15l4-4 3 3 6-7"/></svg>Métricas</button>
+      <button data-tab="hoy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg>Hoy</button>
+      <button data-tab="todos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Profesionales</button>
+      <button data-tab="herramientas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg>Herramientas</button>
+      <button data-tab="comisiones"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M15 9.5a3 3 0 0 0-2.5-1.5h-1a2.5 2.5 0 0 0 0 5h1a2.5 2.5 0 0 1 0 5h-1A3 3 0 0 1 9 16.5M12 6v2M12 18v-2"/></svg>Comisiones</button>
+    </div>
+  </nav>
+
+  <main class="wrap">
+    <!-- MÉTRICAS (solo admin) -->
+    <section id="tab-metricas" hidden>
+      <div class="chips" id="chips-periodo"></div>
+      <div class="cifras" id="cifras-camp"></div>
+      <div class="titulo-sec"><h2>Embudo</h2><small>Del registro al profesional activo</small></div>
+      <div class="scroll"><table class="tabla" id="t-embudo"></table></div>
+      <div class="titulo-sec"><h2>Registros por día</h2></div>
+      <div class="barras" id="barras"></div>
+      <div class="titulo-sec"><h2>Prueba A/B de landings</h2></div>
+      <div class="scroll"><table class="tabla" id="t-variante"></table></div>
+      <div class="titulo-sec"><h2>Por anuncio</h2></div>
+      <div class="scroll"><table class="tabla" id="t-anuncio"></table></div>
+      <div class="titulo-sec"><h2>Por ciudad y oficio</h2></div>
+      <div class="scroll"><table class="tabla" id="t-ciudad"></table></div>
+      <div class="titulo-sec"><h2>Trabajo de Sandra</h2></div>
+      <div class="cifras" id="cifras-sandra"></div>
+      <div class="titulo-sec"><h2>Plazas ocupadas</h2><small>Lo que ve el mapa de la landing</small></div>
+      <div class="scroll"><table class="tabla" id="t-plazas"></table></div>
+      <p class="nota" id="nota-gasto"></p>
+    </section>
+
+    <!-- HOY -->
+    <section id="tab-hoy" hidden>
+      <div class="cifras" id="cifras-hoy"></div>
+      <div class="titulo-sec"><h2>Llamar ya: nuevos</h2><small>Los más antiguos primero</small></div>
+      <div class="lista" id="l-nuevos"></div>
+      <div class="titulo-sec"><h2>Llamadas para hoy</h2><small>Programadas o atrasadas</small></div>
+      <div class="lista" id="l-hoy"></div>
+      <div class="titulo-sec"><h2>Contratos sin devolver</h2><small>Enviados y pendientes de firma</small></div>
+      <div class="lista" id="l-contratos"></div>
+      <div class="titulo-sec"><h2>No contestan: reintentar</h2><small>Hasta 5 intentos</small></div>
+      <div class="lista" id="l-reintentar"></div>
+    </section>
+
+    <!-- TODOS -->
+    <section id="tab-todos" hidden>
+      <div class="chips" id="chips-estado"></div>
+      <div class="filtros">
+        <input id="f-buscar" placeholder="Buscar nombre, teléfono o ciudad" aria-label="Buscar">
+        <select id="f-oficio" aria-label="Oficio"><option value="">Todos los oficios</option><option value="fontanero">Fontanería</option><option value="pintor">Pintura</option></select>
+        <select id="f-ciudad" aria-label="Ciudad"><option value="">Todas las ciudades</option></select>
+        <select id="f-orden" aria-label="Orden"><option value="reciente">Más recientes</option><option value="antiguo">Más antiguos</option></select>
+      </div>
+      <div class="lista" id="l-todos"></div>
+    </section>
+
+    <!-- HERRAMIENTAS -->
+    <section id="tab-herramientas" hidden>
+      <div class="titulo-sec"><h2>Contratos</h2><small>Descárgalo y envíaselo al profesional</small></div>
+      <div class="herr" id="h-contratos"></div>
+      <div class="titulo-sec"><h2>Cómo cerrar a un profesional</h2></div>
+      <ol class="pasos-h">
+        <li><b>Llámale</b> y explícale las condiciones (tienes el guion debajo).</li>
+        <li>Si le interesa, <b>envíale el contrato de su oficio</b> por WhatsApp o email y márcalo como <b>Contrato enviado</b>.</li>
+        <li>Cuando te lo devuelva firmado, entra en su ficha, <b>sube el contrato firmado</b> (PDF o foto) y pulsa <b>Completado</b>.</li>
+        <li>Andrés confirma el cobro de la activación y tu comisión de 50 € pasa a <b>a pagar</b>.</li>
+      </ol>
+      <div class="titulo-sec"><h2>Guion de llamada</h2></div>
+      <div class="guion">
+        <p><b>Presentación:</b> «Hola, [nombre], soy Sandra de OficioYa. Te llamo porque has reservado una plaza de [oficio] en [ciudad]. ¿Tienes dos minutos?»</p>
+        <p><b>Qué ofrecemos:</b> nosotros ponemos y pagamos la publicidad en su ciudad y le pasamos clientes que piden presupuesto de su oficio.</p>
+        <p><b>Lo que paga:</b> una activación única de 99 € y después solo cada solicitud que recibe: 40 € en fontanería y 80 € en pintura. Sin cuota mensual.</p>
+        <p><b>Por qué es distinto:</b> cada cliente va a un solo profesional, no se reparte entre tres. Y solo hay 2 plazas por oficio en cada ciudad.</p>
+        <p><b>Requisito:</b> estar dado de alta como autónomo.</p>
+        <p><b>Cierre:</b> «Si te parece bien, te envío ahora el contrato por WhatsApp, lo firmas y en cuanto esté activado empezamos con los anuncios en tu ciudad.»</p>
+      </div>
+      <div class="titulo-sec"><h2>Mensaje para enviar el contrato</h2></div>
+      <div class="guion"><p id="msg-contrato"></p><button class="btn sec" id="copiar-msg">Copiar mensaje</button></div>
+    </section>
+
+    <!-- COMISIONES -->
+    <section id="tab-comisiones" hidden>
+      <div class="cifras" id="cifras-com"></div>
+      <div class="titulo-sec"><h2>Profesionales cerrados</h2><small id="com-sub"></small></div>
+      <div class="lista" id="l-com"></div>
+      <div id="com-admin" hidden style="margin-top:14px"><button class="btn ok" id="pagar-com">Marcar comisiones a pagar como pagadas</button></div>
+    </section>
+  </main>
+</div>
+
+<!-- FICHA -->
+<div class="velo" id="velo" hidden></div>
+<aside class="ficha" id="ficha" hidden role="dialog" aria-modal="true" aria-labelledby="fi-nombre"></aside>
+<div class="toast" id="toast" hidden></div>
+<input type="file" id="subir-archivo" accept="application/pdf,image/*" hidden>
+
+<script>
+var SB_URL = 'https://rjwojxwrsbvwwshwwpvq.supabase.co';
+var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE';
+var COMISION = 50, MAX_MB = 6;
+var ESTADOS = [
+  ['nuevo','Nuevo'],['contactado','Contactado'],['interesado','Interesado'],['contrato_enviado','Contrato enviado'],
+  ['completado','Completado · contrato firmado'],['pagado','Activo · activación cobrada'],
+  ['no_contesta','No contesta'],['no_interesado','No interesado'],['lista_espera','Lista de espera']
+];
+var NOMBRE_ESTADO = {}; ESTADOS.forEach(function(e){ NOMBRE_ESTADO[e[0]] = e[1]; });
+var ESTADOS_SANDRA = ['nuevo','contactado','interesado','contrato_enviado','no_contesta','no_interesado','lista_espera'];
+var CERRADO = ['completado','pagado'];
+var MOTIVOS = ['Precio','No es autónomo','Ya tiene suficiente trabajo','Fuera de zona','No era lo que buscaba','Otro'];
+
+var $ = function(id){ return document.getElementById(id); };
+var D = { rol:null, leads:[], eventos:[], documentos:[], gasto:[], plazas:[] };
+var CLAVE = null, VISTA = 'gestor', tab = 'hoy', filtroEstado = '', periodo = 30, fichaId = null, subida = null;
+
+function esAdmin(){ return D.rol === 'admin' && VISTA === 'admin'; }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function oficioTxt(o){ return o==='fontanero' ? 'Fontanería' : 'Pintura'; }
+function euros(n){ return (Math.round(n*100)/100).toLocaleString('es-ES',{minimumFractionDigits:0,maximumFractionDigits:2}) + ' €'; }
+function pct(a,b){ return b ? Math.round(a*100/b) + '%' : '—'; }
+function fecha(iso, conHora){
+  if(!iso) return '—';
+  var o = { timeZone:'Europe/Madrid', day:'numeric', month:'short' };
+  if(conHora){ o.hour='2-digit'; o.minute='2-digit'; }
+  return new Date(iso).toLocaleString('es-ES', o);
+}
+function hace(iso){
+  var m = Math.round((Date.now() - new Date(iso).getTime())/60000);
+  if(m < 60) return 'hace ' + Math.max(1,m) + ' min';
+  var h = Math.round(m/60); if(h < 48) return 'hace ' + h + ' h';
+  return 'hace ' + Math.round(h/24) + ' días';
+}
+function horasDesde(iso){ return (Date.now() - new Date(iso).getTime())/3600000; }
+function finDeHoy(){ var d = new Date(); d.setHours(23,59,59,999); return d; }
+function inicioMes(){ var m = new Date(); m.setDate(1); m.setHours(0,0,0,0); return m; }
+function toast(t){ var e=$('toast'); e.textContent=t; e.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(function(){ e.hidden=true; }, 2600); }
+function sum(a){ return a.reduce(function(s,l){ return s + Number(l.comision||0); },0); }
+
+/* ---------- API ---------- */
+function rpc(fn, body){
+  return fetch(SB_URL + '/rest/v1/rpc/' + fn, {
+    method:'POST',
+    headers:{ 'apikey':SB_KEY, 'Authorization':'Bearer '+SB_KEY, 'Content-Type':'application/json' },
+    body: JSON.stringify(body)
+  }).then(function(r){
+    return r.json().then(function(j){ if(!r.ok) throw new Error(j && j.message || ('HTTP '+r.status)); return j; });
+  });
+}
+function cargar(){
+  return rpc('captacion_datos', { p_clave: CLAVE }).then(function(d){
+    D = d; D.documentos = D.documentos || []; pintar(); if(fichaId) abrirFicha(fichaId, true);
+  });
+}
+
+/* ---------- Acceso ---------- */
+function entrar(clave, recordar){
+  $('err-acceso').textContent = ''; $('entrar').disabled = true;
+  CLAVE = clave;
+  cargar().then(function(){
+    if(recordar){ try{ localStorage.setItem('oy_captacion_clave', clave); }catch(e){} }
+    VISTA = D.rol === 'admin' ? 'admin' : 'gestor';
+    $('vista-acceso').hidden = true; $('vista-app').hidden = false;
+    $('quien').textContent = D.nombre || '';
+    configurarVista(); irA(VISTA === 'admin' ? 'metricas' : 'hoy');
+    clearInterval(entrar._i); entrar._i = setInterval(function(){ if(!document.hidden && !subida) cargar().catch(function(){}); }, 60000);
+  }).catch(function(e){
+    CLAVE = null;
+    $('err-acceso').textContent = /denegado/.test(e.message) ? 'Clave incorrecta.' : 'No se ha podido conectar. Inténtalo de nuevo.';
+    try{ localStorage.removeItem('oy_captacion_clave'); }catch(x){}
+    $('vista-acceso').hidden = false; $('vista-app').hidden = true;
+  }).then(function(){ $('entrar').disabled = false; });
+}
+$('entrar').addEventListener('click', function(){ var c=$('clave').value.trim(); if(c) entrar(c, $('recordar').checked); });
+$('clave').addEventListener('keydown', function(e){ if(e.key==='Enter') $('entrar').click(); });
+$('salir').addEventListener('click', function(){ try{ localStorage.removeItem('oy_captacion_clave'); }catch(e){} location.reload(); });
+document.addEventListener('visibilitychange', function(){ if(!document.hidden && CLAVE && !subida) cargar().catch(function(){}); });
+
+/* ---------- Vista admin / vista Sandra ---------- */
+function configurarVista(){
+  var admin = esAdmin();
+  $('como-sandra').hidden = D.rol !== 'admin';
+  $('como-sandra').textContent = admin ? 'Ver como Sandra' : 'Volver a mi vista';
+  $('aviso-vista').hidden = !(D.rol === 'admin' && !admin);
+  document.querySelector('nav.tabs button[data-tab="metricas"]').hidden = !admin;
+  $('tabs-wrap').style.setProperty('--ntabs', admin ? 5 : 4);
+}
+$('como-sandra').addEventListener('click', function(){
+  VISTA = VISTA === 'admin' ? 'gestor' : 'admin';
+  configurarVista(); irA(VISTA === 'admin' ? 'metricas' : 'hoy');
+});
+
+/* ---------- Pestañas ---------- */
+Array.prototype.forEach.call(document.querySelectorAll('nav.tabs button'), function(b){
+  b.addEventListener('click', function(){ irA(b.getAttribute('data-tab')); });
+});
+function irA(t){
+  if(t === 'metricas' && !esAdmin()) t = 'hoy';
+  tab = t;
+  Array.prototype.forEach.call(document.querySelectorAll('nav.tabs button'), function(b){
+    if(b.getAttribute('data-tab')===t) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current');
+  });
+  ['metricas','hoy','todos','herramientas','comisiones'].forEach(function(x){ $('tab-'+x).hidden = x!==t; });
+  window.scrollTo(0,0); pintar();
+}
+
+/* ---------- Tarjeta de lead ---------- */
+function tarjeta(l, extra){
+  var urgente = l.estado==='nuevo' && horasDesde(l.created_at) > 24;
+  var der = extra || ('<span class="estado ' + l.estado + '">' + esc(NOMBRE_ESTADO[l.estado]) + '</span>');
+  return '<button class="lead ' + (l.oficio==='fontanero'?'f':'p') + (urgente?' urgente':'') + '" data-id="' + l.id + '">'
+    + '<span class="nom">' + esc(l.nombre) + '</span>'
+    + '<span class="der">' + der + '</span>'
+    + '<span class="meta"><span class="of"><i></i>' + oficioTxt(l.oficio) + '</span> · ' + esc(l.ciudad || 'Sin ciudad')
+    + ' · ' + (urgente ? '<span class="rojo">' + hace(l.created_at) + '</span>' : hace(l.created_at)) + '</span>'
+    + '</button>';
+}
+function pintarLista(el, lista, vacio, extraFn){
+  $(el).innerHTML = lista.length ? lista.map(function(l){ return tarjeta(l, extraFn ? extraFn(l) : null); }).join('') : '<div class="vacio">' + vacio + '</div>';
+}
+document.addEventListener('click', function(e){
+  var b = e.target.closest('.lead'); if(b) abrirFicha(b.getAttribute('data-id'));
+});
+
+/* ---------- Pintar ---------- */
+function pintar(){
+  if(!D || !D.leads) return;
+  if(tab==='metricas') pintarMetricas();
+  if(tab==='hoy') pintarHoy();
+  if(tab==='todos') pintarTodos();
+  if(tab==='herramientas') pintarHerramientas();
+  if(tab==='comisiones') pintarComisiones();
+}
+
+function pintarHoy(){
+  var L = D.leads, fin = finDeHoy();
+  var nuevos = L.filter(function(l){ return l.estado==='nuevo'; }).sort(function(a,b){ return new Date(a.created_at)-new Date(b.created_at); });
+  var hoy = L.filter(function(l){ return l.proxima_llamada && new Date(l.proxima_llamada) <= fin && ['contactado','interesado','lista_espera'].indexOf(l.estado) > -1; })
+             .sort(function(a,b){ return new Date(a.proxima_llamada)-new Date(b.proxima_llamada); });
+  var contratos = L.filter(function(l){ return l.estado==='contrato_enviado'; }).sort(function(a,b){ return new Date(a.updated_at)-new Date(b.updated_at); });
+  var reint = L.filter(function(l){ return l.estado==='no_contesta' && l.intentos < 5 && (!l.proxima_llamada || new Date(l.proxima_llamada) <= fin); })
+               .sort(function(a,b){ return a.intentos - b.intentos; });
+  var mes = inicioMes();
+  var cerradosMes = L.filter(function(l){ return CERRADO.indexOf(l.estado) > -1 && l.completado_at && new Date(l.completado_at) >= mes; });
+  var urg = nuevos.filter(function(l){ return horasDesde(l.created_at) > 24; }).length;
+  $('cifras-hoy').innerHTML =
+      '<div class="cifra' + (urg?' alerta':'') + '"><strong>' + nuevos.length + '</strong><span>Nuevos sin llamar' + (urg ? ' · ' + urg + ' con más de 24 h' : '') + '</span></div>'
+    + '<div class="cifra"><strong>' + (hoy.length + reint.length + contratos.length) + '</strong><span>Seguimientos pendientes</span></div>'
+    + '<div class="cifra verde"><strong>' + cerradosMes.length + '</strong><span>Cerrados este mes</span></div>'
+    + '<div class="cifra verde"><strong>' + euros(sum(cerradosMes)) + '</strong><span>Comisión del mes</span></div>';
+  pintarLista('l-nuevos', nuevos, 'No hay profesionales nuevos por llamar.');
+  pintarLista('l-hoy', hoy, 'No tienes llamadas programadas para hoy.', function(l){ return '<span class="estado ' + l.estado + '">' + esc(NOMBRE_ESTADO[l.estado]) + '</span><br>' + fecha(l.proxima_llamada, true); });
+  pintarLista('l-contratos', contratos, 'No hay contratos pendientes de firma.', function(l){ return 'Enviado ' + hace(l.updated_at); });
+  pintarLista('l-reintentar', reint, 'Nadie pendiente de reintentar.', function(l){ return l.intentos + ' intento' + (l.intentos===1?'':'s'); });
+}
+
+function pintarTodos(){
+  var cont = {}; D.leads.forEach(function(l){ cont[l.estado] = (cont[l.estado]||0) + 1; });
+  $('chips-estado').innerHTML = '<button data-e="" aria-pressed="' + (!filtroEstado) + '">Todos (' + D.leads.length + ')</button>'
+    + ESTADOS.map(function(e){ return '<button data-e="' + e[0] + '" aria-pressed="' + (filtroEstado===e[0]) + '">' + e[1].split(' · ')[0] + ' (' + (cont[e[0]]||0) + ')</button>'; }).join('');
+  var ciudades = {}; D.leads.forEach(function(l){ if(l.ciudad) ciudades[l.ciudad] = 1; });
+  var sel = $('f-ciudad'), actual = sel.value;
+  sel.innerHTML = '<option value="">Todas las ciudades</option>' + Object.keys(ciudades).sort(function(a,b){ return a.localeCompare(b,'es'); }).map(function(c){ return '<option' + (c===actual?' selected':'') + '>' + esc(c) + '</option>'; }).join('');
+  var q = $('f-buscar').value.trim().toLowerCase(), of = $('f-oficio').value, ci = $('f-ciudad').value, ord = $('f-orden').value;
+  var lista = D.leads.filter(function(l){
+    if(filtroEstado && l.estado !== filtroEstado) return false;
+    if(of && l.oficio !== of) return false;
+    if(ci && l.ciudad !== ci) return false;
+    if(q && (l.nombre + ' ' + l.telefono + ' ' + (l.ciudad||'')).toLowerCase().indexOf(q) < 0) return false;
+    return true;
+  }).sort(function(a,b){ return ord==='antiguo' ? new Date(a.created_at)-new Date(b.created_at) : new Date(b.created_at)-new Date(a.created_at); });
+  pintarLista('l-todos', lista, 'No hay profesionales con estos filtros.');
+}
+$('chips-estado').addEventListener('click', function(e){ var b=e.target.closest('button'); if(!b) return; filtroEstado=b.getAttribute('data-e'); pintarTodos(); });
+['f-buscar','f-oficio','f-ciudad','f-orden'].forEach(function(id){ $(id).addEventListener('input', pintarTodos); });
+
+/* ---------- Documentos ---------- */
+function plantilla(oficio){
+  return D.documentos.filter(function(d){ return d.tipo==='plantilla' && d.oficio===oficio; })[0] || null;
+}
+function docsDe(id){ return D.documentos.filter(function(d){ return d.lead_id===id && d.tipo==='contrato_firmado'; }); }
+function kb(n){ return n > 1048576 ? (n/1048576).toFixed(1) + ' MB' : Math.round(n/1024) + ' KB'; }
+function descargar(id){
+  toast('Descargando…');
+  rpc('captacion_descargar_documento', { p_clave: CLAVE, p_id: id }).then(function(d){
+    var bin = atob(d.base64), arr = new Uint8Array(bin.length);
+    for(var i=0;i<bin.length;i++) arr[i] = bin.charCodeAt(i);
+    var url = URL.createObjectURL(new Blob([arr], { type: d.mime }));
+    var a = document.createElement('a'); a.href = url; a.download = d.nombre; document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(url); a.remove(); }, 4000);
+  }).catch(function(e){ toast('No se ha podido descargar: ' + e.message); });
+}
+function elegirArchivo(destino){ subida = destino; $('subir-archivo').value = ''; $('subir-archivo').click(); }
+$('subir-archivo').addEventListener('change', function(){
+  var f = this.files && this.files[0], dest = subida;
+  if(!f || !dest){ subida = null; return; }
+  if(f.size > MAX_MB*1048576){ toast('El archivo pesa más de ' + MAX_MB + ' MB'); subida = null; return; }
+  var mime = f.type || (/\.pdf$/i.test(f.name) ? 'application/pdf' : /\.(heic|heif)$/i.test(f.name) ? 'image/heic' : '');
+  var r = new FileReader();
+  r.onload = function(){
+    var b64 = String(r.result).split(',')[1];
+    toast('Subiendo…');
+    rpc('captacion_subir_documento', { p_clave: CLAVE, p_lead: dest.lead || null, p_tipo: dest.tipo, p_oficio: dest.oficio || '',
+        p_titulo: dest.titulo || '', p_nombre: f.name, p_mime: mime, p_base64: b64 })
+      .then(function(){ toast(dest.tipo==='plantilla' ? 'Contrato modelo actualizado' : 'Contrato firmado subido'); subida = null; return cargar(); })
+      .catch(function(e){ subida = null; toast('No se ha subido: ' + e.message); });
+  };
+  r.onerror = function(){ subida = null; toast('No se ha podido leer el archivo'); };
+  r.readAsDataURL(f);
+});
+
+/* ---------- Herramientas ---------- */
+function mensajeContrato(l){
+  var n = l ? l.nombre.split(' ')[0] : '[nombre]', of = l ? oficioTxt(l.oficio).toLowerCase() : '[oficio]', ci = l ? (l.ciudad||'tu ciudad') : '[ciudad]';
+  return 'Hola ' + n + ', soy Sandra de OficioYa. Te envío el contrato para activar tu plaza de ' + of + ' en ' + ci
+    + '. Rellena tus datos, fírmalo y me lo devuelves por aquí (PDF o foto). En cuanto lo tenga, activamos tu plaza y empezamos con los anuncios en tu ciudad. Cualquier duda, dime.';
+}
+function pintarHerramientas(){
+  $('h-contratos').innerHTML = ['fontanero','pintor'].map(function(o){
+    var p = plantilla(o);
+    return '<div class="tarjeta-h"><div><b>Contrato de ' + oficioTxt(o).toLowerCase() + '</b><span>'
+      + (p ? esc(p.nombre_archivo) + ' · ' + kb(p.tamano) + ' · ' + fecha(p.created_at) : 'Todavía no hay contrato subido') + '</span></div>'
+      + '<div class="acc">' + (p ? '<button class="btn" data-desc="' + p.id + '">Descargar</button>' : '')
+      + (esAdmin() ? '<button class="btn sec" data-subir-plantilla="' + o + '">' + (p ? 'Sustituir' : 'Subir') + '</button>' : '') + '</div></div>';
+  }).join('');
+  $('msg-contrato').textContent = mensajeContrato(null);
+}
+$('h-contratos').addEventListener('click', function(e){
+  var d = e.target.closest('[data-desc]'); if(d) descargar(d.getAttribute('data-desc'));
+  var s = e.target.closest('[data-subir-plantilla]');
+  if(s){ var o = s.getAttribute('data-subir-plantilla'); elegirArchivo({ tipo:'plantilla', oficio:o, titulo:'Contrato ' + oficioTxt(o).toLowerCase() }); }
+});
+$('copiar-msg').addEventListener('click', function(){
+  var t = $('msg-contrato').textContent;
+  (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function(){ toast('Mensaje copiado'); }).catch(function(){ toast('Mantén pulsado el texto para copiarlo'); });
+});
+
+/* ---------- Comisiones ---------- */
+function pintarComisiones(){
+  var cerrados = D.leads.filter(function(l){ return CERRADO.indexOf(l.estado) > -1 || l.comision_pagada; })
+                        .sort(function(a,b){ return new Date(b.completado_at||b.updated_at)-new Date(a.completado_at||a.updated_at); });
+  var mes = inicioMes();
+  var delMes = cerrados.filter(function(l){ return l.completado_at && new Date(l.completado_at) >= mes; });
+  var esperando = cerrados.filter(function(l){ return l.estado==='completado' && !l.comision_pagada; });
+  var aPagar = cerrados.filter(function(l){ return l.estado==='pagado' && !l.comision_pagada && Number(l.comision) > 0; });
+  var pagadas = cerrados.filter(function(l){ return l.comision_pagada; });
+  $('cifras-com').innerHTML =
+      '<div class="cifra verde"><strong>' + delMes.length + '</strong><span>Cerrados este mes</span></div>'
+    + '<div class="cifra"><strong>' + euros(sum(esperando)) + '</strong><span>Esperando el cobro de la activación (' + esperando.length + ')</span></div>'
+    + '<div class="cifra' + (aPagar.length?' alerta':'') + '"><strong>' + euros(sum(aPagar)) + '</strong><span>A pagar a Sandra (' + aPagar.length + ')</span></div>'
+    + '<div class="cifra"><strong>' + euros(sum(pagadas)) + '</strong><span>Ya pagado en total</span></div>';
+  $('com-sub').textContent = COMISION + ' € por profesional con contrato firmado; se paga cuando se cobra su activación';
+  pintarLista('l-com', cerrados, 'Todavía no hay profesionales cerrados.', function(l){
+    var e = l.comision_pagada ? '<span style="color:var(--ok)">Pagada</span>' : l.estado==='pagado' ? '<span class="rojo">A pagar</span>' : 'Falta cobrar activación';
+    return euros(Number(l.comision||0)) + '<br>' + e;
+  });
+  $('com-admin').hidden = !(esAdmin() && aPagar.length);
+}
+$('pagar-com').addEventListener('click', function(){
+  var ids = D.leads.filter(function(l){ return l.estado==='pagado' && !l.comision_pagada && Number(l.comision) > 0; }).map(function(l){ return l.id; });
+  if(!ids.length || !confirm('¿Marcar ' + ids.length + ' comisiones como pagadas a Sandra?')) return;
+  rpc('captacion_pagar_comisiones', { p_clave: CLAVE, p_ids: ids }).then(function(n){ toast(n + ' comisiones marcadas como pagadas'); cargar(); })
+    .catch(function(e){ toast('Error: ' + e.message); });
+});
+
+/* ---------- Métricas (admin) ---------- */
+function agrupar(lista, clave){ var g = {}; lista.forEach(function(l){ var k = clave(l) || '(sin dato)'; (g[k] = g[k] || []).push(l); }); return g; }
+function metricas(lista){
+  var c = function(f){ return lista.filter(f).length; };
+  return {
+    reg: lista.length,
+    cont: c(function(l){ return !!l.primer_contacto_at; }),
+    int: c(function(l){ return ['interesado','contrato_enviado','completado','pagado'].indexOf(l.estado) > -1; }),
+    fir: c(function(l){ return CERRADO.indexOf(l.estado) > -1; }),
+    act: c(function(l){ return l.estado==='pagado'; })
+  };
+}
+function filasTabla(grupos, gastoPor){
+  var keys = Object.keys(grupos).sort(function(a,b){ return grupos[b].length - grupos[a].length; });
+  return keys.map(function(k){
+    var m = metricas(grupos[k]), g = gastoPor ? (gastoPor[k] || 0) : null;
+    return '<tr><td>' + esc(k) + '</td><td class="n">' + m.reg + '</td><td class="n">' + m.cont + '</td><td class="n">' + m.int + '</td><td class="n">' + m.fir + '</td><td class="n">' + m.act + '</td><td class="n">' + pct(m.fir, m.reg) + '</td>'
+      + (gastoPor ? '<td class="n">' + (g ? euros(g) : '—') + '</td><td class="n">' + (g && m.reg ? euros(g/m.reg) : '—') + '</td><td class="n">' + (g && m.fir ? euros(g/m.fir) : '—') + '</td>' : '') + '</tr>';
+  }).join('');
+}
+var CAB = '<tr><th></th><th class="n">Registros</th><th class="n">Contactados</th><th class="n">Interesados</th><th class="n">Firmados</th><th class="n">Activos</th><th class="n">% firma</th>';
+var CAB_G = '<th class="n">Gasto</th><th class="n">€/registro</th><th class="n">€/firmado</th>';
+
+function pintarMetricas(){
+  var periodos = [[7,'7 días'],[30,'30 días'],[90,'90 días'],[0,'Todo']];
+  $('chips-periodo').innerHTML = periodos.map(function(p){ return '<button data-p="' + p[0] + '" aria-pressed="' + (periodo===p[0]) + '">' + p[1] + '</button>'; }).join('');
+  var desde = periodo ? new Date(Date.now() - periodo*86400000) : new Date(0);
+  var L = D.leads.filter(function(l){ return new Date(l.created_at) >= desde; });
+  var G = (D.gasto||[]).filter(function(g){ return new Date(g.fecha + 'T00:00:00') >= new Date(desde.toDateString()); });
+  var gastoTotal = G.reduce(function(s,g){ return s + Number(g.gasto||0); },0);
+  var m = metricas(L);
+  var t1 = L.filter(function(l){ return l.primer_contacto_at; }).map(function(l){ return (new Date(l.primer_contacto_at)-new Date(l.created_at))/3600000; });
+  var media = t1.length ? t1.reduce(function(a,b){ return a+b; },0)/t1.length : null;
+  $('cifras-camp').innerHTML =
+      '<div class="cifra"><strong>' + m.reg + '</strong><span>Registros' + (gastoTotal && m.reg ? ' · ' + euros(gastoTotal/m.reg) + ' cada uno' : '') + '</span></div>'
+    + '<div class="cifra verde"><strong>' + m.fir + '</strong><span>Firmados (' + pct(m.fir, m.reg) + ') · ' + m.act + ' activos</span></div>'
+    + '<div class="cifra"><strong>' + (gastoTotal ? (m.fir ? euros(gastoTotal/m.fir) : euros(gastoTotal)) : '—') + '</strong><span>' + (gastoTotal ? (m.fir ? 'Coste por profesional firmado' : 'Gasto sin ningún firmado aún') : 'Coste por firmado (sin gasto cargado)') + '</span></div>'
+    + '<div class="cifra' + (media!==null && media>24 ? ' alerta' : '') + '"><strong>' + (media===null ? '—' : (media<1 ? Math.round(media*60)+' min' : media.toFixed(1)+' h')) + '</strong><span>Tiempo hasta la 1.ª llamada</span></div>';
+
+  $('t-embudo').innerHTML = '<tr><th>Paso</th><th class="n">Profesionales</th><th class="n">% del total</th></tr>'
+    + [['Registros',m.reg],['Contactados',m.cont],['Interesados o más',m.int],['Contrato firmado',m.fir],['Activación cobrada',m.act]]
+      .map(function(r){ return '<tr><td>' + r[0] + '</td><td class="n">' + r[1] + '</td><td class="n">' + pct(r[1], m.reg) + '</td></tr>'; }).join('')
+    + (gastoTotal ? '<tr><td>Gasto en anuncios</td><td class="n">' + euros(gastoTotal) + '</td><td class="n"></td></tr>' : '');
+
+  var dias = periodo && periodo <= 30 ? periodo : 30, cuenta = [];
+  for(var i=dias-1;i>=0;i--){
+    var d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-i);
+    var sig = new Date(d); sig.setDate(sig.getDate()+1);
+    cuenta.push({ d:d, n: D.leads.filter(function(l){ var t=new Date(l.created_at); return t>=d && t<sig; }).length });
+  }
+  var max = Math.max.apply(null, cuenta.map(function(c){ return c.n; }).concat([1]));
+  $('barras').innerHTML = cuenta.map(function(c, i){
+    var lbl = (i % Math.ceil(dias/7) === 0) ? '<span>' + c.d.getDate() + '/' + (c.d.getMonth()+1) + '</span>' : '';
+    return '<div title="' + c.d.toLocaleDateString('es-ES') + ': ' + c.n + '" style="height:' + Math.round(c.n*100/max) + '%">' + lbl + '</div>';
+  }).join('');
+
+  var gastoAnuncio = {}; G.forEach(function(g){ gastoAnuncio[g.anuncio] = (gastoAnuncio[g.anuncio]||0) + Number(g.gasto||0); });
+  $('t-variante').innerHTML = CAB + '</tr>' + filasTabla(agrupar(L, function(l){ return l.variante==='mapa' ? 'Landing con mapa' : l.variante==='form' ? 'Landing con formulario' : l.variante; }));
+  $('t-anuncio').innerHTML = CAB + (G.length ? CAB_G : '') + '</tr>' + filasTabla(agrupar(L, function(l){ return l.utm_content; }), G.length ? gastoAnuncio : null);
+  $('t-ciudad').innerHTML = CAB + '</tr>' + filasTabla(agrupar(L, function(l){ return (l.ciudad||'Sin ciudad') + ' · ' + oficioTxt(l.oficio); }));
+
+  var mes = inicioMes(), cerradosMes = D.leads.filter(function(l){ return CERRADO.indexOf(l.estado) > -1 && l.completado_at && new Date(l.completado_at) >= mes; });
+  var sinLlamar = D.leads.filter(function(l){ return l.estado==='nuevo'; }), tarde = sinLlamar.filter(function(l){ return horasDesde(l.created_at) > 24; });
+  var aPagar = D.leads.filter(function(l){ return l.estado==='pagado' && !l.comision_pagada && Number(l.comision) > 0; });
+  $('cifras-sandra').innerHTML =
+      '<div class="cifra' + (tarde.length?' alerta':'') + '"><strong>' + sinLlamar.length + '</strong><span>Sin llamar' + (tarde.length ? ' · ' + tarde.length + ' con más de 24 h' : '') + '</span></div>'
+    + '<div class="cifra"><strong>' + D.leads.filter(function(l){ return l.estado==='contrato_enviado'; }).length + '</strong><span>Contratos enviados sin firmar</span></div>'
+    + '<div class="cifra verde"><strong>' + cerradosMes.length + '</strong><span>Cerrados este mes</span></div>'
+    + '<div class="cifra' + (aPagar.length?' alerta':'') + '"><strong>' + euros(sum(aPagar)) + '</strong><span>Comisión a pagarle</span></div>';
+
+  var conOcupadas = (D.plazas||[]).filter(function(p){ return p.fontanero_ocupadas || p.pintor_ocupadas; });
+  $('t-plazas').innerHTML = '<tr><th>Ciudad</th><th class="n">Fontanería</th><th class="n">Pintura</th></tr>'
+    + (conOcupadas.length ? conOcupadas.map(function(p){ return '<tr><td>' + esc(p.ciudad) + '</td><td class="n">' + p.fontanero_ocupadas + ' / ' + p.total_por_oficio + '</td><td class="n">' + p.pintor_ocupadas + ' / ' + p.total_por_oficio + '</td></tr>'; }).join('')
+      : '<tr><td colspan="3">Todas las plazas libres.</td></tr>');
+  $('nota-gasto').textContent = G.length
+    ? 'Gasto de Meta actualizado hasta el ' + fecha(G[G.length-1].fecha) + '.'
+    : 'El gasto de Meta aún no está cargado: cuando lo esté, verás el coste por registro y por profesional firmado.';
+}
+$('chips-periodo').addEventListener('click', function(e){ var b=e.target.closest('button'); if(!b) return; periodo = Number(b.getAttribute('data-p')); pintarMetricas(); });
+
+/* ---------- Ficha del profesional ---------- */
+function plazasDe(l){
+  var p = (D.plazas||[]).filter(function(x){ return x.slug === l.ciudad_slug; })[0];
+  if(!p) return 'Ciudad fuera del mapa: revisa la zona en la llamada.';
+  var oc = l.oficio==='fontanero' ? p.fontanero_ocupadas : p.pintor_ocupadas, lib = Math.max(0, p.total_por_oficio - oc);
+  return 'En ' + esc(p.ciudad) + ' quedan <b>' + lib + ' de ' + p.total_por_oficio + '</b> plazas de ' + oficioTxt(l.oficio).toLowerCase() + '.';
+}
+function wa(l, texto){ return 'https://wa.me/34' + l.telefono + '?text=' + encodeURIComponent(texto); }
+function telBonito(t){ return String(t).replace(/(\d{3})(\d{3})(\d{3})/, '$1 $2 $3'); }
+function localInput(iso){
+  if(!iso) return '';
+  var d = new Date(iso); var p = function(n){ return String(n).padStart(2,'0'); };
+  return d.getFullYear() + '-' + p(d.getMonth()+1) + '-' + p(d.getDate()) + 'T' + p(d.getHours()) + ':' + p(d.getMinutes());
+}
+
+function abrirFicha(id, refrescar){
+  var l = D.leads.filter(function(x){ return x.id===id; })[0]; if(!l) return;
+  fichaId = id;
+  var admin = esAdmin(), cerrado = CERRADO.indexOf(l.estado) > -1;
+  var ev = D.eventos.filter(function(e){ return e.lead_id===id; });
+  var docs = docsDe(id), plant = plantilla(l.oficio);
+  var quienTxt = function(a){ return a==='gestor' ? 'Sandra' : a==='admin' ? 'Andrés' : a; };
+  var hist = ev.map(function(e){
+    var t = e.tipo==='estado' ? 'Estado: ' + esc(NOMBRE_ESTADO[e.estado_de]||e.estado_de) + ' → <b>' + esc(NOMBRE_ESTADO[e.estado_a]||e.estado_a) + '</b>' + (e.texto ? ' (' + esc(e.texto) + ')' : '')
+          : e.tipo==='llamada' ? 'Llamada' + (e.texto ? ': ' + esc(e.texto) : '')
+          : e.tipo==='alta' ? 'Se registró en la landing (' + esc(e.texto) + ')'
+          : esc(e.texto);
+    return '<li><time>' + fecha(e.created_at, true) + ' · ' + esc(quienTxt(e.autor)) + '</time>' + t + '</li>';
+  }).join('');
+  var saludo = 'Hola ' + l.nombre.split(' ')[0] + ', soy Sandra de OficioYa. Te escribo por tu reserva de plaza de ' + oficioTxt(l.oficio).toLowerCase() + ' en ' + (l.ciudad||'tu ciudad') + '. ¿Cuándo te viene bien que te llame?';
+
+  var bloqueContrato = '<div class="bloque"><h3>Contrato</h3>';
+  if(!cerrado){
+    bloqueContrato += '<div class="fila">'
+      + (plant ? '<button class="btn sec" data-desc="' + plant.id + '">Descargar contrato</button>' : '<button class="btn sec" disabled>Sin contrato modelo</button>')
+      + '<a class="btn sec" href="' + wa(l, mensajeContrato(l)) + '" target="_blank" rel="noopener" id="fi-wa-contrato">WhatsApp del contrato</a></div>'
+      + '<p class="nota">Descarga el contrato, ábrelo en WhatsApp con el botón y adjúntalo. Después marca "Contrato enviado".</p>';
+  }
+  bloqueContrato += (docs.length ? '<ul class="docs">' + docs.map(function(d){ return '<li><span>' + esc(d.nombre_archivo) + '<small>' + kb(d.tamano) + ' · ' + fecha(d.created_at, true) + '</small></span><button class="btn sec" data-desc="' + d.id + '">Ver</button></li>'; }).join('') + '</ul>' : '')
+    + (!cerrado ? '<button class="btn sec full" id="fi-subir" style="margin-top:8px">Subir contrato firmado (PDF o foto)</button>'
+         + '<button class="btn ok full" id="fi-completar" style="margin-top:8px"' + (docs.length ? '' : ' disabled') + '>Completado: contrato firmado</button>'
+         + (docs.length ? '' : '<p class="nota">Para marcarlo como completado, sube primero el contrato firmado.</p>') : '')
+    + (cerrado && l.estado==='completado' ? '<p class="aviso-plaza">Contrato firmado. ' + (admin ? 'Confirma cuando cobres la activación de 99 €.' : 'Andrés confirmará el cobro de la activación.') + '</p>' : '')
+    + (admin && l.estado==='completado' ? '<button class="btn ok full" id="fi-cobrado" style="margin-top:8px">Activación cobrada: activar profesional</button>' : '')
+    + (l.estado==='pagado' ? '<p class="aviso-plaza">Profesional <b>activo</b>: activación cobrada' + (l.pagado_at ? ' el ' + fecha(l.pagado_at) : '') + '. Toca lanzar su campaña de clientes.</p>' : '')
+    + '</div>';
+
+  var botonesEstado = (cerrado && !admin) ? '' :
+    '<div class="bloque"><h3>Estado</h3><div class="estados" id="fi-estados">'
+    + ESTADOS.filter(function(e){ return ESTADOS_SANDRA.indexOf(e[0]) > -1 || (admin && CERRADO.indexOf(e[0]) > -1 && e[0]===l.estado); })
+        .map(function(e){ return '<button data-e="' + e[0] + '" aria-pressed="' + (l.estado===e[0]) + '">' + e[1] + '</button>'; }).join('') + '</div>'
+    + '<div id="fi-motivo-box"' + (l.estado==='no_interesado' ? '' : ' hidden') + '><label class="lbl" for="fi-motivo">Motivo</label><select id="fi-motivo"><option value="">Elige un motivo</option>'
+    + MOTIVOS.map(function(m){ return '<option' + (l.motivo===m?' selected':'') + '>' + m + '</option>'; }).join('') + '</select></div>'
+    + '<label class="lbl" for="fi-proxima">Próxima llamada</label><div class="fila"><input id="fi-proxima" type="datetime-local" value="' + localInput(l.proxima_llamada) + '"><button class="btn sec" id="fi-sin-proxima">Sin fecha</button></div>'
+    + '<label class="lbl" for="fi-nota">Nota</label><textarea id="fi-nota" placeholder="Qué te ha dicho, dudas, cuándo prefiere que le llames…"></textarea>'
+    + '<button class="btn full" id="fi-guardar" style="margin-top:10px">Guardar</button></div>';
+
+  $('ficha').innerHTML =
+    '<div class="cab"><div><h2 id="fi-nombre">' + esc(l.nombre) + '</h2><span class="estado ' + l.estado + '">' + esc(NOMBRE_ESTADO[l.estado]) + '</span></div>'
+    + '<button class="cerrar" id="fi-cerrar" aria-label="Cerrar">×</button></div>'
+    + '<div class="acciones"><a class="btn" href="tel:+34' + esc(l.telefono) + '">Llamar</a><a class="btn sec" href="' + wa(l, saludo) + '" target="_blank" rel="noopener">WhatsApp</a></div>'
+    + '<dl class="datos"><dt>Teléfono</dt><dd>' + telBonito(l.telefono) + '</dd><dt>Oficio</dt><dd>' + oficioTxt(l.oficio) + '</dd>'
+    + '<dt>Ciudad</dt><dd>' + esc(l.ciudad || '—') + '</dd><dt>Autónomo</dt><dd>' + (l.autonomo ? 'Sí' : 'No') + '</dd>'
+    + '<dt>Registro</dt><dd>' + fecha(l.created_at, true) + ' (' + hace(l.created_at) + ')</dd>'
+    + (admin ? '<dt>Origen</dt><dd>' + esc(l.variante==='mapa' ? 'Landing mapa' : l.variante==='form' ? 'Landing formulario' : (l.origen||'—')) + (l.utm_content ? ' · ' + esc(l.utm_content) : '') + '</dd>' : '')
+    + '<dt>Llamadas</dt><dd>' + l.intentos + '</dd></dl>'
+    + '<div class="aviso-plaza">' + plazasDe(l) + '</div>'
+    + (cerrado ? '' : '<div class="bloque"><h3>¿Cómo ha ido la llamada?</h3><div class="fila"><button class="btn ok" id="fi-contesto">Contestó</button><button class="btn sec" id="fi-nocontesto">No contestó</button></div></div>')
+    + bloqueContrato
+    + botonesEstado
+    + '<div class="bloque"><h3>Historial</h3><ul class="historial">' + (hist || '<li>Sin movimientos.</li>') + '</ul></div>';
+
+  var sel = l.estado;
+  Array.prototype.forEach.call($('ficha').querySelectorAll('#fi-estados button'), function(b){
+    b.addEventListener('click', function(){
+      sel = b.getAttribute('data-e');
+      Array.prototype.forEach.call($('ficha').querySelectorAll('#fi-estados button'), function(x){ x.setAttribute('aria-pressed', x===b); });
+      $('fi-motivo-box').hidden = sel !== 'no_interesado';
+    });
+  });
+  Array.prototype.forEach.call($('ficha').querySelectorAll('[data-desc]'), function(b){ b.addEventListener('click', function(){ descargar(b.getAttribute('data-desc')); }); });
+  $('fi-cerrar').addEventListener('click', cerrarFicha);
+  if($('fi-sin-proxima')) $('fi-sin-proxima').addEventListener('click', function(){ $('fi-proxima').value = ''; });
+  if($('fi-guardar')) $('fi-guardar').addEventListener('click', function(){
+    var cambios = { estado: sel, nota: $('fi-nota').value, proxima_llamada: $('fi-proxima').value ? new Date($('fi-proxima').value).toISOString() : '' };
+    if(sel === 'no_interesado'){
+      if(!$('fi-motivo').value){ toast('Elige el motivo'); return; }
+      cambios.motivo = $('fi-motivo').value; cambios.proxima_llamada = '';
+    }
+    if(CERRADO.indexOf(l.estado) > -1 && CERRADO.indexOf(sel) < 0 && !confirm('Vas a sacar a ' + l.nombre + ' de cerrados: se libera su plaza y su comisión. ¿Seguro?')) return;
+    guardar(l.id, cambios, 'Guardado');
+  });
+  if($('fi-contesto')) $('fi-contesto').addEventListener('click', function(){
+    var c = { llamada: true, resultado_llamada: 'Contestó' };
+    if(['nuevo','no_contesta'].indexOf(l.estado) > -1) c.estado = 'contactado';
+    if($('fi-nota') && $('fi-nota').value.trim()) c.nota = $('fi-nota').value;
+    guardar(l.id, c, 'Llamada registrada');
+  });
+  if($('fi-nocontesto')) $('fi-nocontesto').addEventListener('click', function(){
+    var manana = new Date(); manana.setDate(manana.getDate() + 1); manana.setHours(Math.max(10, new Date().getHours()), 0, 0, 0);
+    var c = { llamada: true, resultado_llamada: 'No contestó', proxima_llamada: manana.toISOString() };
+    if(['nuevo','no_contesta'].indexOf(l.estado) > -1) c.estado = 'no_contesta';
+    guardar(l.id, c, 'Anotado. Te lo recuerdo mañana');
+  });
+  if($('fi-subir')) $('fi-subir').addEventListener('click', function(){ elegirArchivo({ tipo:'contrato_firmado', lead: l.id }); });
+  if($('fi-completar')) $('fi-completar').addEventListener('click', function(){
+    if(!confirm('¿Confirmas que ' + l.nombre + ' ha firmado el contrato? Se ocupa su plaza en ' + (l.ciudad||'su ciudad') + ' y se te suman ' + COMISION + ' € de comisión.')) return;
+    guardar(l.id, { estado:'completado', proxima_llamada:'' }, '¡Completado! +' + COMISION + ' €');
+  });
+  if($('fi-cobrado')) $('fi-cobrado').addEventListener('click', function(){
+    if(!confirm('¿Has cobrado los 99 € de activación de ' + l.nombre + '?')) return;
+    guardar(l.id, { estado:'pagado' }, 'Profesional activo');
+  });
+  if($('fi-wa-contrato')) $('fi-wa-contrato').addEventListener('click', function(){
+    if(['nuevo','contactado','interesado','no_contesta'].indexOf(l.estado) > -1)
+      setTimeout(function(){ if(confirm('¿Le has enviado el contrato? Lo marco como "Contrato enviado".')) guardar(l.id, { estado:'contrato_enviado' }, 'Marcado como contrato enviado'); }, 800);
+  });
+
+  if(!refrescar){
+    $('velo').hidden = false; $('ficha').hidden = false; document.body.style.overflow = 'hidden';
+    $('ficha').scrollTop = 0; $('fi-cerrar').focus();
+  }
+}
+function guardar(id, cambios, ok){
+  Array.prototype.forEach.call($('ficha').querySelectorAll('button'), function(b){ b.disabled = true; });
+  rpc('captacion_actualizar', { p_clave: CLAVE, p_id: id, p_cambios: cambios })
+    .then(function(){ toast(ok); return cargar(); })
+    .catch(function(e){ toast('No se ha guardado: ' + e.message); abrirFicha(id, true); });
+}
+function cerrarFicha(){ fichaId = null; $('velo').hidden = true; $('ficha').hidden = true; document.body.style.overflow = ''; }
+$('velo').addEventListener('click', cerrarFicha);
+document.addEventListener('keydown', function(e){ if(e.key==='Escape' && fichaId) cerrarFicha(); });
+
+/* ---------- Arranque ---------- */
+(function(){
+  var c = null; try{ c = localStorage.getItem('oy_captacion_clave'); }catch(e){}
+  if(c) entrar(c, true);
+})();
+</script>
+</body>
+</html>
