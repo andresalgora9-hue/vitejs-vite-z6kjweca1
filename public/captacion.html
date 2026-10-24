@@ -6,6 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Captación · OficioYa</title>
 <meta name="theme-color" content="#0B0E14">
+<script>if(/[?&]embed=1(&|$)/.test(location.search)) document.documentElement.classList.add('embed');</script>
 <link rel="manifest" href="/captacion.webmanifest">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -226,6 +227,17 @@ body.arrastre .tablero{scroll-snap-type:none}
 .tabla tr.malo td{color:var(--aviso);font-weight:600}
 .tabla td.peor{color:var(--aviso);font-weight:700}
 @media (prefers-reduced-motion: reduce){.lead.recien{animation:none}}
+/* Dentro del panel de admin: colores del panel y sin cabecera propia */
+:root.embed{
+  color-scheme: dark;
+  --bg:#0F1117; --surface:#161B27; --surface-2:#1E2536; --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.2);
+  --ink:#E8EDF5; --ink-soft:#AEB4BF; --ink-faint:#7D8491;
+  --naranja:#F5A33C; --azul:#4C9EF2; --ok:#5DCB8E; --aviso:#F08A5D; --ambar:#E8B04A;
+  --cta:#F5A33C; --cta-ink:#1B1206;
+}
+.embed .marca{display:none}
+.embed header.barra .wrap{justify-content:flex-end;padding-top:8px;padding-bottom:8px}
+.embed .acceso{min-height:70vh}
 </style>
 </head>
 <body>
@@ -498,6 +510,7 @@ function entrar(clave, recordar){
 }
 $('entrar').addEventListener('click', function(){ var c=$('clave').value.trim(); if(c) entrar(c, $('recordar').checked); });
 $('clave').addEventListener('keydown', function(e){ if(e.key==='Enter') $('entrar').click(); });
+if(document.documentElement.classList.contains('embed')) $('salir').textContent = 'Cambiar clave';
 $('salir').addEventListener('click', function(){ try{ localStorage.removeItem('oy_captacion_clave'); }catch(e){} location.reload(); });
 document.addEventListener('visibilitychange', function(){ if(!document.hidden) comprobarCambios(true); });
 window.addEventListener('focus', function(){ comprobarCambios(true); });
