@@ -52,7 +52,7 @@
       {"@type":"Offer","itemOffered":{"@type":"Service","name":"Desatascos y desagües en Sevilla"}},
       {"@type":"Offer","itemOffered":{"@type":"Service","name":"Fontanero urgente 24 horas en Sevilla"}},
       {"@type":"Offer","itemOffered":{"@type":"Service","name":"Reparación de grifos y cisternas"}},
-      {"@type":"Offer","itemOffered":{"@type":"Service","name":"Calentadores y termos"}},
+      {"@type":"Offer","itemOffered":{"@type":"Service","name":"Termos eléctricos"}},
       {"@type":"Offer","itemOffered":{"@type":"Service","name":"Instalación y reforma de fontanería"}}
     ]
   },
@@ -115,12 +115,12 @@ img{max-width:100%}
 /* NAV */
 nav{background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:100}
 .nav-inner{display:flex;align-items:center;justify-content:space-between;max-width:1120px;margin:0 auto;padding:12px 24px;gap:14px}
-.logo{display:inline-flex;align-items:center;font-family:'Sora';font-size:21px;font-weight:800;color:var(--ink);white-space:nowrap;letter-spacing:-.5px}
+.logo{display:inline-flex;align-items:center;font-family:'Sora',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-size:21px;font-weight:800;color:var(--ink);white-space:nowrap;letter-spacing:-.5px}
 .logo em{color:var(--gold);font-style:normal}
 .nav-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
 .nav-phone{display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--ink-soft);border:1px solid var(--line);border-radius:var(--r-full);padding:9px 15px;transition:background .18s var(--ease),color .18s var(--ease),border-color .18s var(--ease)}
 .nav-phone:hover{background:var(--surf-3);color:var(--ink);border-color:#D8DBE2}
-.nav-wa{display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--wa-deep);background:var(--wa-soft);border:1px solid transparent;border-radius:var(--r-full);padding:10px 17px;cursor:pointer;font-family:'Inter';transition:box-shadow .2s var(--ease),background .18s var(--ease),transform .18s var(--ease)}
+.nav-wa{display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--wa-deep);background:var(--wa-soft);border:1px solid transparent;border-radius:var(--r-full);padding:10px 17px;cursor:pointer;font-family:'Inter',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;transition:box-shadow .2s var(--ease),background .18s var(--ease),transform .18s var(--ease)}
 .nav-wa:hover{background:#F6E8CB;box-shadow:var(--e2);transform:translateY(-1px)}
 .nav-wa:active{transform:translateY(0);box-shadow:none}
 @media(max-width:640px){.nav-phone span.txt,.nav-wa span.txt{display:none}.nav-inner{padding:9px 18px}.logo{font-size:19px}}
@@ -140,7 +140,7 @@ nav{background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border-bottom:1px
 .trust-chip{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;background:var(--surf-1);border:1px solid var(--line);border-radius:var(--r-full);padding:9px 15px;box-shadow:var(--e1)}
 .trust-chip .ico{width:16px;height:16px;color:var(--gold-deep)}
 .hero-ctas{display:flex;flex-wrap:wrap;gap:10px}
-.btn-wa{display:inline-flex;align-items:center;justify-content:center;gap:10px;background:var(--ink);color:#fff;font-weight:600;font-size:15px;padding:16px 26px;border-radius:var(--r-full);border:none;cursor:pointer;font-family:'Inter';box-shadow:var(--e2);transition:box-shadow .22s var(--ease),transform .22s var(--ease),background .18s var(--ease)}
+.btn-wa{display:inline-flex;align-items:center;justify-content:center;gap:10px;background:var(--ink);color:#fff;font-weight:600;font-size:15px;padding:16px 26px;border-radius:var(--r-full);border:none;cursor:pointer;font-family:'Inter',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;box-shadow:var(--e2);transition:box-shadow .22s var(--ease),transform .22s var(--ease),background .18s var(--ease)}
 .btn-wa:hover{background:#1A2540;box-shadow:var(--e3);transform:translateY(-2px)}
 .btn-wa:active{transform:translateY(0);box-shadow:var(--e1)}
 .btn-call{display:inline-flex;align-items:center;justify-content:center;gap:9px;color:var(--ink);font-weight:600;font-size:14.5px;padding:15px 22px;border-radius:var(--r-full);border:1px solid var(--line);background:var(--surf-1);transition:background .18s var(--ease),border-color .18s var(--ease),box-shadow .2s var(--ease)}
@@ -168,14 +168,14 @@ nav{background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border-bottom:1px
   background-color:var(--surf-1);margin-top:-1px;
   filter:drop-shadow(0 6px 10px rgba(16,24,44,.07))}
 .ticket-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
-.ticket-title{font-family:'Sora';font-weight:700;font-size:15.5px}
+.ticket-title{font-family:'Sora',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-weight:700;font-size:15.5px}
 .ticket-badge{font-size:11px;font-weight:700;color:var(--green);background:var(--green-soft);border-radius:6px;padding:3px 8px}
 .ticket-sub{font-size:12.5px;color:var(--ink-faint);margin-bottom:16px}
 .field{margin-bottom:14px}
 .ticket .field:last-of-type{margin-bottom:4px}
 .field label{display:block;font-size:12px;font-weight:700;color:var(--ink-soft);margin-bottom:6px;letter-spacing:.2px;text-transform:uppercase}
 .chip-grid{display:flex;flex-direction:column;gap:8px}
-.chip-opt{display:flex;align-items:center;gap:10px;text-align:left;width:100%;background:var(--surf-1);border:1px solid var(--line);border-radius:var(--r-sm);padding:13px 14px;cursor:pointer;font-family:'Inter';font-size:13.5px;font-weight:600;color:var(--ink);box-shadow:var(--e1);transition:box-shadow .2s var(--ease),transform .2s var(--ease),background .18s var(--ease),border-color .18s var(--ease),color .18s var(--ease)}
+.chip-opt{display:flex;align-items:center;gap:10px;text-align:left;width:100%;background:var(--surf-1);border:1px solid var(--line);border-radius:var(--r-sm);padding:13px 14px;cursor:pointer;font-family:'Inter',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-size:13.5px;font-weight:600;color:var(--ink);box-shadow:var(--e1);transition:box-shadow .2s var(--ease),transform .2s var(--ease),background .18s var(--ease),border-color .18s var(--ease),color .18s var(--ease)}
 .chip-opt .ico{color:var(--gold-deep);transition:color .18s var(--ease)}
 .chip-opt:hover{border-color:#D8DBE2;box-shadow:var(--e2);transform:translateY(-1px)}
 .chip-opt.sel{background:var(--ink);border-color:var(--ink);color:#fff;box-shadow:var(--e3)}
@@ -190,22 +190,22 @@ nav{background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border-bottom:1px
 .result.show{display:block}
 .old-range{font-size:13px;color:var(--ink-faint);text-decoration:line-through;margin-bottom:4px}
 .result-label{font-size:12px;color:var(--ink-faint);margin-bottom:8px}
-.result-range{font-family:'Sora';font-size:26px;font-weight:800;color:var(--gold-deep)}
+.result-range{font-family:'Sora',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-size:26px;font-weight:800;color:var(--gold-deep)}
 .result-disc{font-size:11.5px;color:var(--ink-faint);line-height:1.5;margin:8px 0 14px}
-.field input,.field textarea{width:100%;font-family:'Inter';font-size:16px;font-weight:600;color:var(--ink);background:var(--bg-soft);border:1.5px solid var(--line);border-radius:9px;padding:12px}
+.field input,.field textarea{width:100%;font-family:'Inter',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-size:16px;font-weight:600;color:var(--ink);background:var(--bg-soft);border:1.5px solid var(--line);border-radius:9px;padding:12px}
 .field textarea{font-weight:400;min-height:66px;resize:vertical}
 .field input:focus,.field textarea:focus{border-color:var(--gold)}
 .field-tag-optional{display:inline-block;background:var(--bg-soft);color:var(--ink-faint);font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:7px;text-transform:none}
 .lead-privacy{display:flex;gap:6px;font-size:11.5px;color:var(--ink-faint);line-height:1.5;margin:2px 0 12px}
 .field-err{font-size:12px;font-weight:600;color:#B42318;margin-top:6px;display:none}
 .field-err.show{display:block}
-.btn-result-cta{display:block;width:100%;background:var(--cta);color:var(--cta-ink);font-weight:700;font-size:14.5px;padding:15px;border-radius:var(--r-full);border:none;cursor:pointer;font-family:'Inter';box-shadow:var(--e2);transition:box-shadow .22s var(--ease),transform .22s var(--ease),background .18s var(--ease)}
+.btn-result-cta{display:block;width:100%;background:var(--cta);color:var(--cta-ink);font-weight:700;font-size:14.5px;padding:15px;border-radius:var(--r-full);border:none;cursor:pointer;font-family:'Inter',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;box-shadow:var(--e2);transition:box-shadow .22s var(--ease),transform .22s var(--ease),background .18s var(--ease)}
 .btn-result-cta:hover{background:var(--cta-hover);box-shadow:var(--e3);transform:translateY(-1px)}
 .btn-result-cta:active{transform:translateY(0);box-shadow:var(--e1)}
 .btn-result-cta[disabled]{opacity:.6;cursor:progress}
 .ticket-or{display:flex;align-items:center;gap:10px;margin:12px 0 10px;color:var(--ink-faint);font-size:11.5px}
 .ticket-or::before,.ticket-or::after{content:"";flex:1;height:1px;background:var(--line)}
-.btn-wa-sm{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;background:var(--wa-soft);border:1px solid transparent;color:var(--wa-deep);font-weight:600;font-size:14px;padding:13px;border-radius:var(--r-full);cursor:pointer;font-family:'Inter';transition:background .18s var(--ease),box-shadow .2s var(--ease)}
+.btn-wa-sm{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;background:var(--wa-soft);border:1px solid transparent;color:var(--wa-deep);font-weight:600;font-size:14px;padding:13px;border-radius:var(--r-full);cursor:pointer;font-family:'Inter',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;transition:background .18s var(--ease),box-shadow .2s var(--ease)}
 .btn-wa-sm:hover{background:#F6E8CB;box-shadow:var(--e1)}
 
 /* FRANJA DE GARANTÍAS */
@@ -259,7 +259,7 @@ nav{background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border-bottom:1px
 .nbox{padding:26px 24px;border-right:1px solid rgba(255,255,255,.12)}
 .nbox:last-child{border-right:none}
 @media(max-width:700px){.nbox{border-right:none;border-bottom:1px solid rgba(255,255,255,.12);padding:20px 24px}.nbox:last-child{border-bottom:none}}
-.nbox b{display:block;font-family:'Sora';font-size:30px;font-weight:800;color:#FFD98A;line-height:1.1;margin-bottom:5px}
+.nbox b{display:block;font-family:'Sora',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-size:30px;font-weight:800;color:#FFD98A;line-height:1.1;margin-bottom:5px}
 .nbox strong{display:block;font-size:13.5px;font-weight:700;margin-bottom:3px}
 .nbox span{font-size:12.5px;color:#B9C0CE;line-height:1.55}
 
@@ -297,7 +297,7 @@ a.svc-img:hover img{transform:scale(1.035)}
 @media(max-width:700px){.steps{grid-template-columns:1fr}}
 .step{background:var(--surf-1);border:1px solid var(--line);border-radius:var(--r-lg);padding:24px;box-shadow:var(--e1);transition:box-shadow .26s var(--ease),transform .26s var(--ease)}
 .step:hover{box-shadow:var(--e2);transform:translateY(-2px)}
-.step-n{font-family:'Sora';font-size:13px;font-weight:800;color:var(--gold-deep);margin-bottom:8px}
+.step-n{font-family:'Sora',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-size:13px;font-weight:800;color:var(--gold-deep);margin-bottom:8px}
 .step h3{font-size:15px;font-weight:700;margin-bottom:6px}
 .step p{font-size:13.5px;color:var(--ink-soft);line-height:1.6;margin:0}
 
@@ -313,7 +313,7 @@ a.svc-img:hover img{transform:scale(1.035)}
 .vs-col{padding:22px}
 .vs-col:first-child{background:rgba(255,255,255,.03);border-right:1px solid rgba(255,255,255,.14)}
 @media(max-width:620px){.vs-col:first-child{border-right:none;border-bottom:1px solid rgba(255,255,255,.14)}}
-.vs-col h4{font-family:'Sora';font-size:13px;font-weight:700;color:#8892A3;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
+.vs-col h4{font-family:'Sora',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-size:13px;font-weight:700;color:#8892A3;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
 .vs-col.mine h4{color:#FFD98A}
 .vs-col ul{list-style:none;display:flex;flex-direction:column;gap:9px}
 .vs-col li{font-size:13.5px;line-height:1.55;color:#B9C0CE;display:flex;gap:10px;align-items:flex-start}
@@ -341,7 +341,7 @@ a.svc-img:hover img{transform:scale(1.035)}
 .prow{display:grid;grid-template-columns:1.6fr 1fr 1fr;align-items:center}
 .prow:not(:last-child){border-bottom:1px solid var(--line)}
 .prow.head{background:var(--ink);color:#fff}
-.prow.head .pcell{font-family:'Sora';font-weight:700;font-size:13px;text-align:center}
+.prow.head .pcell{font-family:'Sora',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-weight:700;font-size:13px;text-align:center}
 .prow.head .pcell:first-child{text-align:left}
 .pcell{padding:13px 16px;font-size:13.5px}
 .prow:not(.head) .pcell:first-child{font-weight:600}
@@ -369,11 +369,11 @@ a.zone-card strong::after{content:" →";color:var(--gold-deep)}
 /* CTA FINAL */
 .cta-box{background:var(--ink);border-radius:var(--r-xl);padding:52px 40px;text-align:center;box-shadow:var(--e4)}
 @media(max-width:480px){.cta-box{padding:34px 20px}}
-.cta-box h2{font-family:'Sora';font-size:clamp(22px,3.6vw,29px);font-weight:800;margin-bottom:12px;color:#fff}
+.cta-box h2{font-family:'Sora',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-size:clamp(22px,3.6vw,29px);font-weight:800;margin-bottom:12px;color:#fff}
 .cta-box h2 em{color:#FFD98A;font-style:normal}
 .cta-box p{font-size:14.5px;color:#B9C0CE;margin-bottom:26px;line-height:1.7}
 .cta-row{display:flex;gap:11px;justify-content:center;flex-wrap:wrap}
-.cta-btn{display:inline-flex;align-items:center;gap:9px;background:var(--cta);color:var(--cta-ink);font-weight:700;font-size:15px;padding:16px 32px;border-radius:var(--r-full);border:none;cursor:pointer;font-family:'Inter';box-shadow:var(--e2);transition:box-shadow .22s var(--ease),transform .22s var(--ease),background .18s var(--ease)}
+.cta-btn{display:inline-flex;align-items:center;gap:9px;background:var(--cta);color:var(--cta-ink);font-weight:700;font-size:15px;padding:16px 32px;border-radius:var(--r-full);border:none;cursor:pointer;font-family:'Inter',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;box-shadow:var(--e2);transition:box-shadow .22s var(--ease),transform .22s var(--ease),background .18s var(--ease)}
 .cta-btn:hover{box-shadow:var(--e3);transform:translateY(-2px)}
 .cta-btn:active{transform:translateY(0)}
 .cta-btn.wa{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.26);box-shadow:none}
@@ -385,7 +385,7 @@ footer{border-top:1px solid var(--line);padding:44px 0 28px;background:var(--sur
 .foot-cols{display:grid;grid-template-columns:2fr 1fr 1fr;gap:32px;max-width:1120px;margin:0 auto;padding:0 24px}
 @media(max-width:760px){.foot-cols{grid-template-columns:1fr 1fr;gap:26px}}
 @media(max-width:460px){.foot-cols{grid-template-columns:1fr}}
-.foot-cols h4{font-family:'Sora';font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--ink);margin-bottom:12px}
+.foot-cols h4{font-family:'Sora',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--ink);margin-bottom:12px}
 .foot-list{display:flex;flex-direction:column;gap:8px}
 .foot-list a{font-size:13px;color:var(--ink-soft)}
 .foot-list a:hover{color:var(--gold-deep)}
@@ -406,7 +406,7 @@ footer{border-top:1px solid var(--line);padding:44px 0 28px;background:var(--sur
   .mcta-row{display:flex;gap:8px;align-items:center}
   .mcta-call{display:flex;align-items:center;justify-content:center;width:48px;height:48px;flex-shrink:0;border-radius:var(--r-full);border:1px solid var(--line);background:var(--surf-1);color:var(--ink);box-shadow:var(--e1)}
   .mcta-wa{display:flex;align-items:center;justify-content:center;width:48px;height:48px;flex-shrink:0;border-radius:var(--r-full);background:var(--wa-soft);color:var(--wa-deep);border:none;cursor:pointer;box-shadow:var(--e1)}
-  .mcta-main{flex:1;display:flex;align-items:center;justify-content:center;background:var(--cta);color:var(--cta-ink);font-weight:700;font-size:14.5px;height:48px;border-radius:var(--r-full);border:none;font-family:'Inter';cursor:pointer;box-shadow:var(--e2)}
+  .mcta-main{flex:1;display:flex;align-items:center;justify-content:center;background:var(--cta);color:var(--cta-ink);font-weight:700;font-size:14.5px;height:48px;border-radius:var(--r-full);border:none;font-family:'Inter',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;cursor:pointer;box-shadow:var(--e2)}
   body{padding-bottom:96px}
 }
 </style>
@@ -480,9 +480,10 @@ footer{border-top:1px solid var(--line);padding:44px 0 28px;background:var(--sur
               <button type="button" class="chip-opt" data-id="fuga" data-low="65" data-high="250" data-floor="35" data-desc="Fuga de agua o inundación"><svg class="ico"><use href="#i-drop"/></svg><span>Fuga o inundación</span></button>
               <button type="button" class="chip-opt" data-id="atasco" data-low="55" data-high="220" data-floor="30" data-desc="Atasco o desagüe obstruido"><svg class="ico"><use href="#i-drain"/></svg><span>Atasco o desagüe</span></button>
               <button type="button" class="chip-opt" data-id="grifo" data-low="45" data-high="150" data-floor="25" data-desc="Grifo, cisterna o sanitario"><svg class="ico"><use href="#i-tap"/></svg><span>Grifo o cisterna</span></button>
-              <button type="button" class="chip-opt" data-id="calentador" data-low="70" data-high="220" data-floor="40" data-desc="Avería en calentador o termo"><svg class="ico"><use href="#i-flame"/></svg><span>Calentador o termo</span></button>
+              <button type="button" class="chip-opt" data-id="termo" data-low="70" data-high="220" data-floor="40" data-desc="Avería en termo eléctrico"><svg class="ico"><use href="#i-bolt"/></svg><span>Termo eléctrico</span></button>
               <button type="button" class="chip-opt" data-id="instalacion" data-low="90" data-high="320" data-floor="55" data-desc="Instalación o reforma de fontanería"><svg class="ico"><use href="#i-tool"/></svg><span>Instalación o reforma</span></button>
             </div>
+            <p style="font-size:12.5px;color:var(--ink-faint,#8891A0);margin:10px 0 0;line-height:1.45">Solo termos eléctricos: no atendemos calderas, calentadores ni instalaciones de gas.</p>
           </div>
 
           <div class="result" id="resultBox">
@@ -502,7 +503,7 @@ footer{border-top:1px solid var(--line);padding:44px 0 28px;background:var(--sur
             <div class="field">
               <label for="leadTelefono">Teléfono o WhatsApp</label>
               <input id="leadTelefono" type="tel" inputmode="tel" placeholder="600 000 000" autocomplete="tel">
-              <p class="field-err" id="leadErr">Necesitamos su nombre y un teléfono para que el fontanero pueda llamarle.</p>
+              <p class="field-err" id="leadErr">Necesitamos su nombre y un teléfono válido (9 cifras) para que el fontanero pueda llamarle.</p>
             </div>
             <p class="lead-privacy"><svg class="ico"><use href="#i-shield"/></svg> Solo lo verá el fontanero que acepte esta solicitud, y únicamente para contactarle por este trabajo. Nunca lo compartimos con nadie más.</p>
 
@@ -583,7 +584,7 @@ footer{border-top:1px solid var(--line);padding:44px 0 28px;background:var(--sur
       <a class="svc" href="/fontanero-urgente-sevilla.html">
         <span class="svc-ic"><svg class="ico ico-lg"><use href="#i-bolt"/></svg></span>
         <h3>Urgencias de fontanería</h3>
-        <p>Fuga activa, inundación o calentador sin agua caliente. Vea qué fontaneros de su zona de Sevilla pueden ir hoy mismo.</p>
+        <p>Fuga activa, inundación o termo sin agua caliente. Vea qué fontaneros de su zona de Sevilla pueden ir hoy mismo.</p>
         <span class="svc-foot"><span class="svc-from">Hoy mismo</span><svg class="ico svc-go"><use href="#i-arrow"/></svg></span>
       </a>
       <a class="svc" href="/fontanero-24-horas-sevilla.html">
@@ -737,7 +738,7 @@ footer{border-top:1px solid var(--line);padding:44px 0 28px;background:var(--sur
       <div class="prow"><div class="pcell">Fuga o inundación</div><div class="pcell">35 €</div><div class="pcell">65 € – 250 €</div></div>
       <div class="prow"><div class="pcell">Atasco o desagüe</div><div class="pcell">30 €</div><div class="pcell">55 € – 220 €</div></div>
       <div class="prow"><div class="pcell">Grifo o cisterna</div><div class="pcell">25 €</div><div class="pcell">45 € – 150 €</div></div>
-      <div class="prow"><div class="pcell">Calentador o termo</div><div class="pcell">40 €</div><div class="pcell">70 € – 220 €</div></div>
+      <div class="prow"><div class="pcell">Termo eléctrico</div><div class="pcell">40 €</div><div class="pcell">70 € – 220 €</div></div>
       <div class="prow"><div class="pcell">Instalación o reforma</div><div class="pcell">55 €</div><div class="pcell">90 € – 320 €</div></div>
     </div>
     <p class="ptable-note">Buscar, comparar y el seguimiento del trabajo son gratis para el cliente. Usted paga directamente al fontanero el trabajo que acepte.</p>
@@ -985,7 +986,7 @@ footer{border-top:1px solid var(--line);padding:44px 0 28px;background:var(--sur
       fuga:'Ej: gotea agua debajo del fregadero desde ayer, no sé de dónde viene...',
       atasco:'Ej: el fregadero de la cocina no traga agua desde esta mañana...',
       grifo:'Ej: el grifo del baño gotea constantemente aunque esté cerrado...',
-      calentador:'Ej: el calentador no da agua caliente, se apaga solo...',
+      termo:'Ej: el termo no calienta, gotea o hace saltar la luz...',
       instalacion:'Ej: quiero cambiar la bañera por un plato de ducha...'
     };
     document.getElementById('descProblema').placeholder = EJEMPLOS[selected.id] || 'Cuéntenos qué está pasando...';
@@ -1022,7 +1023,7 @@ footer{border-top:1px solid var(--line);padding:44px 0 28px;background:var(--sur
     var nombre = document.getElementById('leadNombre').value.trim();
     var telefono = document.getElementById('leadTelefono').value.trim();
     var err = document.getElementById('leadErr');
-    if(!nombre || !telefono){
+    if(!nombre || !/^[6789]\d{8}$/.test(telefono.replace(/\D/g,'').replace(/^(0034|34)(?=\d{9}$)/,''))){
       err.classList.add('show');
       (nombre ? document.getElementById('leadTelefono') : document.getElementById('leadNombre')).focus();
       return;
@@ -1034,7 +1035,7 @@ footer{border-top:1px solid var(--line);padding:44px 0 28px;background:var(--sur
     var telefonoLimpio = telefono.replace(/\D/g,'') || Date.now().toString();
     var emailSintetico = 'lead' + telefonoLimpio + '@aficioya-lead.com';
 
-    var paramsObj = {quick:'1', oficio:'Fontanero', nombre:nombre, telefono:telefono, email:emailSintetico, desc:desc};
+    var paramsObj = {quick:'1', landing:(location.pathname.split('/').pop()||'').replace(/\.html$/,''), oficio:'Fontanero', nombre:nombre, telefono:telefono, email:emailSintetico, desc:desc};
     var ids = leerClickId();
     Object.keys(ids).forEach(function(k){ paramsObj[k] = ids[k]; });
     var destino = '/?' + new URLSearchParams(paramsObj).toString();

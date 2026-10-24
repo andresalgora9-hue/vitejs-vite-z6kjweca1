@@ -54,7 +54,7 @@
       {"@type":"Offer","itemOffered":{"@type":"Service","name":"Desatascos y desagües en Dos Hermanas"}},
       {"@type":"Offer","itemOffered":{"@type":"Service","name":"Fontanero urgente 24 horas en Dos Hermanas"}},
       {"@type":"Offer","itemOffered":{"@type":"Service","name":"Reparación de grifos y cisternas"}},
-      {"@type":"Offer","itemOffered":{"@type":"Service","name":"Calentadores y termos"}},
+      {"@type":"Offer","itemOffered":{"@type":"Service","name":"Termos eléctricos"}},
       {"@type":"Offer","itemOffered":{"@type":"Service","name":"Instalación y reforma de fontanería"}}
     ]
   },
@@ -117,7 +117,7 @@ img{max-width:100%}
 /* ── NAV ── */
 nav{background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:100}
 .nav-inner{display:flex;align-items:center;justify-content:space-between;max-width:1120px;margin:0 auto;padding:14px 24px;gap:14px}
-.logo{display:flex;align-items:center;gap:8px;font-family:'Sora';font-size:19px;font-weight:800;color:var(--ink);white-space:nowrap}
+.logo{display:flex;align-items:center;gap:8px;font-family:'Sora',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-size:19px;font-weight:800;color:var(--ink);white-space:nowrap}
 .logo-word{white-space:nowrap}
 .logo em{color:var(--gold);font-style:normal}
 .logo span{color:var(--ink-faint);font-size:12px;font-weight:500}
@@ -157,33 +157,33 @@ nav{background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px
   linear-gradient(45deg, var(--bg) 8px, transparent 0) 0 0/16px 16px repeat-x;
   background-color:#fff;margin-top:-1px}
 .ticket-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
-.ticket-title{font-family:'Sora';font-weight:700;font-size:15.5px;color:var(--ink)}
+.ticket-title{font-family:'Sora',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-weight:700;font-size:15.5px;color:var(--ink)}
 .ticket-badge{font-size:11px;font-weight:700;color:var(--green);background:var(--green-soft);border-radius:6px;padding:3px 8px}
 .ticket-sub{font-size:12.5px;color:var(--ink-faint);margin-bottom:18px}
 .field{margin-bottom:14px}
 .field label{display:block;font-size:12px;font-weight:700;color:var(--ink-soft);margin-bottom:6px;letter-spacing:.2px;text-transform:uppercase}
-.field select{width:100%;font-family:'Inter';font-size:14.5px;font-weight:600;color:var(--ink);background:var(--bg-soft);border:1.5px solid var(--line);border-radius:9px;padding:12px 12px;appearance:none;cursor:pointer}
+.field select{width:100%;font-family:'Inter',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-size:14.5px;font-weight:600;color:var(--ink);background:var(--bg-soft);border:1.5px solid var(--line);border-radius:9px;padding:12px 12px;appearance:none;cursor:pointer}
 .field select:focus{border-color:var(--gold)}
 .btn-calc{width:100%;background:var(--ink);color:#fff;font-weight:700;font-size:14.5px;padding:13px;border-radius:9px;border:none;cursor:pointer;margin-top:6px}
 .btn-calc:hover{background:#000}
 .result{display:none;margin-top:18px;border-top:1px dashed var(--line);padding-top:16px}
 .result.show{display:block}
-.result-range{font-family:'Sora';font-size:26px;font-weight:800;color:var(--gold-deep)}
+.result-range{font-family:'Sora',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-size:26px;font-weight:800;color:var(--gold-deep)}
 .result-label{font-size:12px;color:var(--ink-faint);margin-bottom:10px}
 .result-disc{font-size:11.5px;color:var(--ink-faint);line-height:1.5;margin-bottom:14px}
-.btn-result-cta{display:block;width:100%;text-align:center;background:var(--cta);color:var(--cta-ink);font-weight:700;font-size:14px;padding:13px;border-radius:9px;border:none;cursor:pointer;font-family:'Inter'}
+.btn-result-cta{display:block;width:100%;text-align:center;background:var(--cta);color:var(--cta-ink);font-weight:700;font-size:14px;padding:13px;border-radius:9px;border:none;cursor:pointer;font-family:'Inter',system-ui,-apple-system,'Segoe UI',Arial,sans-serif}
 .btn-result-cta:hover{background:var(--cta-hover)}
-.field input{width:100%;font-family:'Inter';font-size:14.5px;font-weight:600;color:var(--ink);background:var(--bg-soft);border:1.5px solid var(--line);border-radius:9px;padding:12px 12px}
+.field input{width:100%;font-family:'Inter',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-size:14.5px;font-weight:600;color:var(--ink);background:var(--bg-soft);border:1.5px solid var(--line);border-radius:9px;padding:12px 12px}
 .field input:focus{border-color:var(--gold)}
 .lead-privacy{display:flex;gap:6px;align-items:flex-start;font-size:11.5px;color:var(--ink-faint);line-height:1.5;margin:2px 0 14px}
 
 /* ── SELECTOR DE AVERÍA + RESULTADO ── */
 .chip-grid{display:flex;flex-direction:column;gap:8px}
-.chip-opt{display:flex;align-items:center;gap:10px;text-align:left;width:100%;background:var(--bg-soft);border:1.5px solid var(--line);border-radius:9px;padding:12px 13px;cursor:pointer;font-family:'Inter';font-size:13.5px;font-weight:600;color:var(--ink);transition:border-color .15s,background .15s}
+.chip-opt{display:flex;align-items:center;gap:10px;text-align:left;width:100%;background:var(--bg-soft);border:1.5px solid var(--line);border-radius:9px;padding:12px 13px;cursor:pointer;font-family:'Inter',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-size:13.5px;font-weight:600;color:var(--ink);transition:border-color .15s,background .15s}
 .chip-opt:hover{border-color:var(--gold)}
 .chip-opt.sel{background:var(--ink);border-color:var(--ink);color:#fff}
 .old-range{font-size:13px;color:var(--ink-faint);text-decoration:line-through;margin-bottom:4px}
-.field textarea{width:100%;font-family:'Inter';font-size:14px;font-weight:500;color:var(--ink);background:var(--bg-soft);border:1.5px solid var(--line);border-radius:9px;padding:12px;min-height:70px;resize:vertical}
+.field textarea{width:100%;font-family:'Inter',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-size:14px;font-weight:500;color:var(--ink);background:var(--bg-soft);border:1.5px solid var(--line);border-radius:9px;padding:12px;min-height:70px;resize:vertical}
 .field textarea:focus{border-color:var(--gold)}
 .field-tag-optional{display:inline-block;background:var(--bg-soft);color:var(--ink-faint);font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:7px;letter-spacing:.2px;text-transform:none;vertical-align:middle}
 
@@ -214,7 +214,7 @@ nav{background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px
 .compare-row{display:grid;grid-template-columns:1.4fr 1fr 1fr;align-items:center}
 .compare-row:not(:last-child){border-bottom:1px solid var(--line)}
 .compare-row.head{background:var(--ink);color:#fff}
-.compare-row.head div{font-family:'Sora';font-weight:700;font-size:13.5px}
+.compare-row.head div{font-family:'Sora',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-weight:700;font-size:13.5px}
 .compare-cell{padding:14px 16px;font-size:13.5px}
 .compare-row:not(.head) .compare-cell:first-child{font-weight:600;color:var(--ink)}
 .compare-row:not(.head) .compare-cell:nth-child(2){color:var(--ink-faint);text-align:center}
@@ -254,7 +254,7 @@ nav{background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px
 /* ── CTA FINAL ── */
 .cta-box{background:var(--ink);border-radius:20px;padding:52px 40px;text-align:center;margin:0}
 @media(max-width:480px){.cta-box{padding:36px 22px}}
-.cta-box h2{font-family:'Sora';font-size:clamp(22px,3.6vw,28px);font-weight:800;margin-bottom:12px;color:#fff}
+.cta-box h2{font-family:'Sora',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-size:clamp(22px,3.6vw,28px);font-weight:800;margin-bottom:12px;color:#fff}
 .cta-box h2 em{color:#FFD98A;font-style:normal}
 .cta-box p{font-size:14.5px;color:#B9C0CE;margin-bottom:28px;line-height:1.7}
 .cta-btn{display:inline-block;background:var(--cta);color:var(--cta-ink);font-weight:700;font-size:15px;padding:16px 42px;border-radius:10px}
@@ -298,7 +298,7 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
 .prow{display:grid;grid-template-columns:1.6fr 1fr 1fr;align-items:center}
 .prow:not(:last-child){border-bottom:1px solid var(--line)}
 .prow.head{background:var(--ink);color:#fff}
-.prow.head .pcell{font-family:'Sora';font-weight:700;font-size:13px;text-align:center}
+.prow.head .pcell{font-family:'Sora',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-weight:700;font-size:13px;text-align:center}
 .prow.head .pcell:first-child{text-align:left}
 .pcell{padding:13px 16px;font-size:13.5px}
 .prow:not(.head) .pcell:first-child{font-weight:600;color:var(--ink)}
@@ -321,7 +321,7 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
   .mcta-note strong{color:var(--ink)}
   .mcta-row{display:flex;gap:9px;align-items:center}
   .mcta-call{display:flex;align-items:center;justify-content:center;width:46px;height:46px;flex-shrink:0;border-radius:10px;border:1.5px solid #F3B8B1;background:#FEF3F2;font-size:19px}
-  .mcta-main{flex:1;display:flex;align-items:center;justify-content:center;background:var(--cta);color:var(--cta-ink);font-weight:700;font-size:14.5px;height:46px;border-radius:10px;border:none;font-family:'Inter';cursor:pointer}
+  .mcta-main{flex:1;display:flex;align-items:center;justify-content:center;background:var(--cta);color:var(--cta-ink);font-weight:700;font-size:14.5px;height:46px;border-radius:10px;border:none;font-family:'Inter',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;cursor:pointer}
   body{padding-bottom:96px}
 }
 </style>
@@ -380,9 +380,10 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
               <button type="button" class="chip-opt" data-id="fuga" data-label="💧 Fuga o inundación" data-low="65" data-high="250" data-floor="35" data-desc="Fuga de agua o inundación">💧 Fuga o inundación</button>
               <button type="button" class="chip-opt" data-id="atasco" data-label="🚿 Atasco o desagüe" data-low="55" data-high="220" data-floor="30" data-desc="Atasco o desagüe obstruido">🚿 Atasco o desagüe</button>
               <button type="button" class="chip-opt" data-id="grifo" data-label="🚰 Grifo o cisterna" data-low="45" data-high="150" data-floor="25" data-desc="Grifo, cisterna o sanitario">🚰 Grifo o cisterna</button>
-              <button type="button" class="chip-opt" data-id="calentador" data-label="🔥 Calentador o termo" data-low="70" data-high="220" data-floor="40" data-desc="Avería en calentador o termo">🔥 Calentador o termo</button>
+              <button type="button" class="chip-opt" data-id="termo" data-label="⚡ Termo eléctrico" data-low="70" data-high="220" data-floor="40" data-desc="Avería en termo eléctrico">⚡ Termo eléctrico</button>
               <button type="button" class="chip-opt" data-id="instalacion" data-label="🛠️ Instalación o reforma" data-low="90" data-high="320" data-floor="55" data-desc="Instalación o reforma de fontanería">🛠️ Instalación o reforma</button>
             </div>
+            <p style="font-size:12.5px;color:var(--ink-faint,#8891A0);margin:10px 0 0;line-height:1.45">Solo termos eléctricos: no atendemos calderas, calentadores ni instalaciones de gas.</p>
           </div>
 
           <!-- Todo esto aparece debajo, en el mismo sitio, sin ocultar los chips de arriba — igual que en electricista -->
@@ -643,7 +644,7 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
         <div class="prow"><div class="pcell">Fuga o inundación</div><div class="pcell">35 €</div><div class="pcell">65 € – 250 €</div></div>
         <div class="prow"><div class="pcell">Atasco o desagüe</div><div class="pcell">30 €</div><div class="pcell">55 € – 220 €</div></div>
         <div class="prow"><div class="pcell">Grifo o cisterna</div><div class="pcell">25 €</div><div class="pcell">45 € – 150 €</div></div>
-        <div class="prow"><div class="pcell">Calentador o termo</div><div class="pcell">40 €</div><div class="pcell">70 € – 220 €</div></div>
+        <div class="prow"><div class="pcell">Termo eléctrico</div><div class="pcell">40 €</div><div class="pcell">70 € – 220 €</div></div>
         <div class="prow"><div class="pcell">Instalación o reforma</div><div class="pcell">55 €</div><div class="pcell">90 € – 320 €</div></div>
       </div>
       <p class="ptable-note">Buscar y comparar es gratis. OficioYa no cobra al cliente: usted paga directamente al fontanero el trabajo que acepte.</p>
@@ -752,7 +753,7 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
       fuga: 'Ej: gotea agua debajo del fregadero desde ayer, no sé de dónde viene...',
       atasco: 'Ej: el fregadero de la cocina no traga agua desde esta mañana...',
       grifo: 'Ej: el grifo del baño gotea constantemente aunque esté cerrado...',
-      calentador: 'Ej: el calentador no da agua caliente, se apaga solo...',
+      termo: 'Ej: el termo no calienta, gotea o hace saltar la luz...',
       instalacion: 'Ej: quiero cambiar la instalación de un baño en una reforma...'
     };
     textarea.placeholder = EJEMPLOS[selected.id] || 'Cuéntenos qué está pasando...';
@@ -797,8 +798,8 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
     }
     var nombre = document.getElementById('leadNombre').value.trim();
     var telefono = document.getElementById('leadTelefono').value.trim();
-    if(!nombre || !telefono){
-      alert('Indique su nombre y un teléfono de contacto para que el fontanero pueda escribirle.');
+    if(!nombre || !/^[6789]\d{8}$/.test(telefono.replace(/\D/g,'').replace(/^(0034|34)(?=\d{9}$)/,''))){
+      alert('Indique su nombre y un teléfono válido (9 cifras) para que el fontanero pueda escribirle.');
       return;
     }
 
@@ -809,7 +810,7 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
     var telefonoLimpio = telefono.replace(/\D/g,'') || Date.now().toString();
     var emailSintetico = 'lead' + telefonoLimpio + '@aficioya-lead.com';
 
-    var paramsObj = {quick:'1', oficio:'Fontanero', nombre:nombre, telefono:telefono, email:emailSintetico, desc:desc};
+    var paramsObj = {quick:'1', landing:(location.pathname.split('/').pop()||'').replace(/\.html$/,''), oficio:'Fontanero', nombre:nombre, telefono:telefono, email:emailSintetico, desc:desc};
     var ids = leerClickId();
     Object.keys(ids).forEach(function(k){ paramsObj[k] = ids[k]; });
     var params = new URLSearchParams(paramsObj);

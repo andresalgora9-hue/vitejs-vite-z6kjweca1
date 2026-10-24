@@ -55,7 +55,7 @@
       {"@type":"Offer","itemOffered":{"@type":"Service","name":"Desatascos y desagües en Granada"}},
       {"@type":"Offer","itemOffered":{"@type":"Service","name":"Fontanero urgente 24 horas en Granada"}},
       {"@type":"Offer","itemOffered":{"@type":"Service","name":"Reparación de grifos y cisternas"}},
-      {"@type":"Offer","itemOffered":{"@type":"Service","name":"Calentadores y termos"}},
+      {"@type":"Offer","itemOffered":{"@type":"Service","name":"Termos eléctricos"}},
       {"@type":"Offer","itemOffered":{"@type":"Service","name":"Instalación y reforma de fontanería"}}
     ]
   },
@@ -173,7 +173,7 @@ nav{background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px
 .result-range{font-family:'Sora',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;font-size:26px;font-weight:800;color:var(--gold-deep)}
 .result-label{font-size:12px;color:var(--ink-faint);margin-bottom:10px}
 .result-disc{font-size:11.5px;color:var(--ink-faint);line-height:1.5;margin-bottom:14px}
-.btn-result-cta{display:block;width:100%;text-align:center;background:var(--cta);color:var(--cta-ink);font-weight:700;font-size:14px;padding:13px;border-radius:9px;border:none;cursor:pointer;font-family:'Inter'}
+.btn-result-cta{display:block;width:100%;text-align:center;background:var(--cta);color:var(--cta-ink);font-weight:700;font-size:14px;padding:13px;border-radius:9px;border:none;cursor:pointer;font-family:'Inter',system-ui,-apple-system,'Segoe UI',Arial,sans-serif}
 .btn-result-cta:hover{background:var(--cta-hover)}
 .field input{width:100%;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;font-size:14.5px;font-weight:600;color:var(--ink);background:var(--bg-soft);border:1.5px solid var(--line);border-radius:9px;padding:12px 12px}
 .field input:focus{border-color:var(--gold)}
@@ -390,9 +390,10 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
               <button type="button" class="chip-opt" data-id="fuga" data-label="💧 Fuga o inundación" data-low="65" data-high="250" data-floor="35" data-desc="Fuga de agua o inundación">💧 Fuga o inundación</button>
               <button type="button" class="chip-opt" data-id="atasco" data-label="🚿 Atasco o desagüe" data-low="55" data-high="220" data-floor="30" data-desc="Atasco o desagüe obstruido">🚿 Atasco o desagüe</button>
               <button type="button" class="chip-opt" data-id="grifo" data-label="🚰 Grifo o cisterna" data-low="45" data-high="150" data-floor="25" data-desc="Grifo, cisterna o sanitario">🚰 Grifo o cisterna</button>
-              <button type="button" class="chip-opt" data-id="calentador" data-label="🔥 Calentador o termo" data-low="70" data-high="220" data-floor="40" data-desc="Avería en calentador o termo">🔥 Calentador o termo</button>
+              <button type="button" class="chip-opt" data-id="termo" data-label="⚡ Termo eléctrico" data-low="70" data-high="220" data-floor="40" data-desc="Avería en termo eléctrico">⚡ Termo eléctrico</button>
               <button type="button" class="chip-opt" data-id="instalacion" data-label="🛠️ Instalación o reforma" data-low="90" data-high="320" data-floor="55" data-desc="Instalación o reforma de fontanería">🛠️ Instalación o reforma</button>
             </div>
+            <p style="font-size:12.5px;color:var(--ink-faint,#8891A0);margin:10px 0 0;line-height:1.45">Solo termos eléctricos: no atendemos calderas, calentadores ni instalaciones de gas.</p>
           </div>
 
           <!-- Todo esto aparece debajo, en el mismo sitio, sin ocultar los chips de arriba — igual que en electricista -->
@@ -673,7 +674,7 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
         <div class="prow"><div class="pcell">Fuga o inundación</div><div class="pcell">35 €</div><div class="pcell">65 € – 250 €</div></div>
         <div class="prow"><div class="pcell">Atasco o desagüe</div><div class="pcell">30 €</div><div class="pcell">55 € – 220 €</div></div>
         <div class="prow"><div class="pcell">Grifo o cisterna</div><div class="pcell">25 €</div><div class="pcell">45 € – 150 €</div></div>
-        <div class="prow"><div class="pcell">Calentador o termo</div><div class="pcell">40 €</div><div class="pcell">70 € – 220 €</div></div>
+        <div class="prow"><div class="pcell">Termo eléctrico</div><div class="pcell">40 €</div><div class="pcell">70 € – 220 €</div></div>
         <div class="prow"><div class="pcell">Instalación o reforma</div><div class="pcell">55 €</div><div class="pcell">90 € – 320 €</div></div>
       </div>
       <p class="ptable-note">Buscar y comparar es gratis. OficioYa no cobra al cliente: usted paga directamente al fontanero el trabajo que acepte.</p>
@@ -773,7 +774,7 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
       fuga: 'Ej: gotea agua debajo del fregadero desde ayer, no sé de dónde viene...',
       atasco: 'Ej: el fregadero de la cocina no traga agua desde esta mañana...',
       grifo: 'Ej: el grifo del baño gotea constantemente aunque esté cerrado...',
-      calentador: 'Ej: el calentador no da agua caliente, se apaga solo...',
+      termo: 'Ej: el termo no calienta, gotea o hace saltar la luz...',
       instalacion: 'Ej: quiero cambiar la instalación de un baño en una reforma...'
     };
     textarea.placeholder = EJEMPLOS[selected.id] || 'Cuéntenos qué está pasando...';

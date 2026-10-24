@@ -510,7 +510,7 @@ footer a:hover{color:var(--yellow)}
       </div>
       <div class="error-card reveal stagger-1">
         <div class="error-num">3</div>
-        <div><h5>Ignorar el estado de la caldera o termo</h5><p>De poco sirve cambiar tuberías si el problema real está en el sistema de agua caliente. Conviene revisarlo a la vez.</p></div>
+        <div><h5>Ignorar el estado del termo</h5><p>De poco sirve cambiar tuberías si el problema real está en el sistema de agua caliente. Conviene revisarlo a la vez.</p></div>
       </div>
       <div class="error-card reveal stagger-2">
         <div class="error-num">4</div>
@@ -730,10 +730,11 @@ function submitLead(){
   var name=document.getElementById('fName').value.trim();
   var phone=document.getElementById('fPhone').value.replace(/\s/g,'');
   if(!name){document.getElementById('fName').focus();return}
-  if(!/^\d{9}$/.test(phone)){alert('Introduce un tel\u00E9fono v\u00E1lido de 9 d\u00EDgitos');document.getElementById('fPhone').focus();return}
+  var tel9=phone.replace(/\D/g,'').replace(/^(0034|34)(?=\d{9}$)/,'');
+  if(!/^[6789]\d{8}$/.test(tel9)){alert('Introduce un tel\u00E9fono v\u00E1lido de 9 d\u00EDgitos');document.getElementById('fPhone').focus();return}
   btn.disabled=true;btn.style.opacity='.6';btn.textContent='Enviando...';
   if(window.gtag)gtag('event','generate_lead',{page:'cambio-fontaneria-tuberias-sevilla',method:'landing'});
-  window.location.href='https://aficioya.com/?quick=1&oficio=Fontanería&zona=Sevilla&nombre='+encodeURIComponent(name)+'&telefono='+encodeURIComponent(phone);
+  window.location.href='/?'+new URLSearchParams({quick:'1',landing:'cambio-fontaneria-tuberias-sevilla',oficio:'Fontanero',nombre:name,telefono:tel9,email:'lead'+tel9+'@aficioya-lead.com',desc:'Cambio de tuberías o instalación de fontanería'}).toString();
 }
 </script>
 
