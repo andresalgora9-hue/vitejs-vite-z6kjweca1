@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script src="/oy-consent.js"></script>
 <title>¿Eres fontanero o pintor? Te traemos clientes en tu ciudad | OficioYa</title>
-<meta name="description" content="La publicidad la pagamos nosotros. Sin cuota mensual: pagas solo por cada solicitud de cliente que recibes. Solo 2 plazas por oficio en cada ciudad.">
+<meta name="description" content="Te traemos clientes en tu ciudad y la publicidad la pagamos nosotros. Solo 2 plazas por oficio en cada ciudad.">
 <meta name="robots" content="noindex, follow">
 <link rel="canonical" href="https://www.aficioya.com/plazas-form.html">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta property="og:title" content="¿Eres fontanero o pintor? Te traemos clientes en tu ciudad">
-<meta property="og:description" content="La publicidad la pagamos nosotros. Sin cuota mensual. Solo 2 plazas por oficio en cada ciudad.">
+<meta property="og:description" content="La publicidad la pagamos nosotros. Solo 2 plazas por oficio en cada ciudad.">
 <meta property="og:image" content="https://www.aficioya.com/plazas-hero.jpg">
 <meta name="theme-color" content="#07090D">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -108,7 +108,7 @@ section.bloque > .wrap > p{color:var(--ink-soft)}
 .precios div{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:15px 16px;border-top:1px solid var(--line)}
 .precios div:first-child{border-top:0}
 .precios dt{color:var(--ink-soft)}
-.precios dd{font-weight:700;font-size:19px;white-space:nowrap}
+.precios dd{font-weight:700;font-size:17px;text-align:right}
 .precios .cero dd{color:var(--ok)}
 
 .contraste{margin-top:18px;display:grid;gap:10px}
@@ -131,6 +131,36 @@ section.bloque > .wrap > p{color:var(--ink-soft)}
 .cifras .p strong{color:var(--naranja)}
 .cifras span{color:var(--ink-soft);font-size:15px}
 .nota{color:var(--ink-faint);font-size:13.5px;margin-top:10px}
+
+/* Prueba en Sevilla y caso de éxito */
+.exito{margin-top:18px;display:grid;gap:10px}
+.dato{padding:20px 18px;border-radius:var(--radio);background:var(--surface);border:1px solid var(--line);display:flex;align-items:center;gap:16px}
+.dato strong{font-family:'Fredoka',sans-serif;font-size:52px;line-height:1;color:var(--ok);flex:none}
+.dato{margin-top:18px}
+.dato span{color:var(--ink-soft);font-size:16px}
+.dato span b{color:var(--ink);font-weight:600}
+.caso{padding:18px;border-radius:var(--radio);background:var(--surface);border:1px solid rgba(61,151,240,.45)}
+.caso-cab{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.caso-logo{width:78px;height:78px;flex:none;border-radius:50%;background:#fff;display:grid;place-items:center;overflow:hidden;box-shadow:0 0 0 2px #C9D3DF,0 6px 18px rgba(0,0,0,.35)}
+.caso-logo img{width:100%;height:100%;object-fit:cover;display:block}
+.caso-logo b{font-family:'Fredoka',sans-serif;font-size:21px;color:#0E2A4A}
+.caso-logo [hidden]{display:none}
+.caso-cab h3{font-size:19px}
+.caso-cab small{display:block;color:var(--azul);font-weight:700;font-size:15px;margin-top:3px}
+.caso-dato{display:flex;align-items:center;gap:14px;padding-top:14px;border-top:1px solid var(--line)}
+.caso-dato strong{font-family:'Fredoka',sans-serif;font-size:46px;line-height:1;color:var(--azul);flex:none}
+.caso-dato span{color:var(--ink-soft);font-size:16px}
+
+/* Presentación del fundador */
+.fundador{margin-top:18px;border-radius:18px;overflow:hidden;background:var(--surface);border:1px solid var(--line)}
+.fundador img{display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:cover}
+@media (max-width:520px){.fundador img{aspect-ratio:5/4;object-position:50% 20%}}
+.fundador-txt{padding:18px 20px 22px}
+.fundador-txt h3{font-size:25px}
+.fundador-txt small{display:block;color:var(--naranja);font-weight:700;font-size:15px;margin:3px 0 14px}
+.fundador-txt p{color:var(--ink-soft);font-size:16.5px}
+.fundador-txt p + p{margin-top:10px}
+.fundador-txt b{color:var(--ink);font-weight:600}
 
 details{border-top:1px solid var(--line);padding:16px 0}
 details:last-of-type{border-bottom:1px solid var(--line)}
@@ -229,18 +259,18 @@ fbq('track','PageView');
             <button type="button" role="radio" aria-checked="false" data-a="si">Sí</button>
             <button type="button" role="radio" aria-checked="false" data-a="no">No</button>
           </div>
-          <p class="bloqueo" id="bloqueo" hidden>Para darte de alta en OficioYa necesitas estar dado de alta como autónomo. Cuando lo estés, vuelve y reserva tu plaza.</p>
-          <button type="button" class="btn" id="enviar" disabled>Reservar mi plaza</button>
+          <p class="bloqueo" id="bloqueo" hidden>Para darte de alta en OficioYa necesitas estar dado de alta como autónomo. Cuando lo estés, vuelve y solicita tu plaza.</p>
+          <button type="button" class="btn" id="enviar" disabled>Solicitar mi plaza</button>
           <p class="err" id="err2" role="alert"></p>
-          <p class="tranqui" id="tranqui">No pagas nada ahora. Te llamamos en menos de 24 horas, te lo explicamos todo y decides.</p>
-          <p class="legal">Al reservar aceptas que te llamemos para darte información. <a href="/privacidad">Política de privacidad</a>.</p>
+          <p class="tranqui" id="tranqui">Sin compromiso. Pronto nos pondremos en contacto contigo para conocernos.</p>
+          <p class="legal">Al solicitar tu plaza aceptas que te llamemos. <a href="/privacidad">Política de privacidad</a>.</p>
         </div>
       </div>
 
       <div class="hecho" id="hecho" hidden>
         <div class="tick"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#5DCB8E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
-        <h2 id="hecho-titulo">Plaza reservada</h2>
-        <p id="hecho-texto">Te llamamos en menos de 24 horas para explicarte cómo funciona y resolver tus dudas.</p>
+        <h2 id="hecho-titulo">Plaza solicitada</h2>
+        <p id="hecho-texto">Pronto nos pondremos en contacto contigo para conocernos y empezar a traerte clientes.</p>
         <a class="btn sec" id="wa" href="#" target="_blank" rel="noopener">¿Prefieres escribirnos? WhatsApp</a>
       </div>
     </div>
@@ -248,14 +278,53 @@ fbq('track','PageView');
 
   <section class="bloque">
     <div class="wrap">
-      <h2>Lo que pagas, sin letra pequeña</h2>
-      <p>Ponemos anuncios en tu ciudad para captar clientes que buscan tu oficio. Tú solo pagas cuando te llega uno.</p>
+      <h2>Ya funciona en Sevilla</h2>
+      <div class="dato"><strong>+100</strong><span><b>profesionales se registraron</b> cuando abrimos en Sevilla.</span></div>
+      <p style="margin-top:18px">Así fue el último mes con nuestras campañas allí:</p>
+      <div class="cifras">
+        <div class="f"><strong>+60</strong><span>solicitudes de fontanería</span></div>
+        <div class="p"><strong>+40</strong><span>solicitudes de pintura</span></div>
+      </div>
+      <div class="exito">
+        <div class="caso">
+          <div class="caso-cab">
+            <div class="caso-logo"><img src="/cma-logo.png" alt="Logo de CMA Carmaral Multiservicios" width="78" height="78" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><b hidden>CMA</b></div>
+            <div><h3>CMA Carmaral Multiservicios</h3><small>Fontanería en Sevilla</small></div>
+          </div>
+          <div class="caso-dato"><strong>+40</strong><span>trabajos cerrados el último mes con clientes de OficioYa.</span></div>
+        </div>
+      </div>
+      <p class="nota">Datos de nuestras campañas en Sevilla del último mes. Cada ciudad es distinta: en la llamada te damos una estimación para la tuya.</p>
+    </div>
+  </section>
+
+  <section class="bloque">
+    <div class="wrap">
+      <h2>Quién está detrás</h2>
+      <div class="fundador">
+        <picture>
+          <source media="(max-width: 520px)" srcset="/andres-presentacion-movil.jpg" width="720" height="720">
+          <img src="/andres-presentacion.jpg" alt="Andrés Algora, fundador de OficioYa" width="990" height="660" loading="lazy">
+        </picture>
+        <div class="fundador-txt">
+          <h3>Andrés Algora</h3>
+          <small>Fundador de OficioYa</small>
+          <p>Vengo del <b>mundo financiero</b>: años analizando números, mercados y modelos de negocio. Pero OficioYa nació de algo mucho más de calle.</p>
+          <p>Empecé hablando cada semana con profesionales de Sevilla, y todos me contaban lo mismo: <b>demasiado tiempo perdido en presupuestos que no llegaban a nada.</b></p>
+          <p>Por eso aquí cada cliente va a un solo profesional, solo hay 2 plazas por oficio en cada ciudad y la publicidad la pagamos nosotros. <b>Tú solo tienes que trabajar.</b></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="bloque">
+    <div class="wrap">
+      <h2>Tú trabajas, los clientes los buscamos nosotros</h2>
+      <p>Ponemos anuncios en tu ciudad para captar clientes que buscan tu oficio y te los pasamos.</p>
       <dl class="precios">
-        <div><dt>Publicidad</dt><dd>La pagamos nosotros</dd></div>
-        <div class="cero"><dt>Cuota mensual</dt><dd>0 €</dd></div>
-        <div><dt>Activación (una sola vez)</dt><dd>99 €</dd></div>
-        <div><dt>Cada solicitud de fontanería</dt><dd>40 €</dd></div>
-        <div><dt>Cada solicitud de pintura</dt><dd>80 €</dd></div>
+        <div class="cero"><dt>Publicidad</dt><dd>La pagamos nosotros</dd></div>
+        <div><dt>Anuncios</dt><dd>Los hacemos nosotros</dd></div>
+        <div><dt>Clientes</dt><dd>Directos a tu app</dd></div>
       </dl>
     </div>
   </section>
@@ -280,8 +349,8 @@ fbq('track','PageView');
     <div class="wrap">
       <h2>Así funciona</h2>
       <ol class="pasos">
-        <li><div><b>Reservas tu plaza</b><span>Te lleva un minuto y no pagas nada.</span></div></li>
-        <li><div><b>Te llamamos y firmamos</b><span>Te lo explicamos todo. Si decides empezar, firmamos el contrato y pagas la activación.</span></div></li>
+        <li><div><b>Solicitas tu plaza</b><span>Te lleva un minuto y no te compromete a nada.</span></div></li>
+        <li><div><b>Te llamamos para conocernos</b><span>Hablamos de tu trabajo y de tu zona, te lo contamos todo y, si encaja, firmamos y empezamos.</span></div></li>
         <li><div><b>Lanzamos anuncios en tu ciudad</b><span>Para clientes que buscan fontanero o pintor en tu zona.</span></div></li>
         <li><div><b>Recibes las solicitudes en tu app</b><span>Te llega un aviso con los datos del cliente y podéis hablar por chat. También te pueden llamar.</span></div></li>
       </ol>
@@ -290,23 +359,11 @@ fbq('track','PageView');
 
   <section class="bloque">
     <div class="wrap">
-      <h2>Ya funciona en Sevilla</h2>
-      <p>Así fue el último mes con nuestras campañas allí:</p>
-      <div class="cifras">
-        <div class="f"><strong>+60</strong><span>solicitudes de fontanería</span></div>
-        <div class="p"><strong>16</strong><span>solicitudes de pintura</span></div>
-      </div>
-      <p class="nota">Datos de nuestras campañas en Sevilla del último mes. Cada ciudad es distinta: en la llamada te damos una estimación para la tuya.</p>
-    </div>
-  </section>
-
-  <section class="bloque">
-    <div class="wrap">
       <h2>Preguntas frecuentes</h2>
-      <details><summary>¿Tengo que pagar algo para reservar?</summary><p>No. Reservar es gratis. La activación de 99 € solo se paga si, después de la llamada, decides empezar.</p></details>
+      <details><summary>¿Solicitar plaza me compromete a algo?</summary><p>No. Te llamamos, nos conocemos, te lo explicamos todo y decides si empezamos.</p></details>
       <details><summary>¿Tengo que ser autónomo?</summary><p>Sí. Para trabajar con OficioYa tienes que estar dado de alta como autónomo.</p></details>
       <details><summary>¿Qué cuenta como solicitud?</summary><p>Un cliente de tu zona que te pide presupuesto a través de OficioYa: por formulario, por llamada o por WhatsApp.</p></details>
-      <details><summary>¿Hay cuota mensual?</summary><p>No. No hay ningún coste mensual fijo: solo pagas las solicitudes que recibes.</p></details>
+      <details><summary>¿Cuándo me llamáis?</summary><p>Pronto, normalmente en menos de 24 horas. Nos presentamos, conocemos tu trabajo y vemos cómo empezar a traerte clientes.</p></details>
       <details><summary>¿Cómo me llegan los clientes?</summary><p>En tu app de OficioYa. Te llega un aviso con los datos del cliente y podéis hablar por chat. El cliente también te puede llamar.</p></details>
       <details><summary>¿Cuántas solicitudes voy a recibir?</summary><p>Depende de tu ciudad y de la época del año. En la llamada te damos una estimación para tu zona.</p></details>
       <details><summary>¿Y si en mi ciudad ya no quedan plazas?</summary><p>Te apuntamos a la lista de espera y te avisamos en cuanto se libere una.</p></details>
@@ -315,7 +372,7 @@ fbq('track','PageView');
 
   <section class="final">
     <div class="wrap">
-      <h2>Las plazas se cubren por orden de reserva</h2>
+      <h2>Las plazas se cubren por orden de llegada</h2>
       <p>Cuando las 2 plazas de tu oficio en tu ciudad estén cubiertas, se cierran.</p>
       <a class="btn" href="#reserva">Ver si queda plaza en mi ciudad</a>
     </div>
@@ -341,7 +398,7 @@ var HEADERS = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY };
 var WHATSAPP = '34656398014';
 
 /* Respaldo por si no responde Supabase: todas libres salvo Sevilla */
-var CIUDADES = [{"slug":"a-coruna","ciudad":"A Coruña","provincia_ine":"15","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"albacete","ciudad":"Albacete","provincia_ine":"02","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"alicante","ciudad":"Alicante","provincia_ine":"03","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"almeria","ciudad":"Almería","provincia_ine":"04","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"avila","ciudad":"Ávila","provincia_ine":"05","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"badajoz","ciudad":"Badajoz","provincia_ine":"06","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"palma","ciudad":"Palma","provincia_ine":"07","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"barcelona","ciudad":"Barcelona","provincia_ine":"08","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"burgos","ciudad":"Burgos","provincia_ine":"09","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"caceres","ciudad":"Cáceres","provincia_ine":"10","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"cadiz","ciudad":"Cádiz","provincia_ine":"11","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"castellon","ciudad":"Castellón de la Plana","provincia_ine":"12","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"ciudad-real","ciudad":"Ciudad Real","provincia_ine":"13","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"cordoba","ciudad":"Córdoba","provincia_ine":"14","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"cuenca","ciudad":"Cuenca","provincia_ine":"16","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"girona","ciudad":"Girona","provincia_ine":"17","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"granada","ciudad":"Granada","provincia_ine":"18","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"guadalajara","ciudad":"Guadalajara","provincia_ine":"19","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"donostia","ciudad":"Donostia-San Sebastián","provincia_ine":"20","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"huelva","ciudad":"Huelva","provincia_ine":"21","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"huesca","ciudad":"Huesca","provincia_ine":"22","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"jaen","ciudad":"Jaén","provincia_ine":"23","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"leon","ciudad":"León","provincia_ine":"24","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"lleida","ciudad":"Lleida","provincia_ine":"25","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"logrono","ciudad":"Logroño","provincia_ine":"26","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"lugo","ciudad":"Lugo","provincia_ine":"27","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"madrid","ciudad":"Madrid","provincia_ine":"28","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"malaga","ciudad":"Málaga","provincia_ine":"29","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"murcia","ciudad":"Murcia","provincia_ine":"30","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"pamplona","ciudad":"Pamplona","provincia_ine":"31","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"ourense","ciudad":"Ourense","provincia_ine":"32","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"oviedo","ciudad":"Oviedo","provincia_ine":"33","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"palencia","ciudad":"Palencia","provincia_ine":"34","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"las-palmas","ciudad":"Las Palmas de Gran Canaria","provincia_ine":"35","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"pontevedra","ciudad":"Pontevedra","provincia_ine":"36","en_mapa":false,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"salamanca","ciudad":"Salamanca","provincia_ine":"37","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"santa-cruz","ciudad":"Santa Cruz de Tenerife","provincia_ine":"38","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"santander","ciudad":"Santander","provincia_ine":"39","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"segovia","ciudad":"Segovia","provincia_ine":"40","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"sevilla","ciudad":"Sevilla","provincia_ine":"41","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":2,"pintor_ocupadas":2},{"slug":"soria","ciudad":"Soria","provincia_ine":"42","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"tarragona","ciudad":"Tarragona","provincia_ine":"43","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"teruel","ciudad":"Teruel","provincia_ine":"44","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"toledo","ciudad":"Toledo","provincia_ine":"45","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"valencia","ciudad":"Valencia","provincia_ine":"46","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"valladolid","ciudad":"Valladolid","provincia_ine":"47","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"bilbao","ciudad":"Bilbao","provincia_ine":"48","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"zamora","ciudad":"Zamora","provincia_ine":"49","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"zaragoza","ciudad":"Zaragoza","provincia_ine":"50","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"vitoria","ciudad":"Vitoria-Gasteiz","provincia_ine":"01","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"vigo","ciudad":"Vigo","provincia_ine":"36","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"gijon","ciudad":"Gijón","provincia_ine":"33","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"cartagena","ciudad":"Cartagena","provincia_ine":"30","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"jerez","ciudad":"Jerez de la Frontera","provincia_ine":"11","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"elche","ciudad":"Elche","provincia_ine":"03","en_mapa":false,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"marbella","ciudad":"Marbella","provincia_ine":"29","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0}];
+var CIUDADES = [{"slug":"a-coruna","ciudad":"A Coruña","provincia_ine":"15","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"albacete","ciudad":"Albacete","provincia_ine":"02","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"alicante","ciudad":"Alicante","provincia_ine":"03","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"almeria","ciudad":"Almería","provincia_ine":"04","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"avila","ciudad":"Ávila","provincia_ine":"05","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"badajoz","ciudad":"Badajoz","provincia_ine":"06","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"palma","ciudad":"Palma","provincia_ine":"07","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"barcelona","ciudad":"Barcelona","provincia_ine":"08","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"burgos","ciudad":"Burgos","provincia_ine":"09","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"caceres","ciudad":"Cáceres","provincia_ine":"10","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"cadiz","ciudad":"Cádiz","provincia_ine":"11","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"castellon","ciudad":"Castellón de la Plana","provincia_ine":"12","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"ciudad-real","ciudad":"Ciudad Real","provincia_ine":"13","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"cordoba","ciudad":"Córdoba","provincia_ine":"14","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"cuenca","ciudad":"Cuenca","provincia_ine":"16","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"girona","ciudad":"Girona","provincia_ine":"17","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"granada","ciudad":"Granada","provincia_ine":"18","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"guadalajara","ciudad":"Guadalajara","provincia_ine":"19","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"donostia","ciudad":"Donostia-San Sebastián","provincia_ine":"20","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"huelva","ciudad":"Huelva","provincia_ine":"21","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"huesca","ciudad":"Huesca","provincia_ine":"22","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"jaen","ciudad":"Jaén","provincia_ine":"23","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"leon","ciudad":"León","provincia_ine":"24","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"lleida","ciudad":"Lleida","provincia_ine":"25","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"logrono","ciudad":"Logroño","provincia_ine":"26","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"lugo","ciudad":"Lugo","provincia_ine":"27","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"madrid","ciudad":"Madrid","provincia_ine":"28","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"malaga","ciudad":"Málaga","provincia_ine":"29","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"murcia","ciudad":"Murcia","provincia_ine":"30","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"pamplona","ciudad":"Pamplona","provincia_ine":"31","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"ourense","ciudad":"Ourense","provincia_ine":"32","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"oviedo","ciudad":"Oviedo","provincia_ine":"33","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"palencia","ciudad":"Palencia","provincia_ine":"34","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"las-palmas","ciudad":"Las Palmas de Gran Canaria","provincia_ine":"35","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"pontevedra","ciudad":"Pontevedra","provincia_ine":"36","en_mapa":false,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"salamanca","ciudad":"Salamanca","provincia_ine":"37","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"santa-cruz","ciudad":"Santa Cruz de Tenerife","provincia_ine":"38","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"santander","ciudad":"Santander","provincia_ine":"39","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"segovia","ciudad":"Segovia","provincia_ine":"40","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"sevilla","ciudad":"Sevilla","provincia_ine":"41","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":2,"pintor_ocupadas":2},{"slug":"soria","ciudad":"Soria","provincia_ine":"42","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"tarragona","ciudad":"Tarragona","provincia_ine":"43","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"teruel","ciudad":"Teruel","provincia_ine":"44","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"toledo","ciudad":"Toledo","provincia_ine":"45","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"valencia","ciudad":"Valencia","provincia_ine":"46","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"valladolid","ciudad":"Valladolid","provincia_ine":"47","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"bilbao","ciudad":"Bilbao","provincia_ine":"48","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"zamora","ciudad":"Zamora","provincia_ine":"49","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"zaragoza","ciudad":"Zaragoza","provincia_ine":"50","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"vitoria","ciudad":"Vitoria-Gasteiz","provincia_ine":"01","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"vigo","ciudad":"Vigo","provincia_ine":"36","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"gijon","ciudad":"Gijón","provincia_ine":"33","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"cartagena","ciudad":"Cartagena","provincia_ine":"30","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"jerez","ciudad":"Jerez de la Frontera","provincia_ine":"11","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"elche","ciudad":"Elche","provincia_ine":"03","en_mapa":false,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"marbella","ciudad":"Marbella","provincia_ine":"29","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"ceuta","ciudad":"Ceuta","provincia_ine":"51","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"melilla","ciudad":"Melilla","provincia_ine":"52","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0}];
 var ALIAS = {
   'getafe':'madrid','mostoles':'madrid','alcala de henares':'madrid','fuenlabrada':'madrid','leganes':'madrid','alcorcon':'madrid',
   'torrejon de ardoz':'madrid','parla':'madrid','alcobendas':'madrid','las rozas':'madrid','pozuelo de alarcon':'madrid',
@@ -433,9 +490,9 @@ function verPlazas(){
     if(l>0){
       estado.plaza = true;
       titulo = (l===1 ? 'Queda 1 plaza' : 'Quedan '+l+' plazas') + ' de ' + nombreOficio(estado.oficio) + ' en ' + c.ciudad + '.';
-      texto = 'Resérvala ahora: se asignan por orden de reserva.';
-      boton = 'Reservar mi plaza';
-      tranqui = 'No pagas nada ahora. Te llamamos en menos de 24 horas, te lo explicamos todo y decides.';
+      texto = 'Solicítala ahora: se asignan por orden de llegada.';
+      boton = 'Solicitar mi plaza';
+      tranqui = 'Sin compromiso. Pronto nos pondremos en contacto contigo para conocernos.';
     } else {
       estado.plaza = false;
       titulo = 'Las ' + total + ' plazas de ' + nombreOficio(estado.oficio) + ' en ' + c.ciudad + ' están ocupadas.';
@@ -447,8 +504,8 @@ function verPlazas(){
     estado.plaza = null;
     titulo = 'Aún no tenemos campaña en ' + txt + '.';
     texto = 'Déjanos tus datos y te llamamos para ver cuánta demanda hay en tu zona.';
-    boton = 'Reservar mi plaza';
-    tranqui = 'No pagas nada ahora. Te llamamos en menos de 24 horas y lo vemos juntos.';
+    boton = 'Solicitar mi plaza';
+    tranqui = 'Sin compromiso. Te llamamos pronto y lo vemos juntos.';
   }
 
   $('res-titulo').textContent = titulo;
@@ -496,7 +553,7 @@ function enviar(){
   if(nombre.length < 2){ $('err2').textContent = 'Escribe tu nombre.'; $('nombre').focus(); return; }
   if(!tel){ $('err2').textContent = 'Revisa el teléfono: tiene que tener 9 cifras.'; $('telefono').focus(); return; }
   $('err2').textContent = '';
-  var btn = $('enviar'), txt = btn.textContent; btn.disabled = true; btn.textContent = 'Reservando…';
+  var btn = $('enviar'), txt = btn.textContent; btn.disabled = true; btn.textContent = 'Enviando…';
 
   var fila = {
     nombre: nombre, telefono: tel, oficio: estado.oficio, ciudad: estado.ciudad, ciudad_slug: estado.slug,
@@ -523,16 +580,16 @@ function enviar(){
     mostrarHecho(espera, nombre);
   }).catch(function(){
     btn.disabled = false; btn.textContent = txt;
-    $('err2').innerHTML = 'No hemos podido guardar tu reserva. <a href="https://wa.me/' + WHATSAPP + '?text=' + encodeURIComponent(mensajeWA()) + '" target="_blank" rel="noopener">Envíanosla por WhatsApp</a> y te la guardamos.';
+    $('err2').innerHTML = 'No hemos podido guardar tu solicitud. <a href="https://wa.me/' + WHATSAPP + '?text=' + encodeURIComponent(mensajeWA()) + '" target="_blank" rel="noopener">Envíanosla por WhatsApp</a> y te la guardamos.';
   });
 }
 
 function mostrarHecho(espera, nombre){
   var primero = nombre.split(' ')[0];
-  $('hecho-titulo').textContent = espera ? 'Estás en la lista de espera' : 'Registro completado';
+  $('hecho-titulo').textContent = espera ? 'Estás en la lista de espera' : 'Plaza solicitada';
   $('hecho-texto').textContent = espera
     ? 'Gracias, ' + primero + '. Te llamaremos en cuanto se libere una plaza de ' + nombreOficio(estado.oficio) + ' en ' + estado.ciudad + '.'
-    : 'Gracias, ' + primero + '. Pronto te llamaremos para activar tu plaza de ' + nombreOficio(estado.oficio) + ' en ' + estado.ciudad + '.';
+    : 'Gracias, ' + primero + '. Pronto nos pondremos en contacto contigo para conocernos y empezar a traerte clientes de ' + nombreOficio(estado.oficio) + ' en ' + estado.ciudad + '.';
   $('wa').href = 'https://wa.me/' + WHATSAPP + '?text=' + encodeURIComponent(mensajeWA());
   $('formulario').hidden = true;
   $('hecho').hidden = false;
