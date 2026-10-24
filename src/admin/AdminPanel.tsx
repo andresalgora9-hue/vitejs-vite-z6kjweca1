@@ -1,6 +1,6 @@
 // ============================================================
 // OficioYa · ADMIN nuevo (modelo pago por lead)
-// Resumen · Leads · Facturas · Profesionales · Mensajes · Marketing · Ajustes · CRM antiguo
+// Resumen · Leads · Facturas · Profesionales · Captación · Mensajes · Marketing · Ajustes · CRM antiguo
 // ============================================================
 import React, { useState, useEffect, useCallback } from "react";
 import { db } from "../supabase";
@@ -14,13 +14,14 @@ import Mensajes from "./apMensajes";
 import Marketing from "./apMarketing";
 import Ajustes from "./apAjustes";
 
-type Seccion = "resumen" | "leads" | "facturas" | "profesionales" | "mensajes" | "marketing" | "ajustes" | "antiguo";
+type Seccion = "resumen" | "leads" | "facturas" | "profesionales" | "captacion" | "mensajes" | "marketing" | "ajustes" | "antiguo";
 
 const NAV: { id: Seccion; label: string; icono: string }[] = [
   { id: "resumen", label: "Resumen", icono: "M4 13h4v7H4zM10 8h4v12h-4zM16 4h4v16h-4z" },
   { id: "leads", label: "Leads", icono: "M4 6h16M4 12h16M4 18h10" },
   { id: "facturas", label: "Facturas", icono: "M6.5 3.5h8l4 4v13h-12zM14.5 3.5v4h4M9.5 12h6M9.5 15.5h6" },
   { id: "profesionales", label: "Profesionales", icono: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4.5 20c.7-3.7 3.7-5.8 7.5-5.8s6.8 2.1 7.5 5.8" },
+  { id: "captacion", label: "Captación", icono: "M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM3 20c.6-3.5 3.4-5.6 7-5.6 1.3 0 2.5.3 3.5.8M18 14v6M15 17h6" },
   { id: "mensajes", label: "Mensajes", icono: "M20.5 12.2c0 3.9-3.8 7-8.5 7a10 10 0 0 1-2.6-.34L4.2 20.5l1.5-3.7A6.7 6.7 0 0 1 3.5 12.2c0-3.9 3.8-7 8.5-7s8.5 3.1 8.5 7z" },
   { id: "marketing", label: "Marketing y ROAS", icono: "M4 18l5-6 4 3 7-9M15 6h5v5" },
   { id: "ajustes", label: "Ajustes", icono: "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 0 0 5 12a7 7 0 0 0 .1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6c.1-.4.1-.8.1-1.2z" },
@@ -84,6 +85,21 @@ export default function AdminPanel({ onLogout, nombre }: { onLogout: () => void;
   }, [cargar]);
   useEffect(() => { try { sessionStorage.setItem("oy_admin_sec", sec); } catch { /* nada */ } }, [sec]);
 
+  // Captación de profesionales: atascados para el aviso del menú (usa la clave guardada del CRM de captación)
+  const [captAtascados, setCaptAtascados] = useState(0);
+  useEffect(() => {
+    const leer = async () => {
+      let clave: string | null = null;
+      try { clave = localStorage.getItem("oy_captacion_clave"); } catch { /* nada */ }
+      if (!clave) { setCaptAtascados(0); return; }
+      const { data, error } = await db.rpc("captacion_contadores", { p_clave: clave });
+      if (!error && data) setCaptAtascados(Number((data as any).atascados) || 0);
+    };
+    leer();
+    const t = setInterval(() => { if (document.visibilityState === "visible") leer(); }, 30000);
+    return () => clearInterval(t);
+  }, [sec]);
+
   // CRM antiguo: el panel de siempre, a pantalla completa, con botón para volver
   if (sec === "antiguo") {
     return (
@@ -103,9 +119,16 @@ export default function AdminPanel({ onLogout, nombre }: { onLogout: () => void;
   const sinAsignar = d ? d.solicitudes.filter((s) => ts(s.created_at) >= ts(INICIO_PAGO_POR_LEAD) && !usados.has(s.id) && s.status !== "descartado" && s.status !== "cancelled").length : 0;
   const vencidas = d ? d.facturas.filter((f) => f.status === "pendiente" && ts(f.due_at) < Date.now()).length : 0;
   const altas = d ? d.pros.filter((p) => ts(p.joined_at || p.created_at) >= ts(INICIO_ALTAS) && !["pagada", "exento"].includes(p.activacion_estado || "")).length : 0;
-  const globo: Partial<Record<Seccion, number>> = { leads: sinAsignar, facturas: vencidas, profesionales: altas };
+  const globo: Partial<Record<Seccion, number>> = { leads: sinAsignar, facturas: vencidas, profesionales: altas, captacion: captAtascados };
 
   const contenido = () => {
+    // Captación: el CRM de Sandra con la vista de admin (gestión comercial, pipeline, comisiones), dentro del panel
+    if (sec === "captacion") return (
+      <iframe title="Captación de profesionales" src="/captacion.html?embed=1" style={{
+        display: "block", width: "100%", border: "1px solid " + C.border, borderRadius: 12, background: C.bg,
+        height: movil ? "calc(100vh - 128px)" : "calc(100vh - 96px)",
+      }} />
+    );
     if (error) return <div style={{ color: C.red, padding: 30 }}>{error}</div>;
     if (!d) return <div style={{ color: C.mutedL, padding: 30 }}>Cargando datos...</div>;
     const props = { d, recargar: cargar, aviso, irA: (s: string) => setSec(s as Seccion) };
@@ -134,7 +157,7 @@ export default function AdminPanel({ onLogout, nombre }: { onLogout: () => void;
       }}>
         <Icono d={n.icono} />
         <span style={{ flex: horizontal ? undefined : 1 }}>{n.label}</span>
-        {g > 0 && <span style={{ background: n.id === "facturas" ? C.red : C.orange, color: "#fff", borderRadius: 99, minWidth: 18, height: 18, fontSize: 10.5, fontWeight: 800, display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "0 5px" }}>{g > 99 ? "99+" : g}</span>}
+        {g > 0 && <span style={{ background: n.id === "facturas" || n.id === "captacion" ? C.red : C.orange, color: "#fff", borderRadius: 99, minWidth: 18, height: 18, fontSize: 10.5, fontWeight: 800, display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "0 5px" }}>{g > 99 ? "99+" : g}</span>}
       </button>
     );
   };
@@ -166,7 +189,7 @@ export default function AdminPanel({ onLogout, nombre }: { onLogout: () => void;
             {NAV.map((n) => botonNav(n, false))}
           </aside>
         )}
-        <main style={{ flex: 1, minWidth: 0, padding: movil ? "14px 14px 60px" : "20px 28px 60px", maxWidth: 1240, boxSizing: "border-box" }}>
+        <main style={{ flex: 1, minWidth: 0, padding: sec === "captacion" ? (movil ? "8px 8px 8px" : "16px 20px 16px") : (movil ? "14px 14px 60px" : "20px 28px 60px"), maxWidth: sec === "captacion" ? undefined : 1240, boxSizing: "border-box" }}>
           {contenido()}
         </main>
       </div>
