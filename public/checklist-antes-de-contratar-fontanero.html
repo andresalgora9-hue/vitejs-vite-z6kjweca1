@@ -45,7 +45,7 @@ h1,h2,h3{font-family:'Sora',Arial,sans-serif}
 .topbar a{color:#FFD98A;font-weight:600}
 nav{background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:100}
 .nav-inner{display:flex;align-items:center;justify-content:space-between;max-width:1120px;margin:0 auto;padding:14px 24px;gap:14px}
-.logo{display:flex;align-items:center;gap:8px;font-family:'Sora';font-size:19px;font-weight:800;color:var(--ink);white-space:nowrap}
+.logo{display:flex;align-items:center;gap:8px;font-family:'Sora',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-size:19px;font-weight:800;color:var(--ink);white-space:nowrap}
 .logo em{color:var(--gold);font-style:normal}
 .logo span{color:var(--ink-faint);font-size:12px;font-weight:500}
 .nav-actions{display:flex;align-items:center;gap:10px;flex-shrink:0}
@@ -78,7 +78,7 @@ h1 em{color:var(--gold-deep);font-style:normal}
 .pt-row:nth-child(even){background:var(--bg-soft)}
 .pt-job b{display:block;font-size:14.5px;font-weight:700}
 .pt-job span{display:block;font-size:12px;color:var(--ink-faint);margin-top:1px}
-.pt-price{font-family:'Sora';font-weight:800;color:var(--gold-deep);white-space:nowrap;font-size:15px}
+.pt-price{font-family:'Sora',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-weight:800;color:var(--gold-deep);white-space:nowrap;font-size:15px}
 .caption{font-size:12px;color:var(--ink-faint);line-height:1.6;margin-top:12px;font-style:italic}
 .mini-calc{margin:20px 0;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:22px}
 .mini-calc h3{font-size:16px;font-weight:700;margin-bottom:3px}
@@ -98,7 +98,7 @@ h1 em{color:var(--gold-deep);font-style:normal}
 .stepper{display:flex;align-items:center;border:1.5px solid var(--line);border-radius:9px;width:fit-content;overflow:hidden;background:#fff}
 .stepper button{width:46px;height:46px;border:0;background:var(--bg-soft);font-size:22px;color:var(--gold-deep);cursor:pointer;font-weight:700;line-height:1}
 .stepper button:hover{background:var(--gold-soft)}
-.stepper .val{min-width:88px;text-align:center;font-weight:700;font-size:15px;font-family:'Sora'}
+.stepper .val{min-width:88px;text-align:center;font-weight:700;font-size:15px;font-family:'Sora',system-ui,-apple-system,'Segoe UI',Arial,sans-serif}
 .toggle-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 14px;border:1.5px solid var(--line);border-radius:9px;background:var(--bg-soft)}
 .toggle-row .lbl b{display:block;font-size:14px}
 .toggle-row .lbl span{color:var(--ink-faint);font-size:12px}
@@ -110,22 +110,22 @@ h1 em{color:var(--gold-deep);font-style:normal}
 .switch input:checked + .slider::before{transform:translateX(21px)}
 .mc-result{margin-top:14px;border-top:1px dashed var(--line);padding-top:14px}
 .mc-result .rl{font-size:12px;color:var(--ink-faint)}
-.mc-result .rr{font-family:'Sora';font-size:28px;font-weight:800;color:var(--gold-deep);letter-spacing:-.5px;line-height:1.1}
+.mc-result .rr{font-family:'Sora',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-size:28px;font-weight:800;color:var(--gold-deep);letter-spacing:-.5px;line-height:1.1}
 .mc-result .rn{font-size:12.5px;color:var(--ink-soft);margin-top:5px;line-height:1.5}
 .leadform{margin-top:16px;background:var(--bg-soft);border:1px solid var(--line);border-radius:12px;padding:16px}
-.lf-head b{display:block;font-family:'Sora';font-size:15px;font-weight:700}
+.lf-head b{display:block;font-family:'Sora',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-size:15px;font-weight:700}
 .lf-head span{display:block;color:var(--ink-faint);font-size:12.5px;margin-top:2px;line-height:1.5}
 .lf-field{margin-top:11px}
 .lf-field label{display:block;font-size:11.5px;font-weight:700;color:var(--ink-soft);margin-bottom:5px;text-transform:uppercase;letter-spacing:.2px}
-.lf-field input,.lf-field textarea{width:100%;font-family:'Inter';font-size:14.5px;font-weight:600;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:9px;padding:12px}
+.lf-field input,.lf-field textarea{width:100%;font-family:'Inter',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-size:14.5px;font-weight:600;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:9px;padding:12px}
 .lf-field input:focus,.lf-field textarea:focus{border-color:var(--gold)}
 .lf-field textarea{min-height:60px;resize:vertical;font-weight:500}
 .opt-tag{display:inline-block;background:#fff;border:1px solid var(--line);color:var(--ink-faint);font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;margin-left:6px;text-transform:none;letter-spacing:0}
-.btn-send{width:100%;background:var(--cta);color:var(--cta-ink);font-family:'Inter';font-weight:700;font-size:15px;padding:14px;border-radius:10px;border:none;cursor:pointer;margin-top:13px;box-shadow:0 8px 20px rgba(0,0,0,.12)}
+.btn-send{width:100%;background:var(--cta);color:var(--cta-ink);font-family:'Inter',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-weight:700;font-size:15px;padding:14px;border-radius:10px;border:none;cursor:pointer;margin-top:13px;box-shadow:0 8px 20px rgba(0,0,0,.12)}
 .btn-send:hover{background:var(--cta-hover)}
 .lf-privacy{font-size:11px;color:var(--ink-faint);line-height:1.5;margin-top:9px}
 .prose p{font-size:15px;color:var(--ink-soft);line-height:1.8;margin-bottom:12px}
-.prose h3{font-family:'Sora';font-size:18px;font-weight:700;margin:24px 0 8px}
+.prose h3{font-family:'Sora',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-size:18px;font-weight:700;margin:24px 0 8px}
 .prose ul{margin:0 0 14px;padding-left:4px;list-style:none}
 .prose li{position:relative;padding-left:26px;font-size:15px;color:var(--ink-soft);line-height:1.7;margin-bottom:8px}
 .prose li::before{content:"";position:absolute;left:0;top:9px;width:16px;height:16px;background:var(--gold-soft);border-radius:5px}
@@ -137,11 +137,11 @@ h1 em{color:var(--gold-deep);font-style:normal}
 .clink:hover{border-color:var(--gold);transform:translateY(-1px)}
 .clink .ci{flex:0 0 auto;width:32px;height:32px;border-radius:9px;background:var(--gold-soft);display:grid;place-items:center}
 .clink .ci svg{width:17px;height:17px;stroke:var(--gold-deep)}
-.clink .cl b{display:block;font-size:13.5px;font-weight:700;font-family:'Sora'}
+.clink .cl b{display:block;font-size:13.5px;font-weight:700;font-family:'Sora',system-ui,-apple-system,'Segoe UI',Arial,sans-serif}
 .clink .cl span{font-size:12px;color:var(--ink-faint)}
 .faqs{margin-top:18px;display:flex;flex-direction:column;gap:10px}
 .faq{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
-.faq summary{padding:16px 18px;font-family:'Sora';font-weight:700;font-size:14.5px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:14px}
+.faq summary{padding:16px 18px;font-family:'Sora',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-weight:700;font-size:14.5px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:14px}
 .faq summary::-webkit-details-marker{display:none}
 .faq summary .chev{flex:0 0 auto;transition:transform .2s;color:var(--gold)}
 .faq[open] summary .chev{transform:rotate(180deg)}
@@ -149,7 +149,7 @@ h1 em{color:var(--gold-deep);font-style:normal}
 .faq .ans b{color:var(--ink)}
 .cta-box{background:var(--ink);border-radius:20px;padding:40px 30px;text-align:center;margin:30px 0 8px;position:relative;overflow:hidden}
 .cta-box::before{content:"";position:absolute;right:-40px;top:-40px;width:170px;height:170px;background:radial-gradient(circle,var(--gold-soft),transparent 68%);opacity:.4}
-.cta-box h2{font-family:'Sora';font-size:clamp(20px,3.4vw,26px);font-weight:800;margin-bottom:10px;color:#fff;position:relative}
+.cta-box h2{font-family:'Sora',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-size:clamp(20px,3.4vw,26px);font-weight:800;margin-bottom:10px;color:#fff;position:relative}
 .cta-box h2 em{color:#FFD98A;font-style:normal}
 .cta-box p{font-size:14px;color:#B9C0CE;margin-bottom:22px;line-height:1.7;position:relative}
 .cta-btn{display:inline-block;background:var(--cta);color:var(--cta-ink);font-family:'Inter',Arial,sans-serif;font-weight:700;font-size:15px;padding:15px 38px;border-radius:10px;position:relative;box-shadow:0 8px 24px rgba(0,0,0,.2);border:none;cursor:pointer}
@@ -294,15 +294,15 @@ footer{border-top:1px solid var(--line);padding:24px 0;margin-top:20px}
     var nombre=document.getElementById('leadNombre').value.trim();
     var telefono=document.getElementById('leadTelefono').value.trim();
     var email=document.getElementById('leadEmail').value.trim();
-    if(!nombre||!telefono){
-      alert('Indique su nombre y un teléfono de contacto para que el profesional pueda escribirle.');
+    if(!nombre||!/^[6789]\d{8}$/.test(telefono.replace(/\D/g,'').replace(/^(0034|34)(?=\d{9}$)/,''))){
+      alert('Indique su nombre y un teléfono válido (9 cifras) para que el profesional pueda escribirle.');
       document.getElementById(!nombre?'leadNombre':'leadTelefono').focus();return;
     }
     var nota=document.getElementById('descProblema').value.trim();
     var desc=nota||'Necesito un fontanero';
     var telLimpioNum=telefono.replace(/\D/g,'')||Date.now().toString();
     var emailFinal=email||('lead'+telLimpioNum+'@aficioya-lead.com');
-    var params=new URLSearchParams({quick:'1',oficio:'Fontanero',nombre:nombre,telefono:telefono,email:emailFinal,desc:desc});
+    var params=new URLSearchParams({quick:'1', landing:(location.pathname.split('/').pop()||'').replace(/\.html$/,''), oficio:'Fontanero',nombre:nombre,telefono:telefono,email:emailFinal,desc:desc});
     if(typeof gtag==='function'){ gtag('event','generate_lead',{'event_category':'solicitud_fontanero','event_label':'checklist-antes-de-contratar-fontanero'}); }
     window.location.href='https://www.aficioya.com/?'+params.toString();
   };
