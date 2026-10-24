@@ -6,6 +6,11 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Captación · OficioYa</title>
 <meta name="theme-color" content="#0B0E14">
+<link rel="manifest" href="/captacion.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Captación">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700&family=Fredoka:wght@600;700&display=swap">
@@ -204,6 +209,23 @@ body.arrastre .tablero{scroll-snap-type:none}
 .modal p{color:var(--ink-soft);font-size:14.5px;margin-bottom:12px}
 .modal .fila{margin-top:14px}
 @media (prefers-reduced-motion: reduce){.col{transition:none}}
+/* Avisos */
+.avisos{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:var(--surface);border:1.5px solid var(--naranja);border-radius:14px;padding:14px;margin-bottom:12px}
+.avisos b{display:block;font-size:16.5px}
+.avisos span{color:var(--ink-soft);font-size:14.5px}
+.avisos.on{border:1px solid var(--line);padding:9px 14px}
+.avisos.on span{color:var(--ok);font-weight:600}
+.avisos .acc{display:flex;gap:14px}
+.link{background:none;border:0;color:var(--ink-soft);text-decoration:underline;cursor:pointer;font-size:14px;padding:4px 0}
+@keyframes llega{0%{background:rgba(232,134,42,.28)}100%{background:var(--surface)}}
+.lead.recien{animation:llega 3s ease-out}
+/* Gestión comercial */
+.atasco .meta b{color:var(--aviso);font-weight:600}
+.resp{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(201,133,18,.15);color:var(--ambar)}
+.resp.tu{background:rgba(47,127,216,.14);color:var(--azul)}
+.tabla tr.malo td{color:var(--aviso);font-weight:600}
+.tabla td.peor{color:var(--aviso);font-weight:700}
+@media (prefers-reduced-motion: reduce){.lead.recien{animation:none}}
 </style>
 </head>
 <body>
@@ -244,7 +266,29 @@ body.arrastre .tablero{scroll-snap-type:none}
   <main class="wrap">
     <!-- MÉTRICAS (solo admin) -->
     <section id="tab-metricas" hidden>
+      <div class="cab-pipe">
+        <div class="vista-sel" role="group" aria-label="Vista de métricas" id="vista-met">
+          <button type="button" data-v="gestion" aria-pressed="true">Gestión comercial</button>
+          <button type="button" data-v="campanas" aria-pressed="false">Campañas</button>
+        </div>
+      </div>
       <div class="chips" id="chips-periodo"></div>
+      <div id="m-gestion">
+        <div class="cifras" id="g-cifras"></div>
+        <div class="titulo-sec"><h2>Atascados ahora</h2><small>Lo que lleva demasiado tiempo parado</small></div>
+        <div class="lista" id="g-atascos"></div>
+        <div class="titulo-sec"><h2>Dónde se atasca</h2><small>Profesionales en cada etapa ahora mismo</small></div>
+        <div class="scroll"><table class="tabla" id="g-etapas"></table></div>
+        <div class="titulo-sec"><h2>Paso a paso</h2><small>Cuántos pasan de cada etapa a la siguiente</small></div>
+        <div class="scroll"><table class="tabla" id="g-pasos"></table></div>
+        <p class="nota" id="g-cuello"></p>
+        <div class="titulo-sec"><h2>Por qué se pierden</h2></div>
+        <div class="scroll"><table class="tabla" id="g-perdidas"></table></div>
+        <div class="titulo-sec"><h2>Actividad de Sandra</h2><small>Últimos 7 días</small></div>
+        <div class="scroll"><table class="tabla" id="g-actividad"></table></div>
+        <p class="nota">Se considera atascado: nuevo sin llamar más de 24 h; contactado o interesado más de 3 días sin llamada programada; llamada programada atrasada más de 2 h; contrato sin firmar más de 5 días; firmado sin cobro confirmado más de 3 días; reintento atrasado o 5 intentos sin respuesta; lista de espera con plaza ya libre en su ciudad.</p>
+      </div>
+      <div id="m-campanas" hidden>
       <div class="cifras" id="cifras-camp"></div>
       <div class="titulo-sec"><h2>Embudo</h2><small>Del registro al profesional activo</small></div>
       <div class="scroll"><table class="tabla" id="t-embudo"></table></div>
@@ -261,10 +305,12 @@ body.arrastre .tablero{scroll-snap-type:none}
       <div class="titulo-sec"><h2>Plazas ocupadas</h2><small>Lo que ve el mapa de la landing</small></div>
       <div class="scroll"><table class="tabla" id="t-plazas"></table></div>
       <p class="nota" id="nota-gasto"></p>
+      </div>
     </section>
 
     <!-- HOY -->
     <section id="tab-hoy" hidden>
+      <div id="avisos"></div>
       <div class="cifras" id="cifras-hoy"></div>
       <div class="titulo-sec"><h2>Llamar ya: nuevos</h2><small>Los más antiguos primero</small></div>
       <div class="lista" id="l-nuevos"></div>
@@ -310,7 +356,7 @@ body.arrastre .tablero{scroll-snap-type:none}
       </ol>
       <div class="titulo-sec"><h2>Guion de llamada</h2></div>
       <div class="guion">
-        <p><b>Presentación:</b> «Hola, [nombre], soy Sandra de OficioYa. Te llamo porque has reservado una plaza de [oficio] en [ciudad]. ¿Tienes dos minutos?»</p>
+        <p><b>Presentación:</b> «Hola, [nombre], soy Sandra de OficioYa. Te llamo porque has solicitado una plaza de [oficio] en [ciudad]. ¿Tienes dos minutos?»</p>
         <p><b>Qué ofrecemos:</b> nosotros ponemos y pagamos la publicidad en su ciudad y le pasamos clientes que piden presupuesto de su oficio.</p>
         <p><b>Lo que paga:</b> una activación única de 99 € + IVA y después solo cada solicitud que recibe: 40 € + IVA en fontanería y 80 € + IVA en pintura. Sin cuota mensual.</p>
         <p><b>Por qué es distinto:</b> cada cliente va a un solo profesional, no se reparte entre tres. Y solo hay 2 plazas por oficio en cada ciudad.</p>
@@ -376,7 +422,7 @@ function hace(iso){
 function horasDesde(iso){ return (Date.now() - new Date(iso).getTime())/3600000; }
 function finDeHoy(){ var d = new Date(); d.setHours(23,59,59,999); return d; }
 function inicioMes(){ var m = new Date(); m.setDate(1); m.setHours(0,0,0,0); return m; }
-function toast(t){ var e=$('toast'); e.textContent=t; e.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(function(){ e.hidden=true; }, 2600); }
+function toast(t, ms){ var e=$('toast'); e.textContent=t; e.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(function(){ e.hidden=true; }, ms || 2600); }
 function sum(a){ return a.reduce(function(s,l){ return s + Number(l.comision||0); },0); }
 
 /* ---------- API ---------- */
@@ -389,10 +435,45 @@ function rpc(fn, body){
     return r.json().then(function(j){ if(!r.ok) throw new Error(j && j.message || ('HTTP '+r.status)); return j; });
   });
 }
-function cargar(){
+var idsVistos = null, recien = {};
+function cargar(suave){
   return rpc('captacion_datos', { p_clave: CLAVE }).then(function(d){
-    D = d; D.documentos = D.documentos || []; calcularEtapas(); pintar(); if(fichaId) abrirFicha(fichaId, true);
+    var antes = idsVistos;
+    D = d; D.documentos = D.documentos || []; D.avisos = D.avisos || [];
+    idsVistos = {}; D.leads.forEach(function(l){ idsVistos[l.id] = 1; });
+    if(antes){
+      var nuevos = D.leads.filter(function(l){ return !antes[l.id]; });
+      if(nuevos.length){
+        nuevos.forEach(function(l){ recien[l.id] = 1; });
+        setTimeout(function(){ recien = {}; }, 4000);
+        var l = nuevos[0];
+        toast(nuevos.length === 1 ? '🆕 ' + l.nombre + ' · ' + oficioTxt(l.oficio) + ' · ' + (l.ciudad || 'sin ciudad') : '🆕 ' + nuevos.length + ' profesionales nuevos', 6000);
+      }
+    }
+    contador();
+    calcularEtapas(); pintar();
+    if(fichaId && !(suave && fichaEditando())) abrirFicha(fichaId, true);
   });
+}
+function fichaEditando(){
+  var a = document.activeElement, f = $('ficha');
+  if(a && f.contains(a) && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return true;
+  var n = $('fi-nota'); return !!(n && n.value.trim());
+}
+/* Número de nuevos sin llamar: en la pestaña del navegador y en el icono de la app */
+function contador(){
+  var n = D.leads.filter(function(l){ return l.estado === 'nuevo'; }).length;
+  document.title = (n ? '(' + n + ') ' : '') + 'Captación · OficioYa';
+  try{ if(navigator.setAppBadge){ if(n) navigator.setAppBadge(n); else navigator.clearAppBadge(); } }catch(e){}
+}
+/* Comprobación ligera cada pocos segundos: solo descarga todo si algo ha cambiado */
+var firma = null;
+function comprobarCambios(forzar){
+  if(!CLAVE || subida || arr) return;
+  if(document.hidden && !forzar) return;
+  rpc('captacion_version', { p_clave: CLAVE }).then(function(v){
+    if(v !== firma){ firma = v; return cargar(true); }
+  }).catch(function(){});
 }
 
 /* ---------- Acceso ---------- */
@@ -405,7 +486,9 @@ function entrar(clave, recordar){
     $('vista-acceso').hidden = true; $('vista-app').hidden = false;
     $('quien').textContent = D.nombre || '';
     configurarVista(); irA(VISTA === 'admin' ? 'metricas' : 'hoy');
-    clearInterval(entrar._i); entrar._i = setInterval(function(){ if(!document.hidden && !subida && !arr) cargar().catch(function(){}); }, 60000);
+    rpc('captacion_version', { p_clave: CLAVE }).then(function(v){ firma = v; }).catch(function(){});
+    clearInterval(entrar._i); entrar._i = setInterval(comprobarCambios, 8000);
+    comprobarAvisos(); abrirDesdeEnlace();
   }).catch(function(e){
     CLAVE = null;
     $('err-acceso').textContent = /denegado/.test(e.message) ? 'Clave incorrecta.' : 'No se ha podido conectar. Inténtalo de nuevo.';
@@ -416,7 +499,15 @@ function entrar(clave, recordar){
 $('entrar').addEventListener('click', function(){ var c=$('clave').value.trim(); if(c) entrar(c, $('recordar').checked); });
 $('clave').addEventListener('keydown', function(e){ if(e.key==='Enter') $('entrar').click(); });
 $('salir').addEventListener('click', function(){ try{ localStorage.removeItem('oy_captacion_clave'); }catch(e){} location.reload(); });
-document.addEventListener('visibilitychange', function(){ if(!document.hidden && CLAVE && !subida && !arr) cargar().catch(function(){}); });
+document.addEventListener('visibilitychange', function(){ if(!document.hidden) comprobarCambios(true); });
+window.addEventListener('focus', function(){ comprobarCambios(true); });
+window.addEventListener('hashchange', abrirDesdeEnlace);
+function abrirDesdeEnlace(){
+  var m = /^#lead=([0-9a-f-]{36})$/i.exec(location.hash || '');
+  if(!m || !CLAVE || !D.leads) return;
+  history.replaceState(null, '', location.pathname);
+  if(leadPorId(m[1])) abrirFicha(m[1]); else comprobarCambios(true);
+}
 
 /* ---------- Vista admin / vista Sandra ---------- */
 function configurarVista(){
@@ -451,7 +542,7 @@ function irA(t){
 function tarjeta(l, extra){
   var urgente = l.estado==='nuevo' && horasDesde(l.created_at) > 24;
   var der = extra || ('<span class="estado ' + l.estado + '">' + esc(NOMBRE_ESTADO[l.estado]) + '</span>');
-  return '<button class="lead ' + (l.oficio==='fontanero'?'f':'p') + (urgente?' urgente':'') + '" data-id="' + l.id + '">'
+  return '<button class="lead ' + (l.oficio==='fontanero'?'f':'p') + (urgente?' urgente':'') + (recien[l.id]?' recien':'') + '" data-id="' + l.id + '">'
     + '<span class="nom">' + esc(l.nombre) + '</span>'
     + '<span class="der">' + der + '</span>'
     + '<span class="meta"><span class="of"><i></i>' + oficioTxt(l.oficio) + '</span> · ' + esc(l.ciudad || 'Sin ciudad')
@@ -476,6 +567,7 @@ function pintar(){
 }
 
 function pintarHoy(){
+  pintarAvisos();
   var L = D.leads, fin = finDeHoy();
   var nuevos = L.filter(function(l){ return l.estado==='nuevo'; }).sort(function(a,b){ return new Date(a.created_at)-new Date(b.created_at); });
   var hoy = L.filter(function(l){ return l.proxima_llamada && new Date(l.proxima_llamada) <= fin && ['contactado','interesado','lista_espera'].indexOf(l.estado) > -1; })
@@ -857,9 +949,21 @@ function filasTabla(grupos, gastoPor){
 var CAB = '<tr><th></th><th class="n">Registros</th><th class="n">Contactados</th><th class="n">Interesados</th><th class="n">Firmados</th><th class="n">Activos</th><th class="n">% firma</th>';
 var CAB_G = '<th class="n">Gasto</th><th class="n">€/registro</th><th class="n">€/firmado</th>';
 
+var vistaMet = 'gestion';
+try{ vistaMet = localStorage.getItem('oy_capt_met') === 'campanas' ? 'campanas' : 'gestion'; }catch(e){}
+$('vista-met').addEventListener('click', function(e){
+  var b = e.target.closest('button[data-v]'); if(!b) return;
+  vistaMet = b.getAttribute('data-v'); try{ localStorage.setItem('oy_capt_met', vistaMet); }catch(x){}
+  pintarMetricas();
+});
 function pintarMetricas(){
   var periodos = [[7,'7 días'],[30,'30 días'],[90,'90 días'],[0,'Todo']];
   $('chips-periodo').innerHTML = periodos.map(function(p){ return '<button data-p="' + p[0] + '" aria-pressed="' + (periodo===p[0]) + '">' + p[1] + '</button>'; }).join('');
+  Array.prototype.forEach.call($('vista-met').querySelectorAll('button'), function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-v') === vistaMet)); });
+  $('m-gestion').hidden = vistaMet !== 'gestion'; $('m-campanas').hidden = vistaMet !== 'campanas';
+  if(vistaMet === 'gestion') pintarGestion(); else pintarCampanas();
+}
+function pintarCampanas(){
   var desde = periodo ? new Date(Date.now() - periodo*86400000) : new Date(0);
   var L = D.leads.filter(function(l){ return new Date(l.created_at) >= desde; });
   var G = (D.gasto||[]).filter(function(g){ return new Date(g.fecha + 'T00:00:00') >= new Date(desde.toDateString()); });
@@ -914,6 +1018,234 @@ function pintarMetricas(){
 }
 $('chips-periodo').addEventListener('click', function(e){ var b=e.target.closest('button'); if(!b) return; periodo = Number(b.getAttribute('data-p')); pintarMetricas(); });
 
+
+/* ================= Avisos al momento (notificaciones push) ================= */
+var VAPID = 'BMrAW5LQ8VwjrILPDpsnq98IodkFOoA0p7eUJV0uXN6UdXX83MNVlb9fXpXbZR30rIv5IFKYqs_QjFoKh9KlpvQ';
+var AV = { estado:'cargando', endpoint:null, sub:null };
+function soportaPush(){ return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window; }
+function esIOS(){ return /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); }
+function esApp(){ return (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true; }
+function dispositivo(){ var u = navigator.userAgent; return (esIOS() ? 'iPhone' : /android/i.test(u) ? 'Android' : 'Ordenador') + (esApp() ? ' (app)' : ''); }
+function claveVapid(b64){
+  var p = '='.repeat((4 - b64.length % 4) % 4), s = atob((b64 + p).replace(/-/g,'+').replace(/_/g,'/'));
+  var a = new Uint8Array(s.length); for(var i=0;i<s.length;i++) a[i] = s.charCodeAt(i); return a;
+}
+function registroSW(){
+  return navigator.serviceWorker.getRegistration('/').then(function(r){ return r || navigator.serviceWorker.register('/sw.js'); })
+    .then(function(){ return navigator.serviceWorker.ready; });
+}
+function desactivadoAqui(){ try{ return localStorage.getItem('oy_capt_avisos_off') === '1'; }catch(e){ return false; } }
+function comprobarAvisos(){
+  if(!soportaPush()){ AV.estado = esIOS() && !esApp() ? 'ios-instalar' : 'no-soportado'; return pintarAvisos(); }
+  if(Notification.permission === 'denied'){ AV.estado = 'bloqueado'; return pintarAvisos(); }
+  registroSW().then(function(reg){ return reg.pushManager.getSubscription(); }).then(function(sub){
+    if(sub && Notification.permission === 'granted' && !desactivadoAqui()){
+      AV.estado = 'activo'; AV.sub = sub; AV.endpoint = sub.endpoint;
+      rpc('captacion_push_guardar', { p_clave: CLAVE, p_suscripcion: sub.toJSON(), p_dispositivo: dispositivo() }).catch(function(){});
+    } else AV.estado = 'inactivo';
+    pintarAvisos();
+  }).catch(function(){ AV.estado = 'no-soportado'; pintarAvisos(); });
+}
+function activarAvisos(){
+  var btn = $('av-activar'); if(btn){ btn.disabled = true; btn.textContent = 'Activando…'; }
+  Notification.requestPermission().then(function(p){
+    if(p !== 'granted'){ AV.estado = p === 'denied' ? 'bloqueado' : 'inactivo'; pintarAvisos(); throw new Error('sin permiso'); }
+    return registroSW();
+  }).then(function(reg){
+    return reg.pushManager.getSubscription().then(function(s){ return s || reg.pushManager.subscribe({ userVisibleOnly:true, applicationServerKey: claveVapid(VAPID) }); });
+  }).then(function(sub){
+    AV.sub = sub; AV.endpoint = sub.endpoint;
+    return rpc('captacion_push_guardar', { p_clave: CLAVE, p_suscripcion: sub.toJSON(), p_dispositivo: dispositivo() });
+  }).then(function(){
+    try{ localStorage.removeItem('oy_capt_avisos_off'); }catch(e){}
+    AV.estado = 'activo'; pintarAvisos(); toast('Avisos activados. Te mando uno de prueba.', 4000); probarAviso(true);
+  }).catch(function(e){
+    if(e && e.message === 'sin permiso') return;
+    toast('No se han podido activar los avisos. Inténtalo de nuevo.', 4000); AV.estado = 'inactivo'; pintarAvisos();
+  });
+}
+function probarAviso(silencioso){
+  if(!AV.endpoint) return;
+  fetch(SB_URL + '/functions/v1/captacion-push', {
+    method:'POST', headers:{ 'Content-Type':'application/json', 'apikey':SB_KEY, 'Authorization':'Bearer ' + SB_KEY },
+    body: JSON.stringify({ prueba:true, clave:CLAVE, endpoint:AV.endpoint })
+  }).then(function(r){ return r.json(); }).then(function(j){
+    if(j.enviados) { if(!silencioso) toast('Aviso de prueba enviado', 3000); }
+    else if(j.borrados){ AV.estado = 'inactivo'; pintarAvisos(); toast('Este dispositivo ya no recibía avisos: vuelve a activarlos.', 5000); }
+    else toast('No se ha podido enviar el aviso de prueba.', 4000);
+  }).catch(function(){ toast('No se ha podido enviar el aviso de prueba.', 4000); });
+}
+function quitarAvisos(){
+  if(!confirm('¿Dejar de recibir avisos en este dispositivo?')) return;
+  rpc('captacion_push_borrar', { p_clave: CLAVE, p_endpoint: AV.endpoint }).then(function(){
+    try{ localStorage.setItem('oy_capt_avisos_off', '1'); }catch(e){}
+    AV.estado = 'inactivo'; pintarAvisos(); toast('Avisos desactivados en este dispositivo');
+  }).catch(function(){ toast('No se ha podido desactivar. Inténtalo de nuevo.'); });
+}
+function pintarAvisos(){
+  var el = $('avisos'); if(!el) return;
+  var t = {
+    'activo': '<div class="avisos on"><span>🔔 Avisos activados en este dispositivo</span><span class="acc"><button class="link" id="av-probar">Probar</button><button class="link" id="av-quitar">Desactivar</button></span></div>',
+    'inactivo': '<div class="avisos"><div><b>Activa los avisos</b><span>Te llegará una notificación al momento cada vez que se registre un profesional, aunque tengas el móvil bloqueado.</span></div><button class="btn" id="av-activar">Activar avisos</button></div>',
+    'ios-instalar': '<div class="avisos"><div><b>Para recibir avisos en el iPhone</b><span>Pulsa el botón Compartir y elige «Añadir a pantalla de inicio». Abre el CRM desde ese icono y pulsa aquí «Activar avisos».</span></div></div>',
+    'bloqueado': '<div class="avisos"><div><b>Avisos bloqueados</b><span>Este navegador tiene bloqueadas las notificaciones de aficioya.com. Permítelas en los ajustes del navegador o del móvil y recarga la página.</span></div></div>',
+    'no-soportado': '<div class="avisos"><div><b>Este navegador no permite avisos</b><span>Usa Chrome en Android, o en iPhone añade el CRM a la pantalla de inicio y ábrelo desde ahí.</span></div></div>'
+  };
+  el.innerHTML = t[AV.estado] || '';
+  if($('av-activar')) $('av-activar').addEventListener('click', activarAvisos);
+  if($('av-probar')) $('av-probar').addEventListener('click', function(){ probarAviso(false); });
+  if($('av-quitar')) $('av-quitar').addEventListener('click', quitarAvisos);
+}
+
+/* ================= Gestión comercial (solo admin) ================= */
+var ORDEN = ['nuevo','contactado','interesado','contrato_enviado','completado','pagado'];
+var primera = {};
+function calcularPrimeras(){
+  primera = {};
+  (D.eventos||[]).forEach(function(e){
+    if(!e.estado_a) return;
+    var k = e.lead_id + '|' + e.estado_a;
+    if(!primera[k] || new Date(e.created_at) < new Date(primera[k])) primera[k] = e.created_at;
+  });
+}
+function llego(l, etapa){
+  var i = ORDEN.indexOf(etapa);
+  if(etapa === 'contactado' && l.primer_contacto_at) return true;
+  for(var j = i; j < ORDEN.length; j++){
+    if(l.estado === ORDEN[j] || primera[l.id + '|' + ORDEN[j]]) return true;
+  }
+  return false;
+}
+function cuando(l, etapa){
+  if(etapa === 'nuevo') return l.created_at;
+  if(etapa === 'contactado') return l.primer_contacto_at || primera[l.id + '|contactado'] || null;
+  if(etapa === 'completado') return l.completado_at || primera[l.id + '|completado'] || null;
+  if(etapa === 'pagado') return l.pagado_at || primera[l.id + '|pagado'] || null;
+  return primera[l.id + '|' + etapa] || null;
+}
+function dur(h){
+  if(h == null || isNaN(h)) return '—';
+  if(h < 1) return Math.max(1, Math.round(h*60)) + ' min';
+  if(h < 48) return (h < 10 ? h.toFixed(1).replace('.', ',') : Math.round(h)) + ' h';
+  return Math.round(h/24) + ' días';
+}
+function mediana(a){ if(!a.length) return null; a = a.slice().sort(function(x,y){ return x-y; }); var m = Math.floor(a.length/2); return a.length % 2 ? a[m] : (a[m-1]+a[m])/2; }
+function plazaLibre(l){
+  var p = (D.plazas||[]).filter(function(x){ return x.slug === l.ciudad_slug; })[0];
+  if(!p) return false;
+  return p.total_por_oficio - (l.oficio === 'fontanero' ? p.fontanero_ocupadas : p.pintor_ocupadas) > 0;
+}
+function atascos(){
+  var ahora = Date.now(), out = [];
+  D.leads.forEach(function(l){
+    var h = horasDesde(enEtapa(l));
+    var prox = l.proxima_llamada ? new Date(l.proxima_llamada).getTime() : null;
+    var atrasada = prox && prox < ahora - 2*3600000, futura = prox && prox > ahora;
+    var r = null, tu = false;
+    if(l.estado === 'nuevo' && horasDesde(l.created_at) > 24) r = 'Sin llamar desde hace ' + dur(horasDesde(l.created_at));
+    else if(l.estado === 'contactado' || l.estado === 'interesado'){
+      if(atrasada) r = 'Llamada programada atrasada desde ' + cuandoLlamar(new Date(prox));
+      else if(!futura && h > 72) r = (l.estado === 'interesado' ? 'Interesado' : 'Contactado') + ' hace ' + dur(h) + ' y sin próxima llamada';
+    }
+    else if(l.estado === 'contrato_enviado' && h > 120) r = 'Contrato enviado hace ' + dur(h) + ' y sin firmar';
+    else if(l.estado === 'completado' && h > 72){ r = 'Firmó hace ' + dur(h) + ': falta que confirmes el cobro'; tu = true; }
+    else if(l.estado === 'no_contesta'){
+      if(l.intentos >= 5) r = '5 intentos sin respuesta: hay que cerrarlo';
+      else if(atrasada || (!prox && h > 48)) r = 'Reintento atrasado (' + l.intentos + ' intento' + (l.intentos === 1 ? '' : 's') + ')';
+    }
+    else if(l.estado === 'lista_espera' && plazaLibre(l)) r = 'Ya hay plaza libre en ' + (l.ciudad || 'su ciudad') + ': llamarle';
+    if(r) out.push({ l:l, r:r, tu:tu, h:h });
+  });
+  return out.sort(function(a,b){ return (b.tu - a.tu) || (b.h - a.h); });
+}
+function tarjetaAtasco(a){
+  var l = a.l;
+  return '<button class="lead atasco ' + (l.oficio === 'fontanero' ? 'f' : 'p') + ' urgente" data-id="' + l.id + '">'
+    + '<span class="nom">' + esc(l.nombre) + '</span>'
+    + '<span class="der"><span class="resp' + (a.tu ? ' tu' : '') + '">' + (a.tu ? 'Te toca a ti' : 'Sandra') + '</span><br><span class="estado ' + l.estado + '">' + esc(tituloEstado(l.estado)) + '</span></span>'
+    + '<span class="meta"><b>' + esc(a.r) + '</b><br><span class="of"><i></i>' + oficioTxt(l.oficio) + '</span> · ' + esc(l.ciudad || 'Sin ciudad') + '</span>'
+    + '</button>';
+}
+function pintarGestion(){
+  calcularPrimeras();
+  var desde = periodo ? new Date(Date.now() - periodo*86400000) : new Date(0);
+  var L = D.leads.filter(function(l){ return new Date(l.created_at) >= desde; });
+  var A = atascos(), deTi = A.filter(function(a){ return a.tu; }).length;
+  var t1 = L.filter(function(l){ return l.primer_contacto_at; }).map(function(l){ return (new Date(l.primer_contacto_at) - new Date(l.created_at))/3600000; });
+  var med = mediana(t1);
+  var ev = (D.eventos||[]).filter(function(e){ return e.autor === 'gestor'; });
+  var hace7 = Date.now() - 7*86400000, hoy0 = new Date(); hoy0.setHours(0,0,0,0);
+  var llam7 = ev.filter(function(e){ return e.tipo === 'llamada' && new Date(e.created_at) >= hace7; });
+  var llamHoy = llam7.filter(function(e){ return new Date(e.created_at) >= hoy0; }).length;
+  var ultima = ev.length ? ev[0].created_at : null;
+  var avS = (D.avisos||[]).filter(function(a){ return a.rol === 'gestor'; });
+  $('g-cifras').innerHTML =
+      '<div class="cifra' + (A.length ? ' alerta' : ' verde') + '"><strong>' + A.length + '</strong><span>Atascados ahora' + (A.length ? ' · ' + (A.length - deTi) + ' de Sandra, ' + deTi + (deTi === 1 ? ' tuyo' : ' tuyos') : '') + '</span></div>'
+    + '<div class="cifra' + (med !== null && med > 24 ? ' alerta' : '') + '"><strong>' + (med === null ? '—' : dur(med)) + '</strong><span>Tiempo hasta la 1.ª llamada (mediana)</span></div>'
+    + '<div class="cifra"><strong>' + llam7.length + '</strong><span>Llamadas de Sandra en 7 días · ' + llamHoy + ' hoy' + (ultima ? ' · última actividad ' + hace(ultima) : '') + '</span></div>'
+    + '<div class="cifra' + (avS.length ? ' verde' : ' alerta') + '"><strong>' + avS.length + '</strong><span>' + (avS.length ? 'Dispositivo' + (avS.length === 1 ? '' : 's') + ' de Sandra con avisos activados' : 'Avisos: Sandra aún no los ha activado') + '</span></div>';
+
+  $('g-atascos').innerHTML = A.length ? A.map(tarjetaAtasco).join('') : '<div class="vacio">Nada atascado ahora mismo.</div>';
+
+  var ETAPAS = [
+    ['nuevo','24 h','Sandra'], ['contactado','3 días sin llamada programada','Sandra'], ['interesado','3 días sin llamada programada','Sandra'],
+    ['contrato_enviado','5 días','Sandra'], ['completado','3 días','Tú'], ['no_contesta','reintento diario · 5 intentos','Sandra'], ['lista_espera','hasta que haya plaza','Sandra']
+  ];
+  $('g-etapas').innerHTML = '<tr><th>Etapa</th><th class="n">Ahora</th><th class="n">Atascados</th><th class="n">Tiempo medio en la etapa</th><th>Límite</th><th>Responsable</th></tr>'
+    + ETAPAS.map(function(e){
+        var en = D.leads.filter(function(l){ return l.estado === e[0]; });
+        var at = A.filter(function(a){ return a.l.estado === e[0]; }).length;
+        var hs = en.map(function(l){ return horasDesde(e[0] === 'nuevo' ? l.created_at : enEtapa(l)); });
+        var media = hs.length ? hs.reduce(function(s,x){ return s+x; }, 0)/hs.length : null;
+        return '<tr' + (at ? ' class="malo"' : '') + '><td>' + esc(tituloEstado(e[0])) + '</td><td class="n">' + en.length + '</td><td class="n">' + at + '</td><td class="n">' + dur(media) + '</td><td>' + e[1] + '</td><td>' + e[2] + '</td></tr>';
+      }).join('');
+
+  var PASOS = [['nuevo','contactado','Registro → primera llamada'], ['contactado','interesado','Contactado → interesado'], ['interesado','contrato_enviado','Interesado → contrato enviado'], ['contrato_enviado','completado','Contrato enviado → firmado'], ['completado','pagado','Firmado → activación cobrada']];
+  var filas = PASOS.map(function(p){
+    var base = L.filter(function(l){ return llego(l, p[0]); }), pasan = base.filter(function(l){ return llego(l, p[1]); });
+    var ts = pasan.map(function(l){ var a = cuando(l, p[0]), b = cuando(l, p[1]); return a && b ? (new Date(b) - new Date(a))/3600000 : null; }).filter(function(x){ return x !== null && x >= 0; });
+    return { p:p, base:base.length, pasan:pasan.length, pc: base.length ? pasan.length/base.length : null, t: mediana(ts) };
+  });
+  var cand = filas.filter(function(f){ return f.base >= 3 && f.pc !== null; });
+  var peor = cand.length ? cand.reduce(function(a,b){ return b.pc < a.pc ? b : a; }) : null;
+  $('g-pasos').innerHTML = '<tr><th>Paso</th><th class="n">Llegan</th><th class="n">Pasan</th><th class="n">% que pasa</th><th class="n">Tiempo (mediana)</th></tr>'
+    + filas.map(function(f){
+        return '<tr><td>' + f.p[2] + '</td><td class="n">' + f.base + '</td><td class="n">' + f.pasan + '</td><td class="n' + (f === peor ? ' peor' : '') + '">' + (f.pc === null ? '—' : Math.round(f.pc*100) + '%') + '</td><td class="n">' + dur(f.t) + '</td></tr>';
+      }).join('');
+  $('g-cuello').textContent = !L.length ? 'Aún no hay registros en este periodo.'
+    : peor ? 'Donde más se pierde ahora: «' + peor.p[2] + '» (solo pasa el ' + Math.round(peor.pc*100) + '%).'
+    : 'Con tan pocos registros todavía no se puede saber dónde está el cuello de botella.';
+
+  var perdidos = L.filter(function(l){ return l.estado === 'no_interesado'; });
+  var deEtapa = {}, motivos = {};
+  perdidos.forEach(function(l){
+    var e = (D.eventos||[]).filter(function(x){ return x.lead_id === l.id && x.estado_a === 'no_interesado'; })[0];
+    var et = e && e.estado_de ? tituloEstado(e.estado_de) : 'Sin dato', mo = l.motivo || (e && e.texto) || 'Sin motivo';
+    (motivos[mo] = motivos[mo] || { n:0, et:{} }).n++;
+    motivos[mo].et[et] = (motivos[mo].et[et] || 0) + 1;
+  });
+  var mk = Object.keys(motivos).sort(function(a,b){ return motivos[b].n - motivos[a].n; });
+  $('g-perdidas').innerHTML = '<tr><th>Motivo</th><th class="n">Perdidos</th><th class="n">%</th><th>Etapa en la que se perdieron</th></tr>'
+    + (mk.length ? mk.map(function(k){
+        var ets = Object.keys(motivos[k].et).sort(function(a,b){ return motivos[k].et[b] - motivos[k].et[a]; }).map(function(x){ return esc(x) + ' (' + motivos[k].et[x] + ')'; }).join(', ');
+        return '<tr><td>' + esc(k) + '</td><td class="n">' + motivos[k].n + '</td><td class="n">' + pct(motivos[k].n, perdidos.length) + '</td><td>' + ets + '</td></tr>';
+      }).join('') : '<tr><td colspan="4">Ningún profesional perdido en este periodo.</td></tr>');
+
+  var dias = [];
+  for(var i = 0; i < 7; i++){
+    var d0 = new Date(); d0.setHours(0,0,0,0); d0.setDate(d0.getDate() - i);
+    var d1 = new Date(d0); d1.setDate(d1.getDate() + 1);
+    var del = ev.filter(function(e){ var t = new Date(e.created_at); return t >= d0 && t < d1; });
+    var cerr = D.leads.filter(function(l){ return l.completado_at && new Date(l.completado_at) >= d0 && new Date(l.completado_at) < d1; }).length;
+    dias.push('<tr><td>' + (i === 0 ? 'Hoy' : i === 1 ? 'Ayer' : d0.toLocaleDateString('es-ES', { weekday:'short', day:'numeric', month:'short' })) + '</td>'
+      + '<td class="n">' + del.filter(function(e){ return e.tipo === 'llamada'; }).length + '</td>'
+      + '<td class="n">' + del.filter(function(e){ return e.tipo === 'estado'; }).length + '</td>'
+      + '<td class="n">' + del.filter(function(e){ return e.tipo === 'nota'; }).length + '</td>'
+      + '<td class="n">' + cerr + '</td></tr>');
+  }
+  $('g-actividad').innerHTML = '<tr><th>Día</th><th class="n">Llamadas</th><th class="n">Cambios de etapa</th><th class="n">Notas</th><th class="n">Firmados</th></tr>' + dias.join('');
+}
+
 /* ---------- Ficha del profesional ---------- */
 function plazasDe(l){
   var p = (D.plazas||[]).filter(function(x){ return x.slug === l.ciudad_slug; })[0];
@@ -943,7 +1275,7 @@ function abrirFicha(id, refrescar){
           : esc(e.texto);
     return '<li><time>' + fecha(e.created_at, true) + ' · ' + esc(quienTxt(e.autor)) + '</time>' + t + '</li>';
   }).join('');
-  var saludo = 'Hola ' + l.nombre.split(' ')[0] + ', soy Sandra de OficioYa. Te escribo por tu reserva de plaza de ' + oficioTxt(l.oficio).toLowerCase() + ' en ' + (l.ciudad||'tu ciudad') + '. ¿Cuándo te viene bien que te llame?';
+  var saludo = 'Hola ' + l.nombre.split(' ')[0] + ', soy Sandra de OficioYa. Te escribo por tu solicitud de plaza de ' + oficioTxt(l.oficio).toLowerCase() + ' en ' + (l.ciudad||'tu ciudad') + '. ¿Cuándo te viene bien que te llame?';
 
   var bloqueContrato = '<div class="bloque"><h3>Contrato</h3>';
   if(!cerrado){
