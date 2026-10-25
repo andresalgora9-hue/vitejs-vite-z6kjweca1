@@ -30,7 +30,7 @@ function NuevaLlamada({ d, onClose, onHecho }: { d: SeccionProps["d"]; onClose: 
   const [err, setErr] = useState("");
   const pro = d.proPorId[proId];
   const oficio = pro?.trade || "";
-  const precio = precioDe(d.precios, oficio);
+  const precio = pro?.precio_lead != null ? Number(pro.precio_lead) : precioDe(d.precios, oficio);
   const segundos = (Number(min) || 0) * 60 + (Number(seg) || 0);
 
   const guardar = async () => {
@@ -39,7 +39,7 @@ function NuevaLlamada({ d, onClose, onHecho }: { d: SeccionProps["d"]; onClose: 
     setGuardando(true); setErr("");
     const momento = new Date(cuando).toISOString();
     const { error } = await db.from("pro_leads").insert({
-      pro_id: pro.id, trade: oficio || "Sin oficio", city_slug: "sevilla", canal: "llamada",
+      pro_id: pro.id, trade: oficio || "Sin oficio", city_slug: pro.city_slug || "sevilla", canal: "llamada",
       client_phone: tel.trim() || null, notas: nota.trim() || null, price: precio,
       llamada_at: momento, llamada_segundos: segundos || null, created_at: momento, created_by: "admin",
     });

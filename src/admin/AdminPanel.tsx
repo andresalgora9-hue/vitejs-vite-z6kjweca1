@@ -46,7 +46,7 @@ export default function AdminPanel({ onLogout, nombre }: { onLogout: () => void;
 
   const cargar = useCallback(async () => {
     const [pros, leads, facts, sols, rout, gastos, precios, cfg, subs] = await Promise.all([
-      db.from("users").select("id,name,email,phone,whatsapp,trade,zone,company_name,cif,fiscal_address,fiscal_zip,fiscal_city,billing_email,joined_at,created_at,activacion_estado,activacion_invoice_id,deleted,banned,plan").eq("type", "profesional"),
+      db.from("users").select("id,name,email,phone,whatsapp,trade,zone,company_name,cif,fiscal_address,fiscal_zip,fiscal_city,billing_email,joined_at,created_at,activacion_estado,activacion_invoice_id,deleted,banned,plan,precio_lead,city_slug,captacion_lead_id,ficha_captacion").eq("type", "profesional"),
       db.from("pro_leads").select("*").order("created_at", { ascending: false }).limit(5000),
       db.from("lead_invoices").select("*").order("issued_at", { ascending: false }).limit(5000),
       db.from("budget_requests").select("id,created_at,client_id,client_name,oficio,zona,description,status,city_slug,landing,gclid,canal,pro_solicitado").order("created_at", { ascending: false }).limit(5000),

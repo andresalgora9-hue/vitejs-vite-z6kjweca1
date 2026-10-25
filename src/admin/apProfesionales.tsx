@@ -1,7 +1,7 @@
 // ============================================================
 // OficioYa · ADMIN — PROFESIONALES (reparto, altas, rendimiento)
 // ============================================================
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { db } from "../supabase";
 import {
   C, F, Card, Btn, Pill, Cabecera, Sel, Campo, Modal, Tabla, Grid, Kpi, Titulo,
@@ -21,7 +21,7 @@ function FichaPro({ p, d, onClose, onHecho }: { p: Pro; d: SeccionProps["d"]; on
   const reparto = d.routing.filter((r) => r.pro_id === p.id && r.active);
   const sugerida = claves.find((k) => (p.trade || "").toLowerCase().includes(k)) || claves[0] || "";
   const [clave, setClave] = useState(sugerida);
-  const [ciudad, setCiudad] = useState("sevilla");
+  const [ciudad, setCiudad] = useState(p.city_slug || "sevilla");
   const [ocupado, setOcupado] = useState(false);
   const [factura, setFactura] = useState<any>(null);
   const leads = d.leads.filter((l) => l.pro_id === p.id);
@@ -29,6 +29,25 @@ function FichaPro({ p, d, onClose, onHecho }: { p: Pro; d: SeccionProps["d"]; on
   const nuevo = ts(p.joined_at || p.created_at) >= ts(INICIO_ALTAS);
   const alta = p.activacion_estado ? ALTA[p.activacion_estado] : null;
   const ocupante = (k: string, c: string) => d.routing.find((r) => r.trade_key === k && r.city_slug === c && r.active && r.pro_id !== p.id);
+  const precioPro = p.precio_lead != null ? Number(p.precio_lead) : null;
+  const ficha = p.ficha_captacion || null;
+
+  // Contrato firmado subido por Sandra en captación (usa la clave del CRM de captación guardada en este dispositivo)
+  const claveCapt = (() => { try { return localStorage.getItem("oy_captacion_clave"); } catch { return null; } })();
+  const [contratos, setContratos] = useState<any[] | null>(null);
+  useEffect(() => {
+    if (!p.captacion_lead_id || !claveCapt) return;
+    db.rpc("captacion_contrato_pro", { p_clave: claveCapt, p_pro: p.id }).then(({ data, error }: any) => { if (!error) setContratos(data || []); });
+  }, [p.id, p.captacion_lead_id, claveCapt]);
+  const descargarContrato = async (id: string) => {
+    const { data, error }: any = await db.rpc("captacion_descargar_documento", { p_clave: claveCapt, p_id: id });
+    if (error || !data) { alert("No se ha podido descargar el contrato"); return; }
+    const bin = atob(data.base64), arr = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+    const url = URL.createObjectURL(new Blob([arr], { type: data.mime }));
+    const a = document.createElement("a"); a.href = url; a.download = data.nombre; document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 4000);
+  };
 
   const rpc = async (fn: string, args: any, msg: string) => {
     setOcupado(true);
@@ -50,8 +69,11 @@ function FichaPro({ p, d, onClose, onHecho }: { p: Pro; d: SeccionProps["d"]; on
         <Pill texto={oficioDe(p.trade)} color={C.accent} />
         {reparto.length ? <Pill texto="Recibe leads" color={C.green} /> : <Pill texto="Sin reparto" color={C.muted} />}
         {alta && <Pill texto={alta.t} color={alta.c} />}
+        {p.captacion_lead_id && <Pill texto="Alta hecha por Sandra" color={C.blue} />}
         {d.conPush.has(p.id) ? <Pill texto="Avisos activados" color={C.green} /> : <Pill texto="Sin avisos" color={C.orange} />}
       </div>
+      {fila("Ciudad", p.zone)}
+      {fila("Precio por lead", precioPro != null ? <b>{eur(precioPro)} + IVA</b> : "El general de su oficio")}
       {fila("Empresa", p.company_name)}
       {fila("NIF/CIF", p.cif || <span style={{ color: C.orange }}>Falta</span>)}
       {fila("Dirección fiscal", [p.fiscal_address, p.fiscal_zip, p.fiscal_city].filter(Boolean).join(", ") || <span style={{ color: C.orange }}>Falta</span>)}
@@ -65,6 +87,34 @@ function FichaPro({ p, d, onClose, onHecho }: { p: Pro; d: SeccionProps["d"]; on
         </div>
       )}
 
+      {p.captacion_lead_id && (
+        <>
+          <Titulo>Ficha de Sandra</Titulo>
+          {ficha ? (
+            <>
+              {fila("Horario", ficha.horario)}
+              {fila("Urgencias 24 h", ficha.urgencias_24h ? "Sí" : "No")}
+              {fila("Fines de semana y festivos", ficha.fines_semana ? "Sí" : "No")}
+              {fila("Zonas que cubre", ficha.zonas)}
+              {fila("Servicios", ficha.servicios)}
+              {fila("No quiere recibir", ficha.no_hace)}
+              {fila("Clientes nuevos por semana", ficha.capacidad_semana != null ? String(ficha.capacidad_semana) : null)}
+              {fila("Notas", ficha.notas)}
+            </>
+          ) : <div style={{ fontSize: 13, color: C.muted }}>Sin ficha.</div>}
+          <Titulo>Contrato firmado</Titulo>
+          {!claveCapt && <div style={{ fontSize: 13, color: C.muted }}>Entra una vez en Captación desde este dispositivo para poder ver el contrato aquí.</div>}
+          {claveCapt && contratos === null && <div style={{ fontSize: 13, color: C.muted }}>Cargando…</div>}
+          {contratos && contratos.length === 0 && <div style={{ fontSize: 13, color: C.orange }}>No hay contrato subido.</div>}
+          {contratos && contratos.map((c) => (
+            <div key={c.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "6px 0", fontSize: 13 }}>
+              <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.nombre_archivo} · {fecha(c.created_at)}</span>
+              <Btn small outline onClick={() => descargarContrato(c.id)}>Descargar</Btn>
+            </div>
+          ))}
+        </>
+      )}
+
       <Titulo>Reparto de leads</Titulo>
       {reparto.map((r) => (
         <div key={r.trade_key + r.city_slug} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "8px 0", fontSize: 13 }}>
@@ -73,7 +123,7 @@ function FichaPro({ p, d, onClose, onHecho }: { p: Pro; d: SeccionProps["d"]; on
         </div>
       ))}
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginTop: 6 }}>
-        <Sel value={clave} onChange={setClave} options={claves.map((k) => ({ v: k, l: oficioDe(k) + " (" + eur(d.precios.find((x) => x.trade_key === k)?.price || 0) + "/lead)" }))} />
+        <Sel value={clave} onChange={setClave} options={claves.map((k) => ({ v: k, l: oficioDe(k) + " (" + eur(precioPro ?? d.precios.find((x) => x.trade_key === k)?.price ?? 0) + "/lead)" }))} />
         <input value={ciudad} onChange={(e) => setCiudad(e.target.value.toLowerCase())} style={{ width: 110, background: C.bg, border: "1px solid " + C.border, borderRadius: 8, color: C.text, padding: "8px 10px", fontFamily: F, fontSize: 13 }} />
         <Btn disabled={ocupado || !clave} onClick={() => {
           const otro = ocupante(clave, ciudad);
@@ -81,7 +131,7 @@ function FichaPro({ p, d, onClose, onHecho }: { p: Pro; d: SeccionProps["d"]; on
           rpc("oy_set_routing", { p_trade_key: clave, p_city: ciudad, p_pro: p.id }, "Ahora " + p.name + " recibe los leads de " + oficioDe(clave));
         }}>Darle estos leads</Btn>
       </div>
-      <div style={{ fontSize: 12, color: C.muted, marginTop: 6 }}>Solo un profesional por oficio y ciudad. Los leads nuevos le llegan solos.</div>
+      <div style={{ fontSize: 12, color: C.muted, marginTop: 6 }}>Solo un profesional por oficio y ciudad. Los leads nuevos le llegan solos{precioPro != null ? ", a " + eur(precioPro) + " + IVA cada uno (su precio de contrato)" : ""}.</div>
 
       <Titulo>Alta ({eur(d.config.activacion_eur || 99)} + IVA)</Titulo>
       <div style={{ fontSize: 13, color: C.mutedL, marginBottom: 10 }}>
@@ -181,11 +231,12 @@ export default function Profesionales({ d, recargar, aviso }: SeccionProps) {
       </div>
 
       <Tabla
-        cols={[{ k: "nombre", l: "Profesional" }, { k: "oficio", l: "Oficio" }, { k: "reparto", l: "Leads" }, { k: "alta", l: "Alta" }, { k: "mes", l: "Este mes", align: "right" }, { k: "sin", l: "Sin llamar", align: "right" }, { k: "cierre", l: "Cierre", align: "right" }, { k: "resp", l: "Respuesta", align: "right" }, { k: "fact", l: "Sin facturar", align: "right" }, { k: "venc", l: "Vencido", align: "right" }, { k: "push", l: "Avisos" }, { k: "fiscal", l: "Datos fiscales" }, { k: "reg", l: "Registro" }]}
+        cols={[{ k: "nombre", l: "Profesional" }, { k: "oficio", l: "Oficio" }, { k: "reparto", l: "Leads" }, { k: "precio", l: "€/lead", align: "right" }, { k: "alta", l: "Alta" }, { k: "mes", l: "Este mes", align: "right" }, { k: "sin", l: "Sin llamar", align: "right" }, { k: "cierre", l: "Cierre", align: "right" }, { k: "resp", l: "Respuesta", align: "right" }, { k: "fact", l: "Sin facturar", align: "right" }, { k: "venc", l: "Vencido", align: "right" }, { k: "push", l: "Avisos" }, { k: "fiscal", l: "Datos fiscales" }, { k: "reg", l: "Registro" }]}
         filas={filas.map((x) => ({
           nombre: <span><b>{x.p.name}</b>{x.p.company_name ? <span style={{ color: C.mutedL }}> · {x.p.company_name}</span> : null}</span>,
           oficio: oficioDe(x.p.trade),
           reparto: activos.has(x.p.id) ? <Pill texto="Recibe" color={C.green} /> : <span style={{ color: C.muted }}>—</span>,
+          precio: x.p.precio_lead != null ? eur(Number(x.p.precio_lead)) : <span style={{ color: C.muted }}>General</span>,
           alta: x.p.activacion_estado ? <Pill texto={ALTA[x.p.activacion_estado]?.t || x.p.activacion_estado} color={ALTA[x.p.activacion_estado]?.c || C.muted} />
             : esNuevo(x.p) ? <Pill texto="Sin emitir" color={C.orange} /> : <span style={{ color: C.muted }}>—</span>,
           mes: num(x.lm), sin: x.sinLlamar ? <span style={{ color: C.orange, fontWeight: 800 }}>{x.sinLlamar}</span> : "0",
