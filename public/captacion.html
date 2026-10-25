@@ -244,6 +244,20 @@ body.arrastre .tablero{scroll-snap-type:none}
 .hecho{font-size:14.5px;padding:10px 12px;border-radius:10px;background:rgba(30,158,90,.10);line-height:1.5}
 .aviso-precio{color:var(--ambar);font-size:14px;margin-top:6px}
 .aviso-precio:empty{display:none}
+/* Guion de llamada (editable) */
+.guion-doc{display:grid;gap:8px}
+.guion-doc details{background:var(--surface);border:1px solid var(--line);border-radius:14px}
+.guion-doc summary{cursor:pointer;padding:13px 14px;font-weight:700;font-size:16px;list-style:none;display:flex;justify-content:space-between;gap:10px;align-items:center}
+.guion-doc summary::-webkit-details-marker{display:none}
+.guion-doc summary::after{content:'+';color:var(--ink-faint);font-size:20px;line-height:1}
+.guion-doc details[open] summary::after{content:'–'}
+.guion-doc details[open] summary{border-bottom:1px solid var(--line)}
+.guion-doc .cuerpo{padding:12px 14px 14px;display:grid;gap:10px;font-size:15.5px}
+.guion-doc .cuerpo ul,.guion-doc .cuerpo ol{padding-left:22px;display:grid;gap:6px}
+.guion-doc .cuerpo h4{font-size:15.5px}
+.guion-doc .tabla td{white-space:normal;min-width:120px;vertical-align:top}
+.guion-doc .tabla td:first-child{font-weight:600}
+.guion-texto{min-height:60vh;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13.5px;line-height:1.5}
 /* Dentro del panel de admin: colores del panel y sin cabecera propia */
 :root.embed{
   color-scheme: dark;
@@ -391,15 +405,15 @@ body.arrastre .tablero{scroll-snap-type:none}
         <li><b>Envíale su acceso por WhatsApp</b> con el botón que aparece al terminar.</li>
         <li>Cuando pague la factura de alta, tu comisión de 50 € pasa a <b>a pagar</b> y Andrés lanza los anuncios en su ciudad.</li>
       </ol>
-      <div class="titulo-sec"><h2>Guion de llamada</h2></div>
-      <div class="guion">
-        <p><b>Presentación:</b> «Hola, [nombre], soy Sandra de OficioYa. Te llamo porque has solicitado una plaza de [oficio] en [ciudad]. ¿Tienes dos minutos?»</p>
-        <p><b>Qué ofrecemos:</b> nosotros ponemos y pagamos la publicidad en su ciudad y le pasamos clientes que piden presupuesto de su oficio.</p>
-        <p><b>Lo que paga:</b> una activación única de 99 € + IVA y después solo cada solicitud que recibe, al precio de su ciudad (está en la tabla de Precios por lead) + IVA. Sin cuota mensual.</p>
-        <p><b>Por qué es distinto:</b> cada cliente va a un solo profesional, no se reparte entre tres. Y solo hay 2 plazas por oficio en cada ciudad.</p>
-        <p><b>Requisito:</b> estar dado de alta como autónomo.</p>
-        <p><b>Cierre:</b> «Si te parece bien, te envío ahora el contrato por WhatsApp, lo firmas y en cuanto esté activado empezamos con los anuncios en tu ciudad.»</p>
+      <div class="titulo-sec"><h2>Guion de llamada</h2><small id="guion-info"></small></div>
+      <div class="guion-doc" id="guion-ver"></div>
+      <div id="guion-editar" hidden>
+        <textarea id="guion-texto" class="guion-texto" aria-label="Texto del guion"></textarea>
+        <p class="nota">Formato: ## para cada paso, - para listas, 1. para pasos numerados, **negrita** y tablas con | entre columnas.</p>
+        <p class="err" id="guion-err"></p>
+        <div class="fila" style="margin-top:8px"><button class="btn sec" id="guion-cancelar">Cancelar</button><button class="btn" id="guion-guardar">Guardar guion</button></div>
       </div>
+      <button class="btn sec" id="guion-btn-editar" style="margin-top:10px">Editar guion</button>
       <div class="titulo-sec"><h2>Mensaje para enviar el contrato</h2></div>
       <div class="guion"><p id="msg-contrato"></p><button class="btn sec" id="copiar-msg">Copiar mensaje</button></div>
     </section>
@@ -476,7 +490,7 @@ var idsVistos = null, recien = {};
 function cargar(suave){
   return rpc('captacion_datos', { p_clave: CLAVE }).then(function(d){
     var antes = idsVistos;
-    D = d; D.documentos = D.documentos || []; D.avisos = D.avisos || []; D.precios = D.precios || []; D.altas = D.altas || [];
+    D = d; D.documentos = D.documentos || []; D.avisos = D.avisos || []; D.precios = D.precios || []; D.altas = D.altas || []; D.textos = D.textos || {};
     idsVistos = {}; D.leads.forEach(function(l){ idsVistos[l.id] = 1; });
     if(antes){
       var nuevos = D.leads.filter(function(l){ return !antes[l.id]; });
@@ -506,7 +520,7 @@ function contador(){
 /* Comprobación ligera cada pocos segundos: solo descarga todo si algo ha cambiado */
 var firma = null;
 function comprobarCambios(forzar){
-  if(!CLAVE || subida || arr) return;
+  if(!CLAVE || subida || arr || editandoGuion) return;
   if(document.hidden && !forzar) return;
   rpc('captacion_version', { p_clave: CLAVE }).then(function(v){
     if(v !== firma){ firma = v; return cargar(true); }
@@ -930,7 +944,96 @@ function pintarHerramientas(){
   }).join('');
   $('msg-contrato').textContent = mensajeContrato(null);
   pintarPrecios();
+  pintarGuion();
 }
+
+/* ---------- Guion de llamada (se guarda en la base de datos; si no hay, se usa este) ---------- */
+var GUION_INICIAL = "## Cómo usar este guion\n\nCada llamada tiene un solo objetivo: que cuelgue con el contrato en su WhatsApp y una fecha para volver a hablar. Dura entre 15 y 20 minutos y va en 9 pasos, siempre en este orden.\n\n- **Tú llevas la llamada.** Antes de cada bloque anuncia lo que viene: «Ahora te explico X y después Y». Al acabarlo, pide un sí pequeño («¿Hasta aquí bien?») y pasa al siguiente.\n- **Habla en afirmativo.** «Te envío el contrato ahora», no «¿Quieres que te lo envíe?». «Esto funciona así», no «Creo que…».\n- **Pregunta y calla.** Después de una pregunta, espera. El silencio trabaja para ti.\n- **Usa sus números.** Su ticket medio y cuántos trabajos cierra convencen más que cualquier ejemplo nuestro.\n- **Las dudas, al final.** Si te corta con una pregunta: «Buena pregunta, te la resuelvo en un minuto cuando te explique la oferta». Apúntala y síguela.\n- **No prometas un número fijo de clientes.** Habla de objetivos y de lo que ya pasa en Sevilla. Lo que se promete de más se paga luego en bajas.\n\nLo que va entre «» son frases para decir tal cual. Lo que va entre [corchetes] lo rellenas con sus datos.\n\n## Antes de llamar (2 minutos)\n\n1. Abre su ficha en el CRM: oficio, ciudad y cuándo se registró.\n2. Mira cuántas plazas quedan en su ciudad (sale en la ficha). Si quedan 1 o 2, lo usarás en el cierre.\n3. Mira su precio por lead en Herramientas → Precios por lead. Si la ciudad tiene aviso, habla antes con Andrés.\n4. Ten a mano la calculadora del móvil o las tablas del paso 3.\n5. Ten preparado el contrato de su oficio para mandarlo por WhatsApp sin colgar.\n\n## Paso 1 · Apertura y mapa de la llamada (1 minuto)\n\n«Hola, [nombre], soy Sandra, de OficioYa. Te llamo porque has solicitado una plaza de [oficio] en [ciudad]. ¿Tienes 15 minutos ahora?»\n\n- **Si no puede:** «Sin problema. ¿Te viene mejor hoy a las [hora] o mañana a las [hora]?». Dale siempre dos opciones, nunca un «¿cuándo te viene bien?». Apúntalo en Próxima llamada.\n- **Si puede, comprueba el requisito:** «Antes de nada: estás dado de alta como autónomo, ¿verdad?». Si no lo está, ve directamente a esa respuesta en el paso 7.\n\nY ahora el mapa de la llamada, que es lo que te da el control:\n\n«Perfecto. Te cuento cómo va a ir, así no perdemos tiempo. Primero te explico quiénes somos y qué hacemos en Sevilla. Después vemos cuánto puedes facturar con nosotros, con tus números. Luego te explico la oferta y cómo te llegan los clientes. Al final te resuelvo todas las dudas y, si te encaja, te dejo el contrato. ¿Te parece?»\n\n## Paso 2 · Quiénes somos y qué hacemos (3 minutos)\n\n«Empiezo por quiénes somos. OficioYa es una plataforma de Sevilla que consigue clientes para fontaneros y pintores. Ponemos anuncios en Google, cuando alguien busca “fontanero en [ciudad]” o “pintores en [ciudad]”, y en redes sociales. Cuando un vecino pide presupuesto, se lo pasamos a un profesional de su zona. Solo a uno.»\n\nAhora haz una pregunta para saber qué le duele: «Por curiosidad, ¿cómo te llegan ahora los clientes? ¿Has probado alguna plataforma o agencia?»\n\nSegún lo que te cuente, elige uno o dos de estos problemas y empieza con: «Lo montamos así porque los profesionales con los que hablamos estaban hartos de…»\n\n| Si te cuenta que… | Le dices |\n| --- | --- |\n| Ha usado plataformas de presupuestos | «En otras plataformas el mismo cliente le llega a tres o cuatro profesionales a la vez. Gana el que llama primero o el más barato. Aquí cada cliente es solo tuyo.» |\n| Paga o ha pagado cuotas | «Hay sitios donde pagas una cuota todos los meses, te entre trabajo o no. Aquí no hay cuota: si un mes no te llega nadie, no pagas nada.» |\n| Ha comprado bonos o créditos | «En otras compras un bono por adelantado antes de ver un solo cliente. Aquí pagas los clientes después de recibirlos.» |\n| Ha trabajado con una agencia | «Una agencia te cobra su cuota, más lo que gastes en anuncios, y el riesgo es tuyo. Aquí la publicidad la ponemos y la pagamos nosotros.» |\n| Ha probado anuncios por su cuenta | «Montar tú los anuncios es aprender, probar y gastar sin saber si va a funcionar. Nosotros llevamos meses afinando las campañas en Sevilla.» |\n| Le preocupa la competencia | «Solo hay 2 plazas de [oficio] en cada ciudad. No compites con 30 profesionales por el mismo cliente.» |\n| Le llega todo por el boca a boca | «El boca a boca es lo mejor, pero no lo controlas: hay meses buenos y meses vacíos. Esto te da clientes nuevos todas las semanas.» |\n\nCierra el bloque: «Eso es lo que hacemos. Ahora te enseño qué queremos conseguir contigo, con números.»\n\n## Paso 3 · Lo que queremos conseguir contigo (4 minutos)\n\nPrimero, dos preguntas. Sus respuestas son tus números para el resto de la llamada:\n\n1. «¿Cuánto te deja de media un trabajo?» Si no lo sabe, usa 250 € en fontanería y 750 € en pintura.\n2. «De cada 10 clientes a los que das presupuesto, ¿cuántos cierras?»\n\nLa cuenta es siempre la misma: **clientes al mes × los que cierra × lo que le deja cada trabajo**.\n\n«Nuestro objetivo contigo es traerte entre [20 y 40] clientes al mes. Con lo que me has dicho, si cierras [4] de cada 10 y cada trabajo te deja [250 €], son [4.000 €] al mes en trabajos nuevos.»\n\n**Fontanería** (trabajo medio de 250 €)\n\n| Cierra | 20 clientes al mes | 40 clientes al mes |\n| --- | --- | --- |\n| 4 de cada 10 | 8 trabajos · 2.000 € | 16 trabajos · 4.000 € |\n| 5 de cada 10 | 10 trabajos · 2.500 € | 20 trabajos · 5.000 € |\n| 6 de cada 10 | 12 trabajos · 3.000 € | 24 trabajos · 6.000 € |\n| 7 de cada 10 | 14 trabajos · 3.500 € | 28 trabajos · 7.000 € |\n| 8 de cada 10 | 16 trabajos · 4.000 € | 32 trabajos · 8.000 € |\n| Paga por los clientes (40 € en Sevilla) | 800 € + IVA | 1.600 € + IVA |\n\n**Pintura** (trabajo medio de 750 €)\n\n| Cierra | 10 clientes al mes | 20 clientes al mes |\n| --- | --- | --- |\n| 4 de cada 10 | 4 trabajos · 3.000 € | 8 trabajos · 6.000 € |\n| 5 de cada 10 | 5 trabajos · 3.750 € | 10 trabajos · 7.500 € |\n| 6 de cada 10 | 6 trabajos · 4.500 € | 12 trabajos · 9.000 € |\n| 7 de cada 10 | 7 trabajos · 5.250 € | 14 trabajos · 10.500 € |\n| 8 de cada 10 | 8 trabajos · 6.000 € | 16 trabajos · 12.000 € |\n| Paga por los clientes (80 € en Sevilla) | 800 € + IVA | 1.600 € + IVA |\n\nFuera de Sevilla, la última fila se calcula con el precio de su ciudad (Herramientas → Precios por lead).\n\nLa frase que más convence: «Fíjate: con un solo trabajo de [250 €] pagas [6] clientes. El resto es beneficio.» En Sevilla, un trabajo de fontanería paga 6 clientes y uno de pintura paga 9.\n\nCierra el bloque: «Eso es el objetivo. Ahora te cuento lo que ya está pasando en Sevilla, que es lo que de verdad importa.»\n\n## Paso 4 · Lo que ya está pasando en Sevilla (2 minutos)\n\nDatos a 25 de octubre de 2026, sacados del sistema. Andrés los actualiza cada mes.\n\n| Dato | Cifra |\n| --- | --- |\n| Peticiones de presupuesto en Sevilla, septiembre | 80 (50 de fontanería y 30 de pintura) |\n| Lo mismo, con Málaga y Granada | Casi 100 |\n| Peticiones en Sevilla, octubre hasta el día 25 | 77 (64 de fontanería y 13 de pintura) |\n| Marcos, fontanero, desde julio | 27 trabajos terminados registrados, de 266 € de media |\n| Jorge, pintor, primeros días (desde mediados de octubre) | 5 clientes, un trabajo cerrado de 1.400 € y 2 presupuestos enviados |\n\nLas peticiones son solo las de formulario: además entran llamadas y WhatsApp que no están en esas cifras.\n\n«Para que veas que no te hablo de teoría: en septiembre entraron 80 peticiones de presupuesto solo en Sevilla, y en octubre llevamos 77. Jorge, nuestro pintor, empezó hace unos días: le han llegado 5 clientes y ya ha cerrado un trabajo de 1.400 €. Esos 5 clientes le costaron 400 €. Con un solo trabajo lo ha recuperado más de tres veces.»\n\nSi es de otra ciudad: «Sevilla es donde más tiempo llevamos. En [ciudad] montamos exactamente lo mismo.»\n\nCierra el bloque: «Ahora te explico la oferta, punto por punto.»\n\n## Paso 5 · La oferta, punto por punto (3 minutos)\n\n«Te explico qué incluye y qué necesitas para empezar.» Cada punto le quita una preocupación antes de que la diga.\n\n| Punto | Le dices | Lo que le quitas |\n| --- | --- | --- |\n| Publicidad | «La publicidad en tu ciudad la ponemos y la pagamos nosotros.» | Arriesgar dinero en anuncios |\n| Pago por cliente | «Solo pagas cada cliente que te llega: [precio] € + IVA en [ciudad]. Sin cuota mensual.» | Pagar meses sin trabajo |\n| Cliente exclusivo | «Cada cliente va a un solo profesional. No se reparte ni se subasta.» | Competir por el mismo cliente |\n| Plazas limitadas | «Solo hay 2 plazas de [oficio] en [ciudad], y quedan [N].» | Que haya 30 profesionales detrás |\n| Pago después | «Te facturamos a principio de mes los clientes del mes anterior, o antes si llegas a 820 € + IVA. Tienes 5 días para pagar.» | Adelantar dinero |\n| Solo clientes válidos | «Solo pagas los clientes válidos. Si te llega un teléfono que no existe o alguien que no ha pedido nada, nos avisas y lo revisamos.» | Pagar por basura |\n| Aviso al móvil | «Te llegan al móvil al momento, con aviso, y los llevas en tu panel.» | Perder clientes por no verlos |\n\n**Lo que necesita para empezar:**\n\n1. **El contrato firmado.** Es lo único imprescindible.\n2. **La activación:** 99 € + IVA (119,79 € en total), por transferencia o Bizum a la cuenta que pone el contrato, en los 5 días siguientes a firmar. Te manda el comprobante.\n3. **Alta de autónomo y seguro de responsabilidad civil.** Pídelos «para comprobar que todo está en regla». Si le choca, no insistas: con el contrato y la activación basta.\n\nCómo presentar la activación: «Lo único que pagas por adelantado son 99 €. Cubren tu alta, te reservan la plaza para que no la coja nadie más y ponen en marcha la campaña en [ciudad]. Con un solo trabajo los recuperas. Y si por lo que sea no arrancamos la campaña en 30 días, te los devolvemos: está en el contrato.»\n\nCierra el bloque: «Ahora te cuento qué pasa cuando te llega un cliente, con un ejemplo.»\n\n## Paso 6 · Cómo te llegan los clientes (3 minutos)\n\n«Te pongo un ejemplo de cómo funciona en el día a día.»\n\n1. Una vecina de [ciudad] busca en Google «[fontanero / pintor] en [ciudad]», ve nuestro anuncio y pide presupuesto. Puede hacerlo con el formulario, llamando o por WhatsApp.\n2. En ese momento te llega un aviso al móvil: «Nuevo cliente esperando tu llamada», con su nombre, su teléfono, la zona y lo que necesita.\n3. La llamas cuanto antes. Lo ideal es en los primeros minutos: el que llama rápido es el que cierra.\n4. En tu panel la vas moviendo: Contactado, Presupuesto enviado, Ganado o Perdido. Así ves cuántos trabajos cierras cada mes.\n5. Si el cliente llama directamente desde el anuncio, lo registramos nosotros y te aparece igual, para que completes sus datos.\n6. A principio de mes te llega la factura con los clientes del mes anterior.\n\n«Para empezar a recibirlos: firmas el contrato, pagas la activación, te damos de alta y te mandamos tu acceso. En cuanto llega la activación, arrancamos los anuncios en [ciudad].»\n\nSi le ves dudoso: «Si quieres, te lo enseño en una videollamada de 5 minutos.»\n\nCierra el bloque: «Esto es todo. Ahora dime tú, ¿qué dudas tienes?»\n\n## Paso 7 · Sus preguntas (lo que haga falta)\n\nResponde corto, comprueba («¿Te queda claro?») y vuelve siempre al mismo sitio: «Entonces te envío el contrato y lo ves con calma.»\n\n| Si te dice… | Le respondes |\n| --- | --- |\n| «Es caro» | «¿Cuánto te deja un trabajo? [250 €]. Entonces con un trabajo pagas [6] clientes. Si de cada 10 cierras 4, ganas dinero desde el primer mes.» |\n| «¿Cuántos clientes me vais a mandar?» | «El objetivo es [20 a 40] al mes. No te voy a prometer un número exacto porque depende de la demanda de cada semana, pero en Sevilla ya entran más de 70 peticiones al mes.» |\n| «¿Se lo mandáis también a otros?» | «No. Cada cliente va a un solo profesional. Es tuyo.» |\n| «¿Y si el cliente no es real o no contesta?» | «Solo pagas los clientes válidos. Si te llega uno que no existe, nos avisas y lo revisamos.» |\n| «¿Por qué tengo que pagar la activación?» | «Es lo que pone en marcha la campaña en tu ciudad y te reserva la plaza. Son 99 €, se recuperan con un trabajo, y si no arrancamos en 30 días te los devolvemos.» |\n| «¿Puedo probar sin pagar nada?» | «Sin activación no hay anuncios en tu ciudad, por eso es tan pequeña. Es lo único que pagas antes de recibir clientes.» |\n| «¿Hay permanencia o cuota?» | «No hay cuota mensual: pagas solo los clientes que recibes. Las condiciones para terminar el contrato vienen en el contrato y te las leo si quieres.» |\n| «Ya tengo bastante trabajo» | «Eso es que trabajas bien. Esto no es para llenarte la agenda, es para que elijas: los trabajos que te interesan los cierras y el resto los rechazas en la llamada.» |\n| «Déjame pensarlo» | «Claro. ¿Qué es lo que te hace dudar: el precio, cuántos clientes te llegan o cómo funciona?» Resuélvelo y sigue: «Te envío el contrato para que lo leas tranquilo y te llamo el [día] a las [hora].» |\n| «Lo tengo que hablar con mi socio / mi mujer» | «Perfecto. Te envío el contrato y hacemos una llamada los tres el [día]. ¿Te viene bien a las [hora]?» |\n| «No soy autónomo» | «Es requisito: tienes que poder facturar. Cuando te des de alta, escríbeme y miramos si sigue habiendo plaza en [ciudad].» Marca No interesado, motivo «No es autónomo». |\n| «¿De dónde salen los clientes?» | «De nuestros anuncios en Google y en redes sociales, en tu ciudad. Son personas que buscan un [fontanero / pintor] ese mismo día.» |\n| «En mi ciudad ya no hay plaza» | «Te dejo en lista de espera y eres el primero al que llamo si se libera una.» |\n\nSi te pregunta algo que no está aquí: «Eso te lo confirmo con Andrés y te lo digo mañana». Apúntalo en la nota y nunca te lo inventes.\n\n## Paso 8 · Completar su ficha (3 minutos)\n\n«Antes de enviarte el contrato necesito unos datos para preparar tu campaña. Así solo te llegan clientes que puedes atender.» Pregunta solo lo que todavía no tengas:\n\n- **Horario:** qué días y a qué horas trabaja, si atiende urgencias 24 h y si trabaja fines de semana y festivos.\n- **Zona:** barrios y pueblos que cubre, hasta cuántos kilómetros se mueve y a qué zonas no va.\n- **Servicios:** los que hace (usa la lista de su oficio) y los que no quiere recibir nunca.\n- **Capacidad:** cuántos clientes nuevos puede atender por semana.\n- **Facturación:** nombre o empresa, NIF o CIF, dirección fiscal y email. Con ese email entrará en la app y le llegarán las facturas.\n- **Papeles:** alta de autónomo y seguro de responsabilidad civil, si no le choca.\n\nTodo esto lo metes después en «Dar de alta en OficioYa», cuando firme.\n\n## Paso 9 · Cierre (2 minutos)\n\nMándale el contrato sin colgar y comprueba que le ha llegado.\n\n«Perfecto, [nombre]. Te acabo de mandar el contrato por WhatsApp. ¿Te ha llegado? Rellena tus datos, fírmalo a mano o con el móvil y me lo devuelves por ahí en PDF o en foto. En el contrato vienen los datos de la cuenta para la activación: 99 € + IVA, 119,79 € en total, por transferencia o Bizum. Cuando la hagas, mándame el comprobante.»\n\nSi quedan pocas plazas: «En [ciudad] quedan [N] plazas de [oficio]. La tuya queda reservada con el contrato firmado y la activación.»\n\nDeja fijada la siguiente llamada: «Te llamo pasado mañana, el [día] a las [hora], para ver qué te ha parecido y resolverte lo que te surja. ¿Te viene bien?»\n\nAl colgar, en el CRM:\n\n1. Márcalo como Contrato enviado.\n2. Pon la próxima llamada con el día y la hora que habéis quedado.\n3. Escribe en la nota sus dudas y lo que te ha dicho de horario, zona y servicios.\n\n## Seguimiento hasta la firma\n\nEl primer seguimiento es como mucho a los 2 días. Desde ahí, un contacto al día hasta que firme o diga que no. Alterna llamada y WhatsApp.\n\n| Cuándo | Qué haces | Mensaje |\n| --- | --- | --- |\n| Día 0, al colgar | WhatsApp con el contrato | El mensaje de Herramientas → Mensaje para enviar el contrato |\n| Día 2 | Llamada a la hora acordada. Si no contesta, WhatsApp | «Hola [nombre], soy Sandra de OficioYa. ¿Has podido ver el contrato? Te llamo hoy a las [hora] y te resuelvo lo que necesites.» |\n| Día 3 | Llamada o WhatsApp | «[Nombre], en [ciudad] quedan [N] plazas de [oficio]. ¿Te reservo la tuya?» |\n| Día 4 | Llamada o WhatsApp | «¿Te ha surgido alguna duda con el contrato? Si quieres lo vemos en 5 minutos por videollamada.» |\n| Día 5 en adelante | Un contacto al día, hasta 5 intentos sin respuesta | «[Nombre], no quiero insistir más. Si en algún momento te interesa, escríbeme y miramos si sigue habiendo plaza en [ciudad].» |\n\nCuando firme: sube el contrato a su ficha y pulsa Completado. Después pulsa «Dar de alta en OficioYa» y mándale su acceso por WhatsApp con el botón que aparece al terminar.\n\nSi a los 5 intentos no contesta, márcalo como No contesta. Si te dice que no, márcalo como No interesado con el motivo.\n";
+var editandoGuion = false;
+function guionTexto(){ return (D.textos && D.textos.guion && D.textos.guion.texto) || GUION_INICIAL; }
+function mdLinea(t){
+  return esc(t).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/ (€|h\b)/g, '&nbsp;$1');
+}
+function mdBloques(lineas){
+  var html = '', i = 0;
+  while(i < lineas.length){
+    var l = lineas[i];
+    if(!l.trim()){ i++; continue; }
+    if(/^###\s+/.test(l)){ html += '<h4>' + mdLinea(l.replace(/^###\s+/, '')) + '</h4>'; i++; continue; }
+    if(/^\|/.test(l.trim())){
+      var filas = [];
+      while(i < lineas.length && /^\|/.test(lineas[i].trim())){ filas.push(lineas[i].trim()); i++; }
+      var celdas = function(f){ return f.replace(/^\|/, '').replace(/\|$/, '').split('|').map(function(c){ return c.trim(); }); };
+      var cab = celdas(filas[0]), cuerpo = filas.slice(1).filter(function(f){ return !/^\|[\s:\-|]+\|?$/.test(f); });
+      html += '<div class="scroll"><table class="tabla"><tr>' + cab.map(function(c){ return '<th>' + mdLinea(c) + '</th>'; }).join('') + '</tr>'
+        + cuerpo.map(function(f){ return '<tr>' + celdas(f).map(function(c){ return '<td>' + mdLinea(c) + '</td>'; }).join('') + '</tr>'; }).join('') + '</table></div>';
+      continue;
+    }
+    if(/^\s*[-*]\s+/.test(l)){
+      var it = [];
+      while(i < lineas.length && /^\s*[-*]\s+/.test(lineas[i])){ it.push(lineas[i].replace(/^\s*[-*]\s+/, '')); i++; }
+      html += '<ul>' + it.map(function(x){ return '<li>' + mdLinea(x) + '</li>'; }).join('') + '</ul>'; continue;
+    }
+    if(/^\s*\d+[.)]\s+/.test(l)){
+      var it2 = [];
+      while(i < lineas.length && /^\s*\d+[.)]\s+/.test(lineas[i])){ it2.push(lineas[i].replace(/^\s*\d+[.)]\s+/, '')); i++; }
+      html += '<ol>' + it2.map(function(x){ return '<li>' + mdLinea(x) + '</li>'; }).join('') + '</ol>'; continue;
+    }
+    var par = [];
+    while(i < lineas.length && lineas[i].trim() && !/^(\||#{2,3}\s|\s*[-*]\s|\s*\d+[.)]\s)/.test(lineas[i])){ par.push(lineas[i].trim()); i++; }
+    if(!par.length){ par.push(l.trim()); i++; }
+    html += '<p>' + mdLinea(par.join(' ')) + '</p>';
+  }
+  return html;
+}
+function mdGuion(texto){
+  var secciones = [], actual = null;
+  String(texto).replace(/\r/g, '').split('\n').forEach(function(l){
+    if(/^#\s+/.test(l)) return;
+    var m = /^##\s+(.*)$/.exec(l);
+    if(m){ actual = { titulo: m[1], lineas: [] }; secciones.push(actual); return; }
+    if(!actual){ actual = { titulo: 'Guion', lineas: [] }; secciones.push(actual); }
+    actual.lineas.push(l);
+  });
+  return secciones.map(function(sc, n){
+    return '<details' + (n === 0 ? ' open' : '') + '><summary>' + mdLinea(sc.titulo) + '</summary><div class="cuerpo">' + mdBloques(sc.lineas) + '</div></details>';
+  }).join('');
+}
+function pintarGuion(){
+  if(editandoGuion) return;
+  var abiertos = {};
+  Array.prototype.forEach.call($('guion-ver').querySelectorAll('details'), function(d, n){ abiertos[n] = d.open; });
+  var hayPrevio = Object.keys(abiertos).length > 0;
+  $('guion-ver').innerHTML = mdGuion(guionTexto());
+  if(hayPrevio) Array.prototype.forEach.call($('guion-ver').querySelectorAll('details'), function(d, n){ if(n in abiertos) d.open = abiertos[n]; });
+  var g = D.textos && D.textos.guion;
+  $('guion-info').textContent = g ? 'Editado el ' + fecha(g.updated_at, true) + ' por ' + (g.updated_by === 'gestor' ? 'Sandra' : 'Andrés') : 'Toca un paso para abrirlo';
+}
+$('guion-btn-editar').addEventListener('click', function(){
+  editandoGuion = true;
+  $('guion-texto').value = guionTexto(); $('guion-err').textContent = '';
+  $('guion-ver').hidden = true; $('guion-btn-editar').hidden = true; $('guion-editar').hidden = false;
+  $('guion-texto').focus();
+});
+function cerrarEdicionGuion(){
+  editandoGuion = false;
+  $('guion-editar').hidden = true; $('guion-ver').hidden = false; $('guion-btn-editar').hidden = false;
+  pintarGuion();
+}
+$('guion-cancelar').addEventListener('click', function(){
+  if($('guion-texto').value !== guionTexto() && !confirm('¿Salir sin guardar los cambios del guion?')) return;
+  cerrarEdicionGuion();
+});
+$('guion-guardar').addEventListener('click', function(){
+  var t = $('guion-texto').value;
+  if(t.trim().length < 20){ $('guion-err').textContent = 'El guion está vacío.'; return; }
+  $('guion-guardar').disabled = true;
+  rpc('captacion_texto_guardar', { p_clave: CLAVE, p_id: 'guion', p_texto: t }).then(function(r){
+    D.textos = D.textos || {}; D.textos.guion = r;
+    $('guion-guardar').disabled = false; toast('Guion guardado'); cerrarEdicionGuion();
+    return cargar();
+  }).catch(function(e){ $('guion-guardar').disabled = false; $('guion-err').textContent = 'No se ha guardado: ' + e.message; });
+});
 
 /* ---------- Precios por lead ---------- */
 function numTxt(n){ return n == null || n === '' ? '' : String(Number(n)).replace('.', ','); }
