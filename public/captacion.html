@@ -227,6 +227,23 @@ body.arrastre .tablero{scroll-snap-type:none}
 .tabla tr.malo td{color:var(--aviso);font-weight:600}
 .tabla td.peor{color:var(--aviso);font-weight:700}
 @media (prefers-reduced-motion: reduce){.lead.recien{animation:none}}
+/* Precios por lead y alta del profesional */
+.precios-tabla tr[data-slug]{cursor:pointer}
+.precios-tabla tr[data-slug]:hover td,.precios-tabla tr[data-slug]:focus-visible td{background:var(--surface-2)}
+.precios-tabla td.n b{font-size:15.5px}
+.precios-tabla .nota-c{white-space:normal;color:var(--ambar);font-size:13px;min-width:200px}
+.form-alta .lbl small,.modal .lbl small{font-weight:500;color:var(--ink-faint)}
+.form-alta .seccion{border-top:1px solid var(--line);margin-top:16px;padding-top:12px}
+.form-alta .seccion h3{font-size:17px}
+.form-alta .seccion>p{color:var(--ink-soft);font-size:14px;margin-top:2px}
+.check{display:flex;gap:10px;align-items:center;font-weight:600;font-size:15px;margin-top:12px;cursor:pointer}
+.check input{width:20px;min-height:20px;flex:none}
+.clave-pro{font-size:26px;font-weight:700;letter-spacing:.06em;background:var(--surface-2);border:1.5px dashed var(--line-strong);border-radius:12px;padding:12px;text-align:center;margin:6px 0 8px;user-select:all;-webkit-user-select:all}
+.alta-ok{border:1.5px solid var(--ok);border-radius:14px;padding:14px;margin:12px 0}
+.alta-ok>p{font-size:15px}
+.hecho{font-size:14.5px;padding:10px 12px;border-radius:10px;background:rgba(30,158,90,.10);line-height:1.5}
+.aviso-precio{color:var(--ambar);font-size:14px;margin-top:6px}
+.aviso-precio:empty{display:none}
 /* Dentro del panel de admin: colores del panel y sin cabecera propia */
 :root.embed{
   color-scheme: dark;
@@ -330,6 +347,8 @@ body.arrastre .tablero{scroll-snap-type:none}
       <div class="lista" id="l-hoy"></div>
       <div class="titulo-sec"><h2>Contratos sin devolver</h2><small>Enviados y pendientes de firma</small></div>
       <div class="lista" id="l-contratos"></div>
+      <div class="titulo-sec"><h2>Firmados sin dar de alta</h2><small>Crea su cuenta para que puedan recibir clientes</small></div>
+      <div class="lista" id="l-altas"></div>
       <div class="titulo-sec"><h2>No contestan: reintentar</h2><small>Hasta 5 intentos</small></div>
       <div class="lista" id="l-reintentar"></div>
     </section>
@@ -357,20 +376,26 @@ body.arrastre .tablero{scroll-snap-type:none}
 
     <!-- HERRAMIENTAS -->
     <section id="tab-herramientas" hidden>
+      <div class="titulo-sec"><h2>Precios por lead</h2><small>Lo que paga el profesional por cada cliente, más IVA</small></div>
+      <input id="h-buscar-precio" placeholder="Buscar ciudad" aria-label="Buscar ciudad" autocomplete="off" style="margin-bottom:10px">
+      <div class="scroll"><table class="tabla precios-tabla" id="h-precios"></table></div>
+      <p class="nota">Toca una ciudad para cambiar sus precios. Al dar de alta a un profesional, su precio queda fijo en su ficha: si luego cambias la tabla, no le afecta.</p>
       <div class="titulo-sec"><h2>Contratos</h2><small>Descárgalo y envíaselo al profesional</small></div>
       <div class="herr" id="h-contratos"></div>
       <div class="titulo-sec"><h2>Cómo cerrar a un profesional</h2></div>
       <ol class="pasos-h">
-        <li><b>Llámale</b> y explícale las condiciones (tienes el guion debajo).</li>
+        <li><b>Llámale</b> y explícale las condiciones (tienes el guion debajo). Su precio por lead es el de su ciudad en la tabla de arriba.</li>
         <li>Si le interesa, <b>envíale el contrato de su oficio</b> por WhatsApp o email y márcalo como <b>Contrato enviado</b>.</li>
         <li>Cuando te lo devuelva firmado, entra en su ficha, <b>sube el contrato firmado</b> (PDF o foto) y pulsa <b>Completado</b>.</li>
-        <li>Andrés confirma el cobro de la activación y tu comisión de 50 € pasa a <b>a pagar</b>.</li>
+        <li>En su ficha, pulsa <b>Dar de alta en OficioYa</b> y rellena sus datos fiscales, horario y servicios. Se crea su cuenta y se emite su factura de alta.</li>
+        <li><b>Envíale su acceso por WhatsApp</b> con el botón que aparece al terminar.</li>
+        <li>Cuando pague la factura de alta, tu comisión de 50 € pasa a <b>a pagar</b> y Andrés lanza los anuncios en su ciudad.</li>
       </ol>
       <div class="titulo-sec"><h2>Guion de llamada</h2></div>
       <div class="guion">
         <p><b>Presentación:</b> «Hola, [nombre], soy Sandra de OficioYa. Te llamo porque has solicitado una plaza de [oficio] en [ciudad]. ¿Tienes dos minutos?»</p>
         <p><b>Qué ofrecemos:</b> nosotros ponemos y pagamos la publicidad en su ciudad y le pasamos clientes que piden presupuesto de su oficio.</p>
-        <p><b>Lo que paga:</b> una activación única de 99 € + IVA y después solo cada solicitud que recibe: 40 € + IVA en fontanería y 80 € + IVA en pintura. Sin cuota mensual.</p>
+        <p><b>Lo que paga:</b> una activación única de 99 € + IVA y después solo cada solicitud que recibe, al precio de su ciudad (está en la tabla de Precios por lead) + IVA. Sin cuota mensual.</p>
         <p><b>Por qué es distinto:</b> cada cliente va a un solo profesional, no se reparte entre tres. Y solo hay 2 plazas por oficio en cada ciudad.</p>
         <p><b>Requisito:</b> estar dado de alta como autónomo.</p>
         <p><b>Cierre:</b> «Si te parece bien, te envío ahora el contrato por WhatsApp, lo firmas y en cuanto esté activado empezamos con los anuncios en tu ciudad.»</p>
@@ -412,7 +437,7 @@ var MOTIVOS = ['Precio','No es autónomo','Ya tiene suficiente trabajo','Fuera d
 
 var $ = function(id){ return document.getElementById(id); };
 var D = { rol:null, leads:[], eventos:[], documentos:[], gasto:[], plazas:[] };
-var CLAVE = null, VISTA = 'gestor', tab = 'hoy', filtroEstado = '', periodo = 30, fichaId = null, subida = null;
+var CLAVE = null, VISTA = 'gestor', tab = 'hoy', filtroEstado = '', periodo = 30, fichaId = null, subida = null, altaAbierta = null;
 
 function esAdmin(){ return D.rol === 'admin' && VISTA === 'admin'; }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
@@ -451,7 +476,7 @@ var idsVistos = null, recien = {};
 function cargar(suave){
   return rpc('captacion_datos', { p_clave: CLAVE }).then(function(d){
     var antes = idsVistos;
-    D = d; D.documentos = D.documentos || []; D.avisos = D.avisos || [];
+    D = d; D.documentos = D.documentos || []; D.avisos = D.avisos || []; D.precios = D.precios || []; D.altas = D.altas || [];
     idsVistos = {}; D.leads.forEach(function(l){ idsVistos[l.id] = 1; });
     if(antes){
       var nuevos = D.leads.filter(function(l){ return !antes[l.id]; });
@@ -464,7 +489,7 @@ function cargar(suave){
     }
     contador();
     calcularEtapas(); pintar();
-    if(fichaId && !(suave && fichaEditando())) abrirFicha(fichaId, true);
+    if(fichaId && !altaAbierta && !(suave && fichaEditando())) abrirFicha(fichaId, true);
   });
 }
 function fichaEditando(){
@@ -588,18 +613,21 @@ function pintarHoy(){
   var contratos = L.filter(function(l){ return l.estado==='contrato_enviado'; }).sort(function(a,b){ return new Date(a.updated_at)-new Date(b.updated_at); });
   var reint = L.filter(function(l){ return l.estado==='no_contesta' && l.intentos < 5 && (!l.proxima_llamada || new Date(l.proxima_llamada) <= fin); })
                .sort(function(a,b){ return a.intentos - b.intentos; });
+  var sinAlta = L.filter(function(l){ return CERRADO.indexOf(l.estado) > -1 && !l.pro_user_id; })
+                 .sort(function(a,b){ return new Date(a.completado_at||a.updated_at)-new Date(b.completado_at||b.updated_at); });
   var mes = inicioMes();
   var cerradosMes = L.filter(function(l){ return CERRADO.indexOf(l.estado) > -1 && l.completado_at && new Date(l.completado_at) >= mes; });
   var urg = nuevos.filter(function(l){ return horasDesde(l.created_at) > 24; }).length;
   $('cifras-hoy').innerHTML =
       '<div class="cifra' + (urg?' alerta':'') + '"><strong>' + nuevos.length + '</strong><span>Nuevos sin llamar' + (urg ? ' · ' + urg + ' con más de 24 h' : '') + '</span></div>'
-    + '<div class="cifra"><strong>' + (hoy.length + reint.length + contratos.length) + '</strong><span>Seguimientos pendientes</span></div>'
+    + '<div class="cifra"><strong>' + (hoy.length + reint.length + contratos.length + sinAlta.length) + '</strong><span>Seguimientos pendientes</span></div>'
     + '<div class="cifra verde"><strong>' + cerradosMes.length + '</strong><span>Cerrados este mes</span></div>'
     + '<div class="cifra verde"><strong>' + euros(sum(cerradosMes)) + '</strong><span>Comisión del mes</span></div>';
   pintarLista('l-nuevos', nuevos, 'No hay profesionales nuevos por llamar.');
   pintarLista('l-hoy', hoy, 'No tienes llamadas programadas para hoy.', function(l){ return '<span class="estado ' + l.estado + '">' + esc(NOMBRE_ESTADO[l.estado]) + '</span><br>' + fecha(l.proxima_llamada, true); });
   pintarLista('l-contratos', contratos, 'No hay contratos pendientes de firma.', function(l){ return 'Enviado ' + hace(l.updated_at); });
   pintarLista('l-reintentar', reint, 'Nadie pendiente de reintentar.', function(l){ return l.intentos + ' intento' + (l.intentos===1?'':'s'); });
+  pintarLista('l-altas', sinAlta, 'Todos los firmados están dados de alta.', function(l){ return 'Firmado ' + hace(l.completado_at || l.updated_at); });
 }
 
 var vistaPipe = 'tablero';
@@ -682,6 +710,7 @@ function tarjetaK(l){
   }
   if(l.intentos) chips.push('<span class="chip">' + l.intentos + (l.intentos===1 ? ' llamada' : ' llamadas') + '</span>');
   if(docsDe(l.id).length) chips.push('<span class="chip ok">Contrato subido</span>');
+  if(CERRADO.indexOf(l.estado) > -1) chips.push(l.pro_user_id ? '<span class="chip ok">Alta hecha</span>' : '<span class="chip ambar">Falta el alta</span>');
   if(l.estado==='no_interesado' && l.motivo) chips.push('<span class="chip">' + esc(l.motivo) + '</span>');
   return '<div class="tarjeta ' + (l.oficio==='fontanero' ? 'f' : 'p') + (urg ? ' urgente' : '') + '" data-id="' + l.id + '" tabindex="0" role="button" aria-label="' + esc(l.nombre) + ', ' + esc(tituloEstado(l.estado)) + '">'
     + '<b>' + esc(l.nombre) + '</b>'
@@ -900,6 +929,51 @@ function pintarHerramientas(){
       + (esAdmin() ? '<button class="btn sec" data-subir-plantilla="' + o + '">' + (p ? 'Sustituir' : 'Subir') + '</button>' : '') + '</div></div>';
   }).join('');
   $('msg-contrato').textContent = mensajeContrato(null);
+  pintarPrecios();
+}
+
+/* ---------- Precios por lead ---------- */
+function numTxt(n){ return n == null || n === '' ? '' : String(Number(n)).replace('.', ','); }
+function aNum(v){ var n = Number(String(v == null ? '' : v).trim().replace(/\s/g,'').replace(',', '.')); return isFinite(n) ? n : NaN; }
+function sinTildes(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+function precioCiudad(slug){ return (D.precios||[]).filter(function(x){ return x.slug === slug; })[0] || null; }
+function precioDe(slug, oficio){ var p = precioCiudad(slug); return p ? Number(oficio === 'fontanero' ? p.fontanero : p.pintor) : null; }
+function ciudadesPrecio(){ return (D.precios||[]).slice().sort(function(a,b){ return String(a.ciudad).localeCompare(String(b.ciudad), 'es'); }); }
+function pintarPrecios(){
+  var q = sinTildes($('h-buscar-precio').value.trim());
+  var lista = ciudadesPrecio().filter(function(p){ return !q || sinTildes(p.ciudad).indexOf(q) > -1; });
+  $('h-precios').innerHTML = '<tr><th>Ciudad</th><th class="n">Fontanería</th><th class="n">Pintura</th><th>Aviso</th></tr>'
+    + (lista.length ? lista.map(function(p){
+        return '<tr data-slug="' + esc(p.slug) + '" tabindex="0"><td><b>' + esc(p.ciudad) + '</b></td>'
+          + '<td class="n"><b>' + euros(Number(p.fontanero)) + '</b></td><td class="n"><b>' + euros(Number(p.pintor)) + '</b></td>'
+          + '<td class="nota-c">' + esc(p.nota || '') + '</td></tr>';
+      }).join('') : '<tr><td colspan="4">No hay ninguna ciudad con ese nombre.</td></tr>');
+}
+$('h-buscar-precio').addEventListener('input', pintarPrecios);
+$('h-precios').addEventListener('click', function(e){ var t = e.target.closest('tr[data-slug]'); if(t) editarPrecio(t.getAttribute('data-slug')); });
+$('h-precios').addEventListener('keydown', function(e){ var t = e.target.closest('tr[data-slug]'); if(t && (e.key==='Enter' || e.key===' ')){ e.preventDefault(); editarPrecio(t.getAttribute('data-slug')); } });
+function editarPrecio(slug){
+  var p = precioCiudad(slug); if(!p) return;
+  var m = $('modal');
+  m.innerHTML = '<div class="caja-m" role="dialog" aria-modal="true" aria-labelledby="pr-t"><h3 id="pr-t">' + esc(p.ciudad) + '</h3>'
+    + '<p>Precio por lead, sin IVA. Se aplica a los profesionales que des de alta a partir de ahora.</p>'
+    + '<div class="fila"><div><label class="lbl" for="pr-f">Fontanería (€)</label><input id="pr-f" inputmode="decimal" value="' + numTxt(p.fontanero) + '"></div>'
+    + '<div><label class="lbl" for="pr-p">Pintura (€)</label><input id="pr-p" inputmode="decimal" value="' + numTxt(p.pintor) + '"></div></div>'
+    + '<label class="lbl" for="pr-n">Aviso <small>(opcional)</small></label><input id="pr-n" value="' + esc(p.nota || '') + '" placeholder="Algo a tener en cuenta en esta ciudad">'
+    + '<p class="err" id="pr-err"></p>'
+    + '<div class="fila"><button type="button" class="btn sec" id="pr-no">Cancelar</button><button type="button" class="btn" id="pr-si">Guardar precios</button></div></div>';
+  m.hidden = false; $('pr-f').focus();
+  var cerrarM = function(){ m.hidden = true; m.innerHTML = ''; };
+  $('pr-no').onclick = cerrarM;
+  m.onclick = function(e){ if(e.target === m) cerrarM(); };
+  $('pr-si').onclick = function(){
+    var f = aNum($('pr-f').value), pi = aNum($('pr-p').value);
+    if(!(f >= 5 && f <= 1000) || !(pi >= 5 && pi <= 1000)){ $('pr-err').textContent = 'Pon precios entre 5 y 1.000 €.'; return; }
+    $('pr-si').disabled = true;
+    rpc('captacion_precio_guardar', { p_clave: CLAVE, p_slug: slug, p_fontanero: f, p_pintor: pi, p_nota: $('pr-n').value })
+      .then(function(){ cerrarM(); toast('Precios de ' + p.ciudad + ' guardados'); return cargar(); })
+      .catch(function(e){ $('pr-si').disabled = false; $('pr-err').textContent = 'No se han guardado: ' + e.message; });
+  };
 }
 $('h-contratos').addEventListener('click', function(e){
   var d = e.target.closest('[data-desc]'); if(d) descargar(d.getAttribute('data-desc'));
@@ -1306,6 +1380,20 @@ function abrirFicha(id, refrescar){
     + (l.estado==='pagado' ? '<p class="aviso-plaza">Profesional <b>activo</b>: activación cobrada' + (l.pagado_at ? ' el ' + fecha(l.pagado_at) : '') + '. Toca lanzar su campaña de clientes.</p>' : '')
     + '</div>';
 
+  var al = altaDe(l), bloqueAlta = '';
+  if(cerrado){
+    bloqueAlta = '<div class="bloque"><h3>Alta en OficioYa</h3>';
+    if(!l.pro_user_id){
+      bloqueAlta += '<p class="nota" style="margin:0 0 10px">Crea su cuenta con sus datos fiscales, horario y servicios. Así Andrés le puede pasar clientes en cuanto lance la campaña en su ciudad.</p>'
+        + '<button class="btn ok full" id="fi-alta">Dar de alta en OficioYa</button>';
+    } else {
+      bloqueAlta += '<div class="hecho">Dado de alta el ' + fecha(l.alta_at) + '. Paga <b>' + euros(Number(l.precio_lead || 0)) + '</b> + IVA por lead en ' + esc(al ? al.zone : (l.ciudad || 'su ciudad')) + '.'
+        + (al ? '<br>Entra en la app con: <b>' + esc(al.email) + '</b><br>Factura de alta: ' + estadoAltaTxt(al.activacion_estado) : '') + '</div>'
+        + '<div class="fila" style="margin-top:8px"><button class="btn sec" id="fi-alta">Editar datos</button><button class="btn sec" id="fi-clave">Nueva contraseña</button></div>';
+    }
+    bloqueAlta += '</div>';
+  }
+
   var botonesEstado = (cerrado && !admin) ? '' :
     '<div class="bloque"><h3>Estado</h3><div class="estados" id="fi-estados">'
     + ESTADOS.filter(function(e){ return ESTADOS_SANDRA.indexOf(e[0]) > -1 || (admin && CERRADO.indexOf(e[0]) > -1 && e[0]===l.estado); })
@@ -1328,6 +1416,7 @@ function abrirFicha(id, refrescar){
     + '<div class="aviso-plaza">' + plazasDe(l) + '</div>'
     + (cerrado ? '' : '<div class="bloque"><h3>¿Cómo ha ido la llamada?</h3><div class="fila"><button class="btn ok" id="fi-contesto">Contestó</button><button class="btn sec" id="fi-nocontesto">No contestó</button></div></div>')
     + bloqueContrato
+    + bloqueAlta
     + botonesEstado
     + '<div class="bloque"><h3>Historial</h3><ul class="historial">' + (hist || '<li>Sin movimientos.</li>') + '</ul></div>';
 
@@ -1372,6 +1461,14 @@ function abrirFicha(id, refrescar){
     if(!confirm('¿Has cobrado los 99 € de activación de ' + l.nombre + '?')) return;
     guardar(l.id, { estado:'pagado' }, 'Profesional activo');
   });
+  if($('fi-alta')) $('fi-alta').addEventListener('click', function(){ abrirAlta(l.id); });
+  if($('fi-clave')) $('fi-clave').addEventListener('click', function(){
+    if(!confirm('Se le pone una contraseña nueva a ' + l.nombre + ' y la antigua deja de funcionar. ¿Seguir?')) return;
+    this.disabled = true;
+    rpc('captacion_nueva_clave_pro', { p_clave: CLAVE, p_lead: l.id }).then(function(pass){
+      mostrarAcceso(l, { email: al ? al.email : '', password: pass, ciudad: al ? al.zone : (l.ciudad || ''), telefono: al ? al.phone : l.telefono }, true);
+    }).catch(function(e){ toast('No se ha cambiado: ' + e.message); abrirFicha(l.id, true); });
+  });
   if($('fi-wa-contrato')) $('fi-wa-contrato').addEventListener('click', function(){
     if(['nuevo','contactado','interesado','no_contesta'].indexOf(l.estado) > -1)
       setTimeout(function(){ if(confirm('¿Le has enviado el contrato? Lo marco como "Contrato enviado".')) guardar(l.id, { estado:'contrato_enviado' }, 'Marcado como contrato enviado'); }, 800);
@@ -1388,9 +1485,148 @@ function guardar(id, cambios, ok){
     .then(function(){ toast(ok); return cargar(); })
     .catch(function(e){ toast('No se ha guardado: ' + e.message); abrirFicha(id, true); });
 }
-function cerrarFicha(){ fichaId = null; $('velo').hidden = true; $('ficha').hidden = true; document.body.style.overflow = ''; }
+function cerrarFicha(){ fichaId = null; altaAbierta = null; $('velo').hidden = true; $('ficha').hidden = true; document.body.style.overflow = ''; }
 $('velo').addEventListener('click', cerrarFicha);
 document.addEventListener('keydown', function(e){ if(e.key==='Escape' && fichaId) cerrarFicha(); });
+
+/* ---------- Alta del profesional en OficioYa ---------- */
+function altaDe(l){ return l && l.pro_user_id ? (D.altas||[]).filter(function(a){ return a.id === l.pro_user_id; })[0] || null : null; }
+function estadoAltaTxt(e){ return e === 'pagada' ? '<b style="color:var(--ok)">pagada</b>' : e === 'pendiente' ? '<b style="color:var(--ambar)">pendiente de pago</b>' : e === 'exento' ? 'exento' : 'sin emitir'; }
+function abrirAlta(id){
+  var l = leadPorId(id); if(!l) return;
+  altaAbierta = id; fichaId = id;
+  var al = altaDe(l) || {}, fi = al.ficha || {};
+  var slug = al.city_slug || l.ciudad_slug || '';
+  var precio = al.precio_lead != null ? Number(al.precio_lead) : precioDe(slug, l.oficio);
+  var opts = '<option value="">Elige la ciudad</option>' + ciudadesPrecio().map(function(p){
+    return '<option value="' + esc(p.slug) + '"' + (p.slug === slug ? ' selected' : '') + '>' + esc(p.ciudad) + '</option>'; }).join('');
+  var campo = function(id, label, val, extra){ return '<label class="lbl" for="' + id + '">' + label + '</label><input id="' + id + '" value="' + esc(val == null ? '' : val) + '"' + (extra || '') + '>'; };
+  var area = function(id, label, val, ph){ return '<label class="lbl" for="' + id + '">' + label + '</label><textarea id="' + id + '" placeholder="' + esc(ph || '') + '">' + esc(val || '') + '</textarea>'; };
+  var act = al.activacion_estado || '';
+  $('ficha').innerHTML =
+    '<div class="cab"><div><h2 id="fi-nombre">' + (l.pro_user_id ? 'Datos de alta' : 'Alta en OficioYa') + '</h2><span class="estado">' + esc(l.nombre) + ' · ' + oficioTxt(l.oficio) + '</span></div>'
+    + '<button class="cerrar" id="al-cerrar" aria-label="Cerrar">×</button></div>'
+    + '<p class="nota">Rellénalo con la ficha que hiciste en la llamada. Al guardar se crea su cuenta y le aparece a Andrés para pasarle clientes.</p>'
+    + '<div class="form-alta">'
+    + '<div class="seccion"><h3>Contacto</h3>'
+    + campo('al-nombre', 'Nombre y apellidos', al.name || l.nombre, ' autocomplete="off"')
+    + campo('al-empresa', 'Nombre comercial <small>(opcional)</small>', al.company_name, ' autocomplete="off"')
+    + campo('al-email', 'Email <small>(con él entra en la app y le llegan las facturas)</small>', al.email, ' type="email" inputmode="email" autocomplete="off"')
+    + campo('al-tel', 'Teléfono', al.phone || l.telefono, ' type="tel" inputmode="tel" autocomplete="off"')
+    + '</div>'
+    + '<div class="seccion"><h3>Facturación</h3>'
+    + campo('al-cif', 'NIF o CIF', al.cif, ' autocomplete="off"')
+    + campo('al-dir', 'Dirección fiscal', al.fiscal_address, ' placeholder="Calle, número y piso" autocomplete="off"')
+    + '<div class="fila"><div>' + campo('al-cp', 'Código postal', al.fiscal_zip, ' inputmode="numeric" autocomplete="off"') + '</div><div>' + campo('al-pob', 'Población', al.fiscal_city, ' autocomplete="off"') + '</div></div>'
+    + '</div>'
+    + '<div class="seccion"><h3>Ciudad y precio</h3>'
+    + '<label class="lbl" for="al-ciudad">Ciudad donde trabaja</label><select id="al-ciudad">' + opts + '</select>'
+    + '<label class="lbl" for="al-precio">Precio por lead <small>(€ sin IVA, el de su contrato)</small></label><input id="al-precio" inputmode="decimal" value="' + numTxt(precio) + '">'
+    + '<p class="aviso-precio" id="al-aviso"></p>'
+    + area('al-zonas', 'Barrios y pueblos que cubre', fi.zonas, 'Separados por comas')
+    + '</div>'
+    + '<div class="seccion"><h3>Horario y servicios</h3><p>Lo que Andrés necesita para que los anuncios no traigan clientes que no puede atender.</p>'
+    + area('al-horario', 'Horario', fi.horario, 'Ej.: lunes a viernes de 8 a 19 h y sábados por la mañana')
+    + '<label class="check"><input type="checkbox" id="al-urg"' + (fi.urgencias_24h ? ' checked' : '') + '> Atiende urgencias 24 h</label>'
+    + '<label class="check"><input type="checkbox" id="al-finde"' + (fi.fines_semana ? ' checked' : '') + '> Trabaja fines de semana y festivos</label>'
+    + area('al-serv', 'Servicios que hace', fi.servicios, 'Separados por comas')
+    + area('al-nohace', 'Servicios que NO quiere recibir', fi.no_hace, 'Separados por comas')
+    + campo('al-cap', 'Clientes nuevos que puede atender por semana', fi.capacidad_semana, ' inputmode="numeric" autocomplete="off"')
+    + area('al-notas', 'Notas para Andrés <small>(opcional)</small>', fi.notas, '')
+    + '</div>'
+    + (act === 'pagada' || act === 'exento' ? '' : act === 'pendiente'
+        ? '<p class="nota" style="margin-top:14px">La factura de alta ya está emitida.</p>'
+        : '<label class="check"><input type="checkbox" id="al-factura" checked> Emitir su factura de alta (' + ACTIVACION + ' € + IVA)</label>')
+    + '<p class="err" id="al-err"></p>'
+    + '<div class="fila" style="margin-top:14px"><button class="btn sec" id="al-volver">Volver</button><button class="btn ok" id="al-guardar">' + (l.pro_user_id ? 'Guardar cambios' : 'Dar de alta') + '</button></div>'
+    + '</div>';
+
+  var tocado = false;
+  var avisar = function(){
+    var s = $('al-ciudad').value, p = precioCiudad(s), t = precioDe(s, l.oficio), v = aNum($('al-precio').value), txt = [];
+    if(p && p.nota && (l.oficio === 'fontanero' || !/^fontaner/i.test(p.nota))) txt.push(p.nota);
+    if(t != null && v >= 0 && Math.abs(v - t) > 0.001) txt.push('El precio de la tabla para ' + p.ciudad + ' es ' + euros(t) + '.');
+    $('al-aviso').textContent = txt.join(' ');
+  };
+  $('al-ciudad').addEventListener('change', function(){
+    var t = precioDe(this.value, l.oficio);
+    if(!tocado && t != null) $('al-precio').value = numTxt(t);
+    avisar();
+  });
+  $('al-precio').addEventListener('input', function(){ tocado = true; avisar(); });
+  avisar();
+  $('al-cerrar').addEventListener('click', cerrarFicha);
+  $('al-volver').addEventListener('click', function(){ altaAbierta = null; abrirFicha(l.id, true); });
+  $('al-guardar').addEventListener('click', function(){ guardarAlta(l); });
+  $('ficha').scrollTop = 0;
+  if($('velo').hidden){ $('velo').hidden = false; $('ficha').hidden = false; document.body.style.overflow = 'hidden'; }
+  $('al-nombre').focus();
+}
+function guardarAlta(l){
+  var v = function(id){ return $(id) ? $(id).value.trim() : ''; };
+  var d = {
+    nombre: v('al-nombre'), empresa: v('al-empresa'), email: v('al-email').toLowerCase(), telefono: v('al-tel'),
+    cif: v('al-cif'), direccion: v('al-dir'), cp: v('al-cp'), poblacion: v('al-pob'),
+    ciudad_slug: $('al-ciudad').value, precio_lead: aNum($('al-precio').value), zonas: v('al-zonas'),
+    horario: v('al-horario'), urgencias: $('al-urg').checked, fines_semana: $('al-finde').checked,
+    servicios: v('al-serv'), no_hace: v('al-nohace'), capacidad: v('al-cap'), notas: v('al-notas'),
+    factura_alta: !!($('al-factura') && $('al-factura').checked)
+  };
+  var tel = d.telefono.replace(/\D/g, '').slice(-9), err = '';
+  if(!d.nombre) err = 'Falta el nombre.';
+  else if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email)) err = 'El email no es válido.';
+  else if(tel.length !== 9) err = 'El teléfono tiene que tener 9 cifras.';
+  else if(d.cif.replace(/[\s.\-]/g, '').length < 8) err = 'Falta el NIF o CIF.';
+  else if(!d.direccion || !d.cp || !d.poblacion) err = 'Falta la dirección fiscal completa (calle, código postal y población).';
+  else if(!d.ciudad_slug) err = 'Elige la ciudad donde trabaja.';
+  else if(!(d.precio_lead >= 5 && d.precio_lead <= 1000)) err = 'Pon el precio por lead (entre 5 y 1.000 €).';
+  $('al-err').textContent = err;
+  if(err) return;
+  var t = precioDe(d.ciudad_slug, l.oficio), c = precioCiudad(d.ciudad_slug);
+  if(t != null && Math.abs(d.precio_lead - t) > 0.001 && !confirm('Vas a ponerle ' + euros(d.precio_lead) + ' por lead y en la tabla de ' + c.ciudad + ' pone ' + euros(t) + '. ¿Es lo que firmó?')) return;
+  $('al-guardar').disabled = true; $('al-guardar').textContent = 'Guardando…';
+  rpc('captacion_alta_profesional', { p_clave: CLAVE, p_lead: l.id, p_datos: d }).then(function(r){
+    r.nombre = d.nombre; r.telefono = tel;
+    mostrarAcceso(l, r, false);
+    cargar().catch(function(){});
+  }).catch(function(e){
+    $('al-guardar').disabled = false; $('al-guardar').textContent = l.pro_user_id ? 'Guardar cambios' : 'Dar de alta';
+    $('al-err').textContent = 'No se ha guardado: ' + e.message;
+  });
+}
+function mensajeAcceso(l, r, soloClave){
+  var n = String(r.nombre || l.nombre).split(' ')[0];
+  if(soloClave) return 'Hola ' + n + ', te he puesto una contraseña nueva para entrar en OficioYa: ' + r.password + '. Entra en https://aficioya.com con tu email ' + r.email + ' y cámbiala desde tu perfil.';
+  return 'Hola ' + n + ', ya tienes tu cuenta en OficioYa. Entra en https://aficioya.com con tu email ' + r.email
+    + (r.password ? ' y esta contraseña provisional: ' + r.password + '. Cámbiala desde tu perfil.' : ' y la contraseña que ya tenías.')
+    + ' Cuando la app te lo pida, activa las notificaciones para que te lleguen los clientes al momento.'
+    + (r.factura ? ' Ahí mismo verás tu factura de alta; en cuanto esté pagada, lanzamos los anuncios en ' + r.ciudad + '.' : ' Te aviso en cuanto lancemos los anuncios en ' + r.ciudad + '.');
+}
+function mostrarAcceso(l, r, soloClave){
+  altaAbierta = l.id; fichaId = l.id;
+  var msg = mensajeAcceso(l, r, soloClave), telWa = { telefono: r.telefono || l.telefono };
+  var resumen = soloClave ? 'Contraseña cambiada. La anterior ya no funciona.'
+    : (r.existente ? 'Ya tenía cuenta con <b>' + esc(r.email) + '</b>: se han guardado sus datos.' : 'Cuenta creada con <b>' + esc(r.email) + '</b>.')
+      + ' Paga <b>' + euros(Number(r.precio)) + '</b> + IVA por lead en ' + esc(r.ciudad) + '.'
+      + (r.factura ? ' Su factura de alta ya le aparece en la app.' : '')
+      + ' Andrés ya lo ve en su panel para pasarle clientes.';
+  $('ficha').innerHTML =
+    '<div class="cab"><div><h2 id="fi-nombre">' + (soloClave ? 'Contraseña nueva' : r.existente ? 'Datos guardados' : 'Dado de alta') + '</h2><span class="estado completado">' + esc(l.nombre) + '</span></div>'
+    + '<button class="cerrar" id="al-cerrar" aria-label="Cerrar">×</button></div>'
+    + '<div class="alta-ok"><p>' + resumen + '</p>'
+    + (r.password ? '<p class="lbl">Contraseña provisional</p><div class="clave-pro">' + esc(r.password) + '</div><p class="nota">Envíasela ahora: no se vuelve a mostrar. Si se pierde, genera otra desde su ficha.</p>' : '')
+    + '</div>'
+    + '<p class="lbl">Mensaje para el profesional</p><div class="guion"><p>' + esc(msg) + '</p></div>'
+    + '<div class="fila" style="margin-top:10px"><a class="btn" href="' + wa(telWa, msg) + '" target="_blank" rel="noopener">Enviar por WhatsApp</a><button class="btn sec" id="al-copiar">Copiar mensaje</button></div>'
+    + '<button class="btn sec full" id="al-fin" style="margin-top:8px">Volver a su ficha</button>';
+  $('al-cerrar').addEventListener('click', cerrarFicha);
+  $('al-fin').addEventListener('click', function(){ altaAbierta = null; abrirFicha(l.id, true); });
+  $('al-copiar').addEventListener('click', function(){
+    (navigator.clipboard ? navigator.clipboard.writeText(msg) : Promise.reject()).then(function(){ toast('Mensaje copiado'); }).catch(function(){ toast('Mantén pulsado el texto para copiarlo'); });
+  });
+  if($('velo').hidden){ $('velo').hidden = false; $('ficha').hidden = false; document.body.style.overflow = 'hidden'; }
+  $('ficha').scrollTop = 0; $('al-cerrar').focus();
+}
 
 /* ---------- Arranque ---------- */
 (function(){
