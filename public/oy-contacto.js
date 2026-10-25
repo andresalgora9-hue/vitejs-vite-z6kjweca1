@@ -6,6 +6,7 @@
 
    Uso en cada landing, justo antes de </body>:
    <script src="/oy-contacto.js?v=1" data-oficio="Pintor" data-valor="80" data-gremio="pintor" defer></script>
+   Solo llamada (sin WhatsApp): añadir data-solo-llamada="1". Cualquier botón de WhatsApp pasa a ser llamada.
    ============================================================ */
 (function () {
   "use strict";
@@ -16,6 +17,7 @@
   var OFICIO = DS.oficio || "Sin oficio";
   var VALOR = Number(DS.valor || 0);
   var GREMIO = DS.gremio || "profesional";
+  var SOLO_LLAMADA = DS.soloLlamada === "1";
 
   var RPC = "https://rjwojxwrsbvwwshwwpvq.supabase.co/rest/v1/rpc/oy_lead_contacto";
   var KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE";
@@ -99,6 +101,7 @@
 
   function abrir(canal, extra) {
     canal = canal === "whatsapp" ? "whatsapp" : "llamada";
+    if (SOLO_LLAMADA) canal = "llamada";
     extra = extra || {};
     ponerEstilos();
     cerrar();
@@ -146,6 +149,8 @@
     var btn = f.querySelector(".oyc-btn");
     if (previo.nombre) inNombre.value = previo.nombre;
     if (previo.telefono) inTel.value = previo.telefono;
+    if (extra.nombre) inNombre.value = extra.nombre;
+    if (extra.telefono) inTel.value = extra.telefono;
     setTimeout(function () { (previo.nombre ? inTel : inNombre).focus({ preventScroll: true }); }, 220);
 
     if (typeof gtag === "function") gtag("event", "contacto_abierto", { event_category: "contacto_" + canal, event_label: OFICIO });
@@ -226,6 +231,14 @@
         })
         .catch(function () { clearTimeout(reloj); continuar(RESPALDO); });
     });
+
+    // Si la landing ya tiene nombre y teléfono (formulario del presupuesto), se llama sin volver a pedirlos
+    if (extra.auto && extra.nombre && extra.telefono) {
+      setTimeout(function () {
+        if (form.requestSubmit) form.requestSubmit();
+        else form.dispatchEvent(new Event("submit", { cancelable: true }));
+      }, 60);
+    }
   }
 
   function mostrarOk(f, esWa, destino, res) {
