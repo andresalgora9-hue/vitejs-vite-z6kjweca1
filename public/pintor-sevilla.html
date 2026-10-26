@@ -6,7 +6,7 @@
   <!-- ── CONSENTIMIENTO Y COOKIES ── -->
 <script src="/oy-consent.js"></script>
 <title>Empresa de pintores en Sevilla: compara y pide presupuesto | OficioYa</title>
-<meta name="description" content="Te ponemos en contacto con empresas de pintores verificadas en Sevilla. Ve el precio orientativo de pintar tu piso, quitar gotelé o la fachada antes de llamar a nadie."/>
+<meta name="description" content="Te ponemos en contacto con empresas de pintores de Sevilla evaluadas en precio, calidad y servicio. Ve el precio orientativo de pintar tu piso, quitar gotelé o la fachada antes de llamar a nadie."/>
 <meta name="keywords" content="empresa de pintores sevilla, pintores en sevilla, pintor sevilla, pintar piso sevilla, quitar gotele sevilla, precio pintar piso sevilla, pintar fachada sevilla"/>
 <meta name="robots" content="index, follow"/>
 <link rel="canonical" href="https://www.aficioya.com/pintor-sevilla.html"/>
@@ -17,7 +17,7 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png"/>
 
 <meta property="og:title" content="Empresa de pintores en Sevilla: compara y pide presupuesto | OficioYa"/>
-<meta property="og:description" content="Te ponemos en contacto con pintores verificados en Sevilla. Precio orientativo antes de llamar."/>
+<meta property="og:description" content="Te ponemos en contacto con empresas de pintores de Sevilla. Precio orientativo antes de llamar."/>
 <meta property="og:url" content="https://www.aficioya.com/pintor-sevilla.html"/>
 <meta property="og:image" content="https://www.aficioya.com/icon-512.png"/>
 <meta property="og:type" content="website"/>
@@ -35,8 +35,8 @@
 {
   "@context":"https://schema.org",
   "@type":"Service",
-  "name":"Pintores verificados en Sevilla",
-  "description":"OficioYa pone en contacto a clientes de Sevilla con empresas y profesionales de pintura verificados. Presupuesto orientativo disponible antes de contactar.",
+  "name":"Empresa de pintores en Sevilla",
+  "description":"OficioYa pone en contacto a clientes de Sevilla con empresas y profesionales de pintura evaluados en precio, calidad y servicio. Presupuesto orientativo disponible antes de contactar.",
   "provider":{"@type":"LocalBusiness","name":"OficioYa","url":"https://www.aficioya.com","telephone":"+34656398014"},
   "areaServed":{"@type":"City","name":"Sevilla"},
   "serviceType":"Pintores"
@@ -313,6 +313,18 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
 /* ── ANCLAS: que el nav fijo no tape el título ── */
 section[id],div[id]{scroll-margin-top:90px}
 
+.lead-err{color:#B42318;font-size:12.5px;font-weight:600;margin:-4px 0 10px}
+.lead-err:empty{display:none}
+.field input[aria-invalid="true"]{border-color:#D92D20}
+.hp{position:absolute!important;left:-9999px!important;width:1px;height:1px;opacity:0}
+.btn-result-cta[disabled]{opacity:.65;cursor:default}
+.lead-ok{text-align:center;padding:2px 0 0}
+.lead-ok-ico{font-size:34px;line-height:1}
+.lead-ok h3{font-family:'Sora';font-size:18px;font-weight:700;color:var(--ink);margin:10px 0 6px}
+.lead-ok p{font-size:13.5px;color:var(--ink-soft);line-height:1.6;margin:0 0 16px}
+.lead-ok .lead-ok-alt{font-size:12px;color:var(--ink-faint);margin:0 0 8px}
+.btn-ok-wa{display:block;width:100%;text-align:center;background:#fff;color:var(--green);font-weight:700;font-size:14px;padding:12px;border-radius:9px;border:1.5px solid var(--green);cursor:pointer;font-family:'Inter';margin-top:8px}
+.btn-ok-wa:hover{background:var(--green-soft)}
 </style>
 </head>
 <body>
@@ -330,11 +342,11 @@ section[id],div[id]{scroll-margin-top:90px}
   <section class="hero">
     <div class="hero-grid">
       <div>
-        <div class="eyebrow">&#128396;&#65039; Sevilla &middot; Pintores verificados</div>
+        <div class="eyebrow">&#128396;&#65039; Sevilla &middot; Empresa de pintores</div>
         <h1>Encuentra tu empresa de pintores en <em>Sevilla</em>, sin sorpresas</h1>
-        <p class="hero-sub">Ve el precio orientativo de pintar tu piso <strong>antes de hablar con nadie</strong>. Te ponemos en contacto con pintores y empresas de pintura ya verificadas en Sevilla.</p>
+        <p class="hero-sub">Ve el precio orientativo de pintar tu piso <strong>antes de hablar con nadie</strong>. Te ponemos en contacto con empresas de pintura y pintores de Sevilla que ya hemos evaluado.</p>
         <div class="trust-row">
-          <div class="trust-chip">&#9989; Verificados antes de entrar</div>
+          <div class="trust-chip">&#9989; Evaluados en precio, calidad y servicio</div>
           <div class="trust-chip">&#128176; Precio orientativo al momento</div>
           <div class="trust-chip">&#128248; Fotos de trabajos anteriores</div>
           <div class="trust-chip">&#128737;&#65039; Sin recargos de &uacute;ltima hora</div>
@@ -371,20 +383,28 @@ section[id],div[id]{scroll-margin-top:90px}
             <p class="price-hint" id="priceHint">Incluye mano de obra y pintura pl&aacute;stica lisa</p>
           </div>
 
+          <div id="leadForm">
           <div class="field">
             <label for="leadNombre">Tu nombre</label>
-            <input id="leadNombre" type="text" placeholder="&iquest;C&oacute;mo te llamas?" autocomplete="name">
+            <input id="leadNombre" type="text" placeholder="&iquest;C&oacute;mo te llamas?" autocomplete="name" maxlength="60">
           </div>
           <div class="field">
             <label for="leadTelefono">Tel&eacute;fono o WhatsApp</label>
-            <input id="leadTelefono" type="tel" placeholder="600 000 000" autocomplete="tel" inputmode="tel">
+            <input id="leadTelefono" type="tel" placeholder="600 000 000" autocomplete="tel" inputmode="tel" maxlength="16">
           </div>
-          <div class="field">
-            <label for="leadEmail">Correo <span class="opt-tag">(opcional)</span></label>
-            <input id="leadEmail" type="email" placeholder="tucorreo@email.com" autocomplete="email">
+          <input id="leadWeb" class="hp" name="web" tabindex="-1" autocomplete="off" aria-hidden="true">
+          <p class="lead-err" id="leadErr" aria-live="polite"></p>
+          <p class="lead-privacy">&#128274; Solo lo ver&aacute; el pintor que lleve tu trabajo, y &uacute;nicamente para contactarte por &eacute;l. Nunca lo compartimos con nadie m&aacute;s.</p>
+          <button type="button" class="btn-result-cta" id="leadBtn" onclick="enviarSolicitud()">Pedir presupuesto gratis &rarr;</button>
           </div>
-          <p class="lead-privacy">&#128274; Solo lo ver&aacute; el pintor que acepte tu solicitud, y &uacute;nicamente para contactarte por este trabajo. Nunca lo compartimos con nadie m&aacute;s.</p>
-          <button type="button" class="btn-result-cta" onclick="enviarSolicitud()">Pedir presupuesto gratis &rarr;</button>
+          <div class="lead-ok" id="leadOk" hidden aria-live="polite">
+            <div class="lead-ok-ico">&#9989;</div>
+            <h3 id="leadOkTit">Solicitud enviada</h3>
+            <p id="leadOkTxt">Te llamamos en breve para darte el presupuesto.</p>
+            <p class="lead-ok-alt">&iquest;Prefieres no esperar?</p>
+            <button type="button" class="btn-result-cta" id="leadOkLlamar">&#128222; Llamar ahora</button>
+            <button type="button" class="btn-ok-wa" id="leadOkWa">&#128172; Escribir por WhatsApp</button>
+          </div>
         </div>
         <div class="ticket-zigzag"></div>
       </div>
@@ -394,7 +414,7 @@ section[id],div[id]{scroll-margin-top:90px}
 
 <div class="stats">
   <div class="stats-inner">
-    <div class="stat"><div class="stat-ic">&#9989;</div><div class="stat-l">Todos verificados</div></div>
+    <div class="stat"><div class="stat-ic">&#9989;</div><div class="stat-l">Evaluados uno a uno</div></div>
     <div class="stat"><div class="stat-ic">&#11088;</div><div class="stat-l">Rese&ntilde;as reales</div></div>
     <div class="stat"><div class="stat-ic">&#128248;</div><div class="stat-l">Fotos de trabajos anteriores</div></div>
     <div class="stat"><div class="stat-ic">&#128176;</div><div class="stat-l">Precio claro antes de llamar</div></div>
@@ -590,7 +610,7 @@ section[id],div[id]{scroll-margin-top:90px}
     <p class="sec-label">Por qu&eacute; OficioYa</p>
     <h2 class="sec-h2">Lo que no encuentras buscando en Google</h2>
     <div class="features">
-      <div class="feat"><div class="feat-icon">&#9989;</div><h3>Verificados antes de entrar</h3><p>Cada profesional pasa por verificaci&oacute;n y firma un acuerdo antes de aparecer en la plataforma.</p></div>
+      <div class="feat"><div class="feat-icon">&#9989;</div><h3>Evaluados antes de entrar</h3><p>Cada profesional pasa nuestra evaluaci&oacute;n de precio, calidad y servicio y firma un acuerdo antes de recibir trabajos.</p></div>
       <div class="feat"><div class="feat-icon">&#11088;</div><h3>Solo rese&ntilde;as de clientes reales</h3><p>&Uacute;nicamente opinan vecinos que han contratado el servicio. Sin rese&ntilde;as compradas.</p></div>
       <div class="feat"><div class="feat-icon">&#128248;</div><h3>Fotos de trabajos anteriores</h3><p>El profesional sube fotos reales de sus trabajos. Ves el resultado antes de contratar.</p></div>
       <div class="feat"><div class="feat-icon">&#128176;</div><h3>Precio orientativo primero</h3><p>Sabes un rango antes de hablar con el profesional. Sin sorpresas al final.</p></div>
@@ -638,7 +658,7 @@ section[id],div[id]{scroll-margin-top:90px}
   <section class="section" style="padding-top:0">
     <div class="cta-box">
       <h2>Pinta tu casa en Sevilla <em>sin sorpresas</em></h2>
-      <p>Pintores verificados, con fotos de trabajos reales y precio orientativo antes de llamar.</p>
+      <p>Empresas de pintura evaluadas, con fotos de trabajos reales y precio orientativo antes de llamar.</p>
       <a href="#presupuesto" class="cta-btn" onclick="event.preventDefault();document.getElementById('presupuesto').scrollIntoView({behavior:'smooth',block:'center'});">Ver mi precio orientativo &rarr;</a>
       <p class="cta-note">
         Gratis y sin compromiso para el cliente<br>
@@ -671,7 +691,7 @@ section[id],div[id]{scroll-margin-top:90px}
 
 <footer>
   <div class="foot-inner">
-    <p>&copy; 2026 OficioYa &middot; Profesionales verificados en Sevilla</p>
+    <p>&copy; 2026 OficioYa &middot; Empresa de pintores en Sevilla</p>
     <div class="foot-links">
       <a href="/terminos">T&eacute;rminos</a>
       <a href="/privacidad">Privacidad</a>
@@ -806,44 +826,141 @@ section[id],div[id]{scroll-margin-top:90px}
     if (typeof gtag === 'function'){ gtag('event','view_item',{'event_category':'calc_pintor','event_label':'tamano_'+valor}); }
   }
 
-  function enviarSolicitud(){
-    var nombre   = document.getElementById('leadNombre').value.trim();
-    var telefono = document.getElementById('leadTelefono').value.trim();
+  /* ============================================================
+     ENVÍO DEL LEAD  ·  directo al CRM con oy_lead_contacto
+     Crea la solicitud -> deal en el admin + lead en el CRM del pintor (con su precio).
+     Mismo teléfono y oficio en 7 días = mismo lead: no se cobra dos veces.
+     Si el servidor falla o tarda, cae al flujo antiguo de la app: el lead nunca se pierde.
+     ============================================================ */
+  var OY_RPC = 'https://rjwojxwrsbvwwshwwpvq.supabase.co/rest/v1/rpc/oy_lead_contacto';
+  var OY_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE';
+  var enviando = false;
 
-    if(!nombre || !telefono){
-      alert('Indicanos tu nombre y un telefono de contacto para que el pintor pueda escribirte.');
-      return;
-    }
+  function gclidGuardado(){
+    try{
+      var raw = JSON.parse(localStorage.getItem('oy_gclid') || 'null');
+      if(raw && raw.v && Date.now() - (raw.t || 0) < 90 * 864e5) return raw.v;
+    }catch(e){}
+    var m = document.cookie.match(/(?:^|;\s*)_gcl_aw=([^;]+)/);
+    if(m){ var p = decodeURIComponent(m[1]).split('.'); if(p.length >= 3) return p.slice(2).join('.'); }
+    return '';
+  }
+
+  function bonitoZona(slug){
+    return String(slug || '').replace(/-/g,' ').replace(/\b\w/g, function(c){ return c.toUpperCase(); });
+  }
+
+  function errorForm(msg, campo){
+    document.getElementById('leadErr').textContent = msg;
+    ['leadNombre','leadTelefono'].forEach(function(id){ document.getElementById(id).removeAttribute('aria-invalid'); });
+    if(campo){ campo.setAttribute('aria-invalid','true'); campo.focus(); }
+  }
+
+  function enviarSolicitud(){
+    if(enviando) return;
+    var inNombre = document.getElementById('leadNombre');
+    var inTel    = document.getElementById('leadTelefono');
+    var btn      = document.getElementById('leadBtn');
+    var nombre   = inNombre.value.trim();
+    var tel      = inTel.value.replace(/\D/g,'').slice(-9);
+
+    errorForm('', null);
+    if(nombre.length < 2){ errorForm('Escribe tu nombre para que el pintor sepa a qui\u00e9n llamar.', inNombre); return; }
+    if(!/^[6789]\d{8}$/.test(tel)){ errorForm('Escribe un tel\u00e9fono de 9 cifras, por ejemplo 600 000 000.', inTel); return; }
+    if(document.getElementById('leadWeb').value) return; // bot
+
+    enviando = true;
+    btn.disabled = true;
+    btn.textContent = 'Enviando...';
 
     var r = RANGOS[seleccion.tipo][seleccion.tamano];
     var desc = DESC_TIPO[seleccion.tipo] + ' (' + seleccion.tamanoLabel + '). Rango orientativo mostrado: ' + fmt(r[0]) + '-' + fmt(r[1]) + ' EUR.';
+    var gclid = ORIGEN.gclid || gclidGuardado();
+    try{ localStorage.setItem('oy_contacto_datos', JSON.stringify({nombre:nombre, telefono:inTel.value.trim()})); }catch(e){}
 
-    var emailReal = document.getElementById('leadEmail').value.trim();
-    var telefonoLimpio = telefono.replace(/\D/g,'') || Date.now().toString();
-    var emailSintetico = 'lead' + telefonoLimpio + '@aficioya-lead.com';
-    var email = (emailReal && emailReal.indexOf('@') > 0) ? emailReal : emailSintetico;
-
-    var datos = {
-      quick: '1',
-      oficio: 'Pintor',
-      nombre: nombre,
-      telefono: telefono,
-      email: email,
-      desc: desc
+    var cuerpo = {
+      nombre: nombre, telefono: tel, oficio: 'Pintor', canal: 'formulario',
+      city_slug: ORIGEN.city_slug || 'sevilla',
+      zona: bonitoZona(ORIGEN.zona || ORIGEN.city_slug || 'sevilla'),
+      landing: ORIGEN.landing || 'pintor-sevilla', gclid: gclid,
+      utm_source: ORIGEN.utm_source || '', utm_campaign: ORIGEN.utm_campaign || '', utm_content: ORIGEN.utm_content || '',
+      descripcion: desc
     };
-    Object.keys(ORIGEN).forEach(function(k){ datos[k] = ORIGEN[k]; });
-    if(ORIGEN.city_slug){ datos.city = ORIGEN.city_slug; }
 
-    if (typeof gtag === 'function') {
-      gtag('event', 'generate_lead', {
-        'event_category': 'solicitud_pintor',
-        'event_label': seleccion.tipo + '_' + seleccion.tamano,
-        'value': 80,
-        'currency': 'EUR'
-      });
+    var terminado = false;
+
+    // Respaldo: el flujo de siempre (la app crea la solicitud). Solo si el servidor no responde.
+    function respaldo(){
+      if(terminado) return;
+      terminado = true;
+      var datos = { quick:'1', oficio:'Pintor', nombre:nombre, telefono:tel, email:'lead' + tel + '@aficioya-lead.com', desc:desc };
+      Object.keys(ORIGEN).forEach(function(k){ datos[k] = ORIGEN[k]; });
+      if(ORIGEN.city_slug){ datos.city = ORIGEN.city_slug; }
+      var ido = false;
+      function ir(){ if(ido) return; ido = true; window.location.href = '/?' + new URLSearchParams(datos).toString(); }
+      if(typeof gtag === 'function'){
+        gtag('event','generate_lead',{'event_category':'solicitud_pintor','event_label':seleccion.tipo + '_' + seleccion.tamano,'value':80,'currency':'EUR','event_callback':ir,'event_timeout':900});
+      }
+      setTimeout(ir, 1100);
     }
 
-    window.location.href = '/?' + new URLSearchParams(datos).toString();
+    var reloj = setTimeout(respaldo, 12000);
+
+    fetch(OY_RPC, {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', apikey: OY_KEY, Authorization: 'Bearer ' + OY_KEY },
+      body: JSON.stringify({ p: cuerpo })
+    })
+      .then(function(res){ return res.json(); })
+      .then(function(res){
+        if(terminado) return;
+        clearTimeout(reloj);
+        if(res && res.ok === false && (res.error === 'telefono' || res.error === 'nombre')){
+          enviando = false;
+          btn.disabled = false;
+          btn.innerHTML = 'Pedir presupuesto gratis &rarr;';
+          if(res.error === 'telefono') errorForm('Escribe un tel\u00e9fono de 9 cifras, por ejemplo 600 000 000.', inTel);
+          else errorForm('Escribe tu nombre para que el pintor sepa a qui\u00e9n llamar.', inNombre);
+          return;
+        }
+        if(!res || !res.ok){ respaldo(); return; }
+        terminado = true;
+        if(res.nuevo){
+          if(typeof gtag === 'function'){
+            gtag('event','generate_lead',{'event_category':'solicitud_pintor','event_label':seleccion.tipo + '_' + seleccion.tamano,'value':80,'currency':'EUR'});
+          }
+          if(typeof fbq === 'function'){ try{ fbq('track','Lead',{content_name:'formulario',content_category:'Pintor'}); }catch(e){} }
+        } else if(typeof gtag === 'function'){
+          gtag('event','contact',{'event_category':'solicitud_pintor','event_label':'repetido'});
+        }
+        mostrarOk(res, nombre, tel);
+      })
+      .catch(function(){ clearTimeout(reloj); respaldo(); });
+  }
+
+  function mostrarOk(res, nombre, tel){
+    var pro = res.profesional || '';
+    var numCliente = tel.replace(/(\d{3})(\d{3})(\d{3})/, '$1 $2 $3');
+    document.getElementById('leadOkTit').textContent = 'Listo, ' + nombre.split(' ')[0] + '. Solicitud enviada';
+    document.getElementById('leadOkTxt').textContent = pro
+      ? pro + ' ya tiene tu solicitud y te llamar\u00e1 al ' + numCliente + ' para darte el presupuesto.'
+      : 'Ya tenemos tu solicitud. Te llamamos al ' + numCliente + ' para darte el presupuesto.';
+    var bLlamar = document.getElementById('leadOkLlamar');
+    var bWa = document.getElementById('leadOkWa');
+    bLlamar.textContent = '\u{1F4DE} ' + (pro ? 'Llamar ahora a ' + pro : 'Llamar ahora');
+    bLlamar.onclick = function(){
+      if(typeof gtag === 'function') gtag('event','contact',{'event_category':'contacto_llamada','event_label':'tras_formulario'});
+      window.location.href = 'tel:' + res.telefono;
+    };
+    bWa.onclick = function(){
+      if(typeof gtag === 'function') gtag('event','contact',{'event_category':'contacto_whatsapp','event_label':'tras_formulario'});
+      var txt = 'Hola, soy ' + nombre + ' (' + tel + '). Acabo de pedir presupuesto de pintura en OficioYa.';
+      window.location.href = 'https://wa.me/' + res.whatsapp + '?text=' + encodeURIComponent(txt);
+    };
+    document.getElementById('leadForm').hidden = true;
+    var ok = document.getElementById('leadOk');
+    ok.hidden = false;
+    document.getElementById('presupuesto').scrollIntoView({behavior:'smooth', block:'center'});
   }
 
   /* ── Ir al calculador desde cualquier punto de la página ── */
