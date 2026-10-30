@@ -66,9 +66,14 @@ function construir(c: J, of: Of, base: J, d: J): Modelo {
   const bp = bo.propio || {};
   const esBase = c.slug === base.slug;
   const bClics30 = Number(bp.clics30) || 0, bClics = Number(bp.clics) || 0;
-  // Mismo periodo para precio del clic y conversión: últimos 30 días si hay datos suficientes, si no 60
+  // Base real: desde que se cobra por lead, todos los leads vendidos (formulario, llamada y WhatsApp) por clic de Google.
+  // Si aún no hay venta suficiente, últimos 30 días (o 60) con los formularios de Google.
+  const bv = bp.venta;
+  const usaVenta = !!bv && Number(bv.clics) >= 60 && Number(bv.vendidos) > 0;
   const b30 = bClics30 >= 100;
-  const bN = b30 ? bClics30 : bClics, bCoste = b30 ? Number(bp.coste30) || 0 : Number(bp.coste) || 0, bLeads = b30 ? Number(bp.leads30) || 0 : Number(bp.leads) || 0;
+  const bN = usaVenta ? Number(bv.clics) : b30 ? bClics30 : bClics;
+  const bCoste = usaVenta ? Number(bv.coste) || 0 : b30 ? Number(bp.coste30) || 0 : Number(bp.coste) || 0;
+  const bLeads = usaVenta ? Number(bv.vendidos) || 0 : b30 ? Number(bp.leads30) || 0 : Number(bp.leads) || 0;
   const bCpc = bN > 0 ? bCoste / bN : 1.5;
   const bCvr = bN > 0 ? Math.max(0.01, bLeads / bN) : 0.06;
   const bCuota = Math.max(0.1, Number(bp.cuota) || 0.4);
@@ -77,7 +82,11 @@ function construir(c: J, of: Of, base: J, d: J): Modelo {
   const midB = mid(bo.demanda), midC = mid(o.demanda);
   const ratio = esBase ? 1 : midB && midC ? Math.min(4, Math.max(0.4, midC / midB)) : null;
   const p = o.propio || {};
-  const n = esBase ? bN : Number(p.clics) || 0, leads = esBase ? bLeads : Number(p.leads) || 0, coste = esBase ? bCoste : Number(p.coste) || 0;
+  const pv = p.venta;
+  const usaPV = !esBase && !!pv && Number(pv.clics) > 0;
+  const n = esBase ? bN : usaPV ? Number(pv.clics) : Number(p.clics) || 0;
+  const leads = esBase ? bLeads : usaPV ? Number(pv.vendidos) || 0 : Number(p.leads) || 0;
+  const coste = esBase ? bCoste : usaPV ? Number(pv.coste) || 0 : Number(p.coste) || 0;
   const cpcPrior = bCpc * (ratio ?? 1.3);
   const cpc = esBase ? bCpc : (cpcPrior * 60 + coste) / (60 + n);
   const sigma = 0.12 + (esBase ? 0.1 : 0.35 / Math.sqrt(1 + n / 40));
@@ -474,7 +483,7 @@ export default function Prevision({ clave }: { clave: string }) {
 
                 <div style={{ marginTop: 10 }}><Confianza clics={md.clicsPropios} /></div>
                 <div style={{ fontSize: 12, color: C.mutedL, marginTop: 8, lineHeight: 1.5 }}>
-                  {md.esBase ? <>Basado en tus datos reales recientes ({num(md.clicsPropios)} clics, {num(md.leadsPropios)} leads de Google).</>
+                  {md.esBase ? <>Basado en lo real desde que se cobra por lead: {num(md.clicsPropios)} clics y {num(md.leadsPropios)} leads vendidos (formulario, llamada y WhatsApp).</>
                     : md.clicsPropios > 0 ? <>Mezcla sus {num(md.clicsPropios)} clics propios con los ratios de Sevilla{md.ratioCpc ? `; aquí el clic sale ×${md.ratioCpc.toFixed(1)} que en Sevilla según Google` : ""}.</>
                     : <>Sin datos propios todavía: usa los ratios de Sevilla{md.ratioCpc ? ` y un clic ×${md.ratioCpc.toFixed(1)} más caro según Google` : ""}.</>}
                   {diasSaber ? <> Con este presupuesto tendrás datos fiables en unos <b style={{ color: C.text }}>{diasSaber} días</b>.</> : null}
@@ -603,7 +612,7 @@ export default function Prevision({ clave }: { clave: string }) {
         <div style={{ fontSize: 12.5, color: C.mutedL, lineHeight: 1.65 }}>
           Para cada ciudad y oficio se simulan {num(N_SIM)} meses posibles: clics = presupuesto ÷ precio del clic (sin pasar de lo que da el mercado ese mes),
           leads = clics × conversión, ingresos = leads × precio del lead × (1 − anulaciones), beneficio = ingresos − gasto.
-          En Sevilla se usan tus datos reales de los últimos 30 días (o 60 si hay pocos). En una ciudad nueva se parte de la conversión real de Sevilla, ajustando el precio del clic con lo que dice Google para esa ciudad (calibrado con lo que costó de verdad en Sevilla frente a lo que estimaba Google),
+          En Sevilla se usa lo real desde que se cobra por lead: todos los leads vendidos (formulario, llamada y WhatsApp) por cada clic de Google, y lo que ha costado ese clic. En una ciudad nueva se parte de la conversión real de Sevilla, ajustando el precio del clic con lo que dice Google para esa ciudad (calibrado con lo que costó de verdad en Sevilla frente a lo que estimaba Google),
           y en cuanto llegan sus propios clics y leads la previsión va pasando a usar los suyos (con 150 clics ya depende solo de ella).
           La temporada sale de las búsquedas de Google del último año en cada ciudad. Se usa el precio del lead de cada ciudad (en Sevilla, {eur((d.ciudades || []).find((c: J) => c.slug === "sevilla")?.precios?.Fontanero || d.precios?.Fontanero || 0)} fontanería y {eur((d.ciudades || []).find((c: J) => c.slug === "sevilla")?.precios?.Pintor || d.precios?.Pintor || 0)} pintura);
           anulaciones de los últimos 90 días: {Math.round(100 * (d.anulacion?.Fontanero?.anulados || 0) / Math.max(1, d.anulacion?.Fontanero?.total || 0))}% fontanería, {Math.round(100 * (d.anulacion?.Pintor?.anulados || 0) / Math.max(1, d.anulacion?.Pintor?.total || 0))}% pintura.
