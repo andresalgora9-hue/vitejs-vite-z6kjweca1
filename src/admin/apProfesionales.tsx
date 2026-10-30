@@ -6,8 +6,7 @@ import { db } from "../supabase";
 import {
   C, F, Card, Btn, Pill, Cabecera, Sel, Campo, Modal, Tabla, Grid, Kpi, Titulo,
   SeccionProps, Pro, INICIO_ALTAS, ESTADO_INFO, CANAL_LABEL,
-  ts, mesDe, mesHoy, fecha, fechaHora, eur, num, pct, duracion, oficioDe, waLink, digitos,
-} from "./apUi";
+  ts, mesDe, mesHoy, fecha, fechaHora, eur, num, pct, duracion, oficioDe, waLink, digitos, precioLeadDe } from "./apUi";
 import { GestionFactura, estadoFactura } from "./apFacturas";
 
 const ALTA: Record<string, { t: string; c: string }> = {
@@ -123,7 +122,7 @@ function FichaPro({ p, d, onClose, onHecho }: { p: Pro; d: SeccionProps["d"]; on
         </div>
       ))}
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginTop: 6 }}>
-        <Sel value={clave} onChange={setClave} options={claves.map((k) => ({ v: k, l: oficioDe(k) + " (" + eur(precioPro ?? d.precios.find((x) => x.trade_key === k)?.price ?? 0) + "/lead)" }))} />
+        <Sel value={clave} onChange={setClave} options={claves.map((k) => ({ v: k, l: oficioDe(k) + " (" + eur(precioPro ?? precioLeadDe(d, k, ciudad, null)) + "/lead)" }))} />
         <input value={ciudad} onChange={(e) => setCiudad(e.target.value.toLowerCase())} style={{ width: 110, background: C.bg, border: "1px solid " + C.border, borderRadius: 8, color: C.text, padding: "8px 10px", fontFamily: F, fontSize: 13 }} />
         <Btn disabled={ocupado || !clave} onClick={() => {
           const otro = ocupante(clave, ciudad);
@@ -236,7 +235,7 @@ export default function Profesionales({ d, recargar, aviso }: SeccionProps) {
           nombre: <span><b>{x.p.name}</b>{x.p.company_name ? <span style={{ color: C.mutedL }}> · {x.p.company_name}</span> : null}</span>,
           oficio: oficioDe(x.p.trade),
           reparto: activos.has(x.p.id) ? <Pill texto="Recibe" color={C.green} /> : <span style={{ color: C.muted }}>—</span>,
-          precio: x.p.precio_lead != null ? eur(Number(x.p.precio_lead)) : <span style={{ color: C.muted }}>General</span>,
+          precio: x.p.precio_lead != null ? eur(Number(x.p.precio_lead)) : <span>{eur(precioLeadDe(d, x.p.trade, x.p.city_slug || "sevilla", null))} <span style={{ color: C.muted, fontSize: 11 }}>ciudad</span></span>,
           alta: x.p.activacion_estado ? <Pill texto={ALTA[x.p.activacion_estado]?.t || x.p.activacion_estado} color={ALTA[x.p.activacion_estado]?.c || C.muted} />
             : esNuevo(x.p) ? <Pill texto="Sin emitir" color={C.orange} /> : <span style={{ color: C.muted }}>—</span>,
           mes: num(x.lm), sin: x.sinLlamar ? <span style={{ color: C.orange, fontWeight: 800 }}>{x.sinLlamar}</span> : "0",

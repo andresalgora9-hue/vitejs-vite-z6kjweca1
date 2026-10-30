@@ -47,7 +47,7 @@ export default function AdminPanel({ onLogout, nombre }: { onLogout: () => void;
   const aviso = useCallback((m: string) => { setToast(m); setTimeout(() => setToast(""), 2800); }, []);
 
   const cargar = useCallback(async () => {
-    const [pros, leads, facts, sols, rout, gastos, precios, cfg, subs] = await Promise.all([
+    const [pros, leads, facts, sols, rout, gastos, precios, cfg, subs, pciudad] = await Promise.all([
       db.from("users").select("id,name,email,phone,whatsapp,trade,zone,company_name,cif,fiscal_address,fiscal_zip,fiscal_city,billing_email,joined_at,created_at,activacion_estado,activacion_invoice_id,deleted,banned,plan,precio_lead,city_slug,captacion_lead_id,ficha_captacion").eq("type", "profesional"),
       db.from("pro_leads").select("*").order("created_at", { ascending: false }).limit(5000),
       db.from("lead_invoices").select("*").order("issued_at", { ascending: false }).limit(5000),
@@ -57,6 +57,7 @@ export default function AdminPanel({ onLogout, nombre }: { onLogout: () => void;
       db.from("lead_prices").select("*"),
       db.from("oy_config").select("*"),
       db.from("push_subscriptions").select("user_id"),
+      db.from("precios_ciudad").select("slug,fontanero,pintor"),
     ]);
     const err = [pros, leads, facts, sols].find((r: any) => r.error);
     if (err) { setError("No se han podido cargar los datos. Recarga la página."); return; }
@@ -73,6 +74,7 @@ export default function AdminPanel({ onLogout, nombre }: { onLogout: () => void;
       routing: (rout.data || []) as Routing[],
       gastos: (gastos.data || []) as Gasto[],
       precios: ((precios.data || []) as any[]).map((p) => ({ trade_key: p.trade_key, price: Number(p.price) })),
+      preciosCiudad: Object.fromEntries(((pciudad.data || []) as any[]).map((x) => [x.slug, { fontanero: Number(x.fontanero), pintor: Number(x.pintor) }])),
       config,
       conPush: new Set(((subs.data || []) as any[]).map((s) => s.user_id)),
       proPorId,

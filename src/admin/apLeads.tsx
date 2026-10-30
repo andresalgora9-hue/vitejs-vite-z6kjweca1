@@ -6,8 +6,7 @@ import { db } from "../supabase";
 import {
   C, F, Card, Btn, Pill, Cabecera, SelectorMes, Sel, Campo, Modal, Tabla, Grid, Kpi,
   SeccionProps, Lead, Solicitud, ESTADOS, ESTADO_INFO, CANAL_LABEL, MOTIVO_PERDIDO, INICIO_PAGO_POR_LEAD,
-  ts, mesDe, mesHoy, fechaHora, eur, num, hace, oficioDe, waLink, digitos,
-} from "./apUi";
+  ts, mesDe, mesHoy, fechaHora, eur, num, hace, oficioDe, waLink, digitos, precioLeadDe } from "./apUi";
 
 export function precioDe(precios: { trade_key: string; price: number }[], oficio: string | null) {
   const o = (oficio || "").toLowerCase();
@@ -30,7 +29,7 @@ function NuevaLlamada({ d, onClose, onHecho }: { d: SeccionProps["d"]; onClose: 
   const [err, setErr] = useState("");
   const pro = d.proPorId[proId];
   const oficio = pro?.trade || "";
-  const precio = pro?.precio_lead != null ? Number(pro.precio_lead) : precioDe(d.precios, oficio);
+  const precio = precioLeadDe(d, oficio, pro?.city_slug || "sevilla", pro);
   const segundos = (Number(min) || 0) * 60 + (Number(seg) || 0);
 
   const guardar = async () => {
@@ -213,7 +212,7 @@ function SinAsignar({ d, recargar, aviso, lista }: SeccionProps & { lista: Solic
             <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
               <Sel value={elegido[s.id] || opts[0]?.id || ""} onChange={(v) => setElegido({ ...elegido, [s.id]: v })} style={{ flex: 1, minWidth: 200 }}
                 options={opts.map((p) => ({ v: p.id, l: p.name + (p.trade ? " · " + oficioDe(p.trade) : "") }))} />
-              <Btn onClick={() => asignar(s)} disabled={ocupado === s.id}>Asignar ({eur(precioDe(d.precios, s.oficio))})</Btn>
+              <Btn onClick={() => asignar(s)} disabled={ocupado === s.id}>Asignar ({eur(precioLeadDe(d, s.oficio, s.city_slug || "sevilla", d.proPorId[elegido[s.id] || opts[0]?.id || ""]))})</Btn>
               <Btn outline color={C.mutedL} onClick={() => descartar(s)} disabled={ocupado === s.id}>Descartar</Btn>
             </div>
           </Card>

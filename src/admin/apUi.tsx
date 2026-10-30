@@ -61,9 +61,22 @@ export interface Datos {
   routing: Routing[];
   gastos: Gasto[];
   precios: { trade_key: string; price: number }[];
+  preciosCiudad: Record<string, { fontanero: number; pintor: number }>;
   config: Record<string, number>;
   conPush: Set<string>;
   proPorId: Record<string, Pro>;
+}
+// Precio de un lead: 1) precio propio del profesional, 2) precio de su ciudad (Captación → Herramientas), 3) precio general
+export function precioLeadDe(d: Datos, oficio: string | null | undefined, ciudad?: string | null, pro?: Pro | null): number {
+  if (pro?.precio_lead != null) return Number(pro.precio_lead);
+  const o = (oficio || "").toLowerCase();
+  const pc = d.preciosCiudad?.[(ciudad || "").toLowerCase().trim()];
+  if (pc) {
+    if (o.includes("fontan") && pc.fontanero != null) return Number(pc.fontanero);
+    if (o.includes("pint") && pc.pintor != null) return Number(pc.pintor);
+  }
+  const p = d.precios.find((x) => x.trade_key !== "_default" && o.includes(x.trade_key));
+  return p ? p.price : (d.precios.find((x) => x.trade_key === "_default")?.price ?? 40);
 }
 export interface SeccionProps {
   d: Datos;

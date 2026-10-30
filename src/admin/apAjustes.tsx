@@ -3,7 +3,7 @@
 // ============================================================
 import React, { useState } from "react";
 import { db } from "../supabase";
-import { C, F, Card, Btn, Cabecera, Titulo, Tabla, SeccionProps, eur, oficioDe, fecha } from "./apUi";
+import { C, F, Card, Btn, Cabecera, Titulo, Tabla, SeccionProps, eur, oficioDe, fecha, precioLeadDe } from "./apUi";
 
 const CONFIG: { clave: string; label: string; sufijo: string }[] = [
   { clave: "activacion_eur", label: "Alta de profesional nuevo (sin IVA)", sufijo: "€" },
@@ -91,7 +91,7 @@ export default function Ajustes({ d, recargar, aviso, irA }: SeccionProps) {
         cols={[{ k: "of", l: "Oficio" }, { k: "ciudad", l: "Ciudad" }, { k: "pro", l: "Lo recibe" }, { k: "precio", l: "Precio", align: "right" }]}
         filas={d.routing.filter((r) => r.active).map((r) => ({
           of: <b>{oficioDe(r.trade_key)}</b>, ciudad: r.city_slug, pro: d.proPorId[r.pro_id]?.name || "—",
-          precio: eur(d.precios.find((p) => p.trade_key === r.trade_key)?.price ?? 0),
+          precio: eur(precioLeadDe(d, r.trade_key, r.city_slug, d.proPorId[r.pro_id])),
         }))}
         vacio="Ningún oficio tiene profesional asignado"
       />
