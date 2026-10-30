@@ -54,7 +54,10 @@ interface Modelo {
   cpc: number; sigma: number; a: number; b: number; anA: number; anB: number; precio: number;
   potencial: number | null; temporada: (mes: number) => number;
   clicsPropios: number; leadsPropios: number; esBase: boolean; ratioCpc: number | null; tieneDemanda: boolean;
+  clicsRef: number | null; // clics al mes que se están comprando ahora (para encarecer el clic si se compran más)
 }
+const ELASTICIDAD = 0.35; // al doblar los clics, cada clic sale ~27% más caro
+const diasDesde = (desde?: string | null) => (desde ? Math.max(1, Math.round((Date.now() - new Date(String(desde).slice(0, 10) + "T00:00:00").getTime()) / 86400000) + 1) : 0);
 function temporadaDe(serie: J[] | null | undefined, media: number | null | undefined) {
   const m: Record<number, number> = {};
   (serie || []).forEach((x: J) => { const mm = Number(String(x.m).slice(5, 7)); if (x.b != null) m[mm] = Number(x.b); });
@@ -78,7 +81,10 @@ function construir(c: J, of: Of, base: J, d: J): Modelo {
   const bCpc = bN > 0 ? bCoste / bN : 1.5;
   const bCvr = bN > 0 ? Math.max(0.01, bLeads / bN) : 0.06;
   const bCuota = Math.max(0.1, Number(bp.cuota) || 0.4);
-  const bPot = bClics30 > 0 ? bClics30 / bCuota : null;
+  // Techo de mercado medido en los últimos 30 días, quitando el efecto de la temporada de ese mes
+  const mesRef = new Date(Date.now() - 15 * 86400000).getMonth() + 1;
+  const tempBase = temporadaDe(bo.demanda?.serie, bo.demanda?.media)(mesRef);
+  const bPot = bClics30 > 0 ? bClics30 / bCuota / tempBase : null;
   const mid = (x: J) => (x && x.cpc_bajo != null && x.cpc_alto != null ? (Number(x.cpc_bajo) + Number(x.cpc_alto)) / 2 : null);
   const midB = mid(bo.demanda), midC = mid(o.demanda);
   const ratio = esBase ? 1 : midB && midC ? Math.min(4, Math.max(0.4, midC / midB)) : null;
@@ -98,26 +104,41 @@ function construir(c: J, of: Of, base: J, d: J): Modelo {
   const an = d.anulacion?.[of] || { total: 0, anulados: 0 };
   const mediaC = Number(o.demanda?.media) || 0, mediaB = Number(bo.demanda?.media) || 0;
   const potencial = bPot == null ? null : esBase ? bPot : mediaB > 0 && mediaC > 0 ? bPot * (mediaC / mediaB) : null;
+  let clicsRef: number | null = null;
+  if (esBase) {
+    const dv = usaVenta ? diasDesde(bv.desde) : 0;
+    clicsRef = usaVenta && dv >= 7 ? (Number(bv.clics) / dv) * 30 : bClics30 >= 60 ? bClics30 : null;
+  } else {
+    const dv = usaPV ? diasDesde(pv.desde) : 0;
+    clicsRef = usaPV && dv >= 7 && Number(pv.clics) >= 60 ? (Number(pv.clics) / dv) * 30 : Number(p.clics30) >= 60 ? Number(p.clics30) : null;
+  }
   return {
+    clicsRef,
     cpc, sigma, a, b, anA: Number(an.anulados) + 1, anB: Number(an.total) - Number(an.anulados) + 1, precio: Number(c.precios?.[of]) || Number(d.precios?.[of]) || 0,
     potencial, temporada: temporadaDe(o.demanda?.serie, o.demanda?.media),
     clicsPropios: n, leadsPropios: leads, esBase, ratioCpc: ratio, tieneDemanda: !!o.demanda,
   };
 }
-interface Sim { leads: number[]; gasto: number[]; ingresos: number[]; benef: number[]; cpl: number[] }
+interface Sim { leads: number[]; gasto: number[]; ingresos: number[]; benef: number[]; cpl: number[]; cpc: number[] }
 function simular(md: Modelo, presupuesto: number, mes: { mes: number; dias: number }, seed: number): Sim {
   const r = rng(seed);
-  const out: Sim = { leads: [], gasto: [], ingresos: [], benef: [], cpl: [] };
+  const out: Sim = { leads: [], gasto: [], ingresos: [], benef: [], cpl: [], cpc: [] };
   const cap = md.potencial == null ? Infinity : md.potencial * (mes.dias / 30) * md.temporada(mes.mes);
+  const ref = md.clicsRef ? md.clicsRef * (mes.dias / 30) : null;
   for (let i = 0; i < N_SIM; i++) {
-    const cpc = md.cpc * Math.exp(md.sigma * normal(r) - (md.sigma * md.sigma) / 2);
-    const clics = Math.min((presupuesto * mes.dias) / cpc, cap * (0.85 + 0.3 * r()));
+    const cpc0 = md.cpc * Math.exp(md.sigma * normal(r) - (md.sigma * md.sigma) / 2);
+    const dinero = presupuesto * mes.dias;
+    // Si se compran más clics de los que se compran ahora, cada clic sale más caro
+    let clics = dinero / cpc0;
+    if (ref && clics > ref) clics = Math.pow((dinero / cpc0) * Math.pow(ref, ELASTICIDAD), 1 / (1 + ELASTICIDAD));
+    clics = Math.min(clics, cap * (0.85 + 0.3 * r()));
+    const cpc = ref && clics > ref ? cpc0 * Math.pow(clics / ref, ELASTICIDAD) : cpc0;
     const cvr = beta(r, md.a, md.b);
     const leads = poisson(r, clics * cvr);
     const gasto = clics * cpc;
     const anul = beta(r, md.anA, md.anB);
     const ingresos = leads * (1 - anul) * md.precio;
-    out.leads.push(leads); out.gasto.push(gasto); out.ingresos.push(ingresos); out.benef.push(ingresos - gasto);
+    out.leads.push(leads); out.gasto.push(gasto); out.ingresos.push(ingresos); out.benef.push(ingresos - gasto); out.cpc.push(cpc);
     if (leads > 0) out.cpl.push(gasto / leads);
   }
   return out;
@@ -129,13 +150,14 @@ function resumen(s: Sim, md?: Modelo) {
     gasto: pct(s.gasto, 0.5), ingresos: pct(s.ingresos, 0.5), i10: pct(s.ingresos, 0.1), i90: pct(s.ingresos, 0.9),
     b10: pct(s.benef, 0.1), b50: pct(s.benef, 0.5), b90: pct(s.benef, 0.9),
     cpl: s.cpl.length ? pct(s.cpl, 0.5) : null,
+    cpcEf: s.cpc.length ? pct(s.cpc, 0.5) : null,
     pBenef: s.benef.filter((x) => x > 0).length / Math.max(1, s.benef.length),
     pCpl: umbral != null && s.cpl.length ? s.cpl.filter((x) => x <= umbral).length / s.cpl.length : null,
     umbral,
   };
 }
 function sumar(sims: Sim[]): Sim {
-  const out: Sim = { leads: [], gasto: [], ingresos: [], benef: [], cpl: [] };
+  const out: Sim = { leads: [], gasto: [], ingresos: [], benef: [], cpl: [], cpc: [] };
   for (let i = 0; i < N_SIM; i++) {
     let l = 0, g = 0, ing = 0, b = 0;
     sims.forEach((s) => { l += s.leads[i] || 0; g += s.gasto[i] || 0; ing += s.ingresos[i] || 0; b += s.benef[i] || 0; });
@@ -572,7 +594,7 @@ export default function Prevision({ clave }: { clave: string }) {
                     <span>Presupuesto diario {tieneCamp ? "(el actual, puedes moverlo)" : "(prueba distintos importes)"}</span><b style={{ color: C.accent, fontSize: 15 }}>{B} €/día</b>
                   </div>
                   <input type="range" min={0} max={80} step={1} value={B} onChange={(e) => setPresu({ ...presu, [k]: Number(e.target.value) })} style={{ width: "100%", accentColor: C.accent }} />
-                  <div style={{ fontSize: 11.5, color: C.muted }}>≈ {eur(B * 30)} al mes · clic estimado {eur(md.cpc, 2)} · lead vendido a {eur(md.precio)}</div>
+                  <div style={{ fontSize: 11.5, color: C.muted }}>≈ {eur(B * 30)} al mes · clic a este presupuesto {eur(r.cpcEf ?? md.cpc, 2)}{md.clicsRef ? " (ahora " + eur(md.cpc, 2) + ")" : ""} · lead vendido a {eur(md.precio)}</div>
                 </div>
 
                 <Titulo>Mes que viene ({meses[0].nombre})</Titulo>
@@ -762,8 +784,8 @@ export default function Prevision({ clave }: { clave: string }) {
           Para cada ciudad y oficio se simulan {num(N_SIM)} meses posibles: clics = presupuesto ÷ precio del clic (sin pasar de lo que da el mercado ese mes),
           leads = clics × conversión, ingresos = leads × precio del lead × (1 − anulaciones), beneficio = ingresos − gasto.
           En Sevilla se usa lo real desde que se cobra por lead: todos los leads vendidos (formulario, llamada y WhatsApp) por cada clic de Google, y lo que ha costado ese clic. En una ciudad nueva se parte de la conversión real de Sevilla, ajustando el precio del clic con lo que dice Google para esa ciudad (calibrado con lo que costó de verdad en Sevilla frente a lo que estimaba Google),
-          y en cuanto llegan sus propios clics y leads la previsión va pasando a usar los suyos (con 150 clics ya depende solo de ella).
-          La temporada sale de las búsquedas de Google del último año en cada ciudad. Se usa el precio del lead de cada ciudad (en Sevilla, {eur((d.ciudades || []).find((c: J) => c.slug === "sevilla")?.precios?.Fontanero || d.precios?.Fontanero || 0)} fontanería y {eur((d.ciudades || []).find((c: J) => c.slug === "sevilla")?.precios?.Pintor || d.precios?.Pintor || 0)} pintura);
+          y en cuanto llegan sus propios clics y leads la previsión va pasando a usar los suyos (con 150 clics ya depende solo de ella). El techo de clics que da el mercado se mide quitando la temporada del mes en que se midió (por ejemplo, octubre es mes alto de pintura) y se aplica la de cada mes previsto.
+          Si con el presupuesto elegido se compran más clics de los que se están comprando ahora, cada clic se encarece (al doblar los clics, ~27% más caro), porque Google tiene que pujar más para conseguirlos. La temporada sale de las búsquedas de Google del último año en cada ciudad. Se usa el precio del lead de cada ciudad (en Sevilla, {eur((d.ciudades || []).find((c: J) => c.slug === "sevilla")?.precios?.Fontanero || d.precios?.Fontanero || 0)} fontanería y {eur((d.ciudades || []).find((c: J) => c.slug === "sevilla")?.precios?.Pintor || d.precios?.Pintor || 0)} pintura);
           anulaciones de los últimos 90 días: {Math.round(100 * (d.anulacion?.Fontanero?.anulados || 0) / Math.max(1, d.anulacion?.Fontanero?.total || 0))}% fontanería, {Math.round(100 * (d.anulacion?.Pintor?.anulados || 0) / Math.max(1, d.anulacion?.Pintor?.total || 0))}% pintura.
         </div>
       </Card>
