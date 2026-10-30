@@ -89,7 +89,7 @@ function construir(c: J, of: Of, base: J, d: J): Modelo {
   const mediaC = Number(o.demanda?.media) || 0, mediaB = Number(bo.demanda?.media) || 0;
   const potencial = bPot == null ? null : esBase ? bPot : mediaB > 0 && mediaC > 0 ? bPot * (mediaC / mediaB) : null;
   return {
-    cpc, sigma, a, b, anA: Number(an.anulados) + 2, anB: Number(an.total) - Number(an.anulados) + 2, precio: Number(d.precios?.[of]) || 0,
+    cpc, sigma, a, b, anA: Number(an.anulados) + 2, anB: Number(an.total) - Number(an.anulados) + 2, precio: Number(c.precios?.[of]) || Number(d.precios?.[of]) || 0,
     potencial, temporada: temporadaDe(o.demanda?.serie, o.demanda?.media),
     clicsPropios: n, leadsPropios: leads, esBase, ratioCpc: ratio, tieneDemanda: !!o.demanda,
   };
@@ -446,7 +446,7 @@ export default function Prevision({ clave }: { clave: string }) {
                     <span>Presupuesto diario {tieneCamp ? "(el actual, puedes moverlo)" : "(prueba distintos importes)"}</span><b style={{ color: C.accent, fontSize: 15 }}>{B} €/día</b>
                   </div>
                   <input type="range" min={0} max={80} step={1} value={B} onChange={(e) => setPresu({ ...presu, [k]: Number(e.target.value) })} style={{ width: "100%", accentColor: C.accent }} />
-                  <div style={{ fontSize: 11.5, color: C.muted }}>≈ {eur(B * 30)} al mes · clic estimado {eur(md.cpc, 2)}</div>
+                  <div style={{ fontSize: 11.5, color: C.muted }}>≈ {eur(B * 30)} al mes · clic estimado {eur(md.cpc, 2)} · lead vendido a {eur(md.precio)}</div>
                 </div>
 
                 <Titulo>Mes que viene ({meses[0].nombre})</Titulo>
@@ -599,7 +599,7 @@ export default function Prevision({ clave }: { clave: string }) {
           leads = clics × conversión, ingresos = leads × precio del lead × (1 − anulaciones), beneficio = ingresos − gasto.
           En Sevilla se usan tus datos reales de los últimos 30 días (o 60 si hay pocos). En una ciudad nueva se parte de los ratios de Sevilla con un 20% menos de conversión por prudencia, ajustando el precio del clic con lo que dice Google para esa ciudad,
           y en cuanto llegan sus propios clics y leads la previsión va pasando a usar los suyos (con 150 clics ya depende solo de ella).
-          La temporada sale de las búsquedas de Google del último año en cada ciudad. Precios del lead: {eur(d.precios?.Fontanero || 0)} fontanería, {eur(d.precios?.Pintor || 0)} pintura;
+          La temporada sale de las búsquedas de Google del último año en cada ciudad. Se usa el precio del lead de cada ciudad (en Sevilla, {eur((d.ciudades || []).find((c: J) => c.slug === "sevilla")?.precios?.Fontanero || d.precios?.Fontanero || 0)} fontanería y {eur((d.ciudades || []).find((c: J) => c.slug === "sevilla")?.precios?.Pintor || d.precios?.Pintor || 0)} pintura);
           anulaciones de los últimos 90 días: {Math.round(100 * (d.anulacion?.Fontanero?.anulados || 0) / Math.max(1, d.anulacion?.Fontanero?.total || 0))}% fontanería, {Math.round(100 * (d.anulacion?.Pintor?.anulados || 0) / Math.max(1, d.anulacion?.Pintor?.total || 0))}% pintura.
         </div>
       </Card>
