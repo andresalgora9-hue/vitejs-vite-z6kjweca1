@@ -81,15 +81,15 @@ function construir(c: J, of: Of, base: J, d: J): Modelo {
   const cpcPrior = bCpc * (ratio ?? 1.3);
   const cpc = esBase ? bCpc : (cpcPrior * 60 + coste) / (60 + n);
   const sigma = 0.12 + (esBase ? 0.1 : 0.35 / Math.sqrt(1 + n / 40));
-  // Ciudad nueva: se supone un 20% menos de conversión que Sevilla hasta que tenga datos propios
-  const m = 80, cvrPrior = bCvr * 0.8;
+  // Ciudad nueva: parte de la conversión real de Sevilla (comprobado: la rebaja del 20% inflaba el coste por lead un 25%)
+  const m = 80, cvrPrior = bCvr;
   const a = esBase ? leads + 1 : cvrPrior * m + leads;
   const b = esBase ? Math.max(1, n - leads + 1) : (1 - cvrPrior) * m + Math.max(0, n - leads);
   const an = d.anulacion?.[of] || { total: 0, anulados: 0 };
   const mediaC = Number(o.demanda?.media) || 0, mediaB = Number(bo.demanda?.media) || 0;
   const potencial = bPot == null ? null : esBase ? bPot : mediaB > 0 && mediaC > 0 ? bPot * (mediaC / mediaB) : null;
   return {
-    cpc, sigma, a, b, anA: Number(an.anulados) + 2, anB: Number(an.total) - Number(an.anulados) + 2, precio: Number(c.precios?.[of]) || Number(d.precios?.[of]) || 0,
+    cpc, sigma, a, b, anA: Number(an.anulados) + 1, anB: Number(an.total) - Number(an.anulados) + 1, precio: Number(c.precios?.[of]) || Number(d.precios?.[of]) || 0,
     potencial, temporada: temporadaDe(o.demanda?.serie, o.demanda?.media),
     clicsPropios: n, leadsPropios: leads, esBase, ratioCpc: ratio, tieneDemanda: !!o.demanda,
   };
@@ -603,7 +603,7 @@ export default function Prevision({ clave }: { clave: string }) {
         <div style={{ fontSize: 12.5, color: C.mutedL, lineHeight: 1.65 }}>
           Para cada ciudad y oficio se simulan {num(N_SIM)} meses posibles: clics = presupuesto ÷ precio del clic (sin pasar de lo que da el mercado ese mes),
           leads = clics × conversión, ingresos = leads × precio del lead × (1 − anulaciones), beneficio = ingresos − gasto.
-          En Sevilla se usan tus datos reales de los últimos 30 días (o 60 si hay pocos). En una ciudad nueva se parte de los ratios de Sevilla con un 20% menos de conversión por prudencia, ajustando el precio del clic con lo que dice Google para esa ciudad,
+          En Sevilla se usan tus datos reales de los últimos 30 días (o 60 si hay pocos). En una ciudad nueva se parte de la conversión real de Sevilla, ajustando el precio del clic con lo que dice Google para esa ciudad (calibrado con lo que costó de verdad en Sevilla frente a lo que estimaba Google),
           y en cuanto llegan sus propios clics y leads la previsión va pasando a usar los suyos (con 150 clics ya depende solo de ella).
           La temporada sale de las búsquedas de Google del último año en cada ciudad. Se usa el precio del lead de cada ciudad (en Sevilla, {eur((d.ciudades || []).find((c: J) => c.slug === "sevilla")?.precios?.Fontanero || d.precios?.Fontanero || 0)} fontanería y {eur((d.ciudades || []).find((c: J) => c.slug === "sevilla")?.precios?.Pintor || d.precios?.Pintor || 0)} pintura);
           anulaciones de los últimos 90 días: {Math.round(100 * (d.anulacion?.Fontanero?.anulados || 0) / Math.max(1, d.anulacion?.Fontanero?.total || 0))}% fontanería, {Math.round(100 * (d.anulacion?.Pintor?.anulados || 0) / Math.max(1, d.anulacion?.Pintor?.total || 0))}% pintura.
