@@ -7,6 +7,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { MapContainer, TileLayer, CircleMarker, Tooltip, useMap } from "react-leaflet";
 import { db } from "../supabase";
 import { C, F, Card, Pill, Grid, Titulo, Tabla, eur, num, useAncho } from "./apUi";
+import { useObjetivo, nombreMes } from "./apObjetivo";
 
 type J = any;
 const OFICIOS = ["Fontanero", "Pintor"] as const;
@@ -125,7 +126,7 @@ function resumen(s: Sim, md?: Modelo) {
   const umbral = md ? md.precio * (md.anB / (md.anA + md.anB)) : null;
   return {
     l10: pct(s.leads, 0.1), l50: pct(s.leads, 0.5), l90: pct(s.leads, 0.9),
-    gasto: pct(s.gasto, 0.5), ingresos: pct(s.ingresos, 0.5),
+    gasto: pct(s.gasto, 0.5), ingresos: pct(s.ingresos, 0.5), i10: pct(s.ingresos, 0.1), i90: pct(s.ingresos, 0.9),
     b10: pct(s.benef, 0.1), b50: pct(s.benef, 0.5), b90: pct(s.benef, 0.9),
     cpl: s.cpl.length ? pct(s.cpl, 0.5) : null,
     pBenef: s.benef.filter((x) => x > 0).length / Math.max(1, s.benef.length),
@@ -279,6 +280,114 @@ function Calendario({ d }: { d: J }) {
   );
 }
 
+// ---------- gráficas de ingresos ----------
+const corto = (v: number) => (v >= 1000 ? (Math.round(v / 100) / 10).toString().replace(".", ",") + "k" : Math.round(v).toString()) + " €";
+function GraficoIngresos({ historico, previstos, objetivo }: {
+  historico: { mes: string; ingresos: number; gasto: number; parcial?: boolean }[];
+  previstos: { mes: string; nombre: string; i10: number; i50: number; i90: number; gasto: number; pObj: number | null }[];
+  objetivo: number;
+}) {
+  const pts = [
+    ...historico.map((h) => ({ mes: h.mes, real: true, i50: h.ingresos, i10: h.ingresos, i90: h.ingresos, gasto: h.gasto, parcial: !!h.parcial, pObj: null as number | null })),
+    ...previstos.map((p) => ({ mes: p.mes, real: false, i50: p.i50, i10: p.i10, i90: p.i90, gasto: p.gasto, parcial: false, pObj: p.pObj })),
+  ];
+  const W = 760, H = 290, L = 54, R = 12, T = 16, B = 46;
+  const max = Math.max(1, objetivo, ...pts.map((p) => Math.max(p.i90, p.gasto))) * 1.1;
+  const y = (v: number) => T + (H - T - B) * (1 - v / max);
+  const cw = (W - L - R) / Math.max(1, pts.length);
+  const cx = (i: number) => L + cw * i + cw / 2;
+  const marcas = [0, 0.25, 0.5, 0.75, 1].map((f) => max * f);
+  const lineaGasto = pts.map((p, i) => `${i ? "L" : "M"}${cx(i)},${y(p.gasto)}`).join(" ");
+  return (
+    <div>
+      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "auto", display: "block" }}>
+        {marcas.map((v, i) => (
+          <g key={i}>
+            <line x1={L} x2={W - R} y1={y(v)} y2={y(v)} stroke={C.border} strokeWidth={1} />
+            <text x={L - 6} y={y(v) + 4} fill={C.muted} fontSize="11" textAnchor="end">{corto(v)}</text>
+          </g>
+        ))}
+        {objetivo > 0 && (
+          <g>
+            <line x1={L} x2={W - R} y1={y(objetivo)} y2={y(objetivo)} stroke={C.green} strokeWidth={2} strokeDasharray="7 5" />
+            <text x={W - R - 4} y={y(objetivo) - 6} fill={C.green} fontSize="11.5" fontWeight={800} textAnchor="end">Objetivo {eur(objetivo)}</text>
+          </g>
+        )}
+        {pts.map((p, i) => {
+          const bw = Math.min(46, cw * 0.56), x0 = cx(i) - bw / 2;
+          return (
+            <g key={p.mes}>
+              <rect x={x0} y={y(p.i50)} width={bw} height={Math.max(0, y(0) - y(p.i50))} rx={5}
+                fill={p.real ? C.accent : C.accent + "40"} stroke={p.real ? "none" : C.accent} strokeWidth={p.real ? 0 : 1.5} strokeDasharray={p.real ? undefined : "5 4"}>
+                <title>{nombreMes(p.mes)}: {p.real ? (p.parcial ? "llevas " : "real ") + eur(p.i50) : "previsto " + eur(p.i50) + " (entre " + eur(p.i10) + " y " + eur(p.i90) + ")"} · gasto {eur(p.gasto)}</title>
+              </rect>
+              {!p.real && (
+                <g stroke={C.text} strokeWidth={1.5} opacity={0.8}>
+                  <line x1={cx(i)} x2={cx(i)} y1={y(p.i90)} y2={y(p.i10)} />
+                  <line x1={cx(i) - 7} x2={cx(i) + 7} y1={y(p.i90)} y2={y(p.i90)} />
+                  <line x1={cx(i) - 7} x2={cx(i) + 7} y1={y(p.i10)} y2={y(p.i10)} />
+                </g>
+              )}
+              <text x={cx(i)} y={y(p.i90) - 7} fill={p.real ? C.accent : C.text} fontSize="11.5" fontWeight={800} textAnchor="middle">{corto(p.i50)}</text>
+              <text x={cx(i)} y={H - B + 16} fill={p.real ? C.mutedL : C.text} fontSize="11.5" fontWeight={p.real ? 600 : 800} textAnchor="middle">{nombreMes(p.mes).slice(0, 3)}{p.parcial ? "*" : ""}</text>
+              <text x={cx(i)} y={H - B + 31} fill={p.pObj == null ? C.muted : colorP(p.pObj)} fontSize="10.5" fontWeight={700} textAnchor="middle">
+                {p.real ? (p.parcial ? "en curso" : "real") : p.pObj == null ? "previsto" : Math.round(p.pObj * 100) + "% objetivo"}
+              </text>
+            </g>
+          );
+        })}
+        <path d={lineaGasto} fill="none" stroke={C.red} strokeWidth={2} strokeLinejoin="round" />
+        {pts.map((p, i) => <circle key={i} cx={cx(i)} cy={y(p.gasto)} r={3.5} fill={C.red}><title>Gasto en anuncios {nombreMes(p.mes)}: {eur(p.gasto)}</title></circle>)}
+      </svg>
+      <div style={{ display: "flex", gap: 14, flexWrap: "wrap", fontSize: 12, color: C.mutedL, marginTop: 4 }}>
+        <span><b style={{ color: C.accent }}>■</b> Ingresos reales</span>
+        <span><b style={{ color: C.accent, opacity: 0.45 }}>■</b> Ingresos previstos (la raya: rango 8 de cada 10 veces)</span>
+        <span><b style={{ color: C.red }}>●</b> Gasto en anuncios</span>
+        <span><b style={{ color: C.green }}>- -</b> Objetivo</span>
+        <span style={{ color: C.muted }}>* mes en curso</span>
+      </div>
+    </div>
+  );
+}
+const PALETA = [C.accent, C.blue, C.green, C.orange, "#A78BFA", "#22D3EE", "#F472B6"];
+function GraficoPorCiudad({ series, meses }: { series: { nombre: string; valores: number[] }[]; meses: string[] }) {
+  const W = 760, H = 230, L = 54, R = 12, T = 14, B = 30;
+  const totales = meses.map((_, j) => series.reduce((s2, x) => s2 + (x.valores[j] || 0), 0));
+  const max = Math.max(1, ...totales) * 1.12;
+  const y = (v: number) => T + (H - T - B) * (1 - v / max);
+  const cw = (W - L - R) / Math.max(1, meses.length);
+  const marcas = [0, 0.5, 1].map((f) => max * f);
+  return (
+    <div>
+      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "auto", display: "block" }}>
+        {marcas.map((v, i) => (
+          <g key={i}>
+            <line x1={L} x2={W - R} y1={y(v)} y2={y(v)} stroke={C.border} strokeWidth={1} />
+            <text x={L - 6} y={y(v) + 4} fill={C.muted} fontSize="11" textAnchor="end">{corto(v)}</text>
+          </g>
+        ))}
+        {meses.map((m, j) => {
+          const bw = Math.min(120, cw * 0.5), x0 = L + cw * j + (cw - bw) / 2;
+          let acum = 0;
+          return (
+            <g key={m}>
+              {series.map((sr, k) => {
+                const v = sr.valores[j] || 0; const y1 = y(acum + v), y0 = y(acum); acum += v;
+                return <rect key={k} x={x0} y={y1} width={bw} height={Math.max(0, y0 - y1)} fill={PALETA[k % PALETA.length]} opacity={0.9}><title>{sr.nombre} · {m}: {eur(v)}</title></rect>;
+              })}
+              <text x={x0 + bw / 2} y={y(totales[j]) - 6} fill={C.text} fontSize="12" fontWeight={800} textAnchor="middle">{eur(totales[j])}</text>
+              <text x={x0 + bw / 2} y={H - 9} fill={C.mutedL} fontSize="12" textAnchor="middle" style={{ textTransform: "capitalize" }}>{m}</text>
+            </g>
+          );
+        })}
+      </svg>
+      <div style={{ display: "flex", gap: 14, flexWrap: "wrap", fontSize: 12, color: C.mutedL, marginTop: 4 }}>
+        {series.map((sr, k) => <span key={k}><b style={{ color: PALETA[k % PALETA.length] }}>■</b> {sr.nombre}</span>)}
+      </div>
+    </div>
+  );
+}
+
 // ---------- pantalla ----------
 export default function Prevision({ clave }: { clave: string }) {
   const movil = useAncho() < 900;
@@ -286,6 +395,7 @@ export default function Prevision({ clave }: { clave: string }) {
   const [error, setError] = useState("");
   const [ciudad, setCiudad] = useState<string>("");
   const [presu, setPresu] = useState<Record<string, number>>({});
+  const { data: objetivo } = useObjetivo(clave);
   const meses = useMemo(() => proximosMeses(3), []);
 
   useEffect(() => {
@@ -319,7 +429,8 @@ export default function Prevision({ clave }: { clave: string }) {
     if (!d || !base) return null;
     return meses.map((mes) => {
       const sims = activas.map(({ c, of }: { c: J; of: Of }) => simular(modelos[c.slug + "|" + of], presupuestoDe(c, of), mes, semilla(c.slug + of + mes.clave)));
-      return { mes, total: resumen(sumar(sims)), filas: activas.map(({ c, of }: { c: J; of: Of }, i: number) => ({ c, of, r: resumen(sims[i], modelos[c.slug + "|" + of]) })) };
+      const tot = sumar(sims);
+      return { mes, total: resumen(tot), ingresosSim: tot.ingresos, filas: activas.map(({ c, of }: { c: J; of: Of }, i: number) => ({ c, of, r: resumen(sims[i], modelos[c.slug + "|" + of]) })) };
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [d, base, modelos, activas, presu, meses]);
@@ -480,6 +591,13 @@ export default function Prevision({ clave }: { clave: string }) {
                     <Rango bajo={x.l10} medio={x.l50} alto={x.l90} max={maxL} color={C.green} />
                   </div>
                 ))}
+                <Titulo>Próximos 3 meses · ingresos</Titulo>
+                {rs.map((x, i) => (
+                  <div key={i} style={{ display: "grid", gridTemplateColumns: "80px 1fr", gap: 10, alignItems: "center", marginBottom: 6 }}>
+                    <span style={{ fontSize: 12.5, color: C.mutedL, textTransform: "capitalize" }}>{meses[i].nombre}</span>
+                    <Rango bajo={x.i10} medio={x.ingresos} alto={x.i90} max={Math.max(1, ...rs.map((z) => z.i90))} color={C.accent} fmt={(v) => eur(v)} />
+                  </div>
+                ))}
 
                 <div style={{ marginTop: 10 }}><Confianza clics={md.clicsPropios} /></div>
                 <div style={{ fontSize: 12, color: C.mutedL, marginTop: 8, lineHeight: 1.5 }}>
@@ -515,6 +633,8 @@ export default function Prevision({ clave }: { clave: string }) {
 
   // ---------- VISTA GENERAL ----------
   const t = g0?.total;
+  const objObj = Number(objetivo?.objetivo) || 0;
+  const pObj0 = g0 && objObj > 0 ? g0.ingresosSim.filter((v: number) => v >= objObj).length / Math.max(1, g0.ingresosSim.length) : null;
   return (
     <div style={{ fontFamily: F }}>
       {selector}
@@ -546,7 +666,36 @@ export default function Prevision({ clave }: { clave: string }) {
             <div style={{ fontSize: 24, fontWeight: 800, color: colorP(t.pBenef) }}>{Math.round(t.pBenef * 100)}%</div>
             <div style={{ fontSize: 12, color: C.muted }}>sumando todas las ciudades activas</div>
           </div>
+          {objObj > 0 && pObj0 != null && (
+            <div style={{ background: C.card, border: "1px solid " + colorP(pObj0) + "66", borderRadius: 12, padding: 14 }}>
+              <div style={{ fontSize: 11.5, color: C.mutedL, fontWeight: 700 }}>Probabilidad de llegar a {eur(objObj)}</div>
+              <div style={{ fontSize: 24, fontWeight: 800, color: colorP(pObj0) }}>{Math.round(pObj0 * 100)}%</div>
+              <div style={{ fontSize: 12, color: C.muted }}>de ingresos en {meses[0].nombre}</div>
+            </div>
+          )}
         </Grid>
+      )}
+
+      {general && (
+        <Card>
+          <Titulo>Ingresos por mes · reales y previstos</Titulo>
+          <GraficoIngresos
+            historico={(objetivo?.historico || []).filter((h: J) => Number(h.ingresos) > 0 || Number(h.gasto) > 0).map((h: J) => ({ mes: h.mes, ingresos: Number(h.ingresos) || 0, gasto: Number(h.gasto) || 0, parcial: !!h.parcial }))}
+            previstos={general.map((g) => ({ mes: g.mes.clave, nombre: g.mes.nombre, i10: g.total.i10, i50: g.total.ingresos, i90: g.total.i90, gasto: g.total.gasto,
+              pObj: objObj > 0 ? g.ingresosSim.filter((v: number) => v >= objObj).length / Math.max(1, g.ingresosSim.length) : null }))}
+            objetivo={objObj}
+          />
+        </Card>
+      )}
+
+      {general && (g0?.filas || []).length > 0 && (
+        <Card>
+          <Titulo>Ingresos previstos por ciudad y oficio</Titulo>
+          <GraficoPorCiudad
+            meses={general.map((g) => g.mes.nombre)}
+            series={(g0?.filas || []).map((x: J, k: number) => ({ nombre: x.c.ciudad + " · " + NOMBRE_OF[x.of as Of].toLowerCase(), valores: general.map((g) => g.filas[k]?.r.ingresos || 0) }))}
+          />
+        </Card>
       )}
 
       <Card>

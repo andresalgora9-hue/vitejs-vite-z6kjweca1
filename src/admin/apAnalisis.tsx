@@ -7,6 +7,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { db } from "../supabase";
 import { C, F, Card, Btn, Pill, Grid, Titulo, Cabecera, Tabla, BarraH, ymdMadrid, sumarDias, mesHoy, mesMover, diasDelMes, eur, num, useAncho } from "./apUi";
 import Prevision from "./apPrevision";
+import { BarraObjetivo } from "./apObjetivo";
 
 type J = any;
 const CLAVE_LS = "oy_captacion_clave";
@@ -246,6 +247,7 @@ export default function Analisis(_props: any) {
   const [data, setData] = useState<J | null>(null);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
+  const [avisosAbiertos, setAvisosAbiertos] = useState<boolean | null>(() => { try { const v = localStorage.getItem("oy_analisis_avisos"); return v === null ? null : v === "1"; } catch { return null; } });
   const [vista, setVista] = useState<"ahora" | "prevision">(() => { try { return (sessionStorage.getItem("oy_analisis_vista") as any) || "ahora"; } catch { return "ahora"; } });
   useEffect(() => { try { sessionStorage.setItem("oy_analisis_vista", vista); } catch { /* nada */ } }, [vista]);
 
@@ -336,9 +338,29 @@ export default function Analisis(_props: any) {
 
       {data && (
         <>
-          {/* ALERTAS */}
-          {alertas.length > 0 && (
-            <div style={{ display: "grid", gap: 8, marginBottom: 14 }}>
+          {/* OBJETIVO DEL MES */}
+          <BarraObjetivo clave={clave} />
+
+          {/* AVISOS (ventana plegable) */}
+          {alertas.length > 0 && (() => {
+            const nAlta = alertas.filter((a) => a.nivel === "alta").length;
+            const nMedia = alertas.filter((a) => a.nivel === "media").length;
+            const nBaja = alertas.length - nAlta - nMedia;
+            const abierto = avisosAbiertos === null ? nAlta > 0 : avisosAbiertos;
+            const cambiar = () => { const v = !abierto; setAvisosAbiertos(v); try { localStorage.setItem("oy_analisis_avisos", v ? "1" : "0"); } catch { /* nada */ } };
+            const colCab = nAlta ? C.red : nMedia ? C.orange : C.blue;
+            return (
+            <div style={{ marginBottom: 14, border: "1px solid " + colCab + "55", borderRadius: 12, background: C.card, overflow: "hidden" }}>
+              <button onClick={cambiar} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "11px 14px", background: colCab + "12", border: "none", cursor: "pointer", fontFamily: F, color: C.text, textAlign: "left" }}>
+                <span style={{ fontSize: 14, fontWeight: 800 }}>Avisos</span>
+                {nAlta > 0 && <span style={{ fontSize: 11.5, fontWeight: 800, color: C.red, background: C.red + "22", borderRadius: 99, padding: "2px 8px" }}>{nAlta} urgente{nAlta > 1 ? "s" : ""}</span>}
+                {nMedia > 0 && <span style={{ fontSize: 11.5, fontWeight: 800, color: C.orange, background: C.orange + "22", borderRadius: 99, padding: "2px 8px" }}>{nMedia} a revisar</span>}
+                {nBaja > 0 && <span style={{ fontSize: 11.5, fontWeight: 800, color: C.blue, background: C.blue + "22", borderRadius: 99, padding: "2px 8px" }}>{nBaja} info</span>}
+                <span style={{ marginLeft: "auto", fontSize: 12, color: C.mutedL }}>{abierto ? "Ocultar" : "Ver"}</span>
+                <span style={{ fontSize: 13, color: C.mutedL, transform: abierto ? "rotate(180deg)" : "none", transition: "transform .2s" }}>▼</span>
+              </button>
+              {abierto && (
+            <div style={{ display: "grid", gap: 8, padding: 12 }}>
               {alertas.map((a, i) => {
                 const c = a.nivel === "alta" ? C.red : a.nivel === "media" ? C.orange : C.blue;
                 return (
@@ -349,7 +371,10 @@ export default function Analisis(_props: any) {
                 );
               })}
             </div>
-          )}
+              )}
+            </div>
+            );
+          })()}
 
           {/* KPIs */}
           <Grid min={movil ? 150 : 175}>
