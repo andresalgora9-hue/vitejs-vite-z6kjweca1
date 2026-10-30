@@ -1,6 +1,6 @@
 // ============================================================
 // OficioYa · ADMIN nuevo (modelo pago por lead)
-// Resumen · Leads · Facturas · Profesionales · Captación · Mensajes · Marketing · Ajustes · CRM antiguo
+// Resumen · Análisis · Leads · Facturas · Profesionales · Captación · Mensajes · Marketing · Ajustes · CRM antiguo
 // ============================================================
 import React, { useState, useEffect, useCallback } from "react";
 import { db } from "../supabase";
@@ -13,11 +13,13 @@ import Profesionales from "./apProfesionales";
 import Mensajes from "./apMensajes";
 import Marketing from "./apMarketing";
 import Ajustes from "./apAjustes";
+import Analisis from "./apAnalisis";
 
-type Seccion = "resumen" | "leads" | "facturas" | "profesionales" | "captacion" | "mensajes" | "marketing" | "ajustes" | "antiguo";
+type Seccion = "resumen" | "analisis" | "leads" | "facturas" | "profesionales" | "captacion" | "mensajes" | "marketing" | "ajustes" | "antiguo";
 
 const NAV: { id: Seccion; label: string; icono: string }[] = [
   { id: "resumen", label: "Resumen", icono: "M4 13h4v7H4zM10 8h4v12h-4zM16 4h4v16h-4z" },
+  { id: "analisis", label: "Análisis", icono: "M3 3v18h18M7 15l4-4 3 3 5-6" },
   { id: "leads", label: "Leads", icono: "M4 6h16M4 12h16M4 18h10" },
   { id: "facturas", label: "Facturas", icono: "M6.5 3.5h8l4 4v13h-12zM14.5 3.5v4h4M9.5 12h6M9.5 15.5h6" },
   { id: "profesionales", label: "Profesionales", icono: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4.5 20c.7-3.7 3.7-5.8 7.5-5.8s6.8 2.1 7.5 5.8" },
@@ -134,6 +136,7 @@ export default function AdminPanel({ onLogout, nombre }: { onLogout: () => void;
     const props = { d, recargar: cargar, aviso, irA: (s: string) => setSec(s as Seccion) };
     switch (sec) {
       case "resumen": return <Resumen {...props} />;
+      case "analisis": return <Analisis {...props} />;
       case "leads": return <Leads {...props} />;
       case "facturas": return <Facturas {...props} />;
       case "profesionales": return <Profesionales {...props} />;
