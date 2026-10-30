@@ -688,6 +688,170 @@
       "destination": "/rehabilitacion-portal-sevilla.html"
     },
     {
+      "source": "/pintores-valencia",
+      "destination": "/pintores-valencia.html"
+    },
+    {
+      "source": "/busco-pintor-valencia",
+      "destination": "/busco-pintor-valencia.html"
+    },
+    {
+      "source": "/pintores-particulares-valencia",
+      "destination": "/pintores-particulares-valencia.html"
+    },
+    {
+      "source": "/pintor-cerca-de-mi-valencia",
+      "destination": "/pintor-cerca-de-mi-valencia.html"
+    },
+    {
+      "source": "/empresa-pintores-valencia",
+      "destination": "/empresa-pintores-valencia.html"
+    },
+    {
+      "source": "/pintar-piso-valencia",
+      "destination": "/pintar-piso-valencia.html"
+    },
+    {
+      "source": "/precio-pintar-piso-valencia",
+      "destination": "/precio-pintar-piso-valencia.html"
+    },
+    {
+      "source": "/pintar-habitacion-valencia",
+      "destination": "/pintar-habitacion-valencia.html"
+    },
+    {
+      "source": "/pintar-piso-alquilar-valencia",
+      "destination": "/pintar-piso-alquilar-valencia.html"
+    },
+    {
+      "source": "/quitar-gotele-valencia",
+      "destination": "/quitar-gotele-valencia.html"
+    },
+    {
+      "source": "/alisar-paredes-valencia",
+      "destination": "/alisar-paredes-valencia.html"
+    },
+    {
+      "source": "/pintura-antihumedad-valencia",
+      "destination": "/pintura-antihumedad-valencia.html"
+    },
+    {
+      "source": "/quitar-moho-paredes-valencia",
+      "destination": "/quitar-moho-paredes-valencia.html"
+    },
+    {
+      "source": "/pintar-escalera-comunidad-valencia",
+      "destination": "/pintar-escalera-comunidad-valencia.html"
+    },
+    {
+      "source": "/pintar-fachada-valencia",
+      "destination": "/pintar-fachada-valencia.html"
+    },
+    {
+      "source": "/pintar-local-valencia",
+      "destination": "/pintar-local-valencia.html"
+    },
+    {
+      "source": "/pintar-oficina-valencia",
+      "destination": "/pintar-oficina-valencia.html"
+    },
+    {
+      "source": "/pintores-alrededores-valencia",
+      "destination": "/pintores-alrededores-valencia.html"
+    },
+    {
+      "source": "/pintores-torrent",
+      "destination": "/pintores-torrent.html"
+    },
+    {
+      "source": "/pintores-paterna",
+      "destination": "/pintores-paterna.html"
+    },
+    {
+      "source": "/pintores-mislata",
+      "destination": "/pintores-mislata.html"
+    },
+    {
+      "source": "/pintores-burjassot",
+      "destination": "/pintores-burjassot.html"
+    },
+    {
+      "source": "/pintores-manises",
+      "destination": "/pintores-manises.html"
+    },
+    {
+      "source": "/pintores-aldaia",
+      "destination": "/pintores-aldaia.html"
+    },
+    {
+      "source": "/pintores-alaquas",
+      "destination": "/pintores-alaquas.html"
+    },
+    {
+      "source": "/pintores-xirivella",
+      "destination": "/pintores-xirivella.html"
+    },
+    {
+      "source": "/pintores-quart-de-poblet",
+      "destination": "/pintores-quart-de-poblet.html"
+    },
+    {
+      "source": "/pintores-catarroja",
+      "destination": "/pintores-catarroja.html"
+    },
+    {
+      "source": "/pintores-paiporta",
+      "destination": "/pintores-paiporta.html"
+    },
+    {
+      "source": "/pintores-alboraya",
+      "destination": "/pintores-alboraya.html"
+    },
+    {
+      "source": "/pintores-moncada",
+      "destination": "/pintores-moncada.html"
+    },
+    {
+      "source": "/pintores-picassent",
+      "destination": "/pintores-picassent.html"
+    },
+    {
+      "source": "/pintores-alfafar",
+      "destination": "/pintores-alfafar.html"
+    },
+    {
+      "source": "/pintores-godella",
+      "destination": "/pintores-godella.html"
+    },
+    {
+      "source": "/pintores-betera",
+      "destination": "/pintores-betera.html"
+    },
+    {
+      "source": "/pintores-la-eliana",
+      "destination": "/pintores-la-eliana.html"
+    },
+    {
+      "source": "/pintores-riba-roja",
+      "destination": "/pintores-riba-roja.html"
+    },
+    {
+      "source": "/pintores-picanya",
+      "destination": "/pintores-picanya.html"
+    },
+    {
+      "source": "/pintores-benetusser",
+      "destination": "/pintores-benetusser.html"
+    },
+    {
+      "source": "/pintores-pucol",
+      "destination": "/pintores-pucol.html"
+    },
+    {
+      "source": "/pintores-massamagrell",
+      "destination": "/pintores-massamagrell.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
