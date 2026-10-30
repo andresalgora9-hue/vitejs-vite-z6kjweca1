@@ -339,7 +339,7 @@ export default function Analisis(_props: any) {
       {data && (
         <>
           {/* OBJETIVO DEL MES */}
-          <BarraObjetivo clave={clave} />
+          <BarraObjetivo clave={clave} desde={desde} hasta={hasta} rango={rango} />
 
           {/* AVISOS (ventana plegable) */}
           {alertas.length > 0 && (() => {
