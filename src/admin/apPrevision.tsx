@@ -136,19 +136,25 @@ function sumar(sims: Sim[]): Sim {
 const semilla = (s: string) => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
 
 // ---------- piezas visuales ----------
-// Recoloca el mapa cuando la página termina de pintarse y encuadra la península
+// Encuadra la península en cuanto el mapa tiene su tamaño real (y cada vez que cambia), salvo que lo hayas movido tú
 function AjustarMapa({ puntos }: { puntos: [number, number][] }) {
   const map = useMap();
   useEffect(() => {
+    const pen = puntos.filter(([la, ln]) => la > 35.5 && ln > -10);
+    let movidoAMano = false;
+    const marcar = () => { movidoAMano = true; };
     const encuadrar = () => {
-      map.invalidateSize();
-      const pen = puntos.filter(([la, ln]) => la > 35.5 && ln > -10);
-      if (pen.length > 1) map.fitBounds(pen, { padding: [24, 24], maxZoom: 7 });
+      map.invalidateSize({ pan: false });
+      const t = map.getSize();
+      if (t.x < 80 || t.y < 80) return;
+      if (!movidoAMano && pen.length > 1) map.fitBounds(pen, { padding: [18, 18], maxZoom: 7, animate: false });
     };
-    const t1 = setTimeout(encuadrar, 80), t2 = setTimeout(encuadrar, 500), t3 = setTimeout(() => map.invalidateSize(), 1200);
-    const alCambiar = () => map.invalidateSize();
-    window.addEventListener("resize", alCambiar);
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); window.removeEventListener("resize", alCambiar); };
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(() => encuadrar()) : null;
+    ro?.observe(map.getContainer());
+    const t1 = setTimeout(encuadrar, 150), t2 = setTimeout(encuadrar, 900);
+    map.on("dragstart", marcar);
+    window.addEventListener("resize", encuadrar);
+    return () => { ro?.disconnect(); clearTimeout(t1); clearTimeout(t2); map.off("dragstart", marcar); window.removeEventListener("resize", encuadrar); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map]);
   return null;
