@@ -6,6 +6,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { db } from "../supabase";
 import { C, F, Card, Btn, Pill, Grid, Titulo, Cabecera, Tabla, BarraH, ymdMadrid, sumarDias, mesHoy, mesMover, diasDelMes, eur, num, useAncho } from "./apUi";
+import Prevision from "./apPrevision";
 
 type J = any;
 const CLAVE_LS = "oy_captacion_clave";
@@ -245,6 +246,8 @@ export default function Analisis(_props: any) {
   const [data, setData] = useState<J | null>(null);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
+  const [vista, setVista] = useState<"ahora" | "prevision">(() => { try { return (sessionStorage.getItem("oy_analisis_vista") as any) || "ahora"; } catch { return "ahora"; } });
+  useEffect(() => { try { sessionStorage.setItem("oy_analisis_vista", vista); } catch { /* nada */ } }, [vista]);
 
   const cargar = useCallback(async () => {
     if (!clave) return;
@@ -298,8 +301,27 @@ export default function Analisis(_props: any) {
   const alertas: J[] = data?.alertas || [];
   const serie: J[] = data?.serie || [];
 
+  const pestanas = (
+    <div style={{ display: "inline-flex", background: C.surface, border: "1px solid " + C.border, borderRadius: 10, padding: 3, marginBottom: 12 }}>
+      {([["ahora", "Situación actual"], ["prevision", "Previsión"]] as const).map(([k, l]) => (
+        <button key={k} onClick={() => setVista(k)} style={{ fontFamily: F, fontSize: 13.5, fontWeight: 800, padding: "8px 16px", borderRadius: 8, border: "none", cursor: "pointer", background: vista === k ? C.accent : "transparent", color: vista === k ? "#000" : C.mutedL }}>{l}</button>
+      ))}
+    </div>
+  );
+
+  if (vista === "prevision") {
+    return (
+      <div style={{ fontFamily: F }}>
+        {pestanas}
+        <Cabecera titulo="Previsión" sub="Próximos meses, probabilidades y dónde abrir" />
+        <Prevision clave={clave} />
+      </div>
+    );
+  }
+
   return (
     <div style={{ fontFamily: F }}>
+      {pestanas}
       <Cabecera titulo="Análisis" sub={data ? `${ddmm(data.periodo.desde)} – ${ddmm(data.periodo.hasta)} · comparado con ${ddmm(data.periodo.ant_desde)} – ${ddmm(data.periodo.ant_hasta)}` : "Campañas, embudo y negocio en un solo sitio"}>
         {([["7", "7 días"], ["30", "30 días"], ["90", "90 días"], ["mes", "Este mes"], ["mesAnt", "Mes anterior"]] as const).map(([kk, l]) => (
           <button key={kk} onClick={() => elegir(kk)} style={{ fontFamily: F, fontSize: 12.5, fontWeight: 800, padding: "7px 11px", borderRadius: 8, cursor: "pointer", border: "1px solid " + (rango === kk ? C.accent : C.border), background: rango === kk ? C.accent + "18" : "transparent", color: rango === kk ? C.accent : C.mutedL }}>{l}</button>
