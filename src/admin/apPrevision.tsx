@@ -4,7 +4,7 @@
 // Modelo: simulación Monte Carlo. Ciudades nuevas parten de los ratios de Sevilla y aprenden con sus propios datos.
 // ============================================================
 import React, { useEffect, useMemo, useState } from "react";
-import { MapContainer, TileLayer, CircleMarker, Tooltip } from "react-leaflet";
+import { MapContainer, TileLayer, CircleMarker, Tooltip, useMap } from "react-leaflet";
 import { db } from "../supabase";
 import { C, F, Card, Pill, Grid, Titulo, Tabla, eur, num, useAncho } from "./apUi";
 
@@ -136,6 +136,23 @@ function sumar(sims: Sim[]): Sim {
 const semilla = (s: string) => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
 
 // ---------- piezas visuales ----------
+// Recoloca el mapa cuando la página termina de pintarse y encuadra la península
+function AjustarMapa({ puntos }: { puntos: [number, number][] }) {
+  const map = useMap();
+  useEffect(() => {
+    const encuadrar = () => {
+      map.invalidateSize();
+      const pen = puntos.filter(([la, ln]) => la > 35.5 && ln > -10);
+      if (pen.length > 1) map.fitBounds(pen, { padding: [24, 24], maxZoom: 7 });
+    };
+    const t1 = setTimeout(encuadrar, 80), t2 = setTimeout(encuadrar, 500), t3 = setTimeout(() => map.invalidateSize(), 1200);
+    const alCambiar = () => map.invalidateSize();
+    window.addEventListener("resize", alCambiar);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); window.removeEventListener("resize", alCambiar); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map]);
+  return null;
+}
 const colorP = (p: number) => (p >= 0.7 ? C.green : p >= 0.45 ? C.orange : C.red);
 function BarraProb({ label, p, ayuda }: { label: string; p: number | null; ayuda?: string }) {
   if (p === null) return null;
@@ -348,9 +365,11 @@ export default function Prevision({ clave }: { clave: string }) {
   // ---------- mapa ----------
   const mapa = (
     <Card style={{ padding: 0, overflow: "hidden" }}>
-      <div style={{ height: movil ? 360 : 460 }}>
-        <MapContainer center={[40.2, -3.7]} zoom={movil ? 5 : 6} style={{ height: "100%", width: "100%", background: C.bg }} scrollWheelZoom={false}>
-          <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" attribution="" />
+      <div style={{ height: movil ? 380 : 480, width: "100%", position: "relative", zIndex: 0, isolation: "isolate" }}>
+        <MapContainer center={[40.2, -3.7]} zoom={movil ? 5 : 6} minZoom={4} style={{ height: "100%", width: "100%", background: "#1b1e27" }} scrollWheelZoom={false} zoomControl={true}>
+          <TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}" attribution="Tiles &copy; Esri" maxZoom={16} />
+          <TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}" maxZoom={16} />
+          <AjustarMapa puntos={(d.ciudades || []).filter((c: J) => c.lat && c.lng).map((c: J) => [Number(c.lat), Number(c.lng)] as [number, number])} />
           {(d.ciudades || []).filter((c: J) => c.lat && c.lng).map((c: J) => {
             const dem = OFICIOS.reduce((s, of) => s + (Number(c.oficios?.[of]?.demanda?.media) || 0), 0);
             const best = mejorPorCiudad[c.slug];
