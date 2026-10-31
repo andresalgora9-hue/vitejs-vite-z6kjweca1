@@ -721,6 +721,9 @@ const PERSONAJE: Record<string, string> = { direccion: "🧑‍💼", marketing:
 // Turnos en hora del servidor (UTC). Días: 0 = domingo.
 const TODOS = [0, 1, 2, 3, 4, 5, 6];
 const TURNOS: Record<string, { dias: number[]; h: number; m: number; tarea: string }[]> = {
+  operaciones: [{ dias: TODOS, h: 6, m: 5, tarea: "Revisión de profesionales y leads" }, { dias: TODOS, h: 18, m: 0, tarea: "Revisión de la tarde" }],
+  finanzas: [{ dias: TODOS, h: 6, m: 15, tarea: "Cobros, facturas y margen" }],
+  expansion: [{ dias: [1, 3, 5], h: 6, m: 25, tarea: "Análisis de ciudades y oficios" }],
   asistente: [{ dias: TODOS, h: 4, m: 50, tarea: "Dossier para el plan del día" }, ...Array.from({ length: 18 }, (_, i) => ({ dias: TODOS, h: 5 + i, m: 50, tarea: "Ronda: boletín para Dirección" })), { dias: [1], h: 7, m: 45, tarea: "Dossier para la reunión" }, { dias: TODOS, h: 23, m: 20, tarea: "Dossier para el cierre" }],
   direccion: [{ dias: TODOS, h: 5, m: 0, tarea: "Plan del día con el equipo" }, { dias: [1], h: 8, m: 0, tarea: "Reunión semanal" }, { dias: TODOS, h: 23, m: 30, tarea: "Cierre del día" }],
   ciberseguridad: [{ dias: TODOS, h: 5, m: 15, tarea: "Revisión de seguridad" }],
@@ -752,6 +755,121 @@ function falta(ms: number) {
   if (h < 24) return h + " h " + (m % 60) + " min";
   return Math.floor(h / 24) + " d " + (h % 24) + " h";
 }
+
+// ================= PROGRESO DEL DÍA: tareas del plan y fases del turno en directo =================
+const ETAPAS = ["Preparando", "Leyendo datos", "Consultando", "Pensando", "Escribiendo", "Guardando"];
+function etapaDe(paso: string | null | undefined): number {
+  const p = (paso || "").toLowerCase();
+  if (/guardando/.test(p)) return 5;
+  if (/escribiendo/.test(p)) return 4;
+  if (/pensando|organizando|tomándose|preparando el boletín|preparando el dossier/.test(p)) return 3;
+  if (/consultando|📊|🎓/.test(p)) return 2;
+  if (/leyendo|revisando|recorriendo|repasando|recogiendo|consolidando/.test(p)) return 1;
+  return 0;
+}
+const COLOR_TAREA: Record<string, string> = { hecha: "#22c55e", en_curso: "#f59e0b", pendiente: "#334155", bloqueada: "#ef4444", descartada: "#1f2937" };
+const avanceTarea = (t: J) => (t.estado === "hecha" ? 100 : t.estado === "descartada" ? 0 : Math.max(0, Math.min(100, Number(t.avance) || 0)));
+function ProgresoEquipo({ d, ahora, abrirChats }: { d: J; ahora: Date; abrirChats: (canal: string) => void }) {
+  const deps: J[] = (d.departamentos || []).filter((x: J) => x.activo);
+  const tareas: J[] = (d.tareas_hoy || []).filter((t: J) => t.estado !== "descartada");
+  const hist: J[] = d.historial || [];
+  const total = tareas.length, hechas = tareas.filter((t) => t.estado === "hecha").length;
+  const pctTotal = total ? Math.round(tareas.reduce((s, t) => s + avanceTarea(t), 0) / total) : 0;
+  const [abiertos, setAbiertos] = useState<Record<string, boolean>>({});
+  return (
+    <div style={{ background: C.card, border: "1px solid " + C.border, borderRadius: 14, padding: 14 }}>
+      <style>{`@keyframes pgLatido{0%,100%{opacity:.6}50%{opacity:1}} @keyframes pgRaya{from{background-position:0 0}to{background-position:28px 0}}`}</style>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 10 }}>
+        <div style={{ fontSize: 15, fontWeight: 800 }}>📈 Progreso del día</div>
+        <div style={{ fontSize: 12.5, color: C.mutedL }}>{total ? `${hechas} de ${total} tareas del plan hechas · ${pctTotal}%` : "Las tareas aparecen cuando Dirección hace el plan del día (6:00)"}</div>
+      </div>
+      {total > 0 && <div style={{ height: 8, background: "#1e2433", borderRadius: 99, overflow: "hidden", marginBottom: 14 }}><div style={{ width: pctTotal + "%", height: "100%", background: "linear-gradient(90deg,#22c55e,#86efac)", transition: "width .8s" }} /></div>}
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {deps.map((x) => {
+          const suyas = tareas.filter((t) => t.departamento === x.id).sort((a, b) => a.orden - b.orden);
+          const actual = hist.find((h) => h.departamento === x.id && h.estado === "trabajando");
+          const trabajando = x.estado === "trabajando" || !!actual;
+          const et = etapaDe(actual?.paso);
+          const pct = suyas.length ? Math.round(suyas.reduce((s, t) => s + avanceTarea(t), 0) / suyas.length) : null;
+          const siguiente = suyas.find((t) => t.estado === "en_curso") || suyas.find((t) => t.estado === "pendiente");
+          const prox = proximoTurno(x.id, ahora);
+          const abierto = abiertos[x.id] ?? trabajando;
+          return (
+            <div key={x.id} style={{ border: "1px solid " + (trabajando ? (x.color || C.accent) + "88" : C.border), borderRadius: 12, padding: "10px 12px", background: trabajando ? (x.color || C.accent) + "0d" : "transparent" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                <button onClick={() => abrirChats("dm:" + x.id)} title="Hablar con él" style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "center", gap: 7, color: C.text, fontFamily: F }}>
+                  <span style={{ fontSize: 20 }}>{PERSONAJE[x.id] || x.icono}</span>
+                  <span style={{ fontWeight: 800, fontSize: 13.5, color: x.color || C.text }}>{x.nombre}</span>
+                </button>
+                <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: trabajando ? "#22c55e22" : x.estado === "error" ? "#ef444422" : "#33415555", color: trabajando ? "#4ade80" : x.estado === "error" ? "#f87171" : C.mutedL }}>
+                  {trabajando ? "● Trabajando ahora" : x.estado === "descansando" ? "😴 Descansando" : x.estado === "error" ? "⚠️ Error" : "En espera"}
+                </span>
+                {pct !== null && <span style={{ fontSize: 12, color: C.mutedL }}>{suyas.filter((t) => t.estado === "hecha").length}/{suyas.length} tareas · <b style={{ color: C.text }}>{pct}%</b></span>}
+                <span style={{ flex: 1 }} />
+                {prox && !trabajando && <span style={{ fontSize: 11.5, color: C.muted }}>Próximo turno {horaM(prox.fecha, { hour: "2-digit", minute: "2-digit", hour12: false })} · {prox.tarea}</span>}
+                {suyas.length > 0 && <button onClick={() => setAbiertos((v) => ({ ...v, [x.id]: !abierto }))} style={{ fontFamily: F, fontSize: 11.5, background: "none", border: "1px solid " + C.border, color: C.mutedL, borderRadius: 99, padding: "2px 9px", cursor: "pointer" }}>{abierto ? "Ocultar tareas" : "Ver tareas"}</button>}
+              </div>
+
+              {/* Fases del turno en directo */}
+              {trabajando && (
+                <div style={{ marginTop: 10 }}>
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    {ETAPAS.map((e, i) => (
+                      <React.Fragment key={e}>
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: 0, flex: "0 0 auto" }}>
+                          <div style={{ width: 20, height: 20, borderRadius: 99, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10.5, fontWeight: 800,
+                            background: i < et ? "#22c55e" : i === et ? (x.color || C.accent) : "#1e2433", color: i <= et ? "#000" : C.muted,
+                            boxShadow: i === et ? "0 0 0 4px " + (x.color || C.accent) + "33" : "none", animation: i === et ? "pgLatido 1.2s infinite" : "none" }}>{i < et ? "✓" : i + 1}</div>
+                          <div style={{ fontSize: 10, marginTop: 3, color: i === et ? C.text : C.muted, fontWeight: i === et ? 800 : 500, whiteSpace: "nowrap" }}>{e}</div>
+                        </div>
+                        {i < ETAPAS.length - 1 && <div style={{ flex: 1, height: 3, margin: "0 4px 14px", borderRadius: 99, background: i < et ? "#22c55e" : "#1e2433" }} />}
+                      </React.Fragment>
+                    ))}
+                  </div>
+                  <div style={{ marginTop: 6, fontFamily: "'Courier New',monospace", fontSize: 12, color: "#7CFFB2", background: "#05080f", border: "1px solid #1e2433", borderRadius: 8, padding: "6px 9px", lineHeight: 1.4 }}>
+                    <b style={{ color: "#c9d6ea" }}>{actual?.paso || QUE_HACE[actual?.tipo] || "Trabajando"}</b>
+                    {actual?.progreso ? <span> · «…{String(actual.progreso).slice(-160)}»</span> : null}
+                    <span style={{ animation: "ofCursor 1s infinite" }}>▌</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Barra de tareas del día */}
+              {suyas.length > 0 ? (
+                <div style={{ display: "flex", gap: 4, marginTop: 10 }}>
+                  {suyas.map((t) => (
+                    <div key={t.id} title={t.titulo + (t.nota ? " · " + t.nota : "")} style={{ flex: 1, height: 12, borderRadius: 4, background: t.estado === "bloqueada" ? "#ef444433" : "#1e2433", overflow: "hidden", border: "1px solid " + (t.estado === "en_curso" ? "#f59e0b88" : "transparent") }}>
+                      <div style={{ width: avanceTarea(t) + "%", height: "100%", background: COLOR_TAREA[t.estado] || "#334155", transition: "width .8s",
+                        ...(t.estado === "en_curso" ? { backgroundImage: "repeating-linear-gradient(45deg,rgba(255,255,255,.25) 0 7px,transparent 7px 14px)", backgroundSize: "28px 100%", animation: "pgRaya 1s linear infinite" } : {}) }} />
+                    </div>
+                  ))}
+                </div>
+              ) : <div style={{ marginTop: 8, fontSize: 12, color: C.muted }}>Sin tareas en el plan de hoy.</div>}
+              {!abierto && siguiente && <div style={{ marginTop: 6, fontSize: 12, color: C.mutedL }}>{siguiente.estado === "en_curso" ? "▶ Ahora: " : "⏭ Siguiente: "}{siguiente.titulo}</div>}
+
+              {/* Subtareas */}
+              {abierto && suyas.length > 0 && (
+                <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 5 }}>
+                  {suyas.map((t) => (
+                    <div key={t.id} style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 12.5, lineHeight: 1.4, opacity: t.estado === "hecha" ? 0.75 : 1 }}>
+                      <span style={{ width: 18, textAlign: "center", flex: "0 0 auto" }}>{t.estado === "hecha" ? "✅" : t.estado === "en_curso" ? "▶️" : t.estado === "bloqueada" ? "⛔" : t.id === siguiente?.id ? "⏭" : "○"}</span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{ textDecoration: t.estado === "hecha" ? "line-through" : "none", color: t.estado === "bloqueada" ? "#f87171" : C.text }}>{t.titulo}</span>
+                        {t.estado === "en_curso" && <b style={{ color: "#f59e0b" }}> · {avanceTarea(t)}%</b>}
+                        {t.nota && <div style={{ fontSize: 11.5, color: C.muted, marginTop: 1 }}>{t.nota}</div>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function Oficina({ d, lab, clave, recargar, abrir, irA, abrirChats }: { d: J; lab: J | null; clave: string; recargar: () => void; abrir: (inf: J) => void; irA: (p: Pestana) => void; abrirChats: (canal: string) => void }) {
   const [ahora, setAhora] = useState(new Date());
   const [aviso, setAviso] = useState("");
@@ -775,7 +893,7 @@ function Oficina({ d, lab, clave, recargar, abrir, irA, abrirChats }: { d: J; la
       personas: (d.departamentos || []).map((x: J) => {
         const enCurso = histo.find((h) => h.departamento === x.id && h.estado === "trabajando");
         const suyo = (plan?.por_departamento || []).find((p: J) => p.departamento === x.id);
-        return { id: x.id, nombre: x.nombre, icono: x.icono, color: x.color || "#E8862A", activo: !!x.activo, estado: x.estado || "listo", tipo: enCurso?.tipo || null, paso: enCurso?.paso || null, progreso: enCurso?.progreso || null, cafe: !!x.cafe_pendiente, cafeClave: String(x.cafe_ultimo || ""), ultimo: x.id === "asistente" ? (histo.find((h) => h.departamento === "asistente" && h.estado === "listo")?.titulo || null) : d.ultimos?.[x.id]?.titulo || null, tarea: suyo?.tareas?.[0] || suyo?.foco || null };
+        return { id: x.id, nombre: x.nombre, icono: x.icono, color: x.color || "#E8862A", activo: !!x.activo, estado: x.estado || "listo", tipo: enCurso?.tipo || null, paso: enCurso?.paso || null, progreso: enCurso?.progreso || null, cafe: !!x.cafe_pendiente, cafeClave: String(x.cafe_ultimo || ""), tareas: (d.tareas_hoy || []).filter((t: J) => t.departamento === x.id && t.estado !== "descartada").map((t: J) => ({ estado: String(t.estado), avance: Number(t.avance) || 0 })), ultimo: x.id === "asistente" ? (histo.find((h) => h.departamento === "asistente" && h.estado === "listo")?.titulo || null) : d.ultimos?.[x.id]?.titulo || null, tarea: suyo?.tareas?.[0] || suyo?.foco || null };
       }),
       reunion,
       eventos: d.eventos || [],
@@ -853,6 +971,7 @@ function Oficina({ d, lab, clave, recargar, abrir, irA, abrirChats }: { d: J; la
             <Oficina3D datos={datos3d} alPulsar={(id: string) => abrirChats("dm:" + id)} alto={typeof window !== "undefined" && window.innerWidth < 700 ? 460 : 600} />
           </React.Suspense>
         )}
+        <ProgresoEquipo d={d} ahora={ahora} abrirChats={abrirChats} />
         {/* Mesas */}
         {!vista3d && <div style={{ position: "relative", background: "repeating-linear-gradient(45deg,#121722,#121722 22px,#131926 22px,#131926 44px)", border: "1px solid " + C.border, borderRadius: 14, padding: 12 }}>
           {cerrada && <div style={{ position: "absolute", inset: 0, background: "#05070dcc", borderRadius: 14, zIndex: 1, pointerEvents: "none" }} />}

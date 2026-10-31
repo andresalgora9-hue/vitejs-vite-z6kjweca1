@@ -16,6 +16,7 @@ export type PersonaOficina = {
   id: string; nombre: string; icono: string; color: string; activo: boolean;
   estado: string; tipo: string | null; paso: string | null; progreso: string | null;
   cafe: boolean; cafeClave: string; ultimo: string | null; tarea: string | null;
+  tareas?: { estado: string; avance: number }[];
 };
 export type DatosOficina = {
   personas: PersonaOficina[];
@@ -880,7 +881,8 @@ class Motor {
       const html = `<div class="cab"><span>${p.icono}</span><b>${p.nombre}</b>${p.estado === "trabajando" ? '<i class="vivo"></i>' : ""}</div>`
         + `<div class="txt">${c.icono} ${escapar(c.texto)}</div>`
         + (c.vivo ? `<div class="pens">«…${escapar(c.vivo)}<span class="cur">▌</span>»</div>` : "")
-        + (c.barra > 0 ? `<div class="barra"><i style="width:${Math.min(100, c.barra)}%"></i><span>${c.barra > 100 ? "⚡ Potenciado por el café · 150%" : "Concentración 100%"}</span></div>` : "");
+        + (c.barra > 0 ? `<div class="barra"><i style="width:${Math.min(100, c.barra)}%"></i><span>${c.barra > 100 ? "⚡ Potenciado por el café · 150%" : "Concentración 100%"}</span></div>` : "")
+        + (p.tareas && p.tareas.length ? `<div class="tareas">${p.tareas.map((t) => `<i class="t-${t.estado}" style="--a:${t.estado === "hecha" ? 100 : Math.max(0, Math.min(100, t.avance))}%"></i>`).join("")}<span>${p.tareas.filter((t) => t.estado === "hecha").length}/${p.tareas.length} tareas</span></div>` : "");
       if (el.dataset.html !== html) { el.innerHTML = html; el.dataset.html = html; }
     }
     // etiquetas de puestos libres
@@ -964,6 +966,7 @@ export default function Oficina3D({ datos, alPulsar, alto = 560 }: { datos: Dato
 }
 
 const CSS = `
+.oy3d-pantalla .tareas{display:flex;gap:2px;align-items:center;margin-top:5px}.oy3d-pantalla .tareas i{flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,.14);position:relative;overflow:hidden}.oy3d-pantalla .tareas i::after{content:"";position:absolute;left:0;top:0;bottom:0;width:var(--a);background:#f59e0b}.oy3d-pantalla .tareas i.t-hecha::after{background:#22c55e}.oy3d-pantalla .tareas i.t-bloqueada{background:rgba(239,68,68,.45)}.oy3d-pantalla .tareas span{font-size:9.5px;color:#9fb3d1;margin-left:4px;white-space:nowrap}
 .oy3d-pantalla{position:absolute;left:0;top:0;pointer-events:auto;cursor:pointer;min-width:150px;max-width:230px;background:rgba(7,11,20,.9);border:1px solid var(--c);border-radius:10px;padding:6px 9px 7px;color:#e6eefc;font:600 11px/1.35 system-ui,-apple-system,Segoe UI,sans-serif;box-shadow:0 0 14px color-mix(in srgb,var(--c) 45%,transparent),0 6px 16px rgba(0,0,0,.45);transform-origin:50% 100%;will-change:transform}
 .oy3d-pantalla::after{content:"";position:absolute;left:50%;bottom:-7px;margin-left:-6px;border:6px solid transparent;border-top-color:var(--c);border-bottom:0}
 .oy3d-pantalla .cab{display:flex;align-items:center;gap:5px;font-size:11.5px;margin-bottom:3px}
