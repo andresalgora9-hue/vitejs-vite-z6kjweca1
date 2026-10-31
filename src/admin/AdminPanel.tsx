@@ -15,12 +15,14 @@ import Marketing from "./apMarketing";
 import Ajustes from "./apAjustes";
 import Analisis from "./apAnalisis";
 import EquipoIA from "./apEquipoIA";
+import Chats from "./apChats";
 
-type Seccion = "resumen" | "analisis" | "equipo" | "leads" | "facturas" | "profesionales" | "captacion" | "mensajes" | "marketing" | "ajustes" | "antiguo";
+type Seccion = "resumen" | "analisis" | "equipo" | "chats" | "leads" | "facturas" | "profesionales" | "captacion" | "mensajes" | "marketing" | "ajustes" | "antiguo";
 
 const NAV: { id: Seccion; label: string; icono: string }[] = [
   { id: "resumen", label: "Resumen", icono: "M4 13h4v7H4zM10 8h4v12h-4zM16 4h4v16h-4z" },
   { id: "analisis", label: "Análisis", icono: "M3 3v18h18M7 15l4-4 3 3 5-6" },
+  { id: "chats", label: "Chats", icono: "M20.5 12.2c0 3.9-3.8 7-8.5 7a10 10 0 0 1-2.6-.34L4.2 20.5l1.5-3.7A6.7 6.7 0 0 1 3.5 12.2c0-3.9 3.8-7 8.5-7s8.5 3.1 8.5 7zM8.5 11.5h7M8.5 14.5h4.5" },
   { id: "equipo", label: "Equipo IA", icono: "M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM17 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM3 20c.5-3 3-5 6-5s5.5 2 6 5M15 15.4c.6-.3 1.3-.4 2-.4 3 0 5.5 2 6 5" },
   { id: "leads", label: "Leads", icono: "M4 6h16M4 12h16M4 18h10" },
   { id: "facturas", label: "Facturas", icono: "M6.5 3.5h8l4 4v13h-12zM14.5 3.5v4h4M9.5 12h6M9.5 15.5h6" },
@@ -146,6 +148,7 @@ export default function AdminPanel({ onLogout, nombre }: { onLogout: () => void;
       case "resumen": return <Resumen {...props} />;
       case "analisis": return <Analisis {...props} />;
       case "equipo": return <EquipoIA {...props} />;
+      case "chats": return <Chats {...props} />;
       case "leads": return <Leads {...props} />;
       case "facturas": return <Facturas {...props} />;
       case "profesionales": return <Profesionales {...props} />;
