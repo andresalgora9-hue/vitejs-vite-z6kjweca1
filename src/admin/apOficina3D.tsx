@@ -50,6 +50,7 @@ const MESAS: Record<string, { x: number; z: number }> = {
   marketing: { x: -11, z: -1 }, supervisor: { x: -6.2, z: 3.0 },
   ciberseguridad: { x: 8, z: -1 }, auditor: { x: 12.6, z: 3.0 },
   direccion: { x: 16.8, z: -10.5 },
+  asistente: { x: 17.6, z: -2.4 },
   expansion: { x: -9.5, z: 8.5 }, captacion: { x: -4.5, z: 8.5 }, operaciones: { x: 0.5, z: 8.5 }, finanzas: { x: 5.5, z: 8.5 }, producto: { x: 10.5, z: 8.5 },
 };
 const ASIENTOS_REUNION: [number, number, number][] = [[-3.1, -10.2, Math.PI / 2], [-1.7, -11.25, 0], [0, -11.25, 0], [1.7, -11.25, 0], [-1.7, -9.15, Math.PI], [0, -9.15, Math.PI], [1.7, -9.15, Math.PI], [3.1, -10.2, -Math.PI / 2]];
@@ -74,6 +75,12 @@ const destinoAscensor = (): Destino => ({ clave: "casa", p: ASCENSOR.clone(), ro
 function destinoVisita(objetivo: string): Destino {
   const m = MESAS[objetivo];
   return { clave: "visita:" + objetivo, p: V(m.x + 1.0, 0, m.z - 1.35), rot: -Math.PI / 2 - 0.35, pose: "de_pie" };
+}
+// La Asistente se para al lado de cada compañero para recoger o llevar información
+function destinoRecado(id: string): Destino {
+  const m = MESAS[id];
+  if (id === "direccion") return { clave: "recado:direccion", p: V(m.x - 1.3, 0, m.z - 0.55), rot: Math.PI / 2, pose: "de_pie", puerta: PUERTA_DIRECCION };
+  return { clave: "recado:" + id, p: V(m.x - 1.15, 0, m.z - 1.3), rot: Math.PI / 2 + 0.3, pose: "de_pie" };
 }
 function ruta(desde: Destino, hasta: Destino): V3[] {
   const a = desde.p, b = hasta.p;
@@ -131,6 +138,7 @@ function texturaTexto(lineas: { t: string; size: number; color: string; peso?: s
 type Cfg = { piel: number; pelo: number; peinado: "tupe" | "coleta" | "corto" | "rizado" | "calvo" | "melena"; camisa: number; pantalon: number; zapatos?: number; extras: string[]; mujer?: boolean };
 const CFG: Record<string, Cfg> = {
   direccion: { piel: 0xf1c7a3, pelo: 0x3b2417, peinado: "tupe", camisa: 0x22324d, pantalon: 0x2b2b33, extras: ["corbata", "cuello"] },
+  asistente: { piel: 0xf0c9a6, pelo: 0x5b2c1a, peinado: "coleta", camisa: 0x14b8a6, pantalon: 0x1f2937, extras: ["gafas"], mujer: true },
   marketing: { piel: 0xf3d0b5, pelo: 0x9a3e1c, peinado: "coleta", camisa: 0xe8862a, pantalon: 0x2f4f8f, extras: ["cascos"], mujer: true },
   supervisor: { piel: 0xe0b18f, pelo: 0x9a9a9a, peinado: "corto", camisa: 0x7c5cc4, pantalon: 0x3a3a46, extras: ["gafas", "barba", "sombrero"] },
   ciberseguridad: { piel: 0xc98e64, pelo: 0x1d1d1d, peinado: "rizado", camisa: 0x1f8a70, pantalon: 0x26262e, extras: ["capucha", "gafas"] },
@@ -453,7 +461,7 @@ class Motor {
     rotulo("MARKETING", -9, -3.4); rotulo("CIBERSEGURIDAD", 10.3, -3.4, 6); rotulo("SALA DE REUNIONES", 0, -7.2, 6); rotulo("DIRECCIÓN", 16.8, -7.0); rotulo("CAFETERÍA", -17.8, -9.4); rotulo("DESCANSO", -17.8, 8.6); rotulo("PRÓXIMOS DEPARTAMENTOS", 0.5, 10.6, 8);
     // plantas sueltas y lámparas colgantes
     [[-13.5, 2.5], [4.5, -2.5], [15.5, 2.0], [-2, 3.2], [20.5, 8.5], [-13, 11.5], [14, 11.5]].forEach(([x, z]) => this.planta(x, z));
-    for (const id of ["marketing", "supervisor", "ciberseguridad", "auditor"]) { const m = MESAS[id]; this.colgante(m.x, m.z); }
+    for (const id of ["marketing", "supervisor", "ciberseguridad", "auditor", "asistente"]) { const m = MESAS[id]; this.colgante(m.x, m.z); }
     this.colgante(-1.4, -10.2); this.colgante(1.4, -10.2);
   }
   salaCristal(x0: number, x1: number, z0: number, z1: number, puertaX: number) {
@@ -646,12 +654,26 @@ class Motor {
       return destinoReunion(Math.max(0, orden.indexOf(p.id)));
     }
     if (p.cafe && per.cafeHecho !== p.cafeClave) return destinoCafe(["marketing", "ciberseguridad", "direccion"].includes(p.id) ? 0 : 1);
+    if (p.id === "asistente") return this.rondaAsistente(p);
     if (trabajando && VISITAS[p.id] && (p.tipo === "revision" || (p.id === "auditor" && p.tipo === "diario"))) return destinoVisita(VISITAS[p.id]);
     if (p.estado === "descansando" && !trabajando) {
       const libres = ["supervisor", "auditor", "marketing", "ciberseguridad", "direccion"];
       return destinoSofa(Math.max(0, libres.indexOf(p.id)) % 3);
     }
     return destinoMesa(p.id);
+  }
+
+  // La Asistente nunca se queda quieta mucho rato: recorre las mesas recogiendo novedades y se las lleva a Dirección.
+  // Cuando está preparando un boletín o un dossier va más deprisa de mesa en mesa.
+  rondaAsistente(p: PersonaOficina): Destino {
+    const companeros = this.datos!.personas.filter((x) => x.activo && x.id !== "asistente" && x.id !== "direccion" && MESAS[x.id]).map((x) => x.id);
+    const trabajando = p.estado === "trabajando";
+    const paradas = trabajando
+      ? [...companeros, "direccion"]
+      : ["mesa", ...companeros.slice(0, 2), "direccion", "mesa", ...companeros.slice(2), "direccion"];
+    const periodo = trabajando ? 14 : 24;
+    const objetivo = paradas[Math.floor(performance.now() / 1000 / periodo) % paradas.length];
+    return objetivo === "mesa" ? destinoMesa("asistente") : destinoRecado(objetivo);
   }
 
   // ------- Bucle -------
@@ -802,6 +824,15 @@ class Motor {
   textoPantalla(p: PersonaOficina, per: Personaje) {
     const d = this.datos!;
     const corto = (s: string | null | undefined, n: number) => (s ? (s.length > n ? s.slice(0, n - 1) + "…" : s) : "");
+    const clave = per.destino.clave;
+    if (p.id === "asistente" && !clave.startsWith("reunion") && clave !== "casa" && clave !== "cafe") {
+      const quien = clave.startsWith("recado:") ? clave.slice(7) : null;
+      const nombre = (id: string) => d.personas.find((x) => x.id === id)?.nombre || id;
+      if (p.estado === "trabajando") return { icono: per.andando ? "📨" : "📝", texto: corto(p.paso || "Preparando novedades para Dirección", 70), vivo: corto(p.progreso, 120), barra: 100 };
+      if (quien === "direccion") return { icono: "📨", texto: per.andando ? "Lleva las novedades a Dirección" : "Dando el parte a Dirección", vivo: corto(p.ultimo, 110), barra: -1 };
+      if (quien) return { icono: "📥", texto: (per.andando ? "Va a ver a " : "Recogiendo novedades de ") + nombre(quien), vivo: "", barra: -1 };
+      return { icono: "🗂️", texto: per.andando ? "Vuelve a su mesa a ordenar la información" : "Ordenando la información en su mesa", vivo: corto(p.ultimo, 110), barra: -1 };
+    }
     if (per.andando) {
       if (per.destino.clave === "cafe") return { icono: "☕", texto: "Va a por un café", vivo: "" , barra: -1 };
       if (per.destino.clave === "casa") return { icono: "🏠", texto: "Se va a casa: fin de la jornada", vivo: "", barra: -1 };

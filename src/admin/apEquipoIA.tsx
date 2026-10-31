@@ -717,17 +717,18 @@ function Marcador({ d, deps }: { d: J; deps: J[] }) {
 }
 
 // ---------- OFICINA ----------
-const PERSONAJE: Record<string, string> = { direccion: "🧑‍💼", marketing: "👩‍💻", supervisor: "🕵️", ciberseguridad: "👨‍💻", auditor: "👮", expansion: "🧑‍🚀", captacion: "🤝", operaciones: "🧑‍🔧", finanzas: "👩‍💼", producto: "🧑‍🎨" };
+const PERSONAJE: Record<string, string> = { direccion: "🧑‍💼", marketing: "👩‍💻", supervisor: "🕵️", ciberseguridad: "👨‍💻", auditor: "👮", asistente: "💁‍♀️", expansion: "🧑‍🚀", captacion: "🤝", operaciones: "🧑‍🔧", finanzas: "👩‍💼", producto: "🧑‍🎨" };
 // Turnos en hora del servidor (UTC). Días: 0 = domingo.
 const TODOS = [0, 1, 2, 3, 4, 5, 6];
 const TURNOS: Record<string, { dias: number[]; h: number; m: number; tarea: string }[]> = {
+  asistente: [{ dias: TODOS, h: 4, m: 50, tarea: "Dossier para el plan del día" }, ...Array.from({ length: 18 }, (_, i) => ({ dias: TODOS, h: 5 + i, m: 50, tarea: "Ronda: boletín para Dirección" })), { dias: [1], h: 7, m: 45, tarea: "Dossier para la reunión" }, { dias: TODOS, h: 23, m: 20, tarea: "Dossier para el cierre" }],
   direccion: [{ dias: TODOS, h: 5, m: 0, tarea: "Plan del día con el equipo" }, { dias: [1], h: 8, m: 0, tarea: "Reunión semanal" }, { dias: TODOS, h: 23, m: 30, tarea: "Cierre del día" }],
   ciberseguridad: [{ dias: TODOS, h: 5, m: 15, tarea: "Revisión de seguridad" }],
   auditor: [{ dias: TODOS, h: 5, m: 25, tarea: "Supervisar a Ciberseguridad" }, { dias: [0], h: 11, m: 15, tarea: "Consolidar aprendizajes de seguridad" }],
   marketing: [{ dias: TODOS, h: 5, m: 35, tarea: "Ronda de la mañana" }, { dias: TODOS, h: 12, m: 30, tarea: "Ronda de la tarde" }, { dias: TODOS, h: 19, m: 30, tarea: "Ronda de la noche" }, { dias: [0], h: 9, m: 0, tarea: "Laboratorio: evaluar y proponer" }, { dias: [0], h: 10, m: 0, tarea: "Laboratorio: responder al Supervisor" }],
   supervisor: [{ dias: TODOS, h: 5, m: 50, tarea: "Revisión de la mañana" }, { dias: TODOS, h: 20, m: 0, tarea: "Revisión de la noche" }, { dias: [0], h: 9, m: 30, tarea: "Laboratorio: revisar" }, { dias: [0], h: 10, m: 30, tarea: "Laboratorio: veredicto" }, { dias: [0], h: 11, m: 0, tarea: "Consolidar aprendizajes" }],
 };
-const QUE_HACE: Record<string, string> = { plan: "Preparando el plan del día", cierre: "Cerrando el día", consolidacion: "Consolidando lo aprendido", diario: "Analizando sus datos", reunion: "En la reunión semanal", experimento: "Diseñando la prueba de la semana", revision: "Revisando el trabajo de Marketing", replica: "Respondiendo al Supervisor" };
+const QUE_HACE: Record<string, string> = { boletin: "Recogiendo novedades para Dirección", dossier: "Preparando el dossier para Dirección", respuesta: "Respondiendo a sus compañeros", plan: "Preparando el plan del día", cierre: "Cerrando el día", consolidacion: "Consolidando lo aprendido", diario: "Analizando sus datos", reunion: "En la reunión semanal", experimento: "Diseñando la prueba de la semana", revision: "Revisando el trabajo de Marketing", replica: "Respondiendo al Supervisor" };
 const TZ_M = "Europe/Madrid";
 function proximoTurno(id: string, ahora: Date) {
   const t = TURNOS[id];
@@ -774,7 +775,7 @@ function Oficina({ d, lab, clave, recargar, abrir, irA, abrirChats }: { d: J; la
       personas: (d.departamentos || []).map((x: J) => {
         const enCurso = histo.find((h) => h.departamento === x.id && h.estado === "trabajando");
         const suyo = (plan?.por_departamento || []).find((p: J) => p.departamento === x.id);
-        return { id: x.id, nombre: x.nombre, icono: x.icono, color: x.color || "#E8862A", activo: !!x.activo, estado: x.estado || "listo", tipo: enCurso?.tipo || null, paso: enCurso?.paso || null, progreso: enCurso?.progreso || null, cafe: !!x.cafe_pendiente, cafeClave: String(x.cafe_ultimo || ""), ultimo: d.ultimos?.[x.id]?.titulo || null, tarea: suyo?.tareas?.[0] || suyo?.foco || null };
+        return { id: x.id, nombre: x.nombre, icono: x.icono, color: x.color || "#E8862A", activo: !!x.activo, estado: x.estado || "listo", tipo: enCurso?.tipo || null, paso: enCurso?.paso || null, progreso: enCurso?.progreso || null, cafe: !!x.cafe_pendiente, cafeClave: String(x.cafe_ultimo || ""), ultimo: x.id === "asistente" ? (histo.find((h) => h.departamento === "asistente" && h.estado === "listo")?.titulo || null) : d.ultimos?.[x.id]?.titulo || null, tarea: suyo?.tareas?.[0] || suyo?.foco || null };
       }),
       reunion,
       eventos: d.eventos || [],

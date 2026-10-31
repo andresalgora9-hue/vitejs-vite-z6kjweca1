@@ -11,7 +11,7 @@ type J = any;
 const CLAVE_LS = "oy_captacion_clave";
 const LEIDO_LS = "oy_chat_leido";
 const CANAL_LS = "oy_chat_canal";
-const PERSONAJE: Record<string, string> = { direccion: "🧑‍💼", marketing: "👩‍💻", supervisor: "🕵️", ciberseguridad: "👨‍💻", auditor: "👮", expansion: "🧑‍🚀", captacion: "🤝", operaciones: "🧑‍🔧", finanzas: "👩‍💼", producto: "🧑‍🎨" };
+const PERSONAJE: Record<string, string> = { direccion: "🧑‍💼", marketing: "👩‍💻", supervisor: "🕵️", ciberseguridad: "👨‍💻", auditor: "👮", asistente: "💁‍♀️", expansion: "🧑‍🚀", captacion: "🤝", operaciones: "🧑‍🔧", finanzas: "👩‍💼", producto: "🧑‍🎨" };
 const SUG_DIR = ["¿Cómo vamos este mes?", "¿Qué es lo más urgente hoy?", "¿Llegamos al objetivo?", "¿Qué riesgo de seguridad cierro primero?"];
 const TZ = "Europe/Madrid";
 const hora = (s: string) => new Date(s).toLocaleTimeString("es-ES", { timeZone: TZ, hour: "2-digit", minute: "2-digit" });
@@ -42,7 +42,7 @@ export default function Chats(_props: J) {
   const [canal, setCanal] = useState<string>(() => {
     try {
       const q = new URLSearchParams(window.location.search).get("canal");
-      if (q && (q === "equipo" || /^dm:[a-z]+$/.test(q))) return q;
+      if (q && (q === "equipo" || q === "coordinacion" || /^dm:[a-z]+$/.test(q))) return q;
       return localStorage.getItem(CANAL_LS) || "dm:direccion";
     } catch { return "dm:direccion"; }
   });
@@ -100,6 +100,8 @@ export default function Chats(_props: J) {
         <Seccion t="Canales" />
         <Item activo={canal === "equipo"} onClick={() => abrir("equipo")} avatar={<span style={{ fontSize: 17, fontWeight: 800, color: C.mutedL }}>#</span>}
           nombre="equipo" sub={resumenUltimo(info("equipo").ultimo, deps)} negrita={sinLeer("equipo")} badge={Number(info("equipo").pendientes) || 0} escribiendo={info("equipo").escribiendo} hora={info("equipo").ultimo?.created_at} />
+        <Item activo={canal === "coordinacion"} onClick={() => abrir("coordinacion")} avatar={<span style={{ fontSize: 17, fontWeight: 800, color: C.mutedL }}>#</span>}
+          nombre="coordinación" sub={resumenUltimo(info("coordinacion").ultimo, deps) || "Lo que se dicen entre ellos"} negrita={sinLeer("coordinacion")} hora={info("coordinacion").ultimo?.created_at} />
         <Seccion t="Mensajes directos" />
         {deps.map((x) => {
           const c = "dm:" + x.id;
@@ -171,6 +173,7 @@ function Item({ activo, onClick, avatar, nombre, sub, negrita, badge = 0, escrib
 function Conversacion({ canal, clave, deps, res, movil, volver, alLeer, alCambiar }: { canal: string; clave: string; deps: J[]; res: J; movil: boolean; volver: () => void; alLeer: (id: number) => void; alCambiar: () => void }) {
   const esDir = canal === "dm:direccion";
   const esEquipo = canal === "equipo";
+  const esCoord = canal === "coordinacion";
   const depId = canal.startsWith("dm:") ? canal.slice(3) : null;
   const dep = deps.find((x) => x.id === depId);
   const [msgs, setMsgs] = useState<J[]>([]);
@@ -216,8 +219,9 @@ function Conversacion({ canal, clave, deps, res, movil, volver, alLeer, alCambia
     await db.rpc("ia_chat_borrar", { p_clave: clave }); cargar(); alCambiar();
   };
 
-  const titulo = esEquipo ? "# equipo" : dep?.nombre || "Chat";
+  const titulo = esEquipo ? "# equipo" : esCoord ? "# coordinación" : dep?.nombre || "Chat";
   const subtitulo = esEquipo ? "Canal de todo el equipo · aquí te preguntan lo que necesitan de ti · menciona con @ para hablar con alguien"
+    : esCoord ? "Cómo se coordinan entre ellos: encargos, respuestas, recordatorios y los boletines de la Asistente para Dirección"
     : dep ? (dep.estado === "trabajando" ? "🟢 Trabajando ahora" : dep.estado === "descansando" ? "🌙 Descansando" : "🟢 " + (dep.ultimo_run_at ? "Último informe hace " + haceCorto(dep.ultimo_run_at) : "Disponible")) + (esDir ? " · tiene todos los datos e informes del equipo y puede pasar encargos" : " · chat directo") : "";
 
   // Agrupar por día y por remitente seguido
@@ -226,7 +230,7 @@ function Conversacion({ canal, clave, deps, res, movil, volver, alLeer, alCambia
     <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, minHeight: 0 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 16px", borderBottom: "1px solid " + C.border, background: C.card }}>
         {movil && <button onClick={volver} style={{ background: "none", border: "none", color: C.text, fontSize: 20, cursor: "pointer", padding: "0 6px 0 0" }}>←</button>}
-        {esEquipo ? <div style={{ width: 32, height: 32, borderRadius: 8, background: "#1e2433", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 800, color: C.mutedL }}>#</div> : <Avatar id={depId || ""} estado={dep?.estado} activo={dep?.activo} />}
+        {esEquipo || esCoord ? <div style={{ width: 32, height: 32, borderRadius: 8, background: "#1e2433", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 800, color: C.mutedL }}>#</div> : <Avatar id={depId || ""} estado={dep?.estado} activo={dep?.activo} />}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 15, fontWeight: 800 }}>{titulo}</div>
           <div style={{ fontSize: 11.5, color: C.muted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: movil ? "nowrap" : "normal" }}>{subtitulo}</div>
@@ -237,8 +241,8 @@ function Conversacion({ canal, clave, deps, res, movil, volver, alLeer, alCambia
       <div ref={caja} style={{ flex: 1, overflowY: "auto", padding: "10px 16px 16px" }}>
         {!msgs.length && (
           <div style={{ textAlign: "center", color: C.muted, fontSize: 13, padding: "40px 10px", lineHeight: 1.6 }}>
-            <div style={{ fontSize: 40, marginBottom: 6 }}>{esEquipo ? "#" : PERSONAJE[depId || ""] || "💬"}</div>
-            {esEquipo ? "Aquí escribirá el equipo cuando necesite algo de ti (te llegará un aviso al móvil)." : esDir ? "Pregúntale lo que quieras: cómo vamos, qué es urgente, qué hace cada departamento…" : "Escríbele lo que necesites. Te responde al momento y lo tiene en cuenta en su próximo turno."}
+            <div style={{ fontSize: 40, marginBottom: 6 }}>{esEquipo || esCoord ? "#" : PERSONAJE[depId || ""] || "💬"}</div>
+            {esCoord ? "Aquí verás lo que se dicen los departamentos entre ellos y los boletines que la Asistente lleva a Dirección." : esEquipo ? "Aquí escribirá el equipo cuando necesite algo de ti (te llegará un aviso al móvil)." : esDir ? "Pregúntale lo que quieras: cómo vamos, qué es urgente, qué hace cada departamento…" : "Escríbele lo que necesites. Te responde al momento y lo tiene en cuenta en su próximo turno."}
           </div>
         )}
         {msgs.map((m) => {
@@ -288,6 +292,11 @@ function Conversacion({ canal, clave, deps, res, movil, volver, alLeer, alCambia
         })}
       </div>
 
+      {esCoord ? (
+        <div style={{ borderTop: "1px solid " + C.border, padding: "11px 16px", background: C.card, fontSize: 12.5, color: C.mutedL }}>
+          👀 Canal de solo lectura. Para pedirle algo a alguien, escríbele por su chat directo o en # equipo.
+        </div>
+      ) : (
       <div style={{ borderTop: "1px solid " + C.border, padding: "10px 14px 12px", background: C.card }}>
         {esDir && !msgs.length && (
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
@@ -319,6 +328,7 @@ function Conversacion({ canal, clave, deps, res, movil, volver, alLeer, alCambia
         </div>
         {error && <div style={{ marginTop: 6, fontSize: 12.5, color: C.red }}>{error}</div>}
       </div>
+      )}
     </div>
   );
 }
