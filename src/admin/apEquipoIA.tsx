@@ -1138,12 +1138,26 @@ const NOMBRE_OP: Record<string, string> = {
   update_keywords: "Cambiar palabras clave", create_responsive_search_ad: "Crear anuncio", pause_ad: "Pausar anuncio", enable_ad: "Activar anuncio", pause_ad_group: "Pausar grupo",
   enable_ad_group: "Activar grupo", set_campaign_budget: "Cambiar presupuesto", set_ad_schedule: "Cambiar horario", set_target_cpa: "CPA objetivo", set_target_roas: "ROAS objetivo", enable_campaign: "Activar campaña",
 };
+const NIVELES_AUT = [
+  { k: "proponer", t: "Solo proponer", c: "#94a3b8", d: "Todo espera tu aprobación." },
+  { k: "bajo", t: "Bajo", c: "#22c55e", d: "Ejecutan solos negativas, extensiones, anuncios nuevos y pausar o activar anuncios." },
+  { k: "medio", t: "Medio", c: "#f59e0b", d: "Además palabras clave y pujas, horarios, grupos de anuncios y arreglos de datos (sin permisos ni borrar)." },
+  { k: "total", t: "Total", c: "#ef4444", d: "Además presupuestos (±20%), CPA/ROAS objetivo, activar campañas y permisos de la base de datos." },
+];
 function Acciones({ clave, deps, recargarPanel }: { clave: string; deps: J[]; recargarPanel: () => void }) {
   const [lista, setLista] = useState<J[]>([]);
   const [filtro, setFiltro] = useState("aprobar");
   const [abiertas, setAbiertas] = useState<Record<number, boolean>>({});
   const [ocupado, setOcupado] = useState<number | null>(null);
   const [aviso, setAviso] = useState("");
+  const [aut, setAut] = useState<J | null>(null);
+  const cargarAut = useCallback(async () => { const { data } = await db.rpc("ia_autonomia", { p_clave: clave }); if (data) setAut(data); }, [clave]);
+  useEffect(() => { cargarAut(); const t = setInterval(cargarAut, 20000); return () => clearInterval(t); }, [cargarAut]);
+  const guardarAut = async (nivel: string, limite?: number) => {
+    const { data, error } = await db.rpc("ia_autonomia_guardar", { p_clave: clave, p_nivel: nivel, p_limite: limite ?? null });
+    if (error) setAviso(error.message); else { setAut(data); setAviso("Autonomía del equipo: " + (NIVELES_AUT.find((n) => n.k === nivel)?.t || nivel)); }
+    setTimeout(() => setAviso(""), 4000);
+  };
   const cargar = useCallback(async () => {
     const { data, error } = await db.rpc("ia_acciones_lista", { p_clave: clave });
     if (!error) setLista(data || []);
@@ -1183,8 +1197,29 @@ function Acciones({ clave, deps, recargarPanel }: { clave: string; deps: J[]; re
   return (
     <div>
       <Card style={{ marginBottom: 12 }}>
-        <div style={{ fontSize: 13, color: C.mutedL, lineHeight: 1.55 }}>
-          <b style={{ color: C.text }}>Cómo funciona:</b> un departamento prepara la acción explicando por qué, qué hará exactamente y a qué afecta → otro departamento la <b>supervisa</b> (y si es de base de datos se ensaya antes en una simulación) → te llega un aviso y la <b>apruebas tú</b> → se ejecuta sola y te avisan del resultado. Si algo sale mal, puedes <b>deshacerla</b>. Las reglas impiden pausar campañas, cambiar el presupuesto más de un 20%, tocar otras cuentas o borrar datos.
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+          <div style={{ fontSize: 15, fontWeight: 800 }}>🤖 Autonomía del equipo</div>
+          {aut && <div style={{ fontSize: 12.5, color: C.mutedL }}>Hoy han ejecutado solos <b style={{ color: C.text }}>{aut.hoy}</b> de {aut.limite} posibles</div>}
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: 8, marginTop: 10 }}>
+          {NIVELES_AUT.map((n) => {
+            const sel = (aut?.nivel || "medio") === n.k;
+            return (
+              <button key={n.k} onClick={() => guardarAut(n.k)} style={{ textAlign: "left", fontFamily: F, padding: "9px 11px", borderRadius: 11, cursor: "pointer", border: "2px solid " + (sel ? n.c : C.border), background: sel ? n.c + "1f" : "transparent", color: C.text }}>
+                <div style={{ fontSize: 13.5, fontWeight: 800, color: sel ? n.c : C.text }}>{sel ? "● " : ""}{n.t}</div>
+                <div style={{ fontSize: 11.5, color: C.mutedL, lineHeight: 1.4, marginTop: 3 }}>{n.d}</div>
+              </button>
+            );
+          })}
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginTop: 10, fontSize: 12.5, color: C.mutedL }}>
+          Máximo de acciones solas al día:
+          <select value={aut?.limite ?? 8} onChange={(e) => guardarAut(aut?.nivel || "medio", Number(e.target.value))} style={{ fontFamily: F, fontSize: 12.5, background: C.bg, color: C.text, border: "1px solid " + C.border, borderRadius: 7, padding: "3px 6px" }}>
+            {[3, 5, 8, 12, 20].map((n) => <option key={n} value={n}>{n}</option>)}
+          </select>
+        </div>
+        <div style={{ fontSize: 12.5, color: C.muted, lineHeight: 1.55, marginTop: 10 }}>
+          Un departamento prepara la acción con el porqué, qué hará y a qué afecta → otro la <b>supervisa</b> (lo de base de datos se ensaya antes) → si entra en el nivel de autonomía <b>se ejecuta sola</b> y te avisan; si no, te llega para aprobar. Todo se puede <b>deshacer</b>. Las reglas impiden siempre pausar campañas, cambiar el presupuesto más de un 20%, tocar otras cuentas o borrar tablas.
         </div>
       </Card>
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
@@ -1207,6 +1242,7 @@ function Acciones({ clave, deps, recargarPanel }: { clave: string; deps: J[]; re
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center", marginBottom: 4 }}>
                   <Pill texto={est.t} color={est.c} />
+                  {(a.autonoma || String(a.nota_andres || "").startsWith("Ejecutada sin esperar")) && <Pill texto="⚡ Ejecutada sola" color={C.orange} />}
                   <span style={{ fontSize: 11.5, color: C.mutedL }}>{TIPO_ACC[a.tipo] || a.tipo}</span>
                   <span style={{ fontSize: 11.5, color: C.muted }}>· #{a.id} · {nombre(a.departamento)} · {fechaHora(a.created_at)}{a.origen === "chat" ? " · desde el chat" : ""}</span>
                   {a.prioridad === 1 && <span style={{ fontSize: 11, fontWeight: 800, color: C.red }}>PRIORIDAD ALTA</span>}
