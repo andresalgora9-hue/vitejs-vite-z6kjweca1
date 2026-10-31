@@ -4,6 +4,9 @@
 // Las IAs trabajan en la Edge Function "equipo-ia" (Claude). Proponen; Andrés decide.
 // ============================================================
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { DatosOficina } from "./apOficina3D";
+const Oficina3D = React.lazy(() => import("./apOficina3D"));
+function hayWebGL() { try { const c = document.createElement("canvas"); return !!(c.getContext("webgl2") || c.getContext("webgl")); } catch { return false; } }
 import { db } from "../supabase";
 import { C, F, Card, Btn, Pill, Grid, Titulo, Cabecera, Modal, eur, num, hace, fechaHora, useAncho } from "./apUi";
 
@@ -43,7 +46,7 @@ export default function EquipoIA(_props: J) {
 
   // Si alguien está trabajando, refresca cada 8 segundos
   const trabajando = useMemo(() => (d?.departamentos || []).some((x: J) => x.estado === "trabajando"), [d]);
-  useEffect(() => { if (!trabajando) return; const t = setInterval(cargar, 3000); return () => clearInterval(t); }, [trabajando, cargar]);
+  useEffect(() => { const t = setInterval(cargar, trabajando ? 3000 : 20000); return () => clearInterval(t); }, [trabajando, cargar]);
   useEffect(() => { if (!aviso) return; const t = setTimeout(() => setAviso(""), 3500); return () => clearTimeout(t); }, [aviso]);
 
   const deps: J[] = d?.departamentos || [];
@@ -716,14 +719,15 @@ function Marcador({ d, deps }: { d: J; deps: J[] }) {
 // ---------- OFICINA ----------
 const PERSONAJE: Record<string, string> = { direccion: "🧑‍💼", marketing: "👩‍💻", supervisor: "🕵️", ciberseguridad: "👨‍💻", auditor: "👮", expansion: "🧑‍🚀", captacion: "🤝", operaciones: "🧑‍🔧", finanzas: "👩‍💼", producto: "🧑‍🎨" };
 // Turnos en hora del servidor (UTC). Días: 0 = domingo.
+const TODOS = [0, 1, 2, 3, 4, 5, 6];
 const TURNOS: Record<string, { dias: number[]; h: number; m: number; tarea: string }[]> = {
-  ciberseguridad: [{ dias: [1, 2, 3, 4, 5, 6], h: 6, m: 0, tarea: "Revisión de seguridad" }],
-  marketing: [{ dias: [1, 2, 3, 4, 5, 6], h: 6, m: 20, tarea: "Informe diario" }, { dias: [0], h: 9, m: 0, tarea: "Laboratorio: evaluar y proponer" }, { dias: [0], h: 10, m: 0, tarea: "Laboratorio: responder al Supervisor" }],
-  supervisor: [{ dias: [1, 2, 3, 4, 5, 6], h: 6, m: 40, tarea: "Revisión diaria" }, { dias: [0], h: 9, m: 30, tarea: "Laboratorio: revisar" }, { dias: [0], h: 10, m: 30, tarea: "Laboratorio: veredicto" }, { dias: [0], h: 11, m: 0, tarea: "Consolidar aprendizajes" }],
-  auditor: [{ dias: [1, 2, 3, 4, 5, 6], h: 6, m: 10, tarea: "Supervisar a Ciberseguridad" }, { dias: [0], h: 11, m: 15, tarea: "Consolidar aprendizajes de seguridad" }],
-  direccion: [{ dias: [2, 3, 4, 5, 6], h: 7, m: 0, tarea: "Informe de dirección" }, { dias: [1], h: 8, m: 0, tarea: "Reunión semanal" }],
+  direccion: [{ dias: TODOS, h: 5, m: 0, tarea: "Plan del día con el equipo" }, { dias: [1], h: 8, m: 0, tarea: "Reunión semanal" }, { dias: TODOS, h: 23, m: 30, tarea: "Cierre del día" }],
+  ciberseguridad: [{ dias: TODOS, h: 5, m: 15, tarea: "Revisión de seguridad" }],
+  auditor: [{ dias: TODOS, h: 5, m: 25, tarea: "Supervisar a Ciberseguridad" }, { dias: [0], h: 11, m: 15, tarea: "Consolidar aprendizajes de seguridad" }],
+  marketing: [{ dias: TODOS, h: 5, m: 35, tarea: "Ronda de la mañana" }, { dias: TODOS, h: 12, m: 30, tarea: "Ronda de la tarde" }, { dias: TODOS, h: 19, m: 30, tarea: "Ronda de la noche" }, { dias: [0], h: 9, m: 0, tarea: "Laboratorio: evaluar y proponer" }, { dias: [0], h: 10, m: 0, tarea: "Laboratorio: responder al Supervisor" }],
+  supervisor: [{ dias: TODOS, h: 5, m: 50, tarea: "Revisión de la mañana" }, { dias: TODOS, h: 20, m: 0, tarea: "Revisión de la noche" }, { dias: [0], h: 9, m: 30, tarea: "Laboratorio: revisar" }, { dias: [0], h: 10, m: 30, tarea: "Laboratorio: veredicto" }, { dias: [0], h: 11, m: 0, tarea: "Consolidar aprendizajes" }],
 };
-const QUE_HACE: Record<string, string> = { consolidacion: "Consolidando lo aprendido", diario: "Analizando sus datos", reunion: "En la reunión semanal", experimento: "Diseñando la prueba de la semana", revision: "Revisando el trabajo de Marketing", replica: "Respondiendo al Supervisor" };
+const QUE_HACE: Record<string, string> = { plan: "Preparando el plan del día", cierre: "Cerrando el día", consolidacion: "Consolidando lo aprendido", diario: "Analizando sus datos", reunion: "En la reunión semanal", experimento: "Diseñando la prueba de la semana", revision: "Revisando el trabajo de Marketing", replica: "Respondiendo al Supervisor" };
 const TZ_M = "Europe/Madrid";
 function proximoTurno(id: string, ahora: Date) {
   const t = TURNOS[id];
@@ -756,7 +760,29 @@ function Oficina({ d, lab, clave, recargar, abrir, irA, abrirChats }: { d: J; la
   const hist: J[] = d.historial || [];
   const msgs: J[] = d.mensajes || [];
   const hM = Number(horaM(ahora, { hour: "2-digit", hour12: false }));
-  const cerrada = hM < 7 || hM >= 21;
+  const cerrada = hM >= 1 && hM < 6;
+  const [webgl] = useState(() => hayWebGL());
+  const [vista3d, setVista3d] = useState<boolean>(() => { try { const g = localStorage.getItem("oy_oficina_vista"); return g ? g === "3d" && hayWebGL() : hayWebGL(); } catch { return false; } });
+  useEffect(() => { try { localStorage.setItem("oy_oficina_vista", vista3d ? "3d" : "2d"); } catch { /* nada */ } }, [vista3d]);
+  const datos3d: DatosOficina = useMemo(() => {
+    const histo: J[] = d.historial || [];
+    const plan = d.plan_hoy?.contenido || null;
+    const dirEnCurso = histo.find((h) => h.departamento === "direccion" && h.estado === "trabajando");
+    const reunion = dirEnCurso?.tipo === "plan" ? "plan" : dirEnCurso?.tipo === "reunion" ? "reunion" : null;
+    const objMes3d = (d.objetivos || []).find((o: J) => o.metrica === "ingresos_mes");
+    return {
+      personas: (d.departamentos || []).map((x: J) => {
+        const enCurso = histo.find((h) => h.departamento === x.id && h.estado === "trabajando");
+        const suyo = (plan?.por_departamento || []).find((p: J) => p.departamento === x.id);
+        return { id: x.id, nombre: x.nombre, icono: x.icono, color: x.color || "#E8862A", activo: !!x.activo, estado: x.estado || "listo", tipo: enCurso?.tipo || null, paso: enCurso?.paso || null, progreso: enCurso?.progreso || null, cafe: !!x.cafe_pendiente, cafeClave: String(x.cafe_ultimo || ""), ultimo: d.ultimos?.[x.id]?.titulo || null, tarea: suyo?.tareas?.[0] || suyo?.foco || null };
+      }),
+      reunion,
+      eventos: d.eventos || [],
+      objetivo: objMes3d ? { actual: Number(objMes3d.actual) || 0, objetivo: Number(objMes3d.objetivo) || 0 } : null,
+      foco: plan?.foco_del_dia || null,
+      tareasPlan: (plan?.por_departamento || []).map((p: J) => ({ departamento: p.departamento, texto: ((d.departamentos || []).find((y: J) => y.id === p.departamento)?.nombre || p.departamento) + ": " + (p.tareas?.[0] || p.foco || "") })),
+    };
+  }, [d]);
   const nombreDep = (id: string) => { const x = deps.find((y) => y.id === id); return x ? x.icono + " " + x.nombre : id; };
   const hoyM = horaM(ahora, { year: "numeric", month: "2-digit", day: "2-digit" });
   const cafeHoy = (x: J) => x.cafe_ultimo && horaM(new Date(x.cafe_ultimo), { year: "numeric", month: "2-digit", day: "2-digit" }) === hoyM;
@@ -801,7 +827,7 @@ function Oficina({ d, lab, clave, recargar, abrir, irA, abrirChats }: { d: J; la
             </button>
           )}
           <div style={{ fontSize: 12.5, color: cerrada ? C.blue : C.green, fontWeight: 700, marginTop: 3 }}>
-            {cerrada ? "🌙 Oficina cerrada · el equipo vuelve a las 7:00" : ahora.getDay() === 0 ? "☀️ Domingo: solo trabaja el laboratorio" : "☀️ Jornada en marcha"}
+            {cerrada ? "🌙 Descansando en casa · vuelven a las 6:00 para el plan del día" : "☀️ Jornada de 6:00 a 1:00 en marcha"}
           </div>
         </div>
         <div style={{ textAlign: "center", background: "#0a0000", border: "2px solid #3a0d0d", borderRadius: 12, padding: "6px 16px", boxShadow: "inset 0 0 18px #ff1a1a22" }}>
@@ -815,8 +841,19 @@ function Oficina({ d, lab, clave, recargar, abrir, irA, abrirChats }: { d: J; la
       {aviso && <div style={{ marginBottom: 10, padding: "9px 12px", borderRadius: 9, background: C.accent + "18", border: "1px solid " + C.accent + "55", fontSize: 13 }}>{aviso}</div>}
 
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr)", gap: 12 }}>
+        {/* Oficina 3D en directo */}
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 6, marginBottom: -4 }}>
+          {([[true, "🧊 Oficina 3D"], [false, "▦ Vista de mesas"]] as [boolean, string][]).map(([v, t]) => (
+            <button key={t} onClick={() => setVista3d(v)} disabled={v && !webgl} style={{ fontFamily: F, fontSize: 12, fontWeight: 700, padding: "5px 11px", borderRadius: 99, border: "1px solid " + (vista3d === v ? C.accent : C.border), background: vista3d === v ? C.accent + "22" : "transparent", color: vista3d === v ? C.accent : C.mutedL, cursor: "pointer" }}>{t}</button>
+          ))}
+        </div>
+        {vista3d && (
+          <React.Suspense fallback={<div style={{ height: 560, borderRadius: 14, border: "1px solid " + C.border, display: "flex", alignItems: "center", justifyContent: "center", color: C.mutedL, fontSize: 13 }}>Abriendo la oficina…</div>}>
+            <Oficina3D datos={datos3d} alPulsar={(id: string) => abrirChats("dm:" + id)} alto={typeof window !== "undefined" && window.innerWidth < 700 ? 460 : 600} />
+          </React.Suspense>
+        )}
         {/* Mesas */}
-        <div style={{ position: "relative", background: "repeating-linear-gradient(45deg,#121722,#121722 22px,#131926 22px,#131926 44px)", border: "1px solid " + C.border, borderRadius: 14, padding: 12 }}>
+        {!vista3d && <div style={{ position: "relative", background: "repeating-linear-gradient(45deg,#121722,#121722 22px,#131926 22px,#131926 44px)", border: "1px solid " + C.border, borderRadius: 14, padding: 12 }}>
           {cerrada && <div style={{ position: "absolute", inset: 0, background: "#05070dcc", borderRadius: 14, zIndex: 1, pointerEvents: "none" }} />}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(230px,1fr))", gap: 12, position: "relative" }}>
             {deps.map((x) => {
@@ -881,7 +918,27 @@ function Oficina({ d, lab, clave, recargar, abrir, irA, abrirChats }: { d: J; la
               );
             })}
           </div>
-        </div>
+        </div>}
+
+        {/* Plan del día */}
+        {d.plan_hoy?.contenido && (
+          <div style={{ background: "#f4f1e8", color: "#1f2430", borderRadius: 14, padding: "12px 14px", border: "6px solid #c9c2b0" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              <div style={{ fontSize: 15, fontWeight: 800, flex: 1 }}>📋 Plan del día · {horaM(new Date(d.plan_hoy.created_at), { weekday: "long", day: "numeric", month: "long" })}</div>
+              <button onClick={() => abrir(d.plan_hoy)} style={{ fontFamily: F, fontSize: 12, fontWeight: 700, padding: "4px 10px", borderRadius: 99, border: "1px solid #b9b19c", background: "transparent", color: "#1f2430", cursor: "pointer" }}>Ver completo</button>
+            </div>
+            {d.plan_hoy.contenido.foco_del_dia && <div style={{ fontSize: 13.5, fontWeight: 700, marginTop: 6 }}>🎯 {d.plan_hoy.contenido.foco_del_dia}</div>}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(230px,1fr))", gap: 8, marginTop: 8 }}>
+              {(d.plan_hoy.contenido.por_departamento || []).map((x: J) => (
+                <div key={x.departamento} style={{ background: "#fffdf7", borderRadius: 9, padding: "8px 10px", border: "1px solid #e4dccb" }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 800 }}>{PERSONAJE[x.departamento] || "🧑"} {deps.find((y) => y.id === x.departamento)?.nombre || x.departamento}</div>
+                  {x.foco && <div style={{ fontSize: 12, color: "#4b5563", marginTop: 2 }}>{x.foco}</div>}
+                  <ul style={{ margin: "4px 0 0", paddingLeft: 16, fontSize: 12, lineHeight: 1.45 }}>{(x.tareas || []).slice(0, 4).map((t: string, i: number) => <li key={i}>{t}</li>)}</ul>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Acceso a los chats */}
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center", background: C.card, border: "1px solid " + C.accent + "55", borderRadius: 14, padding: "12px 14px" }}>
