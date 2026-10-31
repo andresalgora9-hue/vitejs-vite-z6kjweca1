@@ -12,7 +12,7 @@ const CLAVE_LS = "oy_captacion_clave";
 const COL_ESTADO: Record<string, string> = { bien: C.green, atencion: C.orange, mal: C.red };
 const TXT_ESTADO: Record<string, string> = { bien: "Va bien", atencion: "Atención", mal: "Mal" };
 const COL_NIVEL: Record<string, string> = { alta: C.red, media: C.orange, baja: C.blue };
-type Pestana = "oficina" | "equipo" | "laboratorio" | "propuestas" | "tablon" | "reuniones" | "cultura";
+type Pestana = "oficina" | "acciones" | "equipo" | "laboratorio" | "propuestas" | "tablon" | "reuniones" | "cultura";
 
 export default function EquipoIA(_props: J) {
   const movil = useAncho() < 820;
@@ -21,7 +21,7 @@ export default function EquipoIA(_props: J) {
   const [d, setD] = useState<J | null>(null);
   const [lab, setLab] = useState<J | null>(null);
   const [error, setError] = useState("");
-  const [pest, setPest] = useState<Pestana>(() => { try { const g = sessionStorage.getItem("oy_equipo_pest") as Pestana; return g && g !== ("chat" as Pestana) ? g : "oficina"; } catch { return "oficina"; } });
+  const [pest, setPest] = useState<Pestana>(() => { try { if (new URLSearchParams(window.location.search).get("equipo") === "acciones") return "acciones"; const g = sessionStorage.getItem("oy_equipo_pest") as Pestana; return g && g !== ("chat" as Pestana) ? g : "oficina"; } catch { return "oficina"; } });
   const [verInforme, setVerInforme] = useState<J | null>(null);
   const [ocupado, setOcupado] = useState("");
   const [aviso, setAviso] = useState("");
@@ -95,7 +95,7 @@ export default function EquipoIA(_props: J) {
   const activos = deps.filter((x) => x.activo).length;
   const exps: J[] = lab?.experimentos || [];
   const labPend = exps.filter((e) => e.estado === "propuesto" || (e.estado === "perdedor" && !e.nota_andres)).length;
-  const pestanas: [Pestana, string, number?][] = [["oficina", "🏢 Oficina"], ["equipo", "Equipo"], ["laboratorio", "Laboratorio", labPend], ["propuestas", "Propuestas", pendientes], ["tablon", "Tablón", abiertos], ["reuniones", "Reuniones"], ["cultura", "Cultura y reglas"]];
+  const pestanas: [Pestana, string, number?][] = [["oficina", "🏢 Oficina"], ["acciones", "⚡ Acciones", Number(d.acciones_pendientes) || 0], ["equipo", "Equipo"], ["laboratorio", "Laboratorio", labPend], ["propuestas", "Propuestas", pendientes], ["tablon", "Tablón", abiertos], ["reuniones", "Reuniones"], ["cultura", "Cultura y reglas"]];
 
   return (
     <div style={{ fontFamily: F }}>
@@ -172,6 +172,7 @@ export default function EquipoIA(_props: J) {
         </>
       )}
 
+      {pest === "acciones" && <Acciones clave={clave} deps={deps} recargarPanel={cargar} />}
       {pest === "oficina" && <Oficina d={d} lab={lab} clave={clave} recargar={cargar} abrir={(inf: J) => setVerInforme(inf)} irA={(p: Pestana) => setPest(p)}
         abrirChats={(c: string) => { try { localStorage.setItem("oy_chat_canal", c); } catch { /* nada */ } if (_props?.irA) _props.irA("chats"); }} />}
       {pest === "laboratorio" && <Laboratorio lab={lab} clave={clave} recargar={cargar} lanzar={lanzar} depPorId={depPorId} ocupado={ocupado} />}
@@ -777,6 +778,11 @@ function Oficina({ d, lab, clave, recargar, abrir, irA, abrirChats }: { d: J; la
       <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", background: "linear-gradient(180deg,#151a26,#0f131c)", border: "1px solid " + C.border, borderRadius: 14, padding: "14px 18px", marginBottom: 12 }}>
         <div style={{ flex: 1, minWidth: 200 }}>
           <div style={{ fontSize: 18, fontWeight: 800 }}>🏢 Oficina de OficioYa</div>
+          {Number(d.acciones_pendientes) > 0 && (
+            <button onClick={() => irA("acciones")} style={{ marginTop: 6, marginRight: 6, fontFamily: F, fontSize: 12.5, fontWeight: 800, padding: "5px 11px", borderRadius: 99, border: "1px solid " + C.accent, background: C.accent + "22", color: C.accent, cursor: "pointer", animation: "ofParpadeo 1.6s infinite" }}>
+              ⚡ {d.acciones_pendientes} acci{Number(d.acciones_pendientes) > 1 ? "ones" : "ón"} para aprobar
+            </button>
+          )}
           {Number(d.preguntas_pendientes) > 0 && (
             <button onClick={() => abrirChats("equipo")} style={{ marginTop: 6, fontFamily: F, fontSize: 12.5, fontWeight: 800, padding: "5px 11px", borderRadius: 99, border: "1px solid " + C.orange, background: C.orange + "22", color: C.orange, cursor: "pointer", animation: "ofParpadeo 1.6s infinite" }}>
               💬 {d.preguntas_pendientes} pregunta{Number(d.preguntas_pendientes) > 1 ? "s" : ""} del equipo para ti
@@ -931,3 +937,148 @@ function Oficina({ d, lab, clave, recargar, abrir, irA, abrirChats }: { d: J; la
   );
 }
 
+// ---------- ACCIONES EJECUTABLES ----------
+const EST_ACC: Record<string, { t: string; c: string }> = {
+  en_revision: { t: "En revisión", c: C.blue }, cambios: { t: "Devuelta con cambios", c: C.orange }, pendiente_aprobacion: { t: "Para tu aprobación", c: C.accent },
+  aprobada: { t: "Aprobada", c: C.green }, ejecutando: { t: "Ejecutando…", c: C.accent }, ejecutada: { t: "Ejecutada", c: C.green }, manual: { t: "Aprobada · la aplicas tú", c: C.orange },
+  fallida: { t: "Falló", c: C.red }, rechazada: { t: "Rechazada", c: C.muted }, revirtiendo: { t: "Deshaciendo…", c: C.orange }, revertida: { t: "Deshecha", c: C.muted }, bloqueada: { t: "Bloqueada por las reglas", c: C.red },
+};
+const TIPO_ACC: Record<string, string> = { google_ads: "📣 Google Ads", sql: "🗄️ Base de datos", manual: "✋ Manual" };
+const NOMBRE_OP: Record<string, string> = {
+  create_ad_asset: "Añadir extensión", push_negative_keywords: "Añadir negativas", remove_negative_keywords: "Quitar negativas", push_keywords: "Añadir palabras clave",
+  update_keywords: "Cambiar palabras clave", create_responsive_search_ad: "Crear anuncio", pause_ad: "Pausar anuncio", enable_ad: "Activar anuncio", pause_ad_group: "Pausar grupo",
+  enable_ad_group: "Activar grupo", set_campaign_budget: "Cambiar presupuesto", set_ad_schedule: "Cambiar horario", set_target_cpa: "CPA objetivo", set_target_roas: "ROAS objetivo", enable_campaign: "Activar campaña",
+};
+function Acciones({ clave, deps, recargarPanel }: { clave: string; deps: J[]; recargarPanel: () => void }) {
+  const [lista, setLista] = useState<J[]>([]);
+  const [filtro, setFiltro] = useState("aprobar");
+  const [abiertas, setAbiertas] = useState<Record<number, boolean>>({});
+  const [ocupado, setOcupado] = useState<number | null>(null);
+  const [aviso, setAviso] = useState("");
+  const cargar = useCallback(async () => {
+    const { data, error } = await db.rpc("ia_acciones_lista", { p_clave: clave });
+    if (!error) setLista(data || []);
+  }, [clave]);
+  useEffect(() => { cargar(); }, [cargar]);
+  const movimiento = lista.some((a) => ["en_revision", "aprobada", "ejecutando", "revirtiendo"].includes(a.estado));
+  useEffect(() => { const t = setInterval(cargar, movimiento ? 3000 : 15000); return () => clearInterval(t); }, [movimiento, cargar]);
+  const nombre = (id: string) => { const x = deps.find((y) => y.id === id); return x ? x.icono + " " + x.nombre : id; };
+  const decidir = async (a: J, decision: string) => {
+    let nota: string | null = null;
+    if (decision === "aprobar" && !window.confirm(`¿Aprobar y ejecutar ahora «${a.titulo}»?\n\nSe aplicará de verdad en ${TIPO_ACC[a.tipo] || a.tipo}.`)) return;
+    if (decision === "revertir" && !window.confirm(`¿Deshacer «${a.titulo}»?`)) return;
+    if (decision === "cambios") { nota = window.prompt("¿Qué quieres que cambie?"); if (!nota) return; }
+    if (decision === "rechazar") { nota = window.prompt("Motivo del rechazo (opcional, les ayuda a aprender)") ?? ""; }
+    setOcupado(a.id);
+    const { data, error } = await db.rpc("ia_accion_decidir", { p_clave: clave, p_id: a.id, p_decision: decision, p_nota: nota || null });
+    setOcupado(null);
+    setAviso(error ? error.message : String(data || "Hecho"));
+    setTimeout(() => setAviso(""), 5000);
+    cargar(); recargarPanel();
+  };
+  const grupos: Record<string, (a: J) => boolean> = {
+    aprobar: (a) => ["pendiente_aprobacion", "manual"].includes(a.estado),
+    curso: (a) => ["en_revision", "cambios", "aprobada", "ejecutando", "revirtiendo"].includes(a.estado),
+    hechas: (a) => ["ejecutada", "revertida"].includes(a.estado),
+    otras: (a) => ["fallida", "rechazada", "bloqueada"].includes(a.estado),
+    todas: () => true,
+  };
+  const etiquetas: [string, string][] = [["aprobar", "Para aprobar"], ["curso", "En curso"], ["hechas", "Ejecutadas"], ["otras", "Rechazadas / fallidas"], ["todas", "Todas"]];
+  const vistas = lista.filter(grupos[filtro]);
+  const Bloque = ({ t, v, col }: { t: string; v?: any; col?: string }) => v ? (
+    <div style={{ marginTop: 8 }}>
+      <div style={{ fontSize: 11, fontWeight: 800, color: col || C.mutedL, textTransform: "uppercase", letterSpacing: 0.4 }}>{t}</div>
+      <div style={{ fontSize: 13.5, lineHeight: 1.55, whiteSpace: "pre-wrap", marginTop: 2 }}>{v}</div>
+    </div>
+  ) : null;
+  return (
+    <div>
+      <Card style={{ marginBottom: 12 }}>
+        <div style={{ fontSize: 13, color: C.mutedL, lineHeight: 1.55 }}>
+          <b style={{ color: C.text }}>Cómo funciona:</b> un departamento prepara la acción explicando por qué, qué hará exactamente y a qué afecta → otro departamento la <b>supervisa</b> (y si es de base de datos se ensaya antes en una simulación) → te llega un aviso y la <b>apruebas tú</b> → se ejecuta sola y te avisan del resultado. Si algo sale mal, puedes <b>deshacerla</b>. Las reglas impiden pausar campañas, cambiar el presupuesto más de un 20%, tocar otras cuentas o borrar datos.
+        </div>
+      </Card>
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
+        {etiquetas.map(([k, t]) => {
+          const n = lista.filter(grupos[k]).length;
+          return <button key={k} onClick={() => setFiltro(k)} style={{ fontFamily: F, fontSize: 12.5, fontWeight: 700, padding: "6px 12px", borderRadius: 99, border: "1px solid " + (filtro === k ? C.accent : C.border), background: filtro === k ? C.accent + "22" : "transparent", color: filtro === k ? C.accent : C.mutedL, cursor: "pointer" }}>{t}{n ? " · " + n : ""}</button>;
+        })}
+      </div>
+      {aviso && <div style={{ marginBottom: 10, padding: "9px 12px", borderRadius: 9, background: C.accent + "18", border: "1px solid " + C.accent + "55", fontSize: 13 }}>{aviso}</div>}
+      {!vistas.length && <Card><div style={{ fontSize: 13, color: C.muted, textAlign: "center", padding: 14 }}>{filtro === "aprobar" ? "Nada pendiente de tu aprobación. Cuando el equipo prepare algo, te llegará un aviso." : "No hay acciones en este apartado."}</div></Card>}
+      {vistas.map((a) => {
+        const est = EST_ACC[a.estado] || { t: a.estado, c: C.muted };
+        const rev = a.revision || null;
+        const abierta = abiertas[a.id] ?? ["pendiente_aprobacion", "manual"].includes(a.estado);
+        const ops: J[] = Array.isArray(a.operaciones) ? a.operaciones : [];
+        const ejec = a.resultado?.ejecucion, revr = a.resultado?.reversion;
+        return (
+          <Card key={a.id} style={{ marginBottom: 10, borderColor: a.estado === "pendiente_aprobacion" ? C.accent + "88" : undefined }}>
+            <div style={{ display: "flex", gap: 10, alignItems: "flex-start", cursor: "pointer" }} onClick={() => setAbiertas((m) => ({ ...m, [a.id]: !abierta }))}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center", marginBottom: 4 }}>
+                  <Pill texto={est.t} color={est.c} />
+                  <span style={{ fontSize: 11.5, color: C.mutedL }}>{TIPO_ACC[a.tipo] || a.tipo}</span>
+                  <span style={{ fontSize: 11.5, color: C.muted }}>· #{a.id} · {nombre(a.departamento)} · {fechaHora(a.created_at)}{a.origen === "chat" ? " · desde el chat" : ""}</span>
+                  {a.prioridad === 1 && <span style={{ fontSize: 11, fontWeight: 800, color: C.red }}>PRIORIDAD ALTA</span>}
+                </div>
+                <div style={{ fontSize: 15.5, fontWeight: 800 }}>⚡ {a.titulo}</div>
+                {a.impacto_eur_mes != null && <div style={{ fontSize: 12.5, color: C.green, marginTop: 2 }}>Impacto estimado: {eur(Number(a.impacto_eur_mes))}/mes</div>}
+              </div>
+              <span style={{ color: C.muted, fontSize: 13 }}>{abierta ? "▲" : "▼"}</span>
+            </div>
+            {abierta && (
+              <div style={{ marginTop: 6 }}>
+                <Bloque t="Por qué" v={a.por_que} />
+                <Bloque t="Qué se va a hacer" v={a.que_se_hara} />
+                <Bloque t="A qué afecta" v={a.afecta_a} />
+                <Bloque t="Impacto esperado" v={a.impacto_esperado} />
+                <Bloque t="Riesgos" v={a.riesgos} col={C.orange} />
+                <Bloque t="Cómo se deshace" v={a.como_revertir} />
+                {rev && (
+                  <div style={{ marginTop: 10, padding: "9px 11px", borderRadius: 9, background: (rev.veredicto === "aprobar" ? C.green : rev.veredicto === "rechazar" ? C.red : C.orange) + "12", border: "1px solid " + (rev.veredicto === "aprobar" ? C.green : rev.veredicto === "rechazar" ? C.red : C.orange) + "55" }}>
+                    <div style={{ fontSize: 12.5, fontWeight: 800 }}>🔍 Supervisado por {nombre(rev.revisor)}: {rev.veredicto === "aprobar" ? "✅ aprueba" : rev.veredicto === "rechazar" ? "✕ rechaza" : "↩ pide cambios"}</div>
+                    {rev.comentario && <div style={{ fontSize: 13, lineHeight: 1.5, marginTop: 4 }}>{rev.comentario}</div>}
+                    {rev.comprobaciones && <div style={{ fontSize: 12.5, color: C.mutedL, lineHeight: 1.5, marginTop: 4 }}><b>Comprobaciones:</b> {rev.comprobaciones}</div>}
+                    {rev.riesgos && <div style={{ fontSize: 12.5, color: C.mutedL, lineHeight: 1.5, marginTop: 2 }}><b>Riesgos que ve:</b> {rev.riesgos}</div>}
+                  </div>
+                )}
+                {a.estado === "en_revision" && <div style={{ marginTop: 10, fontSize: 12.5, color: C.blue }}>🔍 {nombre(a.revisor)} la está revisando…</div>}
+                {a.simulacion && <div style={{ marginTop: 8, fontSize: 12.5, color: a.simulacion.ok ? C.green : C.red }}>🧪 Simulación: {a.simulacion.ok ? "funciona y no deja rastro" : "falló — " + a.simulacion.error}</div>}
+                {a.estado === "bloqueada" && <div style={{ marginTop: 8, fontSize: 13, color: C.red }}>⛔ {a.resultado?.motivo}</div>}
+                {a.nota_andres && <div style={{ marginTop: 8, fontSize: 12.5, color: C.mutedL }}>📝 Tu nota: {a.nota_andres}</div>}
+                {ejec && (
+                  <div style={{ marginTop: 8, fontSize: 12.5, color: ejec.ok ? C.green : C.red }}>
+                    {ejec.ok ? "✅ Ejecutada" : "⚠️ Falló al ejecutar"} {a.ejecutada_at ? "· " + fechaHora(a.ejecutada_at) : ""}
+                    {(ejec.pasos || []).map((p: J, i: number) => <div key={i} style={{ color: p.ok ? C.mutedL : C.red, marginTop: 2 }}>{p.ok ? "✓" : "✕"} {NOMBRE_OP[p.action] || p.action || "SQL"}{!p.ok ? ": " + String(p.error || JSON.stringify(p.respuesta || "")).slice(0, 220) : ""}</div>)}
+                  </div>
+                )}
+                {revr && <div style={{ marginTop: 6, fontSize: 12.5, color: revr.ok ? C.mutedL : C.red }}>{revr.ok ? "↩ Deshecha correctamente" : "⚠️ No se pudo deshacer"}</div>}
+                <details style={{ marginTop: 10 }}>
+                  <summary style={{ fontSize: 12, color: C.mutedL, cursor: "pointer" }}>Ver operaciones exactas ({ops.length})</summary>
+                  {ops.map((o, i) => (
+                    <div key={i} style={{ marginTop: 6, background: C.surface, borderRadius: 8, padding: "7px 9px", fontSize: 12 }}>
+                      <b>{o.action ? NOMBRE_OP[o.action] || o.action : o.sql ? "SQL" : "Paso " + (i + 1)}</b>
+                      <pre style={{ margin: "4px 0 0", whiteSpace: "pre-wrap", wordBreak: "break-word", fontSize: 11.5, color: C.mutedL }}>{o.sql || o.paso || JSON.stringify(o.params, null, 2)}</pre>
+                    </div>
+                  ))}
+                  {Array.isArray(a.revertir) && a.revertir.length > 0 && <div style={{ marginTop: 6, fontSize: 11.5, color: C.muted }}>Para deshacer: {a.revertir.map((o: J) => o.sql ? "SQL" : NOMBRE_OP[o.action] || o.action || o.paso).join(", ")}</div>}
+                </details>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
+                  {a.estado === "pendiente_aprobacion" && <>
+                    <Btn disabled={ocupado === a.id} onClick={() => decidir(a, "aprobar")}>✅ Aprobar y ejecutar</Btn>
+                    <Btn outline disabled={ocupado === a.id} onClick={() => decidir(a, "cambios")}>↩ Pedir cambios</Btn>
+                    <Btn outline disabled={ocupado === a.id} onClick={() => decidir(a, "rechazar")}>✕ Rechazar</Btn>
+                  </>}
+                  {a.estado === "en_revision" && <Btn small outline onClick={() => decidir(a, "rechazar")}>✕ Rechazar</Btn>}
+                  {a.estado === "manual" && <Btn disabled={ocupado === a.id} onClick={() => decidir(a, "hecha")}>✓ Ya lo he hecho</Btn>}
+                  {a.estado === "ejecutada" && Array.isArray(a.revertir) && a.revertir.length > 0 && <Btn small outline disabled={ocupado === a.id} onClick={() => decidir(a, "revertir")}>↩ Deshacer</Btn>}
+                </div>
+              </div>
+            )}
+          </Card>
+        );
+      })}
+    </div>
+  );
+}
