@@ -14,12 +14,14 @@ import Mensajes from "./apMensajes";
 import Marketing from "./apMarketing";
 import Ajustes from "./apAjustes";
 import Analisis from "./apAnalisis";
+import EquipoIA from "./apEquipoIA";
 
-type Seccion = "resumen" | "analisis" | "leads" | "facturas" | "profesionales" | "captacion" | "mensajes" | "marketing" | "ajustes" | "antiguo";
+type Seccion = "resumen" | "analisis" | "equipo" | "leads" | "facturas" | "profesionales" | "captacion" | "mensajes" | "marketing" | "ajustes" | "antiguo";
 
 const NAV: { id: Seccion; label: string; icono: string }[] = [
   { id: "resumen", label: "Resumen", icono: "M4 13h4v7H4zM10 8h4v12h-4zM16 4h4v16h-4z" },
   { id: "analisis", label: "Análisis", icono: "M3 3v18h18M7 15l4-4 3 3 5-6" },
+  { id: "equipo", label: "Equipo IA", icono: "M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM17 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM3 20c.5-3 3-5 6-5s5.5 2 6 5M15 15.4c.6-.3 1.3-.4 2-.4 3 0 5.5 2 6 5" },
   { id: "leads", label: "Leads", icono: "M4 6h16M4 12h16M4 18h10" },
   { id: "facturas", label: "Facturas", icono: "M6.5 3.5h8l4 4v13h-12zM14.5 3.5v4h4M9.5 12h6M9.5 15.5h6" },
   { id: "profesionales", label: "Profesionales", icono: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4.5 20c.7-3.7 3.7-5.8 7.5-5.8s6.8 2.1 7.5 5.8" },
@@ -139,6 +141,7 @@ export default function AdminPanel({ onLogout, nombre }: { onLogout: () => void;
     switch (sec) {
       case "resumen": return <Resumen {...props} />;
       case "analisis": return <Analisis {...props} />;
+      case "equipo": return <EquipoIA {...props} />;
       case "leads": return <Leads {...props} />;
       case "facturas": return <Facturas {...props} />;
       case "profesionales": return <Profesionales {...props} />;
