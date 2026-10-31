@@ -38,9 +38,16 @@ export function BarraObjetivo({ clave, desde, hasta, rango }: { clave: string; d
   const [error, setError] = useState("");
   const [editando, setEditando] = useState(false);
   const [valor, setValor] = useState("");
-  const modoMes = rango === "mes";
-  const d1 = modoMes ? desde.slice(0, 8) + "01" : desde;
-  const d2 = modoMes ? finDeMes(desde) : hasta;
+  // "7 días" = semana en curso (lunes a domingo, se reinicia cada lunes)
+  // "30 días" y "Este mes" = mes en curso (del 1 al último día, se reinicia cada día 1)
+  const modoSemana = rango === "7";
+  const modoMes = rango === "mes" || rango === "30";
+  const fRef = hasta || desde;
+  const lunes = (() => { const d = new Date(fRef + "T12:00:00"); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d; })();
+  const iso = (d: Date) => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  const domingo = new Date(lunes.getTime() + 6 * 86400000);
+  const d1 = modoSemana ? iso(lunes) : modoMes ? fRef.slice(0, 8) + "01" : desde;
+  const d2 = modoSemana ? iso(domingo) : modoMes ? finDeMes(fRef) : hasta;
 
   const cargar = useCallback(async () => {
     if (!d1 || !d2) return;
@@ -78,7 +85,8 @@ export function BarraObjetivo({ clave, desde, hasta, rango }: { clave: string; d
   const escala = Math.max(obj, proyeccion, ing) * 1.04 || 1;
   const x = (v: number) => Math.min(100, (v / escala) * 100) + "%";
   const mesCompleto = String(o.desde).slice(8, 10) === "01" && String(o.hasta).slice(0, 10) === finDeMes(String(o.desde).slice(0, 10));
-  const titulo = modoMes || mesCompleto ? "Objetivo de " + nombreMes(String(o.desde).slice(0, 7))
+  const titulo = modoSemana ? "Objetivo de esta semana · lun " + corto(o.desde) + " – dom " + corto(o.hasta)
+    : modoMes || mesCompleto ? "Objetivo de " + nombreMes(String(o.desde).slice(0, 7))
     : dias === 7 ? "Objetivo semanal · " + ddmm(o.desde) + " – " + ddmm(o.hasta)
     : "Objetivo del periodo · " + ddmm(o.desde) + " – " + ddmm(o.hasta) + " (" + dias + " días)";
   const semanas: J[] = dias > 7 ? (o.semanas || []) : [];
@@ -92,6 +100,7 @@ export function BarraObjetivo({ clave, desde, hasta, rango }: { clave: string; d
             <span style={{ fontSize: 24, fontWeight: 800 }}>{eur(ing)}</span>
             <span style={{ fontSize: 14, color: C.mutedL }}>de {eur(obj)}</span>
             {!modoMes && <span style={{ fontSize: 12, color: C.muted }}>({eur(objMes)} al mes repartido por días)</span>}
+            {(modoMes || modoSemana) && <span style={{ fontSize: 11.5, color: C.muted }}>· se reinicia {modoSemana ? "cada lunes" : "el día 1"}</span>}
           </div>
         </div>
         <div style={{ textAlign: "right", fontFamily: F }}>
