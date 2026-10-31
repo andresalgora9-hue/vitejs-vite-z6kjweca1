@@ -40,7 +40,11 @@ export default function AdminPanel({ onLogout, nombre }: { onLogout: () => void;
   const ancho = useAncho();
   const movil = ancho < 900;
   const [sec, setSec] = useState<Seccion>(() => {
-    try { return (sessionStorage.getItem("oy_admin_sec") as Seccion) || "resumen"; } catch { return "resumen"; }
+    try {
+      const q = new URLSearchParams(window.location.search).get("panel");
+      if (q && NAV.some((n) => n.id === q)) return q as Seccion;
+      return (sessionStorage.getItem("oy_admin_sec") as Seccion) || "resumen";
+    } catch { return "resumen"; }
   });
   const [d, setD] = useState<Datos | null>(null);
   const [error, setError] = useState("");

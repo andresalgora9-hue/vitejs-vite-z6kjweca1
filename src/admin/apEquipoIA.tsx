@@ -3,7 +3,7 @@
 // Datos: RPCs ia_panel, ia_informe, ia_propuesta_decidir, ia_lanzar_manual, ia_cultura_guardar, ia_mensaje_resolver
 // Las IAs trabajan en la Edge Function "equipo-ia" (Claude). Proponen; Andrés decide.
 // ============================================================
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { db } from "../supabase";
 import { C, F, Card, Btn, Pill, Grid, Titulo, Cabecera, Modal, eur, num, hace, fechaHora, useAncho } from "./apUi";
 
@@ -12,7 +12,7 @@ const CLAVE_LS = "oy_captacion_clave";
 const COL_ESTADO: Record<string, string> = { bien: C.green, atencion: C.orange, mal: C.red };
 const TXT_ESTADO: Record<string, string> = { bien: "Va bien", atencion: "Atención", mal: "Mal" };
 const COL_NIVEL: Record<string, string> = { alta: C.red, media: C.orange, baja: C.blue };
-type Pestana = "oficina" | "equipo" | "laboratorio" | "propuestas" | "tablon" | "reuniones" | "cultura";
+type Pestana = "oficina" | "chat" | "equipo" | "laboratorio" | "propuestas" | "tablon" | "reuniones" | "cultura";
 
 export default function EquipoIA(_props: J) {
   const movil = useAncho() < 820;
@@ -21,7 +21,7 @@ export default function EquipoIA(_props: J) {
   const [d, setD] = useState<J | null>(null);
   const [lab, setLab] = useState<J | null>(null);
   const [error, setError] = useState("");
-  const [pest, setPest] = useState<Pestana>(() => { try { return (sessionStorage.getItem("oy_equipo_pest") as Pestana) || "oficina"; } catch { return "oficina"; } });
+  const [pest, setPest] = useState<Pestana>(() => { try { if (new URLSearchParams(window.location.search).get("equipo") === "chat") return "chat"; return (sessionStorage.getItem("oy_equipo_pest") as Pestana) || "oficina"; } catch { return "oficina"; } });
   const [verInforme, setVerInforme] = useState<J | null>(null);
   const [ocupado, setOcupado] = useState("");
   const [aviso, setAviso] = useState("");
@@ -43,7 +43,7 @@ export default function EquipoIA(_props: J) {
 
   // Si alguien está trabajando, refresca cada 8 segundos
   const trabajando = useMemo(() => (d?.departamentos || []).some((x: J) => x.estado === "trabajando"), [d]);
-  useEffect(() => { if (!trabajando) return; const t = setInterval(cargar, 8000); return () => clearInterval(t); }, [trabajando, cargar]);
+  useEffect(() => { if (!trabajando) return; const t = setInterval(cargar, 3000); return () => clearInterval(t); }, [trabajando, cargar]);
   useEffect(() => { if (!aviso) return; const t = setTimeout(() => setAviso(""), 3500); return () => clearTimeout(t); }, [aviso]);
 
   const deps: J[] = d?.departamentos || [];
@@ -95,7 +95,7 @@ export default function EquipoIA(_props: J) {
   const activos = deps.filter((x) => x.activo).length;
   const exps: J[] = lab?.experimentos || [];
   const labPend = exps.filter((e) => e.estado === "propuesto" || (e.estado === "perdedor" && !e.nota_andres)).length;
-  const pestanas: [Pestana, string, number?][] = [["oficina", "🏢 Oficina"], ["equipo", "Equipo"], ["laboratorio", "Laboratorio", labPend], ["propuestas", "Propuestas", pendientes], ["tablon", "Tablón", abiertos], ["reuniones", "Reuniones"], ["cultura", "Cultura y reglas"]];
+  const pestanas: [Pestana, string, number?][] = [["oficina", "🏢 Oficina"], ["chat", "💬 Chat del equipo", Number(d.preguntas_pendientes) || 0], ["equipo", "Equipo"], ["laboratorio", "Laboratorio", labPend], ["propuestas", "Propuestas", pendientes], ["tablon", "Tablón", abiertos], ["reuniones", "Reuniones"], ["cultura", "Cultura y reglas"]];
 
   return (
     <div style={{ fontFamily: F }}>
@@ -120,7 +120,8 @@ export default function EquipoIA(_props: J) {
             {deps.map((x) => {
               const u = d.ultimos?.[x.id];
               const abiertas = propuestas.filter((p) => p.departamento === x.id && p.estado === "propuesta").length;
-              const est = x.estado === "trabajando" ? { t: "Trabajando…", c: C.accent } : x.estado === "descansando" ? { t: "Descansando 😴 · " + (x.updated_at ? hace(x.updated_at) : ""), c: C.blue } : x.estado === "error" ? { t: "Error en el último trabajo", c: C.red }
+              const enCurso = (d.historial || []).find((h: J) => h.departamento === x.id && h.estado === "trabajando");
+              const est = x.estado === "trabajando" ? { t: (enCurso?.paso || "Trabajando") + "…", c: C.accent } : x.estado === "descansando" ? { t: "Descansando 😴 · " + (x.updated_at ? hace(x.updated_at) : ""), c: C.blue } : x.estado === "error" ? { t: "Error en el último trabajo", c: C.red }
                 : x.ultimo_run_at ? { t: "Listo · " + hace(x.ultimo_run_at), c: C.green } : { t: x.activo ? "Aún no ha trabajado" : "Próximamente", c: C.muted };
               return (
                 <div key={x.id} style={{ background: C.card, border: "1px solid " + (x.activo ? x.color + "55" : C.border), borderRadius: 14, padding: 14, opacity: x.activo ? 1 : 0.55, display: "flex", flexDirection: "column", gap: 8 }}>
@@ -171,6 +172,7 @@ export default function EquipoIA(_props: J) {
         </>
       )}
 
+      {pest === "chat" && <ChatEquipo clave={clave} deps={deps} recargarPanel={cargar} />}
       {pest === "oficina" && <Oficina d={d} lab={lab} clave={clave} recargar={cargar} abrir={(inf: J) => setVerInforme(inf)} irA={(p: Pestana) => setPest(p)} />}
       {pest === "laboratorio" && <Laboratorio lab={lab} clave={clave} recargar={cargar} lanzar={lanzar} depPorId={depPorId} ocupado={ocupado} />}
       {pest === "propuestas" && <Propuestas propuestas={propuestas} nombreDep={nombreDep} deps={deps} decidir={decidir} />}
@@ -775,6 +777,11 @@ function Oficina({ d, lab, clave, recargar, abrir, irA }: { d: J; lab: J | null;
       <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", background: "linear-gradient(180deg,#151a26,#0f131c)", border: "1px solid " + C.border, borderRadius: 14, padding: "14px 18px", marginBottom: 12 }}>
         <div style={{ flex: 1, minWidth: 200 }}>
           <div style={{ fontSize: 18, fontWeight: 800 }}>🏢 Oficina de OficioYa</div>
+          {Number(d.preguntas_pendientes) > 0 && (
+            <button onClick={() => irA("chat")} style={{ marginTop: 6, fontFamily: F, fontSize: 12.5, fontWeight: 800, padding: "5px 11px", borderRadius: 99, border: "1px solid " + C.orange, background: C.orange + "22", color: C.orange, cursor: "pointer", animation: "ofParpadeo 1.6s infinite" }}>
+              💬 {d.preguntas_pendientes} pregunta{Number(d.preguntas_pendientes) > 1 ? "s" : ""} del equipo para ti
+            </button>
+          )}
           <div style={{ fontSize: 12.5, color: cerrada ? C.blue : C.green, fontWeight: 700, marginTop: 3 }}>
             {cerrada ? "🌙 Oficina cerrada · el equipo vuelve a las 7:00" : ahora.getDay() === 0 ? "☀️ Domingo: solo trabaja el laboratorio" : "☀️ Jornada en marcha"}
           </div>
@@ -802,7 +809,7 @@ function Oficina({ d, lab, clave, recargar, abrir, irA }: { d: J; lab: J | null;
               const prox = proximoTurno(x.id, ahora);
               const dijo = msgs.find((m) => m.de === x.id && Date.now() - new Date(m.created_at).getTime() < 36 * 3600000);
               const pantalla = !x.activo ? "Puesto vacante · próximamente"
-                : trabajando ? (QUE_HACE[actual?.tipo] || "Trabajando") + (x.cafe_pendiente ? " a fondo ☕" : "")
+                : trabajando ? (actual?.paso || QUE_HACE[actual?.tipo] || "Trabajando") + (x.cafe_pendiente && !actual?.paso ? " a fondo ☕" : "")
                 : x.estado === "error" ? "⚠️ Algo falló en su último trabajo"
                 : durmiendo ? "Descansando"
                 : ultimo?.titulo ? "✔ " + ultimo.titulo : "Esperando su turno";
@@ -813,8 +820,13 @@ function Oficina({ d, lab, clave, recargar, abrir, irA }: { d: J; lab: J | null;
                     <div style={{ display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
                       {pantalla}
                       {trabajando && <span style={{ marginLeft: 2 }}>{[0, 1, 2].map((i) => <span key={i} style={{ animation: `ofPunto 1.2s ${i * 0.2}s infinite` }}>.</span>)}</span>}
-                      {trabajando && <span style={{ animation: "ofCursor 1s infinite" }}>▌</span>}
+                      {trabajando && !actual?.progreso && <span style={{ animation: "ofCursor 1s infinite" }}>▌</span>}
                     </div>
+                    {trabajando && actual?.progreso && (
+                      <div style={{ marginTop: 4, color: "#e8f5ee", fontSize: 11, lineHeight: 1.35, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                        «…{String(actual.progreso).slice(-150)}<span style={{ animation: "ofCursor 1s infinite" }}>▌</span>»
+                      </div>
+                    )}
                   </div>
                   <div style={{ width: 26, height: 8, background: "#2b3245", margin: "0 auto", borderRadius: "0 0 4px 4px" }} />
                   {/* Persona y mesa */}
@@ -835,6 +847,12 @@ function Oficina({ d, lab, clave, recargar, abrir, irA }: { d: J; lab: J | null;
                   <div style={{ fontSize: 11, color: C.muted, textAlign: "center", marginTop: 2 }}>
                     {!x.activo ? "Se incorporará pronto" : trabajando ? "Trabajando ahora" : prox ? "Próximo turno: " + horaM(prox.fecha, { weekday: "short", hour: "2-digit", minute: "2-digit" }) + " · " + prox.tarea : ""}
                   </div>
+                  {x.id === "direccion" && x.activo && (
+                    <div style={{ textAlign: "center", marginTop: 6 }}>
+                      <button onClick={(ev) => { ev.stopPropagation(); document.getElementById("chat-direccion")?.scrollIntoView({ behavior: "smooth", block: "start" }); }}
+                        style={{ fontFamily: F, fontSize: 12, fontWeight: 800, padding: "5px 11px", borderRadius: 99, border: "1px solid " + C.accent, background: C.accent + "22", color: C.accent, cursor: "pointer" }}>💬 Preguntarle</button>
+                    </div>
+                  )}
                   {d.marcador?.[x.id] && <div style={{ fontSize: 11, color: C.accent, textAlign: "center", marginTop: 3 }}>🏅 {num(d.marcador[x.id].puntos)} pts {(d.marcador[x.id].medallas || []).map((m: string) => m.split(" ")[0]).join("")}</div>}
                   {dijo && (
                     <div style={{ marginTop: 8, background: "#ffffff10", border: "1px solid #ffffff22", borderRadius: "10px 10px 10px 2px", padding: "6px 8px", fontSize: 11.5, lineHeight: 1.4 }}>
@@ -846,6 +864,9 @@ function Oficina({ d, lab, clave, recargar, abrir, irA }: { d: J; lab: J | null;
             })}
           </div>
         </div>
+
+        {/* Despacho de Dirección: chat */}
+        <div id="chat-direccion"><ChatDireccion clave={clave} /></div>
 
         {/* Zonas comunes */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(250px,1fr))", gap: 12 }}>
@@ -898,6 +919,182 @@ function Oficina({ d, lab, clave, recargar, abrir, irA }: { d: J; lab: J | null;
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ---------- CHAT CON DIRECCIÓN GENERAL ----------
+const SUGERENCIAS = ["¿Cómo vamos este mes?", "¿Qué es lo más urgente hoy?", "¿Qué propone Marketing esta semana?", "¿Qué riesgo de seguridad cierro primero?", "¿Llegamos al objetivo?"];
+function ChatDireccion({ clave }: { clave: string }) {
+  const [msgs, setMsgs] = useState<J[]>([]);
+  const [texto, setTexto] = useState("");
+  const [enviando, setEnviando] = useState(false);
+  const [error, setError] = useState("");
+  const caja = useRef<HTMLDivElement>(null);
+  const cargar = useCallback(async () => {
+    const { data, error: e } = await db.rpc("ia_chat_leer", { p_clave: clave });
+    if (!e) setMsgs(data || []);
+  }, [clave]);
+  useEffect(() => { cargar(); }, [cargar]);
+  const escribiendo = msgs.some((m) => m.estado === "escribiendo");
+  useEffect(() => { if (!escribiendo) return; const t = setInterval(cargar, 1200); return () => clearInterval(t); }, [escribiendo, cargar]);
+  useEffect(() => { if (caja.current) caja.current.scrollTop = caja.current.scrollHeight; }, [msgs]);
+  const enviar = async (t?: string) => {
+    const q = (t ?? texto).trim();
+    if (!q || escribiendo || enviando) return;
+    setEnviando(true); setError("");
+    const { error: e } = await db.rpc("ia_chat_enviar", { p_clave: clave, p_texto: q });
+    setEnviando(false);
+    if (e) { setError(e.message); return; }
+    setTexto(""); cargar();
+  };
+  const nueva = async () => {
+    if (!window.confirm("¿Empezar una conversación nueva? Se borra la actual.")) return;
+    await db.rpc("ia_chat_borrar", { p_clave: clave }); cargar();
+  };
+  return (
+    <div style={{ background: C.card, border: "1px solid " + C.accent + "55", borderRadius: 14, overflow: "hidden" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: C.accent + "12", borderBottom: "1px solid " + C.border }}>
+        <span style={{ fontSize: 26 }}>🧑‍💼</span>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 14.5, fontWeight: 800 }}>Despacho de Dirección general</div>
+          <div style={{ fontSize: 11.5, color: C.mutedL }}>Pregúntale lo que quieras: tiene todos los datos e informes del equipo. Si le pides algo para un departamento, se lo encarga.</div>
+        </div>
+        {msgs.length > 0 && <Btn small outline onClick={nueva}>Nueva conversación</Btn>}
+      </div>
+      <div ref={caja} style={{ maxHeight: 380, minHeight: 120, overflowY: "auto", padding: 14, display: "flex", flexDirection: "column", gap: 8 }}>
+        {!msgs.length && <div style={{ fontSize: 13, color: C.muted, textAlign: "center", padding: "18px 0" }}>Todavía no habéis hablado. Prueba con una de las preguntas de abajo.</div>}
+        {msgs.map((m) => {
+          const mio = m.rol === "andres";
+          const txt = m.estado === "escribiendo" ? (m.parcial || "") : (m.texto || "");
+          return (
+            <div key={m.id} style={{ alignSelf: mio ? "flex-end" : "flex-start", maxWidth: "85%", display: "flex", gap: 8, flexDirection: mio ? "row-reverse" : "row", alignItems: "flex-end" }}>
+              {!mio && <span style={{ fontSize: 20 }}>🧑‍💼</span>}
+              <div style={{ background: mio ? C.accent : m.estado === "error" ? C.red + "22" : C.surface, color: mio ? "#000" : m.estado === "error" ? C.red : C.text,
+                borderRadius: mio ? "14px 14px 4px 14px" : "14px 14px 14px 4px", padding: "9px 12px", fontSize: 13.5, lineHeight: 1.5, whiteSpace: "pre-wrap" }}>
+                {txt || (m.estado === "escribiendo" ? "" : "—")}
+                {m.estado === "escribiendo" && (txt ? <span style={{ animation: "ofCursor 1s infinite" }}>▌</span> : <span>{[0, 1, 2].map((i) => <span key={i} style={{ animation: `ofPunto 1.2s ${i * 0.2}s infinite`, fontSize: 18 }}>•</span>)}</span>)}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div style={{ padding: "8px 12px 0", display: "flex", gap: 6, flexWrap: "wrap" }}>
+        {SUGERENCIAS.map((q) => (
+          <button key={q} disabled={escribiendo || enviando} onClick={() => enviar(q)} style={{ fontFamily: F, fontSize: 12, padding: "5px 10px", borderRadius: 99, border: "1px solid " + C.border, background: "transparent", color: C.mutedL, cursor: "pointer" }}>{q}</button>
+        ))}
+      </div>
+      <div style={{ display: "flex", gap: 8, padding: 12 }}>
+        <textarea value={texto} onChange={(e) => setTexto(e.target.value)} rows={2} placeholder={escribiendo ? "Está respondiendo…" : "Escribe tu pregunta… (Enter para enviar, Mayús+Enter para salto de línea)"}
+          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); enviar(); } }}
+          style={{ flex: 1, resize: "vertical", background: C.surface, border: "1px solid " + C.border, borderRadius: 10, color: C.text, padding: "9px 11px", fontFamily: F, fontSize: 13.5 }} />
+        <Btn disabled={!texto.trim() || escribiendo || enviando} onClick={() => enviar()}>{escribiendo ? "…" : "Enviar"}</Btn>
+      </div>
+      {error && <div style={{ padding: "0 12px 10px", fontSize: 12.5, color: C.red }}>{error}</div>}
+    </div>
+  );
+}
+
+// ---------- CHAT DEL EQUIPO ----------
+const MENCIONES = [["direccion", "@direccion"], ["marketing", "@marketing"], ["supervisor", "@supervisor"], ["ciberseguridad", "@ciberseguridad"]];
+function ChatEquipo({ clave, deps, recargarPanel }: { clave: string; deps: J[]; recargarPanel: () => void }) {
+  const [msgs, setMsgs] = useState<J[]>([]);
+  const [texto, setTexto] = useState("");
+  const [resp, setResp] = useState<J | null>(null);
+  const [enviando, setEnviando] = useState(false);
+  const [error, setError] = useState("");
+  const caja = useRef<HTMLDivElement>(null);
+  const area = useRef<HTMLTextAreaElement>(null);
+  const cargar = useCallback(async () => {
+    const { data, error: e } = await db.rpc("ia_equipo_leer", { p_clave: clave });
+    if (!e) setMsgs(data || []);
+  }, [clave]);
+  useEffect(() => { cargar(); }, [cargar]);
+  const escribiendo = msgs.some((m) => m.estado === "escribiendo");
+  useEffect(() => { const t = setInterval(cargar, escribiendo ? 1200 : 15000); return () => clearInterval(t); }, [escribiendo, cargar]);
+  useEffect(() => { if (caja.current) caja.current.scrollTop = caja.current.scrollHeight; }, [msgs.length, msgs[msgs.length - 1]?.parcial, msgs[msgs.length - 1]?.texto]);
+  const porId = useMemo(() => Object.fromEntries(msgs.map((m) => [m.id, m])), [msgs]);
+  const dep = (id: string) => deps.find((x) => x.id === id);
+  const nombre = (id: string) => (id === "andres" ? "Tú" : dep(id)?.nombre || id);
+  const avatar = (id: string) => (id === "andres" ? "👤" : PERSONAJE[id] || dep(id)?.icono || "🧑");
+  const pendientes = msgs.filter((m) => m.tipo === "pregunta" && m.estado === "pendiente");
+  const enviar = async () => {
+    const q = texto.trim();
+    if (!q || escribiendo || enviando) return;
+    setEnviando(true); setError("");
+    const { error: e } = await db.rpc("ia_equipo_enviar", { p_clave: clave, p_texto: q, p_responde_a: resp?.id ?? null });
+    setEnviando(false);
+    if (e) { setError(e.message); return; }
+    setTexto(""); setResp(null); cargar(); recargarPanel();
+  };
+  const marcar = async (m: J, estado: string) => { await db.rpc("ia_equipo_marcar", { p_clave: clave, p_id: m.id, p_estado: estado }); cargar(); recargarPanel(); };
+  const responder = (m: J) => { setResp(m); setTimeout(() => area.current?.focus(), 50); };
+  return (
+    <div style={{ background: C.card, border: "1px solid " + C.border, borderRadius: 14, overflow: "hidden" }}>
+      <div style={{ padding: "11px 14px", borderBottom: "1px solid " + C.border, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+        <span style={{ fontSize: 24 }}>💬</span>
+        <div style={{ flex: 1, minWidth: 220 }}>
+          <div style={{ fontSize: 15, fontWeight: 800 }}>Chat del equipo</div>
+          <div style={{ fontSize: 11.5, color: C.mutedL, lineHeight: 1.45 }}>Aquí te escriben cuando necesitan algo de ti (te llega un aviso al móvil). Responde cuando quieras: a una pregunta concreta o al equipo, mencionando a alguien con @. Tus respuestas las tienen en cuenta en su siguiente turno.</div>
+        </div>
+        {pendientes.length > 0 && <Pill texto={pendientes.length + " sin responder"} color={C.orange} />}
+      </div>
+      <div ref={caja} style={{ height: 460, overflowY: "auto", padding: 14, display: "flex", flexDirection: "column", gap: 10 }}>
+        {!msgs.length && <div style={{ fontSize: 13, color: C.muted, textAlign: "center", padding: "30px 0", lineHeight: 1.6 }}>Todavía no hay mensajes.<br />Cuando un departamento necesite algo de ti, aparecerá aquí y te llegará un aviso.</div>}
+        {msgs.map((m) => {
+          const mio = m.de === "andres";
+          const pregunta = m.tipo === "pregunta";
+          const txt = m.estado === "escribiendo" ? (m.parcial || "") : (m.texto || "");
+          const ref = m.responde_a ? porId[m.responde_a] : null;
+          const col = pregunta ? (m.estado === "pendiente" ? C.orange : C.green) : null;
+          return (
+            <div key={m.id} style={{ alignSelf: mio ? "flex-end" : "flex-start", maxWidth: "86%", display: "flex", gap: 8, flexDirection: mio ? "row-reverse" : "row", alignItems: "flex-end" }}>
+              <span style={{ fontSize: 22 }} title={nombre(m.de)}>{avatar(m.de)}</span>
+              <div>
+                <div style={{ fontSize: 11, color: C.muted, marginBottom: 3, textAlign: mio ? "right" : "left" }}>
+                  <b style={{ color: mio ? C.accent : dep(m.de)?.color || C.mutedL }}>{nombre(m.de)}</b> · {fechaHora(m.created_at)}
+                  {pregunta && <span style={{ marginLeft: 6, color: col || C.muted, fontWeight: 800 }}>{m.estado === "pendiente" ? "❓ Pregunta para ti · pendiente" : "✓ Respondida"}{m.urgencia === "alta" ? " · urgente" : ""}</span>}
+                </div>
+                <div style={{ background: mio ? C.accent : pregunta ? (col || C.orange) + "14" : C.surface, color: mio ? "#000" : m.estado === "error" ? C.red : C.text,
+                  border: pregunta ? "1px solid " + (col || C.orange) + "88" : "none", borderRadius: mio ? "14px 14px 4px 14px" : "14px 14px 14px 4px", padding: "9px 12px", fontSize: 13.5, lineHeight: 1.5, whiteSpace: "pre-wrap" }}>
+                  {ref && <div style={{ fontSize: 11.5, opacity: 0.75, borderLeft: "3px solid " + (mio ? "#0006" : C.border), paddingLeft: 7, marginBottom: 6 }}>↪ {nombre(ref.de)}: {String(ref.texto || "").slice(0, 110)}{String(ref.texto || "").length > 110 ? "…" : ""}</div>}
+                  {txt}
+                  {m.estado === "escribiendo" && (txt ? <span style={{ animation: "ofCursor 1s infinite" }}>▌</span> : <span>{[0, 1, 2].map((i) => <span key={i} style={{ animation: `ofPunto 1.2s ${i * 0.2}s infinite`, fontSize: 18 }}>•</span>)}</span>)}
+                </div>
+                {!mio && m.estado !== "escribiendo" && (
+                  <div style={{ display: "flex", gap: 6, marginTop: 5 }}>
+                    <button onClick={() => responder(m)} style={{ fontFamily: F, fontSize: 11.5, fontWeight: 800, padding: "3px 9px", borderRadius: 99, border: "1px solid " + C.border, background: "transparent", color: C.mutedL, cursor: "pointer" }}>↩ Responder</button>
+                    {pregunta && m.estado === "pendiente" && <button onClick={() => marcar(m, "respondida")} style={{ fontFamily: F, fontSize: 11.5, padding: "3px 9px", borderRadius: 99, border: "1px solid " + C.border, background: "transparent", color: C.muted, cursor: "pointer" }}>Marcar como resuelta</button>}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div style={{ borderTop: "1px solid " + C.border, padding: 12 }}>
+        {resp && (
+          <div style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 12, color: C.mutedL, background: C.surface, borderRadius: 8, padding: "6px 9px", marginBottom: 8 }}>
+            <span style={{ flex: 1 }}>↩ Respondiendo a <b style={{ color: C.text }}>{nombre(resp.de)}</b>: «{String(resp.texto || "").slice(0, 90)}{String(resp.texto || "").length > 90 ? "…" : ""}»</span>
+            <button onClick={() => setResp(null)} style={{ background: "none", border: "none", color: C.mutedL, cursor: "pointer", fontSize: 14 }}>✕</button>
+          </div>
+        )}
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
+          {MENCIONES.filter(([id]) => deps.some((x) => x.id === id && x.activo)).map(([id, t]) => (
+            <button key={id} onClick={() => { setTexto((v) => (v.includes(t) ? v : (t + " " + v).trim() + " ")); area.current?.focus(); }}
+              style={{ fontFamily: F, fontSize: 12, padding: "4px 10px", borderRadius: 99, border: "1px solid " + C.border, background: "transparent", color: C.mutedL, cursor: "pointer" }}>{PERSONAJE[id]} {t}</button>
+          ))}
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <textarea ref={area} value={texto} onChange={(e) => setTexto(e.target.value)} rows={2}
+            placeholder={escribiendo ? "Están respondiendo…" : resp ? "Escribe tu respuesta… (Enter para enviar)" : "Escribe al equipo… menciona a alguien con @ (si no, contesta Dirección)"}
+            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); enviar(); } }}
+            style={{ flex: 1, resize: "vertical", background: C.surface, border: "1px solid " + C.border, borderRadius: 10, color: C.text, padding: "9px 11px", fontFamily: F, fontSize: 13.5 }} />
+          <Btn disabled={!texto.trim() || escribiendo || enviando} onClick={enviar}>{escribiendo ? "…" : "Enviar"}</Btn>
+        </div>
+        {error && <div style={{ marginTop: 6, fontSize: 12.5, color: C.red }}>{error}</div>}
+      </div>
+      <style>{`@keyframes ofCursor{0%,49%{opacity:1}50%,100%{opacity:0}} @keyframes ofPunto{0%,80%,100%{opacity:.25}40%{opacity:1}}`}</style>
     </div>
   );
 }
