@@ -12,7 +12,7 @@ const CLAVE_LS = "oy_captacion_clave";
 const COL_ESTADO: Record<string, string> = { bien: C.green, atencion: C.orange, mal: C.red };
 const TXT_ESTADO: Record<string, string> = { bien: "Va bien", atencion: "Atención", mal: "Mal" };
 const COL_NIVEL: Record<string, string> = { alta: C.red, media: C.orange, baja: C.blue };
-type Pestana = "oficina" | "acciones" | "equipo" | "laboratorio" | "propuestas" | "tablon" | "reuniones" | "cultura";
+type Pestana = "oficina" | "acciones" | "asesor" | "equipo" | "laboratorio" | "propuestas" | "tablon" | "reuniones" | "cultura";
 
 export default function EquipoIA(_props: J) {
   const movil = useAncho() < 820;
@@ -21,7 +21,7 @@ export default function EquipoIA(_props: J) {
   const [d, setD] = useState<J | null>(null);
   const [lab, setLab] = useState<J | null>(null);
   const [error, setError] = useState("");
-  const [pest, setPest] = useState<Pestana>(() => { try { if (new URLSearchParams(window.location.search).get("equipo") === "acciones") return "acciones"; const g = sessionStorage.getItem("oy_equipo_pest") as Pestana; return g && g !== ("chat" as Pestana) ? g : "oficina"; } catch { return "oficina"; } });
+  const [pest, setPest] = useState<Pestana>(() => { try { const qp = new URLSearchParams(window.location.search).get("equipo"); if (qp === "acciones" || qp === "asesor") return qp as Pestana; const g = sessionStorage.getItem("oy_equipo_pest") as Pestana; return g && g !== ("chat" as Pestana) ? g : "oficina"; } catch { return "oficina"; } });
   const [verInforme, setVerInforme] = useState<J | null>(null);
   const [ocupado, setOcupado] = useState("");
   const [aviso, setAviso] = useState("");
@@ -95,7 +95,7 @@ export default function EquipoIA(_props: J) {
   const activos = deps.filter((x) => x.activo).length;
   const exps: J[] = lab?.experimentos || [];
   const labPend = exps.filter((e) => e.estado === "propuesto" || (e.estado === "perdedor" && !e.nota_andres)).length;
-  const pestanas: [Pestana, string, number?][] = [["oficina", "🏢 Oficina"], ["acciones", "⚡ Acciones", Number(d.acciones_pendientes) || 0], ["equipo", "Equipo"], ["laboratorio", "Laboratorio", labPend], ["propuestas", "Propuestas", pendientes], ["tablon", "Tablón", abiertos], ["reuniones", "Reuniones"], ["cultura", "Cultura y reglas"]];
+  const pestanas: [Pestana, string, number?][] = [["oficina", "🏢 Oficina"], ["acciones", "⚡ Acciones", Number(d.acciones_pendientes) || 0], ["asesor", "🎓 Asesor", Number(d.consultas_para_claude) || 0], ["equipo", "Equipo"], ["laboratorio", "Laboratorio", labPend], ["propuestas", "Propuestas", pendientes], ["tablon", "Tablón", abiertos], ["reuniones", "Reuniones"], ["cultura", "Cultura y reglas"]];
 
   return (
     <div style={{ fontFamily: F }}>
@@ -172,6 +172,7 @@ export default function EquipoIA(_props: J) {
         </>
       )}
 
+      {pest === "asesor" && <Asesor clave={clave} deps={deps} />}
       {pest === "acciones" && <Acciones clave={clave} deps={deps} recargarPanel={cargar} />}
       {pest === "oficina" && <Oficina d={d} lab={lab} clave={clave} recargar={cargar} abrir={(inf: J) => setVerInforme(inf)} irA={(p: Pestana) => setPest(p)}
         abrirChats={(c: string) => { try { localStorage.setItem("oy_chat_canal", c); } catch { /* nada */ } if (_props?.irA) _props.irA("chats"); }} />}
@@ -1079,6 +1080,113 @@ function Acciones({ clave, deps, recargarPanel }: { clave: string; deps: J[]; re
           </Card>
         );
       })}
+    </div>
+  );
+}
+
+// ---------- ASESOR CLAUDE ----------
+const POR_QUIEN: Record<string, string> = { asesor: "🎓 Asesor (al momento)", claude_chat: "💬 Claude (en el chat con Andrés)", andres: "👤 Tú" };
+function Asesor({ clave, deps }: { clave: string; deps: J[] }) {
+  const [d, setD] = useState<J | null>(null);
+  const [vista, setVista] = useState<"consultas" | "saber">("consultas");
+  const [edit, setEdit] = useState<J | null>(null);
+  const [aviso, setAviso] = useState("");
+  const cargar = useCallback(async () => {
+    const { data, error } = await db.rpc("ia_asesor_panel", { p_clave: clave });
+    if (!error) setD(data);
+  }, [clave]);
+  useEffect(() => { cargar(); const t = setInterval(cargar, 15000); return () => clearInterval(t); }, [cargar]);
+  if (!d) return <div style={{ color: C.mutedL, padding: 20 }}>Cargando…</div>;
+  const nombre = (id: string) => { const x = deps.find((y) => y.id === id); return x ? x.icono + " " + x.nombre : id; };
+  const consultas: J[] = d.consultas || [];
+  const pendientes = consultas.filter((c) => c.estado === "para_claude");
+  const responder = async (c: J) => {
+    const r = window.prompt("Tu respuesta para " + nombre(c.departamento) + ":\n\n" + c.pregunta);
+    if (!r) return;
+    const { error } = await db.rpc("ia_consulta_responder", { p_clave: clave, p_id: c.id, p_respuesta: r });
+    setAviso(error ? error.message : "Respuesta guardada: la tendrán en su próximo turno."); setTimeout(() => setAviso(""), 4000); cargar();
+  };
+  const guardarSaber = async (borrar = false) => {
+    if (!edit) return;
+    if (borrar && !window.confirm("¿Borrar esta sección del saber del asesor?")) return;
+    const { error } = await db.rpc("ia_saber_guardar", { p_clave: clave, p_id: edit.id ?? null, p_titulo: edit.titulo || "", p_contenido: edit.contenido || "", p_borrar: borrar });
+    setAviso(error ? error.message : borrar ? "Sección borrada" : "Guardado: el asesor lo usará desde su próxima consulta"); setTimeout(() => setAviso(""), 4000);
+    if (!error) setEdit(null); cargar();
+  };
+  return (
+    <div>
+      <Card style={{ marginBottom: 12 }}>
+        <div style={{ fontSize: 13, color: C.mutedL, lineHeight: 1.55 }}>
+          <b style={{ color: C.text }}>Cómo funciona:</b> mientras trabajan, los departamentos pueden consultar al <b>asesor</b> (Claude con todo lo que sé del proyecto) cuando cumplen el criterio: decisiones de impacto alto o irreversibles, cambios de base de datos que puedan afectar a la web, dudas sobre la historia o decisiones anteriores, o anomalías que no saben explicar. Responde al momento y siguen trabajando. Si no está seguro (por ejemplo, hay que mirar el código), <b>la escala a Claude</b>: te llega un aviso y, cuando me digas en el chat <i>«revisa las consultas del equipo»</i>, las respondo yo con todo el contexto. También puedes responderlas tú.
+        </div>
+      </Card>
+      <div style={{ display: "flex", gap: 6, marginBottom: 12, flexWrap: "wrap" }}>
+        {([["consultas", "Consultas" + (pendientes.length ? " · " + pendientes.length + " para Claude" : "")], ["saber", "Lo que sabe el asesor"]] as [typeof vista, string][]).map(([k, t]) => (
+          <button key={k} onClick={() => setVista(k)} style={{ fontFamily: F, fontSize: 12.5, fontWeight: 700, padding: "6px 12px", borderRadius: 99, border: "1px solid " + (vista === k ? C.accent : C.border), background: vista === k ? C.accent + "22" : "transparent", color: vista === k ? C.accent : C.mutedL, cursor: "pointer" }}>{t}</button>
+        ))}
+      </div>
+      {aviso && <div style={{ marginBottom: 10, padding: "9px 12px", borderRadius: 9, background: C.accent + "18", border: "1px solid " + C.accent + "55", fontSize: 13 }}>{aviso}</div>}
+
+      {vista === "consultas" && (
+        <>
+          {!consultas.length && <Card><div style={{ fontSize: 13, color: C.muted, textAlign: "center", padding: 14 }}>Aún no han consultado nada.</div></Card>}
+          {consultas.map((c) => {
+            const col = c.estado === "para_claude" ? C.orange : c.estado === "error" ? C.red : c.estado === "respondiendo" ? C.blue : C.green;
+            return (
+              <Card key={c.id} style={{ marginBottom: 10, borderColor: c.estado === "para_claude" ? C.orange + "88" : undefined }}>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center", marginBottom: 5 }}>
+                  <Pill texto={c.estado === "para_claude" ? "Pendiente de Claude" : c.estado === "respondiendo" ? "Respondiendo…" : c.estado === "error" ? "Error" : "Respondida"} color={col} />
+                  <span style={{ fontSize: 12, color: C.mutedL }}>{nombre(c.departamento)} · {fechaHora(c.created_at)}{c.urgencia === "alta" ? " · urgente" : ""}</span>
+                </div>
+                <div style={{ fontSize: 14.5, fontWeight: 800, lineHeight: 1.45 }}>❓ {c.pregunta}</div>
+                {c.por_que && <div style={{ fontSize: 12.5, color: C.mutedL, marginTop: 4 }}><b>Por qué pregunta:</b> {c.por_que}</div>}
+                {c.contexto && <div style={{ fontSize: 12.5, color: C.muted, marginTop: 2 }}><b>Contexto:</b> {c.contexto}</div>}
+                {c.respuesta && (
+                  <div style={{ marginTop: 9, padding: "9px 11px", borderRadius: 9, background: C.surface }}>
+                    <div style={{ fontSize: 11.5, fontWeight: 800, color: C.mutedL, marginBottom: 3 }}>{POR_QUIEN[c.respondido_por] || "Respuesta"}{c.confianza ? " · confianza " + c.confianza : ""}{c.respondida_at ? " · " + fechaHora(c.respondida_at) : ""}</div>
+                    <div style={{ fontSize: 13.5, lineHeight: 1.55, whiteSpace: "pre-wrap" }}>{c.respuesta}</div>
+                  </div>
+                )}
+                {c.estado === "para_claude" && (
+                  <div style={{ marginTop: 9, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                    <span style={{ fontSize: 12.5, color: C.orange }}>⏳ {c.motivo_escalar || "Necesita a Claude"}</span>
+                    <Btn small outline onClick={() => responder(c)}>Responder yo</Btn>
+                  </div>
+                )}
+              </Card>
+            );
+          })}
+        </>
+      )}
+
+      {vista === "saber" && (
+        <>
+          <div style={{ marginBottom: 10 }}><Btn small onClick={() => setEdit({ id: null, titulo: "", contenido: "" })}>+ Añadir sección</Btn></div>
+          {edit && (
+            <Card style={{ marginBottom: 12, borderColor: C.accent + "88" }}>
+              <input value={edit.titulo} onChange={(e) => setEdit({ ...edit, titulo: e.target.value })} placeholder="Título"
+                style={{ width: "100%", boxSizing: "border-box", background: C.surface, border: "1px solid " + C.border, borderRadius: 8, color: C.text, padding: "8px 10px", fontFamily: F, fontSize: 14, fontWeight: 700, marginBottom: 8 }} />
+              <textarea value={edit.contenido} onChange={(e) => setEdit({ ...edit, contenido: e.target.value })} rows={12}
+                style={{ width: "100%", boxSizing: "border-box", background: C.surface, border: "1px solid " + C.border, borderRadius: 8, color: C.text, padding: "8px 10px", fontFamily: F, fontSize: 13, lineHeight: 1.5, resize: "vertical" }} />
+              <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                <Btn small onClick={() => guardarSaber(false)}>Guardar</Btn>
+                <Btn small outline onClick={() => setEdit(null)}>Cancelar</Btn>
+                {edit.id && <Btn small outline onClick={() => guardarSaber(true)}>Borrar</Btn>}
+              </div>
+            </Card>
+          )}
+          {(d.saber || []).map((x: J) => (
+            <Card key={x.id} style={{ marginBottom: 10 }}>
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <div style={{ fontSize: 14.5, fontWeight: 800, flex: 1 }}>{x.titulo}</div>
+                <span style={{ fontSize: 11, color: C.muted }}>{x.actualizado_por === "andres" ? "editado por ti" : "escrito por Claude"} · {fechaHora(x.updated_at)}</span>
+                <Btn small outline onClick={() => setEdit({ ...x })}>Editar</Btn>
+              </div>
+              <div style={{ fontSize: 13, color: C.mutedL, lineHeight: 1.55, whiteSpace: "pre-wrap", marginTop: 6, maxHeight: 220, overflowY: "auto" }}>{x.contenido}</div>
+            </Card>
+          ))}
+        </>
+      )}
     </div>
   );
 }
