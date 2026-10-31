@@ -11,7 +11,7 @@ type J = any;
 const CLAVE_LS = "oy_captacion_clave";
 const LEIDO_LS = "oy_chat_leido";
 const CANAL_LS = "oy_chat_canal";
-const PERSONAJE: Record<string, string> = { direccion: "🧑‍💼", marketing: "👩‍💻", supervisor: "🕵️", ciberseguridad: "👨‍💻", expansion: "🧑‍🚀", captacion: "🤝", operaciones: "🧑‍🔧", finanzas: "👩‍💼", producto: "🧑‍🎨" };
+const PERSONAJE: Record<string, string> = { direccion: "🧑‍💼", marketing: "👩‍💻", supervisor: "🕵️", ciberseguridad: "👨‍💻", auditor: "👮", expansion: "🧑‍🚀", captacion: "🤝", operaciones: "🧑‍🔧", finanzas: "👩‍💼", producto: "🧑‍🎨" };
 const SUG_DIR = ["¿Cómo vamos este mes?", "¿Qué es lo más urgente hoy?", "¿Llegamos al objetivo?", "¿Qué riesgo de seguridad cierro primero?"];
 const TZ = "Europe/Madrid";
 const hora = (s: string) => new Date(s).toLocaleTimeString("es-ES", { timeZone: TZ, hour: "2-digit", minute: "2-digit" });

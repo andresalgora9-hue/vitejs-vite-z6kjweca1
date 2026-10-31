@@ -456,8 +456,8 @@ const EST_EXP: Record<string, { t: string; c: string }> = {
   en_curso: { t: "En curso", c: C.green }, ganador: { t: "Ganadora", c: C.green }, perdedor: { t: "No funcionó", c: C.red },
   sin_concluir: { t: "Sin concluir", c: C.muted }, revertido: { t: "Revertida", c: C.muted }, descartado: { t: "Descartada", c: C.muted },
 };
-const COL_DE: Record<string, string> = { marketing: C.blue, supervisor: "#A78BFA", andres: C.accent };
-const NOM_DE: Record<string, string> = { marketing: "📣 Marketing", supervisor: "🔍 Supervisor", andres: "👤 Tú" };
+const COL_DE: Record<string, string> = { marketing: C.blue, supervisor: "#A78BFA", andres: C.accent, sistema: C.orange };
+const NOM_DE: Record<string, string> = { marketing: "📣 Marketing", supervisor: "🔍 Supervisor", andres: "👤 Tú", sistema: "🧮 Calculadora" };
 function Debate({ debate }: { debate: J[] }) {
   if (!debate?.length) return null;
   return (
@@ -503,6 +503,16 @@ function TarjetaExperimento({ e, accion, abierta: abiertaIni = false }: { e: J; 
           <div style={{ fontSize: 11.5, color: C.mutedL, marginTop: 4 }}>Día {diasPas} de {diasTot} · desde {e.inicio}{e.fin ? " hasta " + e.fin : ""}</div>
         </div>
       )}
+      {(e.semanas_necesarias != null || e.calculadora) && (() => {
+        const c = e.calculadora?.ctr_15 && e.metrica_decision === "ctr" ? e.calculadora.ctr_15 : e.calculadora?.cvr_15 && e.metrica_decision !== "ctr" ? e.calculadora.cvr_15 : e.calculadora;
+        const sem = Number(e.semanas_necesarias ?? c?.semanas);
+        const ok = sem > 0 && sem <= 8;
+        return (
+          <div style={{ marginTop: 8, padding: "7px 10px", borderRadius: 8, background: (ok ? C.green : C.orange) + "14", border: "1px solid " + (ok ? C.green : C.orange) + "44", fontSize: 12.5, lineHeight: 1.45 }}>
+            🧮 <b>{(e.metrica_decision || c?.metrica || "cvr").toUpperCase()}</b>{e.efecto_esperado_pct ? ", mejora esperada " + e.efecto_esperado_pct + "%" : ""} · necesita <b>~{isFinite(sem) ? sem.toLocaleString("es-ES") : "?"} semanas</b> {ok ? "· ✓ concluible" : "· ✕ no concluible en 8 semanas"}
+          </div>
+        );
+      })()}
       {abierta && (
         <>
           <Campo2 l="Hipótesis" v={e.hipotesis} />
@@ -704,15 +714,16 @@ function Marcador({ d, deps }: { d: J; deps: J[] }) {
 }
 
 // ---------- OFICINA ----------
-const PERSONAJE: Record<string, string> = { direccion: "🧑‍💼", marketing: "👩‍💻", supervisor: "🕵️", ciberseguridad: "👨‍💻", expansion: "🧑‍🚀", captacion: "🤝", operaciones: "🧑‍🔧", finanzas: "👩‍💼", producto: "🧑‍🎨" };
+const PERSONAJE: Record<string, string> = { direccion: "🧑‍💼", marketing: "👩‍💻", supervisor: "🕵️", ciberseguridad: "👨‍💻", auditor: "👮", expansion: "🧑‍🚀", captacion: "🤝", operaciones: "🧑‍🔧", finanzas: "👩‍💼", producto: "🧑‍🎨" };
 // Turnos en hora del servidor (UTC). Días: 0 = domingo.
 const TURNOS: Record<string, { dias: number[]; h: number; m: number; tarea: string }[]> = {
   ciberseguridad: [{ dias: [1, 2, 3, 4, 5, 6], h: 6, m: 0, tarea: "Revisión de seguridad" }],
   marketing: [{ dias: [1, 2, 3, 4, 5, 6], h: 6, m: 20, tarea: "Informe diario" }, { dias: [0], h: 9, m: 0, tarea: "Laboratorio: evaluar y proponer" }, { dias: [0], h: 10, m: 0, tarea: "Laboratorio: responder al Supervisor" }],
-  supervisor: [{ dias: [1, 2, 3, 4, 5, 6], h: 6, m: 40, tarea: "Revisión diaria" }, { dias: [0], h: 9, m: 30, tarea: "Laboratorio: revisar" }, { dias: [0], h: 10, m: 30, tarea: "Laboratorio: veredicto" }],
+  supervisor: [{ dias: [1, 2, 3, 4, 5, 6], h: 6, m: 40, tarea: "Revisión diaria" }, { dias: [0], h: 9, m: 30, tarea: "Laboratorio: revisar" }, { dias: [0], h: 10, m: 30, tarea: "Laboratorio: veredicto" }, { dias: [0], h: 11, m: 0, tarea: "Consolidar aprendizajes" }],
+  auditor: [{ dias: [1, 2, 3, 4, 5, 6], h: 6, m: 10, tarea: "Supervisar a Ciberseguridad" }, { dias: [0], h: 11, m: 15, tarea: "Consolidar aprendizajes de seguridad" }],
   direccion: [{ dias: [2, 3, 4, 5, 6], h: 7, m: 0, tarea: "Informe de dirección" }, { dias: [1], h: 8, m: 0, tarea: "Reunión semanal" }],
 };
-const QUE_HACE: Record<string, string> = { diario: "Analizando sus datos", reunion: "En la reunión semanal", experimento: "Diseñando la prueba de la semana", revision: "Revisando el trabajo de Marketing", replica: "Respondiendo al Supervisor" };
+const QUE_HACE: Record<string, string> = { consolidacion: "Consolidando lo aprendido", diario: "Analizando sus datos", reunion: "En la reunión semanal", experimento: "Diseñando la prueba de la semana", revision: "Revisando el trabajo de Marketing", replica: "Respondiendo al Supervisor" };
 const TZ_M = "Europe/Madrid";
 function proximoTurno(id: string, ahora: Date) {
   const t = TURNOS[id];
