@@ -3,6 +3,7 @@
 // ============================================================
 import React, { useMemo, useState } from "react";
 import { db } from "../supabase";
+const claveAdmin = () => { try { return localStorage.getItem("oy_captacion_clave") || ""; } catch { return ""; } };
 import { descargarFacturaPdf } from "../pro/facturaPdf";
 import {
   C, F, Card, Btn, Pill, Cabecera, Sel, Modal, Tabla, Grid, Kpi,
@@ -108,7 +109,7 @@ export default function Facturas({ d, recargar, aviso }: SeccionProps) {
   const emitirAhora = async (id: string) => {
     if (!confirm("¿Emitir ya la factura de los leads pendientes de " + (d.proPorId[id]?.name || "este profesional") + "?")) return;
     setOcupado(id);
-    const { data, error } = await db.rpc("oy_emitir_ahora", { p_pro: id });
+    const { data, error } = await db.rpc("oy_emitir_ahora", { p_admin: claveAdmin(), p_pro: id });
     setOcupado(null);
     if (error) { aviso("Error: " + error.message); return; }
     aviso(data ? "Factura emitida y avisado el profesional" : "No había leads pendientes");
