@@ -3,6 +3,7 @@
 // ============================================================
 import React, { useState } from "react";
 import { db } from "../supabase";
+const claveAdmin = () => { try { return localStorage.getItem("oy_captacion_clave") || ""; } catch { return ""; } };
 import { C, F, Card, Btn, Cabecera, Titulo, Tabla, SeccionProps, eur, oficioDe, fecha, precioLeadDe } from "./apUi";
 
 const CONFIG: { clave: string; label: string; sufijo: string }[] = [
@@ -32,7 +33,7 @@ export default function Ajustes({ d, recargar, aviso, irA }: SeccionProps) {
   const guardarPrecio = async (k: string, v: string) => {
     if (!(n(v) >= 0)) { aviso("Precio no válido"); return; }
     setOcupado(true);
-    const { error } = await db.rpc("oy_set_precio", { p_trade_key: k, p_price: n(v) });
+    const { error } = await db.rpc("oy_set_precio", { p_admin: claveAdmin(), p_trade_key: k, p_price: n(v) });
     setOcupado(false);
     if (error) { aviso("Error: " + error.message); return; }
     aviso("Precio de " + (k === "_default" ? "otros oficios" : oficioDe(k)) + " guardado");
@@ -41,7 +42,7 @@ export default function Ajustes({ d, recargar, aviso, irA }: SeccionProps) {
   const guardarCfg = async (k: string) => {
     if (!(n(cfg[k]) >= 0)) { aviso("Valor no válido"); return; }
     setOcupado(true);
-    const { error } = await db.rpc("oy_set_config", { p_clave: k, p_valor: n(cfg[k]) });
+    const { error } = await db.rpc("oy_set_config", { p_admin: claveAdmin(), p_clave: k, p_valor: n(cfg[k]) });
     setOcupado(false);
     if (error) { aviso("Error: " + error.message); return; }
     aviso("Ajuste guardado");
