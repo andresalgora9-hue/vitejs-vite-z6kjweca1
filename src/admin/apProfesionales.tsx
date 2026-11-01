@@ -118,7 +118,7 @@ function FichaPro({ p, d, onClose, onHecho }: { p: Pro; d: SeccionProps["d"]; on
       {reparto.map((r) => (
         <div key={r.trade_key + r.city_slug} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "8px 0", fontSize: 13 }}>
           <span>Recibe <b>{oficioDe(r.trade_key)}</b> en <b>{r.city_slug}</b></span>
-          <Btn small outline color={C.red} disabled={ocupado} onClick={() => rpc("oy_quitar_routing", { p_trade_key: r.trade_key, p_city: r.city_slug }, "Reparto quitado")}>Quitar</Btn>
+          <Btn small outline color={C.red} disabled={ocupado} onClick={() => rpc("oy_quitar_routing", { p_admin: claveCapt, p_trade_key: r.trade_key, p_city: r.city_slug }, "Reparto quitado")}>Quitar</Btn>
         </div>
       ))}
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginTop: 6 }}>
@@ -127,7 +127,7 @@ function FichaPro({ p, d, onClose, onHecho }: { p: Pro; d: SeccionProps["d"]; on
         <Btn disabled={ocupado || !clave} onClick={() => {
           const otro = ocupante(clave, ciudad);
           if (otro && !confirm(oficioDe(clave) + " en " + ciudad + " lo recibe ahora " + (d.proPorId[otro.pro_id]?.name || "otro profesional") + ". ¿Pasárselo a " + p.name + "?")) return;
-          rpc("oy_set_routing", { p_trade_key: clave, p_city: ciudad, p_pro: p.id }, "Ahora " + p.name + " recibe los leads de " + oficioDe(clave));
+          rpc("oy_set_routing", { p_admin: claveCapt, p_trade_key: clave, p_city: ciudad, p_pro: p.id }, "Ahora " + p.name + " recibe los leads de " + oficioDe(clave));
         }}>Darle estos leads</Btn>
       </div>
       <div style={{ fontSize: 12, color: C.muted, marginTop: 6 }}>Solo un profesional por oficio y ciudad. Los leads nuevos le llegan solos{precioPro != null ? ", a " + eur(precioPro) + " + IVA cada uno (su precio de contrato)" : ""}.</div>
