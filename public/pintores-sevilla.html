@@ -804,44 +804,123 @@ section[id],div[id]{scroll-margin-top:90px}
     if (typeof gtag === 'function'){ gtag('event','view_item',{'event_category':'calc_pintor','event_label':'tamano_'+valor}); }
   }
 
+  /* ============================================================
+     ENVÍO DEL LEAD  ·  directo al CRM con oy_lead_contacto (igual que pintor-sevilla)
+     La conversión solo se cuenta cuando el lead queda guardado.
+     Si el servidor falla o tarda, cae al flujo antiguo de la app: el lead nunca se pierde.
+     ============================================================ */
+  var OY_RPC = 'https://rjwojxwrsbvwwshwwpvq.supabase.co/rest/v1/rpc/oy_lead_contacto';
+  var OY_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE';
+  var enviando = false;
+
+  function gclidGuardado(){
+    try{
+      var raw = JSON.parse(localStorage.getItem('oy_gclid') || 'null');
+      if(raw && raw.v && Date.now() - (raw.t || 0) < 90 * 864e5) return raw.v;
+    }catch(e){}
+    var m = document.cookie.match(/(?:^|;\s*)_gcl_aw=([^;]+)/);
+    if(m){ var p = decodeURIComponent(m[1]).split('.'); if(p.length >= 3) return p.slice(2).join('.'); }
+    return '';
+  }
+
+  function bonitoZona(slug){
+    return String(slug || '').replace(/-/g,' ').replace(/\b\w/g, function(c){ return c.toUpperCase(); });
+  }
+
   function enviarSolicitud(){
+    if(enviando) return;
     var nombre   = document.getElementById('leadNombre').value.trim();
     var telefono = document.getElementById('leadTelefono').value.trim();
+    var tel      = telefono.replace(/\D/g,'').slice(-9);
 
-    if(!nombre || !telefono){
-      alert('Indicanos tu nombre y un telefono de contacto para que el pintor pueda escribirte.');
+    if(nombre.length < 2 || !/^[6789]\d{8}$/.test(tel)){
+      alert('Ind\u00edcanos tu nombre y un tel\u00e9fono de 9 cifras para que el pintor pueda llamarte.');
       return;
     }
 
+    enviando = true;
+    var caja = document.getElementById('presupuesto');
+    var btn  = caja ? caja.querySelector('.btn-result-cta') : null;
+    if(btn){ btn.disabled = true; btn.textContent = 'Enviando...'; }
+
     var r = RANGOS[seleccion.tipo][seleccion.tamano];
     var desc = DESC_TIPO[seleccion.tipo] + ' (' + seleccion.tamanoLabel + '). Rango orientativo mostrado: ' + fmt(r[0]) + '-' + fmt(r[1]) + ' EUR.';
-
     var emailReal = document.getElementById('leadEmail').value.trim();
-    var telefonoLimpio = telefono.replace(/\D/g,'') || Date.now().toString();
-    var emailSintetico = 'lead' + telefonoLimpio + '@aficioya-lead.com';
-    var email = (emailReal && emailReal.indexOf('@') > 0) ? emailReal : emailSintetico;
+    var gclid = ORIGEN.gclid || gclidGuardado();
 
-    var datos = {
-      quick: '1',
-      oficio: 'Pintor',
-      nombre: nombre,
-      telefono: telefono,
-      email: email,
-      desc: desc
+    var cuerpo = {
+      nombre: nombre, telefono: tel, oficio: 'Pintor', canal: 'formulario',
+      city_slug: ORIGEN.city_slug || 'sevilla',
+      zona: bonitoZona(ORIGEN.zona || ORIGEN.city_slug || 'sevilla'),
+      landing: ORIGEN.landing || 'pintores-sevilla', gclid: gclid,
+      utm_source: ORIGEN.utm_source || '', utm_campaign: ORIGEN.utm_campaign || '', utm_content: ORIGEN.utm_content || '',
+      descripcion: desc + (emailReal ? ' Correo: ' + emailReal : '')
     };
-    Object.keys(ORIGEN).forEach(function(k){ datos[k] = ORIGEN[k]; });
-    if(ORIGEN.city_slug){ datos.city = ORIGEN.city_slug; }
 
-    if (typeof gtag === 'function') {
-      gtag('event', 'generate_lead', {
-        'event_category': 'solicitud_pintor',
-        'event_label': seleccion.tipo + '_' + seleccion.tamano,
-        'value': 80,
-        'currency': 'EUR'
-      });
+    var terminado = false;
+
+    // Respaldo: el flujo de siempre (la app crea la solicitud). Solo si el servidor no responde.
+    function respaldo(){
+      if(terminado) return;
+      terminado = true;
+      var email = (emailReal && emailReal.indexOf('@') > 0) ? emailReal : 'lead' + tel + '@aficioya-lead.com';
+      var datos = { quick:'1', oficio:'Pintor', nombre:nombre, telefono:tel, email:email, desc:desc };
+      Object.keys(ORIGEN).forEach(function(k){ datos[k] = ORIGEN[k]; });
+      if(ORIGEN.city_slug){ datos.city = ORIGEN.city_slug; }
+      window.location.href = '/?' + new URLSearchParams(datos).toString();
     }
 
-    window.location.href = '/?' + new URLSearchParams(datos).toString();
+    var reloj = setTimeout(respaldo, 12000);
+
+    fetch(OY_RPC, {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', apikey: OY_KEY, Authorization: 'Bearer ' + OY_KEY },
+      body: JSON.stringify({ p: cuerpo })
+    })
+      .then(function(res){ return res.json(); })
+      .then(function(res){
+        if(terminado) return;
+        clearTimeout(reloj);
+        if(res && res.ok === false && (res.error === 'telefono' || res.error === 'nombre')){
+          enviando = false;
+          if(btn){ btn.disabled = false; btn.innerHTML = 'Pedir presupuesto gratis &rarr;'; }
+          alert('Revisa tu nombre y tu tel\u00e9fono (9 cifras).');
+          return;
+        }
+        if(!res || !res.ok){ respaldo(); return; }
+        terminado = true;
+        if(res.nuevo){
+          if(typeof gtag === 'function'){
+            gtag('event','generate_lead',{'event_category':'solicitud_pintor','event_label':seleccion.tipo + '_' + seleccion.tamano,'value':80,'currency':'EUR'});
+          }
+          if(typeof fbq === 'function'){ try{ fbq('track','Lead',{content_name:'formulario',content_category:'Pintor'}); }catch(e){} }
+        } else if(typeof gtag === 'function'){
+          gtag('event','contact',{'event_category':'solicitud_pintor','event_label':'repetido'});
+        }
+        mostrarOk(res, nombre, tel, caja, btn);
+      })
+      .catch(function(){ clearTimeout(reloj); respaldo(); });
+  }
+
+  function mostrarOk(res, nombre, tel, caja, btn){
+    if(!caja) return;
+    var pro = res.profesional || '';
+    var numCliente = tel.replace(/(\d{3})(\d{3})(\d{3})/, '$1 $2 $3');
+    caja.querySelectorAll('.field, .lead-privacy').forEach(function(el){ el.style.display = 'none'; });
+    if(btn) btn.style.display = 'none';
+    var ok = document.createElement('div');
+    ok.style.cssText = 'text-align:center;padding:4px 0 0';
+    ok.innerHTML =
+      '<div style="font-size:34px;line-height:1">&#9989;</div>' +
+      '<h3 style="font-family:Sora,sans-serif;font-size:18px;font-weight:700;margin:10px 0 6px">Listo, ' + nombre.split(' ')[0].replace(/[<>&"]/g,'') + '. Solicitud enviada</h3>' +
+      '<p style="font-size:13.5px;line-height:1.6;margin:0 0 14px">' + (pro ? pro + ' ya tiene tu solicitud y te llamar&aacute; al ' : 'Ya tenemos tu solicitud. Te llamamos al ') + numCliente + ' para darte el presupuesto.</p>' +
+      '<button type="button" class="btn-result-cta" id="okLlamar">&#128222; ' + (pro ? 'Llamar ahora a ' + pro : 'Llamar ahora') + '</button>';
+    caja.querySelector('.price-box').insertAdjacentElement('afterend', ok);
+    document.getElementById('okLlamar').onclick = function(){
+      if(typeof gtag === 'function') gtag('event','contact',{'event_category':'contacto_llamada','event_label':'tras_formulario'});
+      window.location.href = 'tel:' + res.telefono;
+    };
+    caja.scrollIntoView({behavior:'smooth', block:'center'});
   }
 
   /* ── Ir al calculador desde cualquier punto de la página ── */
