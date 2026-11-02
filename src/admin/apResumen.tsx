@@ -3,11 +3,12 @@
 // ============================================================
 import React, { useMemo, useState } from "react";
 import {
-  C, Card, Kpi, Grid, Titulo, Cabecera, SelectorMes, Tabla, BarraH, Barras, Pill, Btn,
+  C, Card, Kpi, Grid, Titulo, Cabecera, SelectorMes, Tabla, BarraH, Barras, Pill, Btn, Respuesta,
   SeccionProps, Gasto, ESTADOS, CANAL_LABEL, INICIO_ALTAS,
   ts, tsMadrid, ymdMadrid, sumarDias, diaSemana,
   mesDe, mesHoy, mesMover, mesNombre, diasDelMes, eur, num, pct, duracion, hace, oficioDe,
 } from "./apUi";
+import Seguimiento from "./apSeguimiento";
 
 const DIA = 86400000;
 
@@ -27,7 +28,7 @@ export function rangoMes(k: string): [number, number] {
   return [tsMadrid(k + "-01"), tsMadrid(mesMover(k, 1) + "-01")];
 }
 
-export default function Resumen({ d, irA }: SeccionProps) {
+export default function Resumen({ d, irA, aviso }: SeccionProps) {
   const [mes, setMes] = useState(mesHoy());
   const ahora = Date.now();
   const [ini, fin] = rangoMes(mes);
@@ -152,11 +153,27 @@ export default function Resumen({ d, irA }: SeccionProps) {
   const ing7 = r.ult7.reduce((s, l) => s + Number(l.price || 0), 0);
   const tend7 = r.ant7.length ? Math.round(((r.ult7.length - r.ant7.length) / r.ant7.length) * 100) : null;
 
+  // Lo que queda pendiente hoy
+  const avisos: string[] = [];
+  if (r.sinContactar.length) avisos.push(r.sinContactar.length + " leads sin llamar hace más de 2 h");
+  if (r.nVencidas) avisos.push(r.nVencidas + " facturas vencidas (" + eur(r.vencido) + ")");
+  if (r.altasPend.length) avisos.push(r.altasPend.length + " altas de profesionales por cobrar");
+
   return (
     <div>
       <Cabecera titulo="Resumen" sub="Cómo va el negocio de leads, en un vistazo">
         <SelectorMes mes={mes} onChange={setMes} />
       </Cabecera>
+
+      {/* Cómo vamos: objetivo, previsión y lo que falta */}
+      <Seguimiento mes={mes} aviso={aviso} />
+
+      <Titulo>Pendiente</Titulo>
+      <Respuesta pregunta="¿Hay algo pendiente?" tono={r.nVencidas || r.sinContactar.length ? "regular" : avisos.length ? "regular" : "bien"}
+        texto={avisos.length ? <>{avisos.length} cosa{avisos.length > 1 ? "s" : ""} por resolver.</> : <>Nada: leads atendidos, nada vencido y altas al día.</>}
+        detalle={avisos.length ? avisos.join(" · ") + "." : undefined} />
+
+      <Titulo>Dinero del mes</Titulo>
 
       {/* Dinero */}
       <Grid min={160}>
@@ -170,10 +187,8 @@ export default function Resumen({ d, irA }: SeccionProps) {
       </Grid>
 
       {/* Previsiones */}
-      <Titulo>Previsiones</Titulo>
+      <Titulo>Otras previsiones</Titulo>
       <Grid min={160}>
-        <Kpi label={esMesActual ? "Cierre de mes (al ritmo actual)" : "Mes cerrado"} valor={eur(ingPrev)} color={C.accent}
-          sub={<>~{num(r.leadsMes.length * r.factor)} leads{gastoPrev ? " · gasto ~" + eur(gastoPrev) + " · ROAS ~" + num(ingPrev / gastoPrev, 1) + "x" : ""}</>} />
         <Kpi label="Próximos 7 días (según los últimos 7)" valor={"~" + r.ult7.length + " leads"} color={C.accent}
           sub={<>~{eur(ing7)} en leads{tend7 != null ? <> · <span style={{ color: tend7 >= 0 ? C.green : C.red, fontWeight: 700 }}>{tend7 >= 0 ? "▲" : "▼"} {Math.abs(tend7)}% vs semana anterior</span></> : null}</>} />
         <Kpi label="Próxima facturación (leads sin facturar)" valor={eur(r.sinFacturar)} sub={"Con IVA: " + eur(r.sinFacturar * (1 + (d.config.iva_pct || 21) / 100))} />
