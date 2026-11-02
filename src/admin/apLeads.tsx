@@ -4,7 +4,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { db } from "../supabase";
 import {
-  C, F, Card, Btn, Pill, Cabecera, SelectorMes, Sel, Campo, Modal, Tabla, Grid, Kpi,
+  C, F, Card, Btn, Pill, Cabecera, SelectorMes, Sel, Campo, Modal, Tabla, Grid, Kpi, Respuesta,
   SeccionProps, Lead, Solicitud, ESTADOS, ESTADO_INFO, CANAL_LABEL, MOTIVO_PERDIDO, INICIO_PAGO_POR_LEAD,
   ts, mesDe, mesHoy, fechaHora, eur, num, hace, oficioDe, waLink, digitos, precioLeadDe } from "./apUi";
 
@@ -255,6 +255,17 @@ export default function Leads(props: SeccionProps) {
   const prosConLeads = Array.from(new Set(d.leads.map((l) => l.pro_id))).map((id) => d.proPorId[id]).filter(Boolean);
   const primerMes = d.leads.length ? mesDe(d.leads[d.leads.length - 1].created_at) : mesHoy();
 
+  // Respuesta de arriba: ¿hay clientes esperando?
+  const ahoraL = Date.now();
+  const sinLlamar = d.leads.filter((l) => !l.anulado && l.estado === "nuevo" && ahoraL - ts(l.created_at) > 2 * 3600000);
+  const muyViejos = sinLlamar.filter((l) => ahoraL - ts(l.created_at) > 24 * 3600000);
+  const quienes = Array.from(new Set(sinLlamar.map((l) => d.proPorId[l.pro_id]?.name || "sin profesional")))
+    .map((nom) => nom + " (" + sinLlamar.filter((l) => (d.proPorId[l.pro_id]?.name || "sin profesional") === nom).length + ")");
+  const tonoL: "bien" | "mal" | "regular" = muyViejos.length ? "mal" : sinLlamar.length || sinAsignar.length ? "regular" : "bien";
+  const textoL = !sinLlamar.length && !sinAsignar.length
+    ? <>Sí: todas las solicitudes tienen profesional y todos los leads están llamados.</>
+    : <>{sinAsignar.length ? sinAsignar.length + " solicitudes sin profesional" : "Todas las solicitudes tienen profesional"}{" · "}{sinLlamar.length ? sinLlamar.length + " leads sin llamar hace más de 2 h" : "todos los leads llamados"}.</>;
+
   const hecho = (m: string) => { setFicha(null); setNuevaLlamada(false); aviso(m); recargar(); };
   const tabBtn = (id: "leads" | "sin", txt: string, n?: number) => (
     <button onClick={() => setPestana(id)} style={{
@@ -268,6 +279,8 @@ export default function Leads(props: SeccionProps) {
       <Cabecera titulo="Leads" sub="Todos los clientes enviados a profesionales">
         <Btn onClick={() => setNuevaLlamada(true)}>+ Añadir llamada</Btn>
       </Cabecera>
+      <Respuesta pregunta="¿Están todos los clientes atendidos?" tono={tonoL} texto={textoL}
+        detalle={sinLlamar.length ? <>Sin llamar: {quienes.join(", ")}{muyViejos.length ? <>. {muyViejos.length} llevan más de un día: un lead frío casi nunca se cierra.</> : "."}</> : sinAsignar.length ? "Asígnalas en la pestaña «Sin asignar»." : undefined} />
       <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
         {tabBtn("leads", "Leads")}
         {tabBtn("sin", "Sin asignar", sinAsignar.length)}
