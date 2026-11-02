@@ -21,7 +21,7 @@ type Seccion = "resumen" | "analisis" | "equipo" | "chats" | "leads" | "facturas
 
 const NAV: { id: Seccion; label: string; icono: string }[] = [
   { id: "resumen", label: "Resumen", icono: "M4 13h4v7H4zM10 8h4v12h-4zM16 4h4v16h-4z" },
-  { id: "analisis", label: "Análisis", icono: "M3 3v18h18M7 15l4-4 3 3 5-6" },
+  { id: "analisis", label: "Análisis detallado", icono: "M3 3v18h18M7 15l4-4 3 3 5-6" },
   { id: "chats", label: "Chats", icono: "M20.5 12.2c0 3.9-3.8 7-8.5 7a10 10 0 0 1-2.6-.34L4.2 20.5l1.5-3.7A6.7 6.7 0 0 1 3.5 12.2c0-3.9 3.8-7 8.5-7s8.5 3.1 8.5 7zM8.5 11.5h7M8.5 14.5h4.5" },
   { id: "equipo", label: "Equipo IA", icono: "M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM17 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM3 20c.5-3 3-5 6-5s5.5 2 6 5M15 15.4c.6-.3 1.3-.4 2-.4 3 0 5.5 2 6 5" },
   { id: "leads", label: "Leads", icono: "M4 6h16M4 12h16M4 18h10" },
@@ -33,6 +33,16 @@ const NAV: { id: Seccion; label: string; icono: string }[] = [
   { id: "ajustes", label: "Ajustes", icono: "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 0 0 5 12a7 7 0 0 0 .1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6c.1-.4.1-.8.1-1.2z" },
   { id: "antiguo", label: "CRM antiguo", icono: "M4 7h16v12H4zM4 7l2-3h12l2 3M10 11h4" },
 ];
+
+// Menú ordenado por bloques
+const GRUPOS: { t: string; ids: Seccion[] }[] = [
+  { t: "Negocio", ids: ["resumen", "marketing", "analisis"] },
+  { t: "Clientes y profesionales", ids: ["leads", "profesionales", "captacion", "chats", "mensajes"] },
+  { t: "Dinero", ids: ["facturas"] },
+  { t: "Equipo", ids: ["equipo"] },
+  { t: "Sistema", ids: ["ajustes", "antiguo"] },
+];
+const NAV_ORDEN = GRUPOS.flatMap((g) => g.ids.map((id) => ({ ...NAV.find((n) => n.id === id)!, grupo: g.t })));
 
 function Icono({ d, size = 18 }: { d: string; size?: number }) {
   return <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d={d} /></svg>;
@@ -168,7 +178,7 @@ export default function AdminPanel({ onLogout, nombre }: { onLogout: () => void;
         padding: horizontal ? "8px 12px" : "10px 12px", borderRadius: 9, border: "none", cursor: "pointer", fontFamily: F,
         background: act ? C.accent + "18" : "transparent", color: act ? C.accent : C.mutedL,
         fontWeight: act ? 800 : 700, fontSize: 13.5, textAlign: "left", position: "relative",
-        marginTop: !horizontal && n.id === "antiguo" ? 14 : 0,
+        marginTop: 0,
       }}>
         <Icono d={n.icono} />
         <span style={{ flex: horizontal ? undefined : 1 }}>{n.label}</span>
@@ -193,7 +203,7 @@ export default function AdminPanel({ onLogout, nombre }: { onLogout: () => void;
         </div>
         {movil && (
           <nav style={{ display: "flex", gap: 4, overflowX: "auto", padding: "0 10px 8px", WebkitOverflowScrolling: "touch" as any }}>
-            {NAV.map((n) => botonNav(n, true))}
+            {NAV_ORDEN.map((n) => botonNav(n, true))}
           </nav>
         )}
       </header>
@@ -201,7 +211,14 @@ export default function AdminPanel({ onLogout, nombre }: { onLogout: () => void;
       <div style={{ display: "flex" }}>
         {!movil && (
           <aside style={{ width: 220, flexShrink: 0, borderRight: "1px solid " + C.border, padding: "16px 10px", position: "sticky", top: 54, height: "calc(100vh - 54px)", boxSizing: "border-box", overflowY: "auto" }}>
-            {NAV.map((n) => botonNav(n, false))}
+            {NAV_ORDEN.map((n, i) => (
+              <React.Fragment key={n.id}>
+                {(i === 0 || NAV_ORDEN[i - 1].grupo !== n.grupo) && (
+                  <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: C.muted, padding: i === 0 ? "2px 12px 6px" : "16px 12px 6px" }}>{n.grupo}</div>
+                )}
+                {botonNav(n, false)}
+              </React.Fragment>
+            ))}
           </aside>
         )}
         <main style={{ flex: 1, minWidth: 0, padding: sec === "captacion" ? (movil ? "8px 8px 8px" : "16px 20px 16px") : (movil ? "14px 14px 60px" : "20px 28px 60px"), maxWidth: sec === "captacion" ? undefined : 1240, boxSizing: "border-box" }}>
