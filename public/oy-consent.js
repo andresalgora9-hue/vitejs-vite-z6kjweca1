@@ -313,6 +313,15 @@
     if (inicio) fl.insertBefore(a, inicio); else fl.appendChild(a);
   }
 
+  /* ---------- TEST A/B formulario arriba (solo landings de pintura) ---------- */
+  try {
+    if (/pint|gotele|alisar|moho|humedad|fachada/i.test(location.pathname)) {
+      var oyab = document.createElement("script");
+      oyab.src = "/oy-ab.js?v=1";
+      document.head.appendChild(oyab);
+    }
+  } catch (e) {}
+
   /* ---------- ARRANQUE ---------- */
   function init() {
     inyectarEstilos();
