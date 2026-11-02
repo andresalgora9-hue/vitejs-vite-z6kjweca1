@@ -424,3 +424,21 @@ export async function avisarPush(userId: string, title: string, body: string) {
     });
   } catch { /* nada */ }
 }
+
+// Respuesta corta a la pregunta que contesta cada pantalla (va arriba del todo)
+export function Respuesta({ pregunta, tono, texto, detalle }: { pregunta: string; tono: "bien" | "mal" | "regular" | "neutro"; texto: React.ReactNode; detalle?: React.ReactNode }) {
+  const col = tono === "bien" ? C.green : tono === "mal" ? C.red : tono === "regular" ? C.orange : C.mutedL;
+  const icono = tono === "bien" ? "✓" : tono === "mal" ? "✕" : tono === "regular" ? "!" : "i";
+  return (
+    <div style={{ background: C.card, border: "1px solid " + col + "66", borderLeft: "4px solid " + col, borderRadius: 12, padding: "14px 16px", marginBottom: 14, fontFamily: F }}>
+      <div style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: "0.07em", textTransform: "uppercase", color: C.mutedL }}>{pregunta}</div>
+      <div style={{ display: "flex", gap: 10, alignItems: "flex-start", marginTop: 8 }}>
+        <span style={{ width: 24, height: 24, borderRadius: 99, background: col + "22", color: col, fontWeight: 900, fontSize: 13, display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{icono}</span>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: 16.5, fontWeight: 800, color: C.text, lineHeight: 1.35 }}>{texto}</div>
+          {detalle && <div style={{ fontSize: 13, color: C.mutedL, marginTop: 6, lineHeight: 1.55 }}>{detalle}</div>}
+        </div>
+      </div>
+    </div>
+  );
+}
