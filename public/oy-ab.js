@@ -10,7 +10,9 @@
    - Reparto 50/50 por visitante, guardado en localStorage.
    - Forzar una variante para revisar: ?ab=a  o  ?ab=b
    - Cada lead de la página (calculadora, formulario de arriba o
-     llamada) lleva en la descripción: [Test A/B form_arriba_v1: A|B]
+     llamada) se guarda con ab_test / ab_variante / ab_origen en
+     budget_requests. Solo lo ve el admin: el profesional no ve nada
+     del test (la descripción no se toca).
    - Evento GA4 por visita: ab_form_arriba_a / ab_form_arriba_b
    ============================================================ */
 (function () {
@@ -48,9 +50,7 @@
     return v;
   }
 
-  function etiqueta(v) { return " [Test A/B " + TEST + ": " + v + "]"; }
-
-  /* ---------- Marcar todos los leads de la página con la variante ---------- */
+  /* ---------- Guardar la variante en cada lead de la página (campos solo de admin) ---------- */
   function marcarLeads(v) {
     var original = window.fetch;
     if (typeof original !== "function") return;
@@ -59,16 +59,10 @@
         var url = typeof input === "string" ? input : (input && input.url) || "";
         if (url.indexOf("oy_lead_contacto") > -1 && init && typeof init.body === "string") {
           var b = JSON.parse(init.body);
-          if (b && b.p && String(b.p.descripcion || "").indexOf("[Test A/B") === -1) {
-            var d = String(b.p.descripcion || "").trim();
-            if (!d) {
-              d = b.p.canal === "llamada"
-                ? "Quiere hablar por teléfono (dejó sus datos en la web antes de llamar)."
-                : b.p.canal === "whatsapp"
-                  ? "Quiere hablar por WhatsApp (dejó sus datos en la web antes de escribir)."
-                  : "Solicitud desde la web.";
-            }
-            b.p.descripcion = d + etiqueta(v);
+          if (b && b.p && !b.p.ab_test) {
+            b.p.ab_test = TEST;
+            b.p.ab_variante = v;
+            if (!b.p.ab_origen) b.p.ab_origen = b.p.canal === "llamada" ? "llamada" : b.p.canal === "whatsapp" ? "whatsapp" : "calculadora";
             init = Object.assign({}, init, { body: JSON.stringify(b) });
           }
         }
@@ -265,20 +259,21 @@
       btn.disabled = true;
       btn.textContent = "Enviando...";
 
-      var desc = "Pide presupuesto desde el formulario corto de arriba (no ha usado la calculadora).";
+      var desc = "Quiere presupuesto de pintura. No ha indicado tipo de trabajo ni metros.";
       var cuerpo = {
         nombre: nombre, telefono: tel, oficio: "Pintor", canal: "formulario",
         city_slug: o.city_slug || "sevilla", zona: zonaBonita(o),
         landing: o.landing || "", gclid: o.gclid || "",
         utm_source: o.utm_source || "", utm_campaign: o.utm_campaign || "", utm_content: o.utm_content || "",
-        descripcion: desc
+        descripcion: desc,
+        ab_test: TEST, ab_variante: v, ab_origen: "formulario_arriba"
       };
       var terminado = false;
 
       function respaldo() {
         if (terminado) return;
         terminado = true;
-        var datos = { quick: "1", oficio: "Pintor", nombre: nombre, telefono: tel, email: "lead" + tel + "@aficioya-lead.com", desc: desc + etiqueta(v) };
+        var datos = { quick: "1", oficio: "Pintor", nombre: nombre, telefono: tel, email: "lead" + tel + "@aficioya-lead.com", desc: desc };
         Object.keys(o).forEach(function (k) { if (o[k] != null && datos[k] == null) datos[k] = o[k]; });
         if (o.city_slug) datos.city = o.city_slug;
         window.location.href = "/?" + new URLSearchParams(datos).toString();
