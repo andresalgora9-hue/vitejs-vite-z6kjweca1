@@ -177,6 +177,9 @@ export default function Seguimiento({ mes, aviso }: { mes: string; aviso?: (m: s
   const anul = n(rt.anulados_pct);
   const enviadosDia = anul < 1 ? leadsAhora / (1 - anul) : leadsAhora;
   const ganaSiAnulMenos10 = enviadosDia * 0.1 * precio * 30;
+  const motivos = Object.entries(s.anulados_motivos_14d || {}).sort((a: J, b: J) => n(b[1]) - n(a[1]));
+  const evitables = motivos.filter(([k]) => /duplic|teléfono|admin/.test(k)).reduce((t, [, v]) => t + n(v), 0);
+  const totalAnul = motivos.reduce((t, [, v]) => t + n(v), 0);
   const pctObj = obj > 0 ? llevamos / obj : 0, pctPrev = obj > 0 ? prevision / obj : 0;
   const tono: "bien" | "mal" | "regular" | "neutro" = obj <= 0 ? "neutro" : (enCurso ? pctPrev : pctObj) >= 1 ? "bien" : (enCurso ? pctPrev : pctObj) >= 0.8 ? "regular" : "mal";
   const colPrev = pctPrev >= 1 ? C.green : pctPrev >= 0.8 ? C.orange : C.red;
@@ -263,7 +266,7 @@ export default function Seguimiento({ mes, aviso }: { mes: string; aviso?: (m: s
               { ok: leadsAhora >= leadsNec, t: <>Vender <b>{dec(leadsNec)} leads al día</b>; ahora vendemos {dec(leadsAhora)} (precio medio {eur(precio)}).</> },
               { ok: solAhora >= solNec, t: <>Eso son unas <b>{dec(solNec)} solicitudes al día</b>; ahora entran {dec(solAhora)}. De cada solicitud se vende el {pctTxt(ventaPorSol)}.</> },
               { ok: gastoExtra <= 0, t: gastoExtra > 0 ? <>Con el coste actual por solicitud ({eur(cps, 2)}), harían falta unos <b>{eur(gastoExtra)} más de anuncios al día</b>, si la conversión se mantiene.</> : <>El ritmo de solicitudes ya alcanza: toca no perderlas.</> },
-              { ok: anul < 0.2, t: <>Los profesionales anulan el <b>{pctTxt(anul)}</b> de lo que se les envía. Cada 10 puntos menos de anulaciones son ~{eur(ganaSiAnulMenos10)} más al mes sin gastar más.</> },
+              { ok: anul < 0.2, t: <>Se anula el <b>{pctTxt(anul)}</b> de lo que se envía a los profesionales{motivos.length ? <> ({motivos.map(([k, v]) => v + " " + k).join(", ")})</> : null}.{evitables > 0 ? <> {evitables} de {totalAnul} son duplicados, teléfonos erróneos o anulados a mano: no son clientes nuevos y hay que frenarlos antes de enviarlos.</> : null}</> },
             ].map((x, i) => (
               <div key={i} style={{ display: "flex", gap: 10, padding: "8px 0", borderTop: i ? "1px solid " + C.border + "88" : undefined, fontSize: 13.5, lineHeight: 1.5, color: C.mutedL }}>
                 <Pill texto={x.ok ? "✓ Bien" : "! Falta"} color={x.ok ? C.green : C.orange} /><span style={{ color: C.text }}>{x.t}</span>
