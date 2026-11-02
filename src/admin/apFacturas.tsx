@@ -26,7 +26,7 @@ export function GestionFactura({ f, d, onClose, onHecho }: { f: Factura; d: Secc
   const estado = async (nuevo: "pagada" | "pendiente" | "anulada") => {
     if (nuevo === "anulada" && !confirm("¿Anular la factura " + f.number + "? Sus leads volverán a quedar pendientes de facturar. Hazlo solo si es un error.")) return;
     setOcupado(true);
-    const { error } = await db.rpc("oy_factura_estado", { p_id: f.id, p_estado: nuevo });
+    const { error } = await db.rpc("oy_factura_estado", { p_admin: claveAdmin(), p_id: f.id, p_estado: nuevo });
     setOcupado(false);
     if (error) { alert("Error: " + error.message); return; }
     onHecho(nuevo === "pagada" ? "Factura marcada como pagada" : nuevo === "pendiente" ? "Factura marcada como pendiente" : "Factura anulada");

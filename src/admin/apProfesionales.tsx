@@ -138,13 +138,13 @@ function FichaPro({ p, d, onClose, onHecho }: { p: Pro; d: SeccionProps["d"]; on
       </div>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         {p.activacion_estado !== "pagada" && p.activacion_estado !== "pendiente" && (
-          <Btn disabled={ocupado} onClick={() => confirm("¿Emitir la factura de alta a " + p.name + "?") && rpc("oy_emitir_activacion", { p_pro: p.id }, "Factura de alta emitida y avisado el profesional")}>Emitir factura de alta</Btn>
+          <Btn disabled={ocupado} onClick={() => confirm("¿Emitir la factura de alta a " + p.name + "?") && rpc("oy_emitir_activacion", { p_admin: claveCapt, p_pro: p.id }, "Factura de alta emitida y avisado el profesional")}>Emitir factura de alta</Btn>
         )}
         {p.activacion_estado !== "exento" && p.activacion_estado !== "pagada" && (
-          <Btn outline color={C.blue} disabled={ocupado} onClick={() => rpc("oy_activacion_estado", { p_pro: p.id, p_estado: "exento" }, p.name + " queda exento de alta")}>Marcar exento</Btn>
+          <Btn outline color={C.blue} disabled={ocupado} onClick={() => rpc("oy_activacion_estado", { p_admin: claveCapt, p_pro: p.id, p_estado: "exento" }, p.name + " queda exento de alta")}>Marcar exento</Btn>
         )}
         {p.activacion_estado === "exento" && (
-          <Btn outline color={C.mutedL} disabled={ocupado} onClick={() => rpc("oy_activacion_estado", { p_pro: p.id, p_estado: "" }, "Exención quitada")}>Quitar exención</Btn>
+          <Btn outline color={C.mutedL} disabled={ocupado} onClick={() => rpc("oy_activacion_estado", { p_admin: claveCapt, p_pro: p.id, p_estado: "" }, "Exención quitada")}>Quitar exención</Btn>
         )}
       </div>
 

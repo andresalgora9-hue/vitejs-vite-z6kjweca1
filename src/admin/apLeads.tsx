@@ -8,6 +8,8 @@ import {
   SeccionProps, Lead, Solicitud, ESTADOS, ESTADO_INFO, CANAL_LABEL, MOTIVO_PERDIDO, INICIO_PAGO_POR_LEAD,
   ts, mesDe, mesHoy, fechaHora, eur, num, hace, oficioDe, waLink, digitos, precioLeadDe } from "./apUi";
 
+const claveAdmin = () => { try { return localStorage.getItem("oy_captacion_clave") || ""; } catch { return ""; } };
+
 export function precioDe(precios: { trade_key: string; price: number }[], oficio: string | null) {
   const o = (oficio || "").toLowerCase();
   const p = precios.find((x) => x.trade_key !== "_default" && o.includes(x.trade_key));
@@ -175,7 +177,7 @@ function SinAsignar({ d, recargar, aviso, lista }: SeccionProps & { lista: Solic
     const pro = elegido[s.id] || sugeridos(s.oficio, s.pro_solicitado)[0]?.id;
     if (!pro) return;
     setOcupado(s.id);
-    const { error } = await db.rpc("oy_asignar_solicitud", { p_br: s.id, p_pro: pro });
+    const { error } = await db.rpc("oy_asignar_solicitud", { p_admin: claveAdmin(), p_br: s.id, p_pro: pro });
     setOcupado(null);
     if (error) { aviso("Error: " + error.message); return; }
     aviso("Asignado a " + (d.proPorId[pro]?.name || "profesional") + ". Le ha llegado el aviso.");
