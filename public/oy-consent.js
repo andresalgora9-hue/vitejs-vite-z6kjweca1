@@ -322,6 +322,34 @@
     }
   } catch (e) {}
 
+  /* ---------- VISITA a la landing: una por carga, sin cookies ni datos personales ---------- */
+  try {
+    var contarVisita = function () {
+      try {
+        var q = location.search || "", ref = document.referrer || "";
+        var fuente = /[?&](gclid|gbraid|wbraid)=/.test(q) || (/utm_source=google/i.test(q) && /utm_medium=(cpc|ppc|paid)/i.test(q)) ? "google_ads"
+          : /[?&]fbclid=/.test(q) || /utm_source=(facebook|instagram|meta|fb|ig)/i.test(q) ? "meta"
+          : /\/\/(www\.)?google\./i.test(ref) ? "google" : !ref ? "directo" : "otro";
+        var tag = document.querySelector("script[data-oficio]");
+        var ab = window.OYAB || {};
+        var k = window.OY_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE";
+        fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/rest/v1/rpc/mkt_visita", {
+          method: "POST", keepalive: true,
+          headers: { "Content-Type": "application/json", apikey: k, Authorization: "Bearer " + k },
+          body: JSON.stringify({ p: {
+            landing: location.pathname, oficio: tag ? tag.getAttribute("data-oficio") : "", fuente: fuente,
+            dispositivo: (window.innerWidth || 1024) < 768 ? "movil" : "ordenador",
+            ab_test: ab.test || "", ab_variante: ab.variante || ""
+          } })
+        }).catch(function () {});
+      } catch (e) {}
+    };
+    if (!/\/(admin|captacion|panel)/i.test(location.pathname) && location.pathname !== "/") {
+      if (document.readyState === "complete") setTimeout(contarVisita, 600);
+      else window.addEventListener("load", function () { setTimeout(contarVisita, 600); });
+    }
+  } catch (e) {}
+
   /* ---------- ARRANQUE ---------- */
   function init() {
     inyectarEstilos();
