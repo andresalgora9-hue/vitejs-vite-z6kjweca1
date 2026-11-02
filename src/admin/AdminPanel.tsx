@@ -29,7 +29,7 @@ const NAV: { id: Seccion; label: string; icono: string }[] = [
   { id: "profesionales", label: "Profesionales", icono: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4.5 20c.7-3.7 3.7-5.8 7.5-5.8s6.8 2.1 7.5 5.8" },
   { id: "captacion", label: "Captación", icono: "M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM3 20c.6-3.5 3.4-5.6 7-5.6 1.3 0 2.5.3 3.5.8M18 14v6M15 17h6" },
   { id: "mensajes", label: "Mensajes", icono: "M20.5 12.2c0 3.9-3.8 7-8.5 7a10 10 0 0 1-2.6-.34L4.2 20.5l1.5-3.7A6.7 6.7 0 0 1 3.5 12.2c0-3.9 3.8-7 8.5-7s8.5 3.1 8.5 7z" },
-  { id: "marketing", label: "Marketing y ROAS", icono: "M4 18l5-6 4 3 7-9M15 6h5v5" },
+  { id: "marketing", label: "Marketing", icono: "M4 18l5-6 4 3 7-9M15 6h5v5" },
   { id: "ajustes", label: "Ajustes", icono: "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 0 0 5 12a7 7 0 0 0 .1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6c.1-.4.1-.8.1-1.2z" },
   { id: "antiguo", label: "CRM antiguo", icono: "M4 7h16v12H4zM4 7l2-3h12l2 3M10 11h4" },
 ];
