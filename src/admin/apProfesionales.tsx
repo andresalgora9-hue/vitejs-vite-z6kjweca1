@@ -4,7 +4,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { db } from "../supabase";
 import {
-  C, F, Card, Btn, Pill, Cabecera, Sel, Campo, Modal, Tabla, Grid, Kpi, Titulo,
+  C, F, Card, Btn, Pill, Cabecera, Sel, Campo, Modal, Tabla, Grid, Kpi, Titulo, Respuesta,
   SeccionProps, Pro, INICIO_ALTAS, ESTADO_INFO, CANAL_LABEL,
   ts, mesDe, mesHoy, fecha, fechaHora, eur, num, pct, duracion, oficioDe, waLink, digitos, precioLeadDe } from "./apUi";
 import { GestionFactura, estadoFactura } from "./apFacturas";
@@ -185,6 +185,16 @@ export default function Profesionales({ d, recargar, aviso }: SeccionProps) {
   const esNuevo = (p: Pro) => ts(p.joined_at || p.created_at) >= ts(INICIO_ALTAS);
   const pendAlta = d.pros.filter((p) => esNuevo(p) && !["pagada", "exento"].includes(p.activacion_estado || ""));
 
+  // Respuesta de arriba: ¿los profesionales están al día?
+  const sinLlamarP = d.leads.filter((l) => !l.anulado && l.estado === "nuevo" && ahora - ts(l.created_at) > 2 * 3600000);
+  const vencP = d.facturas.filter((f) => f.status === "pendiente" && ts(f.due_at) < ahora);
+  const sinPushP = Array.from(activos).filter((id) => !d.conPush.has(id));
+  const problemasP: string[] = [];
+  if (sinLlamarP.length) problemasP.push(sinLlamarP.length + " leads sin llamar (" + Array.from(new Set(sinLlamarP.map((l) => d.proPorId[l.pro_id]?.name || "—"))).join(", ") + ")");
+  if (vencP.length) problemasP.push(vencP.length + " facturas vencidas (" + Array.from(new Set(vencP.map((f) => d.proPorId[f.pro_id]?.name || "—"))).join(", ") + ")");
+  if (pendAlta.length) problemasP.push(pendAlta.length + " altas sin cobrar");
+  if (sinPushP.length) problemasP.push(sinPushP.length + " reciben leads sin tener los avisos activados (" + sinPushP.map((id) => d.proPorId[id]?.name || "—").join(", ") + ")");
+
   const filas = useMemo(() => {
     let lista = d.pros;
     if (filtro === "activos") lista = lista.filter((p) => activos.has(p.id) || d.leads.some((l) => l.pro_id === p.id));
@@ -217,6 +227,9 @@ export default function Profesionales({ d, recargar, aviso }: SeccionProps) {
   return (
     <div>
       <Cabecera titulo="Profesionales" sub={"Desde el " + fecha(INICIO_ALTAS) + " cada registro nuevo paga " + eur(d.config.activacion_eur || 99) + " + IVA de alta"} />
+      <Respuesta pregunta="¿Los profesionales están al día?" tono={vencP.length || sinLlamarP.length ? "regular" : problemasP.length ? "regular" : "bien"}
+        texto={problemasP.length ? <>{activos.size} profesionales reciben leads; hay {problemasP.length} cosa{problemasP.length > 1 ? "s" : ""} que revisar.</> : <>Sí: {activos.size} profesionales reciben leads y todos están al día.</>}
+        detalle={problemasP.length ? problemasP.join(" · ") + "." : undefined} />
       <Grid min={170}>
         <Kpi label="Reciben leads" valor={String(activos.size)} sub={d.routing.filter((r) => r.active).map((r) => oficioDe(r.trade_key)).join(" · ") || "Nadie todavía"} />
         <Kpi label="Registros nuevos" valor={String(d.pros.filter(esNuevo).length)} sub={"Desde el " + fecha(INICIO_ALTAS)} />
