@@ -6,7 +6,7 @@ import { db } from "../supabase";
 const claveAdmin = () => { try { return localStorage.getItem("oy_captacion_clave") || ""; } catch { return ""; } };
 import { descargarFacturaPdf } from "../pro/facturaPdf";
 import {
-  C, F, Card, Btn, Pill, Cabecera, Sel, Modal, Tabla, Grid, Kpi,
+  C, F, Card, Btn, Pill, Cabecera, Sel, Modal, Tabla, Grid, Kpi, Respuesta,
   SeccionProps, Factura, ts, fecha, eur, num,
 } from "./apUi";
 
@@ -132,6 +132,11 @@ export default function Facturas({ d, recargar, aviso }: SeccionProps) {
   return (
     <div>
       <Cabecera titulo="Facturas" sub={"Se emiten solas el día 1 o al llegar a " + eur(d.config.umbral_factura || 820) + " · " + (d.config.dias_pago || 5) + " días para pagar"} />
+      <Respuesta pregunta="¿Nos deben dinero?" tono={venc.length ? "mal" : pend.length ? "regular" : "bien"}
+        texto={venc.length ? <>Sí: {eur(venc.reduce((s, f) => s + Number(f.total), 0), 2)} vencidos en {venc.length} factura{venc.length > 1 ? "s" : ""}.</>
+          : pend.length ? <>Hay {eur(pend.reduce((s, f) => s + Number(f.total), 0), 2)} pendientes, pero nada vencido.</> : <>No: todo lo facturado está cobrado.</>}
+        detalle={venc.length ? "Vencidas: " + venc.map((f) => (d.proPorId[f.pro_id]?.name || f.cliente_nombre || "—") + " " + eur(Number(f.total), 2)).join(" · ") + "."
+          : "Leads sin facturar todavía: " + eur(Object.values(sinFacturarPor).reduce((a, b) => a + b, 0)) + " (se facturan solos el día 1 o al llegar al umbral)."} />
 
       <Grid min={170}>
         <Kpi label="Facturado (total)" valor={eur(validas.reduce((s, f) => s + Number(f.total), 0))} sub={validas.length + " facturas"} />
