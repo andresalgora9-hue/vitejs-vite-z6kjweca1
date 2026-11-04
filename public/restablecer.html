@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#0F1117">
+<title>Nueva contraseña · OficioYa</title>
+<link rel="icon" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800;900&display=swap">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#0F1117;min-height:100%}
+  body{color:#E8EDF5;font-family:'DM Sans',system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased;
+       display:flex;align-items:center;justify-content:center;min-height:100vh;min-height:100dvh;padding:24px 16px}
+  .card{width:100%;max-width:400px;background:#1E2536;border:1px solid #2D3A52;border-radius:20px;padding:28px 22px;box-shadow:0 10px 40px rgba(0,0,0,.35)}
+  .logo{display:flex;align-items:center;gap:10px;margin-bottom:22px}
+  .logo img{width:40px;height:40px;border-radius:12px}
+  .logo b{font-size:20px;font-weight:900;letter-spacing:-.5px}
+  .logo b span{color:#FFD700}
+  h1{font-size:21px;font-weight:800;letter-spacing:-.3px;margin-bottom:6px}
+  .sub{font-size:14px;color:#8899BB;line-height:1.5;margin-bottom:18px}
+  label{display:block;font-size:11px;font-weight:700;color:#8899BB;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+  .campo{position:relative;margin-bottom:14px}
+  input{width:100%;padding:13px 14px;background:#161B27;border:1px solid #2D3A52;border-radius:10px;color:#E8EDF5;font:inherit;font-size:16px;outline:none}
+  input:focus{border-color:#7B5EA7}
+  .campo input[type=password],.campo input.pw{padding-right:76px}
+  .ver{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;color:#8899BB;font:inherit;font-size:12px;font-weight:700;cursor:pointer;padding:8px 10px}
+  .main{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#7B5EA7,#FF6B35);color:#fff;font:inherit;font-size:15px;font-weight:800;cursor:pointer;margin-top:4px}
+  .main:disabled{opacity:.6;cursor:default}
+  .msg{display:none;font-size:13px;line-height:1.5;margin:2px 0 12px}
+  .msg.err{display:block;color:#FF4455}
+  .msg.ok{display:block;color:#00D68F}
+  .volver{display:block;text-align:center;margin-top:18px;color:#8899BB;font-size:13px;text-decoration:none}
+  .volver:hover{color:#E8EDF5}
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main class="card">
+  <div class="logo"><img src="/icon-192.png" alt=""><b>Oficio<span>Ya</span></b></div>
+
+  <!-- Con ?token= : elegir la nueva contraseña y entrar -->
+  <section id="v-nueva" hidden>
+    <h1>Crea tu nueva contraseña</h1>
+    <p class="sub">Elige la que quieras. Al guardarla entrarás directamente en tu cuenta.</p>
+    <form id="f-nueva" novalidate>
+      <label for="p1">Nueva contraseña</label>
+      <div class="campo"><input id="p1" class="pw" type="password" autocomplete="new-password" minlength="6" required><button type="button" class="ver" id="ver">Ver</button></div>
+      <label for="p2">Repítela</label>
+      <div class="campo"><input id="p2" class="pw" type="password" autocomplete="new-password" minlength="6" required></div>
+      <p class="msg" id="m-nueva" role="alert"></p>
+      <button class="main" id="b-nueva" type="submit">Guardar y entrar</button>
+    </form>
+  </section>
+
+  <!-- Sin token (o enlace caducado): pedir un enlace nuevo -->
+  <section id="v-pedir" hidden>
+    <h1>Recuperar contraseña</h1>
+    <p class="sub">Pon el email de tu cuenta y te enviamos un enlace para que elijas una nueva.</p>
+    <form id="f-pedir" novalidate>
+      <label for="em">Tu email</label>
+      <div class="campo"><input id="em" type="email" autocomplete="email" inputmode="email" required></div>
+      <p class="msg" id="m-pedir" role="alert"></p>
+      <button class="main" id="b-pedir" type="submit">Enviarme el enlace</button>
+    </form>
+  </section>
+
+  <a class="volver" href="/">Volver a OficioYa</a>
+</main>
+<script>
+(function () {
+  var FN = "https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/auth-handler";
+  var KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI";
+  function $(id) { return document.getElementById(id); }
+  function msg(el, txt, ok) { el.textContent = txt; el.className = "msg " + (ok ? "ok" : "err"); }
+  function llamar(datos) {
+    return fetch(FN, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "apikey": KEY, "Authorization": "Bearer " + KEY },
+      body: JSON.stringify(datos)
+    }).then(function (r) {
+      if (r.status === 429) return { success: false, error: "Demasiados intentos. Espera un minuto y vuelve a probar." };
+      return r.json().catch(function () { return { success: false, error: "Error del servidor. Inténtalo de nuevo." }; });
+    });
+  }
+
+  var token = (new URLSearchParams(location.search).get("token") || "").trim();
+
+  function verPedir(aviso) {
+    $("v-nueva").hidden = true;
+    $("v-pedir").hidden = false;
+    if (aviso) msg($("m-pedir"), aviso, false);
+    $("em").focus();
+  }
+  if (token) { $("v-nueva").hidden = false; $("p1").focus(); } else { verPedir(""); }
+
+  $("ver").addEventListener("click", function () {
+    var mostrar = $("p1").type === "password";
+    $("p1").type = $("p2").type = mostrar ? "text" : "password";
+    this.textContent = mostrar ? "Ocultar" : "Ver";
+  });
+
+  $("f-nueva").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var p1 = $("p1").value, p2 = $("p2").value, m = $("m-nueva"), b = $("b-nueva");
+    if (p1.length < 6) return msg(m, "Mínimo 6 caracteres.");
+    if (p1 !== p2) return msg(m, "Las contraseñas no coinciden.");
+    b.disabled = true; b.textContent = "Guardando…"; m.className = "msg";
+    llamar({ action: "confirm_reset", token: token, password: p1 }).then(function (r) {
+      if (r && r.success && r.user) {
+        var guardado = false;
+        try { localStorage.setItem("oy_user", JSON.stringify(r.user)); guardado = true; } catch (_) {}
+        if (guardado) {
+          msg(m, "✅ Contraseña guardada. Entrando…", true);
+          location.replace("/");
+        } else {
+          msg(m, "✅ Contraseña guardada. Ya puedes entrar con ella.", true);
+          b.hidden = true;
+        }
+        return;
+      }
+      b.disabled = false; b.textContent = "Guardar y entrar";
+      var err = (r && r.error) || "No se pudo guardar. Inténtalo de nuevo.";
+      if (/caducado|ya se usó|no válido|enlace nuevo/i.test(err)) verPedir(err + " Pon tu email y te mandamos otro.");
+      else msg(m, err);
+    }).catch(function () {
+      b.disabled = false; b.textContent = "Guardar y entrar";
+      msg(m, "Error de conexión. Inténtalo de nuevo.");
+    });
+  });
+
+  $("f-pedir").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var em = $("em").value.trim().toLowerCase(), m = $("m-pedir"), b = $("b-pedir");
+    if (!/^\S+@\S+\.\S+$/.test(em)) return msg(m, "Escribe un email válido.");
+    b.disabled = true; b.textContent = "Enviando…"; m.className = "msg";
+    llamar({ action: "request_reset", email: em }).then(function (r) {
+      b.disabled = false; b.textContent = "Enviarme el enlace";
+      if (r && r.success) msg(m, "✅ Te hemos enviado un enlace a " + em + ". Ábrelo, elige tu contraseña y entrarás directamente. Si no lo ves, mira en spam.", true);
+      else msg(m, (r && r.error) || "No pudimos enviar el email. Inténtalo de nuevo.");
+    }).catch(function () {
+      b.disabled = false; b.textContent = "Enviarme el enlace";
+      msg(m, "Error de conexión. Inténtalo de nuevo.");
+    });
+  });
+})();
+</script>
+</body>
+</html>
