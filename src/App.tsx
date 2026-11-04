@@ -672,25 +672,31 @@ function GCard({children,style={},onClick,glow=""}:any){
     style={{background:hov&&onClick?C.cardHover:C.card,borderRadius:14,border:"1px solid "+(hov&&glow?glow+"44":C.border),padding:18,transition:"all 0.2s",cursor:onClick?"pointer":"default",boxShadow:hov&&glow?"0 6px 24px "+glow+"18":"0 2px 12px rgba(0,0,0,0.25),inset 0 1px 0 rgba(255,255,255,0.02)",...style}}>{children}</div>;
 }
 function ChangePasswordCard({userId}:{userId:string}){
+  const [cpOld,setCpOld]=useState("");
   const [cp1,setCp1]=useState("");
   const [cp2,setCp2]=useState("");
   const [cpMsg,setCpMsg]=useState("");
   const [cpLoading,setCpLoading]=useState(false);
+  const inp={width:"100%",padding:"10px 12px",background:C.surface,border:"1px solid "+C.border,borderRadius:8,color:C.text,fontFamily:"'DM Sans',sans-serif",fontSize:13,marginBottom:8,boxSizing:"border-box" as const};
   return(
     <GCard style={{marginBottom:14}}>
       <p style={{fontWeight:700,color:C.text,fontSize:13,marginBottom:12}}>🔒 Cambiar contraseña</p>
-      <input value={cp1} onChange={e=>setCp1(e.target.value)} type="password" placeholder="Nueva contraseña" style={{width:"100%",padding:"10px 12px",background:C.surface,border:"1px solid "+C.border,borderRadius:8,color:C.text,fontFamily:"'DM Sans',sans-serif",fontSize:13,marginBottom:8,boxSizing:"border-box" as const}}/>
-      <input value={cp2} onChange={e=>setCp2(e.target.value)} type="password" placeholder="Repetir contraseña" style={{width:"100%",padding:"10px 12px",background:C.surface,border:"1px solid "+C.border,borderRadius:8,color:C.text,fontFamily:"'DM Sans',sans-serif",fontSize:13,marginBottom:10,boxSizing:"border-box" as const}}/>
+      <input value={cpOld} onChange={e=>setCpOld(e.target.value)} type="password" placeholder="Contraseña actual" autoComplete="current-password" style={inp}/>
+      <input value={cp1} onChange={e=>setCp1(e.target.value)} type="password" placeholder="Nueva contraseña" autoComplete="new-password" style={inp}/>
+      <input value={cp2} onChange={e=>setCp2(e.target.value)} type="password" placeholder="Repetir contraseña" autoComplete="new-password" style={{...inp,marginBottom:10}}/>
       {cpMsg&&<p style={{fontSize:12,color:cpMsg.startsWith("✅")?C.green:C.red,marginBottom:8}}>{cpMsg}</p>}
       <button disabled={cpLoading} onClick={async()=>{
+        if(!cpOld){setCpMsg("Escribe tu contraseña actual.");return;}
         if(cp1.length<6){setCpMsg("Mínimo 6 caracteres.");return;}
         if(cp1!==cp2){setCpMsg("Las contraseñas no coinciden.");return;}
         setCpLoading(true);setCpMsg("");
-        const res=await fetch(`${SUPABASE_FUNCTIONS_URL}/auth-handler`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({action:"reset_password",userId,password:cp1})});
-        const result=await res.json();
+        try{
+          const res=await fetch(`${SUPABASE_FUNCTIONS_URL}/auth-handler`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({action:"change_password",userId,current:cpOld,password:cp1})});
+          const result=await res.json().catch(()=>({}));
+          if(result.success){setCpMsg("✅ Contraseña actualizada.");setCpOld("");setCp1("");setCp2("");}
+          else{setCpMsg("❌ "+(result.error||"Error al actualizar. Inténtalo de nuevo."));}
+        }catch(e){setCpMsg("❌ Error de conexión. Inténtalo de nuevo.");}
         setCpLoading(false);
-        if(result.success){setCpMsg("✅ Contraseña actualizada.");setCp1("");setCp2("");}
-        else{setCpMsg("❌ Error al actualizar. Inténtalo de nuevo.");}
       }} style={{width:"100%",padding:"10px",background:C.accent,border:"none",borderRadius:8,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,cursor:"pointer"}}>
         {cpLoading?"Guardando...":"Guardar contraseña"}
       </button>
@@ -3539,31 +3545,16 @@ useEffect(()=>{
     }
   },[]);
 const handleForgot=async()=>{
-  if(!forgotEmail||!forgotPhone){setForgotMsg("Introduce email y teléfono.");return;}
+  const em=forgotEmail.toLowerCase().trim();
+  if(!/\S+@\S+\.\S+/.test(em)){setForgotMsg("Introduce tu email.");return;}
   setForgotLoading(true);setForgotMsg("");
-  const{data:usr}=await db.from("users").select("id,name,email,phone")
-    .eq("email",forgotEmail.toLowerCase().trim())
-    .eq("phone",forgotPhone.trim())
-    .maybeSingle();
-  if(!usr){setForgotMsg("No encontramos una cuenta con ese email y teléfono.");setForgotLoading(false);return;}
-  const nueva_pass=Math.random().toString(36).slice(-8)+Math.floor(Math.random()*100);
-  const emailRes=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/clever-api",{
-    method:"POST",
-    headers:{
-      "Content-Type":"application/json",
-      "apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI",
-      "Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI",
-    },
-    body:JSON.stringify({type:"recuperar_password",to:usr.email,name:usr.name,extra:{nueva_pass}}),
-  });
-  const emailData=await emailRes.json();
-  if(!emailRes.ok||emailData.statusCode===422||emailData.name==="validation_error"){
-    setForgotMsg("❌ No pudimos enviar el email. Contacta con admin@oficioya.com");
-    setForgotLoading(false);
-    return;
-  }
-  await fetch(`${SUPABASE_FUNCTIONS_URL}/auth-handler`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({action:"reset_password",userId:usr.id,password:nueva_pass})});
-  setForgotMsg("✅ ¡Enviado! Revisa tu correo con la nueva contraseña.");
+  try{
+    const res=await fetch(`${SUPABASE_FUNCTIONS_URL}/auth-handler`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({action:"request_reset",email:em})});
+    const r=await res.json().catch(()=>({}));
+    if(res.status===429)setForgotMsg("❌ Demasiados intentos. Espera un minuto.");
+    else if(r.success)setForgotMsg("✅ Te hemos enviado un enlace a "+em+". Ábrelo, elige tu nueva contraseña y entrarás directamente. Si no lo ves, mira en spam.");
+    else setForgotMsg("❌ "+(r.error||"No pudimos enviar el email. Inténtalo de nuevo."));
+  }catch(e){setForgotMsg("❌ Error de conexión. Inténtalo de nuevo.");}
   setForgotLoading(false);
 };
   const [err,setErr]=useState("");
@@ -3824,13 +3815,12 @@ const makeSideCard=(slot:number)=>{
     <p style={{fontSize:13,fontWeight:700,color:"#f0f0fa",marginBottom:10}}>🔑 Recuperar contraseña</p>
     <input value={forgotEmail} onChange={e=>setForgotEmail(e.target.value)} placeholder="Tu email" type="email"
       style={{width:"100%",padding:"10px 12px",background:"#0a0a14",border:"1px solid #7B5EA766",borderRadius:8,color:"#f0f0fa",fontSize:13,fontFamily:"'DM Sans',sans-serif",marginBottom:8,boxSizing:"border-box" as const}}/>
-    <input value={forgotPhone} onChange={e=>setForgotPhone(e.target.value)} placeholder="Tu teléfono" type="tel"
-      style={{width:"100%",padding:"10px 12px",background:"#0a0a14",border:"1px solid #7B5EA766",borderRadius:8,color:"#f0f0fa",fontSize:13,fontFamily:"'DM Sans',sans-serif",marginBottom:10,boxSizing:"border-box" as const}}/>
+    <p style={{fontSize:12,color:"#8899BB",marginBottom:10}}>Te enviaremos un enlace para que elijas tu nueva contraseña.</p>
     {forgotMsg&&<p style={{fontSize:12,color:forgotMsg.includes("✅")?"#00D68F":"#FF4444",marginBottom:8}}>{forgotMsg}</p>}
     <div style={{display:"flex",gap:8}}>
       <button onClick={handleForgot} disabled={forgotLoading}
         style={{flex:1,padding:"10px",background:"linear-gradient(135deg,#7B5EA7,#FF6B35)",border:"none",borderRadius:8,color:"#fff",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,cursor:"pointer"}}>
-        {forgotLoading?"Enviando...":"Enviar nueva contraseña"}
+        {forgotLoading?"Enviando...":"Enviarme el enlace"}
       </button>
       <button onClick={()=>{setShowForgot(false);setForgotMsg("");}}
         style={{padding:"10px 14px",background:"transparent",border:"1px solid #333",borderRadius:8,color:"#aaa",cursor:"pointer",fontSize:12}}>
