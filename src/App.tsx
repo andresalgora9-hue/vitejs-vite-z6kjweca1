@@ -334,7 +334,7 @@ const PLAN_GATES = {
   contacts: {gratis:5, basico:20, pro:9999, elite:9999} as Record<Plan,number>,
   photos: {gratis:0, basico:5, pro:20, elite:999} as Record<Plan,boolean|number>,
   ranking: {gratis:false, basico:false, pro:true, elite:true} as Record<Plan,boolean>,
-  chat: {gratis:false, basico:true, pro:true, elite:true} as Record<Plan,boolean>,
+  chat: {gratis:true, basico:true, pro:true, elite:true} as Record<Plan,boolean>, // sin planes: chat para todos
 };
 
 async function getLeadsThisMonth(proId:string):Promise<number>{
@@ -3395,6 +3395,27 @@ return <GCard key={w.id} onClick={async()=>{
   );
   }
 
+// ─── ALTA DE PROFESIONALES (sin planes): solo por WhatsApp o email ───
+const ALTA_PRO_WA="https://wa.me/34656398014?text="+encodeURIComponent("Hola, soy profesional y quiero darme de alta en OficioYa.\nNombre: \nOficio: \nCiudad: ");
+const ALTA_PRO_MAIL="mailto:admin@algoracompound.com?subject="+encodeURIComponent("Alta de profesional en OficioYa")+"&body="+encodeURIComponent("Hola, soy profesional y quiero darme de alta en OficioYa.\n\nNombre: \nOficio: \nCiudad: \nTeléfono: \n");
+function AltaProContacto({onBack}:{onBack?:()=>void}){
+  const btn:any={display:"flex",alignItems:"center",justifyContent:"center",gap:8,width:"100%",padding:"13px 16px",borderRadius:12,fontFamily:"'DM Sans',sans-serif",fontWeight:800,fontSize:14,textDecoration:"none",boxSizing:"border-box",cursor:"pointer"};
+  return(
+    <GCard style={{padding:20,background:"rgba(22,27,39,0.82)",backdropFilter:"blur(16px)",WebkitBackdropFilter:"blur(16px)",borderRadius:20,border:"1px solid rgba(255,215,0,0.12)"}}>
+      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+        {onBack&&<button onClick={onBack} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:18,padding:0}}>←</button>}
+        <p style={{fontWeight:800,fontSize:16,color:C.text}}>Alta de profesionales</p>
+      </div>
+      <p style={{fontSize:14,color:C.text,lineHeight:1.6,marginBottom:8}}>El alta de profesionales la hacemos contigo, en persona.</p>
+      <p style={{fontSize:13,color:C.mutedL,lineHeight:1.6,marginBottom:6}}>Escríbenos por WhatsApp o por email con tu nombre, tu oficio y tu ciudad. Te contactamos para conocernos y empezar a traerte clientes.</p>
+      <p style={{fontSize:12,color:C.muted,lineHeight:1.6,marginBottom:18}}>Solo para profesionales dados de alta como autónomos.</p>
+      <a href={ALTA_PRO_WA} target="_blank" rel="noopener noreferrer" style={{...btn,background:"#25D366",color:"#fff",border:"none",marginBottom:10}}>💬 Escribir por WhatsApp</a>
+      <a href={ALTA_PRO_MAIL} style={{...btn,background:"#1E2536",color:"#E8EDF5",border:"1px solid #2D3A52"}}>✉️ Enviar un email</a>
+      <p style={{fontSize:11,color:C.muted,textAlign:"center",marginTop:12}}>WhatsApp 656 39 80 14 · admin@algoracompound.com</p>
+    </GCard>
+  );
+}
+
 // ─── AUTH ───
 function Auth({onLogin,onClose,initialMode}:{onLogin:(u:UserRow)=>void;onClose?:()=>void;initialMode?:"login"|"pick"}){
   const initMode=(()=>{if(initialMode)return initialMode;const p=new URLSearchParams(window.location.search).get("tipo");if(p==="cliente")return "register_cliente";if(p==="pro")return "register_pro";return "login";})(); const [mode,setMode]=useState<"login"|"pick"|"register_cliente"|"register_pro">(initMode);
@@ -3887,94 +3908,7 @@ const makeSideCard=(slot:number)=>{
             <Btn full disabled={loading} onClick={registerCliente}>{loading?"Creando tu cuenta...":"Crear cuenta gratis →"}</Btn>
           </GCard>
         )}
-        {mode==="register_pro"&&(
-          <GCard style={{padding:20,background:"rgba(22,27,39,0.82)",backdropFilter:"blur(16px)",WebkitBackdropFilter:"blur(16px)",borderRadius:20,border:"1px solid rgba(255,215,0,0.12)"}}>
-            <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:20}}>
-              <button onClick={()=>{if(proStep===1)setMode("pick");else setProStep(p=>p-1);}} style={{background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:18,padding:0,flexShrink:0}}>←</button>
-              <div style={{flex:1,display:"flex",gap:4}}>
-                {[1,2,3].map(s=><div key={s} style={{flex:1,height:4,borderRadius:99,background:s<=proStep?"linear-gradient(90deg,"+C.accent+","+C.orange+")":C.border,transition:"background 0.3s"}} />)}
-              </div>
-              <span style={{fontSize:10,color:C.muted,flexShrink:0,fontWeight:600}}>Paso {proStep}/3</span>
-            </div>
-            {err&&<div style={{color:C.red,fontSize:13,marginBottom:12,padding:"10px 12px",background:C.red+"15",borderRadius:8,border:"1px solid "+C.red+"33"}}>{err}</div>}
-            {proStep===1&&(<>
-              <p style={{fontWeight:800,fontSize:16,color:C.text,marginBottom:4}}>Tus datos</p>
-              <p style={{fontSize:12,color:C.muted,marginBottom:16}}>Solo te llevará 1 minuto</p>
-              <Inp label="Nombre completo *" value={name} onChange={setName} placeholder="Ej: Juan García" required />
-              <Inp label="Email *" value={email} onChange={setEmail} type="email" placeholder="tu@email.com" required />
-              <Inp label="Teléfono / WhatsApp *" value={phone} onChange={setPhone} placeholder="+34 600 000 000" required />
-              <Inp label="Contraseña *" value={pass} onChange={setPass} type="password" placeholder="Mínimo 6 caracteres" required />
-              <Btn full onClick={()=>{if(!name||!email||!phone||!pass){setErr("Rellena todos los campos.");return;}if(pass.length<6){setErr("Mínimo 6 caracteres.");return;}setErr("");setProStep(2);}}>Continuar →</Btn>
-              <div style={{display:"flex",alignItems:"center",gap:8,margin:"12px 0"}}>
-                <div style={{flex:1,height:1,background:"rgba(255,255,255,0.08)"}} />
-                <span style={{fontSize:11,color:C.muted}}>o</span>
-                <div style={{flex:1,height:1,background:"rgba(255,255,255,0.08)"}} />
-              </div>
-            </>)}
-            {proStep===2&&(<>
-              <p style={{fontWeight:800,fontSize:16,color:C.text,marginBottom:4}}>Tu oficio y zona</p>
-              <p style={{fontSize:12,color:C.muted,marginBottom:16}}>Así te encontrarán tus clientes</p>
-              <div style={{marginBottom:14}}>
-                <p style={{fontSize:11,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.08em",marginBottom:8,fontWeight:700}}>Tu oficio *</p>
-                <div style={{display:"flex",flexWrap:"wrap",gap:6,maxHeight:180,overflowY:"auto",paddingRight:4}}>
-                  {OFICIOS.map(o=><button key={o} onClick={()=>setTrade(o)} style={{padding:"6px 12px",borderRadius:99,border:"1px solid "+(trade===o?C.accent:C.border),background:trade===o?C.accent+"22":"transparent",color:trade===o?C.accent:C.muted,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:trade===o?700:400,transition:"all 0.15s"}}>{OFICIO_ICONS[o]} {o}</button>)}
-                </div>
-              </div>
-              <div style={{marginBottom:14}}>
-                <p style={{fontSize:11,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.08em",marginBottom:8,fontWeight:700}}>Ciudad principal *</p>
-                <div style={{position:"relative"}}>
-                  <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:4,scrollbarWidth:"none"} as any}>
-                    {["Sevilla",...SEVILLA_ZONAS,...ZONAS.filter(z=>z!=="Sevilla")].map(z=>(
-                      <button key={z} onClick={()=>setZone(z)} style={{flexShrink:0,padding:"7px 12px",borderRadius:99,border:"1.5px solid "+(zone===z?C.accent:C.border+"88"),background:zone===z?"linear-gradient(135deg,"+C.accent+"22,"+C.orange+"11)":"rgba(255,255,255,0.02)",color:zone===z?C.accent:C.mutedL,cursor:"pointer",fontSize:11,fontFamily:"'DM Sans',sans-serif",fontWeight:zone===z?700:400,whiteSpace:"nowrap" as const,transition:"all 0.15s"}}>
-                        {z}
-                      </button>
-                    ))}
-                  </div>
-                  <div style={{position:"absolute",top:0,right:0,bottom:4,width:36,background:"linear-gradient(to right,transparent,"+C.card+")",pointerEvents:"none"}} />
-                </div>
-              </div>
-              <Btn full onClick={()=>{setErr("");setProStep(3);}}>Elegir plan →</Btn>
-            </>)}
-            {proStep===3&&(<>
-              <p style={{fontWeight:800,fontSize:16,color:C.text,marginBottom:2}}>Elige tu plan</p>
-              <p style={{fontSize:12,color:C.muted,marginBottom:16}}>Empieza gratis · Sin tarjeta</p>
-              <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:16}}>
-                {(["gratis","basico","pro","elite"] as Plan[]).map(pl=>{
-                  const col=PLAN_COLORS[pl]; const isSelected=plan===pl;
-                  return(
-                    <div key={pl} onClick={()=>setPlan(pl)} style={{padding:"12px 14px",borderRadius:12,border:"2px solid "+(isSelected?col:C.border),background:isSelected?col+"15":C.surface,cursor:"pointer",transition:"all 0.15s",position:"relative"}}>
-                      {pl==="elite"&&<span style={{position:"absolute",top:-9,left:12,background:"linear-gradient(135deg,"+C.orange+","+C.red+")",color:"#fff",borderRadius:99,padding:"1px 9px",fontSize:8,fontWeight:900}}>1 MES GRATIS</span>}
-                      {pl==="pro"&&<span style={{position:"absolute",top:-9,right:12,background:"linear-gradient(135deg,"+C.accent+","+C.orange+")",color:"#000",borderRadius:99,padding:"1px 9px",fontSize:8,fontWeight:900}}>MÁS POPULAR</span>}
-                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}}>
-                        <span style={{fontWeight:800,fontSize:14,color:col}}>{pl.toUpperCase()}</span>
-                        <span style={{fontWeight:800,fontSize:15,color:C.text}}>{PLAN_PRICES[pl]===0?"GRATIS":PLAN_PRICES[pl]+"€/mes"}</span>
-                      </div>
-                      <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
-                        {PLAN_FEATURES[pl].slice(0,3).map(f=><span key={f} style={{fontSize:10,color:isSelected?col:C.mutedL}}>✓ {f}</span>)}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-              {plan==="elite"&&(
-  <div style={{padding:"10px 12px",marginBottom:12,background:"rgba(255,68,85,0.08)",border:"1px solid rgba(255,68,85,0.2)",borderRadius:8}}>
-    <p style={{fontSize:11,color:"#ff8888",lineHeight:1.7,margin:0}}>
-      ⚠ Tienes <strong style={{color:"#ffaaaa"}}>15 días</strong> para cancelar sin coste.
-      A partir del día 16 se cobrará <strong style={{color:"#ffaaaa"}}>49,99€</strong> al vencimiento del trial.
-      Cancelación con <strong style={{color:"#ffaaaa"}}>15 días de antelación</strong> al siguiente cobro.{" "}
-      <a href="/cancelacion" target="_blank" style={{color:"#FFD700"}}>Ver política completa</a>
-    </p>
-  </div>
-)}
-              <div style={{padding:"12px 14px",marginBottom:16,backgroundColor:"#16161F",border:"1px solid #1E1E30",borderRadius:8,textAlign:"left" as const}}>
-  <p style={{fontSize:11,color:"#7777AA",lineHeight:1.6,margin:0}}>
-    Información de suscripción: El período de prueba cuenta con 30 días de acceso gratuito. Las solicitudes de cancelación deben procesarse con un mínimo de <strong style={{color:"#F0F0FA"}}>15 días de antelación</strong> respecto a la fecha de renovación para evitar el cargo automático del ciclo posterior ({plan==="elite"?"49,99€":plan==="pro"?"24,99€":"9,99€"}/mes). Al continuar, confirmas la aceptación de nuestros <a href="/terminos" target="_blank" style={{color:"#FFD700",textDecoration:"underline"}}>Términos de Servicio</a> y <a href="/cancelacion" target="_blank" style={{color:"#FFD700",textDecoration:"underline"}}>Política de Cancelación</a>.
-  </p>
-</div>
-<Btn full disabled={loading} onClick={registerPro}>{loading?(plan!=="gratis"?"Verificando...":"Creando tu perfil..."):(plan!=="gratis"?"Continuar al pago — "+plan.toUpperCase()+" →":"Crear perfil profesional →")}</Btn> {plan!=="gratis"&&<p style={{fontSize:11,color:C.muted,textAlign:"center" as const,marginTop:8}}>Tu cuenta se crea solo si el pago tiene éxito</p>}
-</>)}
-          </GCard>
-        )}
+        {mode==="register_pro"&&<AltaProContacto onBack={()=>setMode("pick")} />}
         <p style={{textAlign:"center",fontSize:11,color:C.muted,marginTop:14}}>
   Al continuar aceptas los{" "}
   <a href="/terminos" style={{color:C.accent,textDecoration:"none"}}>Términos de Uso</a>
@@ -5434,7 +5368,7 @@ if(!_lastVisit){
       </div>
     );
   }
-  if(window.location.pathname==="/elite-gratis")return <EliteLanding />;
+  if(window.location.pathname==="/elite-gratis")return <div style={{minHeight:"100dvh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center",padding:"24px 16px",boxSizing:"border-box",fontFamily:"'DM Sans',sans-serif"}}><div style={{width:"100%",maxWidth:460}}><AltaProContacto onBack={()=>{window.location.href="/";}} /></div></div>;
   if(window.location.pathname==="/terminos")return <Terminos />;
   if(window.location.pathname==="/privacidad")return <Privacidad />;
   if(window.location.pathname==="/cancelacion")return <Cancelacion />;   if(window.location.pathname==="/cookies")return <Cookies />;
