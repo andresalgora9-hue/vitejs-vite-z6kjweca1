@@ -313,14 +313,10 @@
     if (inicio) fl.insertBefore(a, inicio); else fl.appendChild(a);
   }
 
-  /* ---------- TEST A/B formulario arriba (solo landings de pintura) ---------- */
-  try {
-    if (/pint|gotele|alisar|moho|humedad|fachada/i.test(location.pathname)) {
-      var oyab = document.createElement("script");
-      oyab.src = "/oy-ab.js?v=1";
-      document.head.appendChild(oyab);
-    }
-  } catch (e) {}
+  /* ---------- TEST A/B formulario arriba: CERRADO el 04/11/2026 ----------
+     Ganó A (la calculadora): 3 leads en 44 visitas frente a 0 en 64 con el
+     formulario corto arriba (B). Ya no se carga /oy-ab.js: todas las visitas
+     ven la calculadora. oy-ab.js se queda en el repo solo como histórico. */
 
   /* ---------- VISITA a la landing: una por carga, sin cookies ni datos personales ---------- */
   try {
