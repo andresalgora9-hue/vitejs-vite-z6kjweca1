@@ -852,6 +852,90 @@
       "destination": "/pintores-massamagrell.html"
     },
     {
+      "source": "/alisar-paredes-sevilla",
+      "destination": "/alisar-paredes-sevilla.html"
+    },
+    {
+      "source": "/pintar-fachada-sevilla",
+      "destination": "/pintar-fachada-sevilla.html"
+    },
+    {
+      "source": "/pintar-habitacion-sevilla",
+      "destination": "/pintar-habitacion-sevilla.html"
+    },
+    {
+      "source": "/pintar-local-sevilla",
+      "destination": "/pintar-local-sevilla.html"
+    },
+    {
+      "source": "/pintar-piso-sevilla",
+      "destination": "/pintar-piso-sevilla.html"
+    },
+    {
+      "source": "/pintor-bellavista",
+      "destination": "/pintor-bellavista.html"
+    },
+    {
+      "source": "/pintor-bormujos",
+      "destination": "/pintor-bormujos.html"
+    },
+    {
+      "source": "/pintor-camas",
+      "destination": "/pintor-camas.html"
+    },
+    {
+      "source": "/pintor-gelves",
+      "destination": "/pintor-gelves.html"
+    },
+    {
+      "source": "/pintor-la-rinconada",
+      "destination": "/pintor-la-rinconada.html"
+    },
+    {
+      "source": "/pintor-norte",
+      "destination": "/pintor-norte.html"
+    },
+    {
+      "source": "/pintor-san-juan-de-aznalfarache",
+      "destination": "/pintor-san-juan-de-aznalfarache.html"
+    },
+    {
+      "source": "/pintor-sevilla-este",
+      "destination": "/pintor-sevilla-este.html"
+    },
+    {
+      "source": "/pintor-sur",
+      "destination": "/pintor-sur.html"
+    },
+    {
+      "source": "/pintor-tomares",
+      "destination": "/pintor-tomares.html"
+    },
+    {
+      "source": "/pintores-aljarafe",
+      "destination": "/pintores-aljarafe.html"
+    },
+    {
+      "source": "/pintores-baratos-sevilla",
+      "destination": "/pintores-baratos-sevilla.html"
+    },
+    {
+      "source": "/pintores-sevilla",
+      "destination": "/pintores-sevilla.html"
+    },
+    {
+      "source": "/pintura-antihumedad-sevilla",
+      "destination": "/pintura-antihumedad-sevilla.html"
+    },
+    {
+      "source": "/precio-pintar-piso-sevilla",
+      "destination": "/precio-pintar-piso-sevilla.html"
+    },
+    {
+      "source": "/quitar-moho-paredes-sevilla",
+      "destination": "/quitar-moho-paredes-sevilla.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
