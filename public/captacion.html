@@ -473,11 +473,28 @@ function hace(iso){
 function horasDesde(iso){ return (Date.now() - new Date(iso).getTime())/3600000; }
 function finDeHoy(){ var d = new Date(); d.setHours(23,59,59,999); return d; }
 function inicioMes(){ var m = new Date(); m.setDate(1); m.setHours(0,0,0,0); return m; }
-function toast(t, ms){ var e=$('toast'); e.textContent=t; e.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(function(){ e.hidden=true; }, ms || 2600); }
+function toast(t, ms){ if(D.rol === 'lector' && /solo lectura/.test(t)) return; var e=$('toast'); e.textContent=t; e.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(function(){ e.hidden=true; }, ms || 2600); }
 function sum(a){ return a.reduce(function(s,l){ return s + Number(l.comision||0); },0); }
 
 /* ---------- API ---------- */
+/* Acceso de solo lectura (rol lector): en vez de guardar o contactar, sale una ventanita */
+var SOLO_LEER = ['captacion_datos', 'captacion_version', 'captacion_descargar_documento', 'captacion_contadores'];
+function soloLectura(){
+  var m = $('modal');
+  m.innerHTML = '<div class="caja-m" role="dialog" aria-modal="true" aria-labelledby="sl-t"><h3 id="sl-t">¡Te queda poco para empezar a facturar!</h3>'
+    + '<p>De momento tu acceso es para ver cómo se trabajan los leads. Muy pronto te llegarán los tuyos.</p>'
+    + '<div style="margin-top:14px"><button type="button" class="btn full" id="sl-ok">Entendido</button></div></div>';
+  m.hidden = false;
+  var cerrar = function(){ m.hidden = true; m.innerHTML = ''; };
+  $('sl-ok').onclick = cerrar; $('sl-ok').focus();
+  m.onclick = function(e){ if(e.target === m) cerrar(); };
+}
+document.addEventListener('click', function(e){
+  if(D.rol !== 'lector' || !e.target.closest) return;
+  if(e.target.closest('a[href^="tel:"], a[href^="https://wa.me/"]')){ e.preventDefault(); e.stopPropagation(); soloLectura(); }
+}, true);
 function rpc(fn, body){
+  if(D.rol === 'lector' && SOLO_LEER.indexOf(fn) < 0){ soloLectura(); return Promise.reject(new Error('solo lectura')); }
   return fetch(SB_URL + '/rest/v1/rpc/' + fn, {
     method:'POST',
     headers:{ 'apikey':SB_KEY, 'Authorization':'Bearer '+SB_KEY, 'Content-Type':'application/json' },
@@ -1226,6 +1243,7 @@ function registroSW(){
 }
 function desactivadoAqui(){ try{ return localStorage.getItem('oy_capt_avisos_off') === '1'; }catch(e){ return false; } }
 function comprobarAvisos(){
+  if(D.rol === 'lector'){ AV.estado = ''; return pintarAvisos(); }
   if(!soportaPush()){ AV.estado = esIOS() && !esApp() ? 'ios-instalar' : 'no-soportado'; return pintarAvisos(); }
   if(Notification.permission === 'denied'){ AV.estado = 'bloqueado'; return pintarAvisos(); }
   registroSW().then(function(reg){ return reg.pushManager.getSubscription(); }).then(function(sub){
