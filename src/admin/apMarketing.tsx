@@ -46,7 +46,7 @@ const ESTADO_PROP: Record<string, { t: string; c: string }> = {
 };
 const ESTADO_TEST: Record<string, { t: string; c: string }> = {
   propuesto: { t: "Propuesto", c: C.accent }, en_curso: { t: "En curso", c: C.blue }, pausado: { t: "Pausado", c: C.muted },
-  gana_a: { t: "Gana A", c: C.green }, gana_b: { t: "Gana B", c: C.green }, sin_diferencia: { t: "Sin diferencia", c: C.mutedL }, cancelado: { t: "Cancelado", c: C.muted },
+  gana_a: { t: "Gana A", c: C.green }, gana_b: { t: "Gana B", c: C.green }, gana_c: { t: "Gana C", c: C.green }, sin_diferencia: { t: "Sin diferencia", c: C.mutedL }, cancelado: { t: "Cancelado", c: C.muted },
   en_curso_ia: { t: "En curso", c: C.blue }, revertido: { t: "Revertido", c: C.red }, descartado: { t: "Descartado", c: C.muted },
   sin_concluir: { t: "Sin concluir", c: C.orange }, aprobado: { t: "Aprobado", c: C.blue }, ganador: { t: "Ganador", c: C.green }, perdedor: { t: "Perdedor", c: C.red },
 };
@@ -948,16 +948,28 @@ function TabTests({ data, pregunta, esAdmin, llamar }: Comun) {
   const hips: J[] = data.hipotesis || [];
 
   const resumen = (t: J) => {
-    const A = (t.variantes || []).find((v: J) => v.variante === "A") || {}, B = (t.variantes || []).find((v: J) => v.variante === "B") || {};
+    const vs = t.variante_c ? ["A", "B", "C"] : ["A", "B"];
+    const get = (k: string) => (t.variantes || []).find((v: J) => v.variante === k) || {};
+    const A = get("A"), B = get("B"), C3 = t.variante_c ? get("C") : null;
     const r = diferencia(n(A.leads), n(A.visitas), n(B.leads), n(B.visitas));
+    const rc = C3 ? diferencia(n(A.leads), n(A.visitas), n(C3.leads), n(C3.visitas)) : null;
     const obj = n(t.objetivo_visitas) || 430;
-    const faltan = Math.max(0, obj - n(A.visitas)) + Math.max(0, obj - n(B.visitas));
-    const listo = n(A.visitas) >= obj && n(B.visitas) >= obj;
+    const faltan = vs.reduce((acc: number, k: string) => acc + Math.max(0, obj - n(get(k).visitas)), 0);
+    const listo = vs.every((k: string) => n(get(k).visitas) >= obj);
     const dias = t.inicio ? Math.max(1, diasEntre(t.inicio, ymdMadrid(Date.now())) + 1) : 1;
-    const ritmo = (n(A.visitas) + n(B.visitas)) / dias;
+    const ritmo = vs.reduce((acc: number, k: string) => acc + n(get(k).visitas), 0) / dias;
     let veredicto = "Faltan datos";
-    if (listo && r) veredicto = r.lo > 0 ? "Gana B" : r.hi < 0 ? "Gana A" : n(B.leads) >= n(A.leads) ? "Sin diferencia clara: quedarse con B (más leads)" : "Sin diferencia clara: quedarse con A (más leads)";
-    return { A, B, r, obj, faltan, listo, ritmo, veredicto, diasFaltan: ritmo > 0 ? Math.ceil(faltan / ritmo) : null };
+    if (listo && r && !C3) veredicto = r.lo > 0 ? "Gana B" : r.hi < 0 ? "Gana A" : n(B.leads) >= n(A.leads) ? "Sin diferencia clara: quedarse con B (más leads)" : "Sin diferencia clara: quedarse con A (más leads)";
+    if (listo && r && rc && C3) {
+      const conv = (x: J) => ratio(n(x.leads), n(x.visitas)) || 0;
+      const mejor = [["A", A], ["B", B], ["C", C3]].sort((p: J, q: J) => conv(q[1]) - conv(p[1]))[0][0];
+      if (r.lo > 0 && rc.lo > 0) veredicto = "Gana " + (conv(B) >= conv(C3) ? "B" : "C");
+      else if (r.lo > 0) veredicto = "Gana B";
+      else if (rc.lo > 0) veredicto = "Gana C";
+      else if (r.hi < 0 && rc.hi < 0) veredicto = "Gana A";
+      else veredicto = "Sin diferencia clara: quedarse con " + mejor + " (mejor conversión)";
+    }
+    return { A, B, C: C3, r, rc, obj, faltan, listo, ritmo, veredicto, diasFaltan: ritmo > 0 ? Math.ceil(faltan / ritmo) : null };
   };
 
   const principal = enCurso[0];
@@ -968,7 +980,7 @@ function TabTests({ data, pregunta, esAdmin, llamar }: Comun) {
     const s = resumen(principal);
     tono = s.listo ? "bien" : "neutro";
     texto = s.listo ? <>«{principal.nombre}»: {s.veredicto}.</> : <>«{principal.nombre}» sigue en marcha: aún no se puede decidir.</>;
-    detalle = s.listo ? "Ya hay visitas suficientes en las dos versiones." : <>Faltan {num(s.faltan)} visitas entre las dos versiones{s.diasFaltan ? ` (≈ ${s.diasFaltan} días al ritmo actual)` : ""}. Hasta entonces, cualquier diferencia puede ser casualidad.</>;
+    detalle = s.listo ? `Ya hay visitas suficientes en las ${principal.variante_c ? "tres" : "dos"} versiones.` : <>Faltan {num(s.faltan)} visitas entre las {principal.variante_c ? "tres" : "dos"} versiones{s.diasFaltan ? ` (≈ ${s.diasFaltan} días al ritmo actual)` : ""}. Hasta entonces, cualquier diferencia puede ser casualidad.</>;
   }
 
   return (
@@ -990,7 +1002,7 @@ function TabTests({ data, pregunta, esAdmin, llamar }: Comun) {
             </div>
             <div style={{ fontSize: 13, color: C.mutedL, margin: "10px 0 12px", lineHeight: 1.5 }}>Hipótesis: {t.hipotesis}</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 10 }}>
-              {[{ v: s.A, k: "A", desc: t.variante_a, col: SERIE[0] }, { v: s.B, k: "B", desc: t.variante_b, col: SERIE[1] }].map((x) => (
+              {[{ v: s.A, k: "A", desc: t.variante_a, col: SERIE[0] }, { v: s.B, k: "B", desc: t.variante_b, col: SERIE[1] }, ...(s.C ? [{ v: s.C, k: "C", desc: t.variante_c, col: SERIE[2] }] : [])].map((x) => (
                 <div key={x.k} style={{ background: C.bg, borderRadius: 10, padding: 12, border: "1px solid " + C.border }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ width: 10, height: 10, borderRadius: 2, background: x.col }} /><b>Versión {x.k}</b></div>
                   <div style={{ fontSize: 12, color: C.mutedL, margin: "4px 0 10px" }}>{x.desc}</div>
@@ -1010,18 +1022,23 @@ function TabTests({ data, pregunta, esAdmin, llamar }: Comun) {
                 {" "}<b style={{ color: s.listo ? C.text : C.mutedL }}>{s.listo ? s.veredicto : "Aún no se decide: faltan visitas."}</b>
               </div>
             )}
+            {s.rc && (
+              <div style={{ marginTop: 6, fontSize: 13, color: C.mutedL, lineHeight: 1.55 }}>
+                Diferencia C − A: <b style={{ color: C.text }}>{(s.rc.d * 100).toFixed(1).replace(".", ",")} puntos</b> (con un 95% de seguridad, entre {(s.rc.lo * 100).toFixed(1).replace(".", ",")} y {(s.rc.hi * 100).toFixed(1).replace(".", ",")}).
+              </div>
+            )}
             {fechas.length > 1 && (
               <div style={{ marginTop: 12 }}>
                 <div style={{ fontSize: 12, fontWeight: 800, color: C.mutedL, marginBottom: 8 }}>CONVERSIÓN ACUMULADA (desde 20 visitas)</div>
-                <Lineas etiquetas={fechas.map(ddmm)} series={[{ nombre: "Versión A", color: SERIE[0], valores: acum("A") }, { nombre: "Versión B", color: SERIE[1], valores: acum("B") }]} formato={(v) => pctTxt(v, 1)} alto={140} />
+                <Lineas etiquetas={fechas.map(ddmm)} series={[{ nombre: "Versión A", color: SERIE[0], valores: acum("A") }, { nombre: "Versión B", color: SERIE[1], valores: acum("B") }, ...(s.C ? [{ nombre: "Versión C", color: SERIE[2], valores: acum("C") }] : [])]} formato={(v) => pctTxt(v, 1)} alto={140} />
               </div>
             )}
             {(t.por_ciudad || []).length > 0 && (
               <div style={{ marginTop: 12 }}>
-                <Tabla cols={[{ k: "c", l: "Ciudad" }, { k: "a", l: "A: visitas · leads", align: "right" }, { k: "b", l: "B: visitas · leads", align: "right" }]}
+                <Tabla cols={[{ k: "c", l: "Ciudad" }, { k: "a", l: "A: visitas · leads", align: "right" }, { k: "b", l: "B: visitas · leads", align: "right" }, ...(s.C ? [{ k: "cc", l: "C: visitas · leads", align: "right" as const }] : [])]}
                   filas={Array.from(new Set((t.por_ciudad || []).map((x: J) => x.ciudad))).map((c: J) => {
                     const g = (v: string) => (t.por_ciudad || []).find((x: J) => x.ciudad === c && x.variante === v) || {};
-                    return { c: ciTxt(c), a: `${num(g("A").visitas)} · ${num(g("A").leads)}`, b: `${num(g("B").visitas)} · ${num(g("B").leads)}` };
+                    return { c: ciTxt(c), a: `${num(g("A").visitas)} · ${num(g("A").leads)}`, b: `${num(g("B").visitas)} · ${num(g("B").leads)}`, cc: `${num(g("C").visitas)} · ${num(g("C").leads)}` };
                   })} />
               </div>
             )}
@@ -1064,7 +1081,7 @@ function TabTests({ data, pregunta, esAdmin, llamar }: Comun) {
           <label style={etiq}>Conclusión</label>
           <textarea value={concl} onChange={(e) => setConcl(e.target.value)} style={textoArea} placeholder="Qué hemos aprendido y qué versión se queda" />
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
-            {[["gana_b", "Gana B"], ["gana_a", "Gana A"], ["sin_diferencia", "Sin diferencia"], ["pausado", "Pausar"], ["cancelado", "Cancelar"]].map(([k, l]) => (
+            {[["gana_b", "Gana B"], ...(cerrar.variante_c ? [["gana_c", "Gana C"]] : []), ["gana_a", "Gana A"], ["sin_diferencia", "Sin diferencia"], ["pausado", "Pausar"], ["cancelado", "Cancelar"]].map(([k, l]) => (
               <Btn key={k} small outline={k !== "gana_b"} onClick={async () => { if (await llamar("mkt_test_guardar", { p: { clave: cerrar.clave, estado: k, conclusion: concl } }, "Test actualizado")) setCerrar(null); }}>{l}</Btn>
             ))}
           </div>
