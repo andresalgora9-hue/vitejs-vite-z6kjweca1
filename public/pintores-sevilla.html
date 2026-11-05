@@ -4,8 +4,9 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <!-- ── CONSENTIMIENTO Y COOKIES ── -->
-<script src="/oy-consent.js"></script>
-<title>Pintores en Sevilla verificados — Precio de pintar tu piso | OficioYa</title>
+
+<meta name="robots" content="noindex,nofollow">
+<title>[Prueba fondo] Pintores en Sevilla verificados — Precio de pintar tu piso | OficioYa</title>
 <meta name="description" content="Pintores en Sevilla verificados para tu piso. Calcula en 20 segundos cuánto cuesta pintar tu casa o quitar el gotelé, antes de llamar a nadie."/>
 <meta name="keywords" content="pintores en sevilla, pintor sevilla, pintores en sevilla capital, pintar piso sevilla, precio pintar piso sevilla, quitar gotele sevilla"/>
 <meta name="robots" content="index, follow"/>
@@ -345,9 +346,47 @@ section[id],div[id]{scroll-margin-top:90px}
 .opi figcaption{font-size:13px;color:var(--ink-soft)}
 .opi figcaption b{color:var(--ink)}
 .opi-tag{display:inline-block;margin-left:4px;font-size:11.5px;font-weight:700;color:var(--gold-deep);background:var(--gold-soft);border-radius:6px;padding:2px 7px}
+/* ── PRUEBA: fondos del hero (rama de prueba, no publicar) ── */
+html,body{overflow-x:clip}
+.hero{position:relative;isolation:isolate}
+.hero-bg{position:absolute;top:0;left:50%;width:100vw;margin-left:-50vw;height:var(--bg-h,100%);z-index:-1;overflow:hidden;pointer-events:none;display:none}
+.fondo-pared .hero-bg-pared,.fondo-salon .hero-bg-salon{display:block}
+.fondo-pared .hero-foto,.fondo-salon .hero-foto{display:none}
+.hero-bg img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;max-width:none}
+.pared-antes{filter:sepia(.7) saturate(.75) brightness(.72) contrast(.88)}
+.pared-manchas{position:absolute;inset:0;mix-blend-mode:multiply;background:radial-gradient(ellipse 30% 22% at 16% 82%,rgba(122,94,48,.34),transparent 70%),radial-gradient(ellipse 22% 16% at 74% 88%,rgba(98,84,58,.28),transparent 70%),radial-gradient(ellipse 18% 12% at 88% 18%,rgba(120,98,60,.2),transparent 70%),radial-gradient(ellipse 14% 10% at 40% 30%,rgba(120,100,70,.14),transparent 70%),linear-gradient(to top,rgba(104,88,58,.3),transparent 34%)}
+.pared-tiras{position:absolute;inset:0}
+.tira{position:absolute;top:0;bottom:0;overflow:hidden;clip-path:inset(0 0 100% 0)}
+.tira.sube{clip-path:inset(100% 0 0 0)}
+.tira img{filter:brightness(1.05) saturate(.95)}
+.tira i{position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.38),rgba(255,255,255,.1));opacity:0}
+.pared-luz{position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.04) 0%,rgba(255,255,255,.16) 58%,rgba(255,255,255,.78) 90%,#fff 100%)}
+@media(min-width:901px){.pared-luz{background:linear-gradient(90deg,rgba(255,255,255,.55) 0%,rgba(255,255,255,.2) 50%,rgba(255,255,255,0) 100%)}}
+.rodillo{position:absolute;left:0;top:0;width:var(--rod-w,110px);opacity:0;filter:drop-shadow(0 8px 12px rgba(16,24,44,.28));will-change:transform}
+.rodillo svg{display:block;width:100%;height:auto}
+.fondo-pared .hero h1,.fondo-pared .hero-sub{text-shadow:0 1px 16px rgba(255,255,255,.9)}
+.salon-foto{transform-origin:60% 40%;animation:oyKen 16s ease-out both}
+@keyframes oyKen{from{transform:scale(1.08)}to{transform:scale(1)}}
+.salon-velo{position:absolute;inset:0;background:linear-gradient(180deg,rgba(16,24,44,.48) 0%,rgba(16,24,44,.66) 55%,rgba(16,24,44,.82) 100%)}
+@media(min-width:901px){.salon-velo{background:linear-gradient(90deg,rgba(16,24,44,.86) 0%,rgba(16,24,44,.6) 50%,rgba(16,24,44,.22) 100%)}}
+.fondo-salon .hero h1{color:#fff}
+.fondo-salon .hero h1 em{color:#F5C96B}
+.fondo-salon .hero-sub{color:rgba(255,255,255,.86)}
+.fondo-salon .hero-sub strong{color:#fff}
+.fondo-salon .eyebrow{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.32);color:#fff}
+.fondo-salon .trust-chip{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.26);color:#fff}
+.fondo-salon .hero-note{color:rgba(255,255,255,.72)}
+@media(prefers-reduced-motion:reduce){.salon-foto{animation:none}}
+.prueba-sel{position:fixed;z-index:400;bottom:calc(84px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:2px;padding:4px;background:rgba(16,24,44,.92);border-radius:12px;box-shadow:0 6px 18px rgba(16,24,44,.3);font:600 12px/1 'Inter',Arial,sans-serif}
+.prueba-sel span{color:#F5C96B;padding:0 6px 0 5px;letter-spacing:.5px;text-transform:uppercase;font-size:10.5px}
+.prueba-sel button{border:0;background:transparent;color:#fff;padding:8px 9px;border-radius:8px;cursor:pointer;font:inherit}
+.prueba-sel button[aria-pressed="true"]{background:#F0A93B;color:#1D1305}
+.prueba-sel button:focus-visible{outline:2px solid #F5C96B;outline-offset:1px}
+.prueba-aviso{margin-top:10px;font-size:13px;font-weight:600;color:#8C670C;background:#FBF1DC;border:1px solid #E8CE94;border-radius:8px;padding:8px 10px}
 </style>
 </head>
 <body>
+<script>(function(){var f='pared';try{f=new URLSearchParams(location.search).get('fondo')||'pared'}catch(e){}if(!/^(pared|salon|actual)$/.test(f))f='pared';document.body.classList.add('fondo-'+f)})()</script>
 
 <nav>
   <div class="nav-inner">
@@ -360,6 +399,8 @@ section[id],div[id]{scroll-margin-top:90px}
 
 <div class="wrap">
   <section class="hero">
+    <div class="hero-bg hero-bg-pared" aria-hidden="true"><img class="pared-antes" src="https://images.unsplash.com/photo-1643699302640-e8dd689194f4?auto=format&amp;fit=crop&amp;q=72&amp;w=1400" srcset="https://images.unsplash.com/photo-1643699302640-e8dd689194f4?auto=format&amp;fit=crop&amp;q=72&amp;w=800 800w, https://images.unsplash.com/photo-1643699302640-e8dd689194f4?auto=format&amp;fit=crop&amp;q=72&amp;w=1400 1400w, https://images.unsplash.com/photo-1643699302640-e8dd689194f4?auto=format&amp;fit=crop&amp;q=72&amp;w=2000 2000w" sizes="100vw" alt="" fetchpriority="high"><div class="pared-manchas"></div><div class="pared-tiras"></div><div class="pared-luz"></div><div class="rodillo"><svg viewBox="0 0 152 130" aria-hidden="true" focusable="false"><rect x="6" y="6" width="132" height="34" rx="15" fill="#FBFAF6" stroke="#CFC8B8" stroke-width="2"/><path d="M22 13h100M16 20h112M14 27h116M16 34h112" stroke="#E4DED0" stroke-width="2" stroke-linecap="round"/><path d="M138 23h4c4 0 6 2 6 6v24c0 4-2 6-6 6H104c-5 0-8 3-8 8v9" fill="none" stroke="#6B7383" stroke-width="5" stroke-linecap="round"/><rect x="85" y="74" width="22" height="52" rx="11" fill="#10182C"/><rect x="94" y="82" width="4" height="34" rx="2" fill="#B7860F" opacity=".9"/></svg></div></div>
+    <div class="hero-bg hero-bg-salon" aria-hidden="true"><img class="salon-foto" src="https://images.unsplash.com/photo-1762529716272-b316f61502e7?auto=format&amp;fit=crop&amp;q=72&amp;w=1400" srcset="https://images.unsplash.com/photo-1762529716272-b316f61502e7?auto=format&amp;fit=crop&amp;q=72&amp;w=800 800w, https://images.unsplash.com/photo-1762529716272-b316f61502e7?auto=format&amp;fit=crop&amp;q=72&amp;w=1400 1400w, https://images.unsplash.com/photo-1762529716272-b316f61502e7?auto=format&amp;fit=crop&amp;q=72&amp;w=2000 2000w" sizes="100vw" alt=""><div class="salon-velo"></div></div>
     <div class="hero-grid">
       <div>
         <div class="eyebrow">&#128396;&#65039; Sevilla &middot; Pintores verificados para tu piso</div>
@@ -802,7 +843,7 @@ section[id],div[id]{scroll-margin-top:90px}
   </div>
 </footer>
 
-<script async src="https://www.googletagmanager.com/gtag/js?id=AW-401-649-4560"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -1154,6 +1195,55 @@ section[id],div[id]{scroll-margin-top:90px}
   })();
 </script>
 
-<script src="/oy-contacto.js?v=1" data-oficio="Pintor" data-valor="80" data-gremio="pintor" defer></script>
+
+<div class="prueba-sel" role="group" aria-label="Fondo de prueba"><span>Prueba</span><button type="button" data-f="pared">Pared</button><button type="button" data-f="salon">Sal&oacute;n</button><button type="button" data-f="actual">Actual</button><button type="button" data-repetir aria-label="Repetir la animaci&oacute;n">&#8635;</button></div>
+<script>
+(function(){
+  window.enviarSolicitud=function(){var b=document.querySelector('.btn-result-cta');if(!b)return;var p=b.parentNode.querySelector('.prueba-aviso');if(!p){p=document.createElement('p');p.className='prueba-aviso';p.setAttribute('role','status');p.textContent='Esto es una prueba: la solicitud no se ha enviado.';b.insertAdjacentElement('afterend',p);}};
+  var B=document.body,hero=document.querySelector('.hero'),grid=hero&&hero.querySelector('.hero-grid'),col=grid&&grid.firstElementChild;
+  var bgP=document.querySelector('.hero-bg-pared');if(!hero||!bgP)return;
+  var antes=bgP.querySelector('.pared-antes'),tiras=bgP.querySelector('.pared-tiras'),rod=bgP.querySelector('.rodillo');
+  var btns=[].slice.call(document.querySelectorAll('.prueba-sel [data-f]')),rep=document.querySelector('.prueba-sel [data-repetir]');
+  var reduce=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
+  var anims=[],lastW=window.innerWidth;
+  function modo(){return B.classList.contains('fondo-salon')?'salon':B.classList.contains('fondo-actual')?'actual':'pared';}
+  function medir(){if(!col)return;var hr=hero.getBoundingClientRect(),cr=col.getBoundingClientRect();var h=window.innerWidth<=900?Math.round(cr.bottom-hr.top+34):Math.round(hr.height);hero.style.setProperty('--bg-h',h+'px');}
+  function parar(){anims.forEach(function(a){try{a.cancel()}catch(e){}});anims=[];}
+  function pintar(){
+    parar();tiras.innerHTML='';
+    var W=bgP.clientWidth,H=bgP.clientHeight;if(!W||!H)return;
+    var n=Math.max(4,Math.min(10,Math.round(W/115))),sw=W/n,T=Math.min(950,Math.max(520,4400/n)),st=T*0.86,d0=350;
+    var src=antes.currentSrc||antes.src,rw=Math.round(sw*152/132),rh=rw*130/152;
+    rod.style.setProperty('--rod-w',rw+'px');
+    function pos(x,y){return 'translate('+(x-0.4737*rw).toFixed(1)+'px,'+(y-0.1769*rh).toFixed(1)+'px)';}
+    var tot=d0+n*T+700,kf=[];function at(t){return Math.min(1,Math.max(0,t/tot));}
+    kf.push({offset:0,transform:pos(sw/2,0),opacity:0});
+    kf.push({offset:at(d0),transform:pos(sw/2,0),opacity:1,easing:'ease-in-out'});
+    var yEnd=0;
+    for(var i=0;i<n;i++){
+      var baja=i%2===0,y0=baja?0:H,y1=baja?H:0,x=i*sw+sw/2,s=d0+i*T;yEnd=y1;
+      var t=document.createElement('div');t.className='tira'+(baja?'':' sube');t.style.left=(i*sw).toFixed(1)+'px';t.style.width=(Math.ceil(sw)+1)+'px';
+      var im=document.createElement('img');im.alt='';im.src=src;im.style.left=(-i*sw).toFixed(1)+'px';im.style.width=W+'px';
+      var g=document.createElement('i');t.appendChild(im);t.appendChild(g);tiras.appendChild(t);
+      if(reduce||!t.animate){t.style.clipPath='inset(0 0 0 0)';continue;}
+      anims.push(t.animate([{clipPath:baja?'inset(0 0 100% 0)':'inset(100% 0 0 0)'},{clipPath:'inset(0 0 0 0)'}],{delay:s,duration:st,easing:'ease-in-out',fill:'both'}));
+      anims.push(g.animate([{opacity:0},{opacity:.9,offset:.25},{opacity:0}],{delay:s,duration:T*2.4,fill:'both'}));
+      if(i>0)kf.push({offset:at(s),transform:pos(x,y0),opacity:1,easing:'ease-in-out'});
+      kf.push({offset:at(s+st),transform:pos(x,y1),opacity:1,easing:'ease-in-out'});
+    }
+    if(reduce||!rod.animate){rod.style.opacity=0;return;}
+    kf.push({offset:1,transform:pos(W+rw,yEnd),opacity:0});
+    anims.push(rod.animate(kf,{duration:tot,fill:'both'}));
+  }
+  function arrancar(){medir();if(modo()!=='pared')return;if(antes.complete&&antes.naturalWidth)pintar();else antes.addEventListener('load',function(){if(modo()==='pared')pintar();},{once:true});}
+  function poner(f){B.classList.remove('fondo-pared','fondo-salon','fondo-actual');B.classList.add('fondo-'+f);btns.forEach(function(b){b.setAttribute('aria-pressed',String(b.getAttribute('data-f')===f));});if(rep)rep.hidden=f!=='pared';parar();arrancar();try{history.replaceState(null,'',location.pathname+'?fondo='+f+location.hash);}catch(e){}}
+  btns.forEach(function(b){b.addEventListener('click',function(){poner(b.getAttribute('data-f'));});});
+  if(rep)rep.addEventListener('click',function(){medir();pintar();});
+  var to;window.addEventListener('resize',function(){if(Math.abs(window.innerWidth-lastW)<2)return;lastW=window.innerWidth;clearTimeout(to);to=setTimeout(function(){medir();if(modo()==='pared')pintar();},200);});
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(function(){medir();});
+  btns.forEach(function(b){b.setAttribute('aria-pressed',String(b.getAttribute('data-f')===modo()));});if(rep)rep.hidden=modo()!=='pared';
+  arrancar();
+})();
+</script>
 </body>
 </html>
