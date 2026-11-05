@@ -313,6 +313,48 @@
     if (inicio) fl.insertBefore(a, inicio); else fl.appendChild(a);
   }
 
+  /* ---------- TEST A/B/C «fondo del hero» (fondo_hero_v1) ----------
+     A = cabecera de siempre · B = pared que pinta un rodillo · C = salón de fondo.
+     La versión se elige aquí, antes de pintar la página (sin parpadeo), y
+     /oy-ab-fondo.js monta el fondo, marca visitas y leads, y lo deshace si la
+     página no es una landing de pintura con calculadora.
+     Reparto 1/3 por visitante (localStorage); forzar con ?ab=a, ?ab=b o ?ab=c. */
+  try {
+    (function () {
+      var ruta = location.pathname || "";
+      if (!/pint|gotele|alisar|moho|humedad|fachada/i.test(ruta) || /(admin|captacion|panel)/i.test(ruta)) return;
+      var TEST = "fondo_hero_v1", CLAVE = "oy_ab_" + TEST, v = "";
+      try { v = (new URLSearchParams(location.search).get("ab") || "").toUpperCase(); } catch (e) {}
+      if (v === "A" || v === "B" || v === "C") {
+        try { localStorage.setItem(CLAVE, v); } catch (e) {}
+      } else {
+        try { v = localStorage.getItem(CLAVE) || ""; } catch (e) { v = ""; }
+        if (v !== "A" && v !== "B" && v !== "C") {
+          var r = Math.random();
+          v = r < 1 / 3 ? "A" : r < 2 / 3 ? "B" : "C";
+          try { localStorage.setItem(CLAVE, v); } catch (e) {}
+        }
+      }
+      window.OY_FONDO = { test: TEST, variante: v };
+      var raiz = document.documentElement, cab = document.head || raiz;
+      raiz.classList.add("ab-fondo-" + v.toLowerCase());
+      if (v !== "A") {
+        var st = document.createElement("style");
+        st.id = "oy-ab-fondo-css";
+        st.textContent = "html.ab-fondo-b,html.ab-fondo-c,.ab-fondo-b body,.ab-fondo-c body{overflow-x:clip}\n.ab-fondo-b .hero,.ab-fondo-c .hero{position:relative;isolation:isolate}\n.ab-fondo-b .hero-foto,.ab-fondo-c .hero-foto{display:none}\n.ab-fondo-b .hero::before,.ab-fondo-c .hero::before{content:\"\";position:absolute;top:0;left:50%;width:100vw;margin-left:-50vw;height:var(--bg-h,560px);z-index:-2;background:#DCD5C6}\n.ab-fondo-c .hero::before{background:#1B2335}\n@media(min-width:901px){.ab-fondo-b .hero::before,.ab-fondo-c .hero::before{height:var(--bg-h,100%)}}\n.hero-bg{position:absolute;top:0;left:50%;width:100vw;margin-left:-50vw;height:var(--bg-h,100%);z-index:-1;overflow:hidden;pointer-events:none}\n.hero-bg img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;max-width:none}\n.pared-antes{filter:sepia(.7) saturate(.75) brightness(.72) contrast(.88)}\n.pared-manchas{position:absolute;inset:0;mix-blend-mode:multiply;background:radial-gradient(ellipse 30% 22% at 16% 82%,rgba(122,94,48,.34),transparent 70%),radial-gradient(ellipse 22% 16% at 74% 88%,rgba(98,84,58,.28),transparent 70%),radial-gradient(ellipse 18% 12% at 88% 18%,rgba(120,98,60,.2),transparent 70%),radial-gradient(ellipse 14% 10% at 40% 30%,rgba(120,100,70,.14),transparent 70%),linear-gradient(to top,rgba(104,88,58,.3),transparent 34%)}\n.pared-tiras{position:absolute;inset:0}\n.tira{position:absolute;height:0;overflow:hidden}\n.tira.baja{top:0}\n.tira.sube{bottom:0}\n.tira img{filter:brightness(1.05) saturate(.95)}\n.tira.sube img{top:auto;bottom:0}\n.tira i{position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.38),rgba(255,255,255,.1));opacity:0}\n.pared-luz{position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.04) 0%,rgba(255,255,255,.16) 58%,rgba(255,255,255,.78) 90%,#fff 100%)}\n@media(min-width:901px){.pared-luz{background:linear-gradient(90deg,rgba(255,255,255,.55) 0%,rgba(255,255,255,.2) 50%,rgba(255,255,255,0) 100%)}}\n.rodillo{position:absolute;left:0;top:0;width:var(--rod-w,110px);opacity:0;filter:drop-shadow(0 8px 12px rgba(16,24,44,.28));will-change:transform}\n.rodillo svg{display:block;width:100%;height:auto}\n.ab-fondo-b .hero h1,.ab-fondo-b .hero-sub{text-shadow:0 1px 16px rgba(255,255,255,.9)}\n.salon-foto{transform-origin:60% 40%;animation:oyKen 16s ease-out both}\n@keyframes oyKen{from{transform:scale(1.08)}to{transform:scale(1)}}\n.salon-velo{position:absolute;inset:0;background:linear-gradient(180deg,rgba(16,24,44,.48) 0%,rgba(16,24,44,.66) 55%,rgba(16,24,44,.82) 100%)}\n@media(min-width:901px){.salon-velo{background:linear-gradient(90deg,rgba(16,24,44,.86) 0%,rgba(16,24,44,.6) 50%,rgba(16,24,44,.22) 100%)}}\n.ab-fondo-c .hero h1{color:#fff}\n.ab-fondo-c .hero h1 em{color:#F5C96B}\n.ab-fondo-c .hero-sub{color:rgba(255,255,255,.86)}\n.ab-fondo-c .hero-sub strong{color:#fff}\n.ab-fondo-c .eyebrow{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.32);color:#fff}\n.ab-fondo-c .trust-chip{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.26);color:#fff}\n.ab-fondo-c .hero-note{color:rgba(255,255,255,.72)}\n@media(prefers-reduced-motion:reduce){.salon-foto{animation:none}}";
+        cab.appendChild(st);
+        var pc = document.createElement("link");
+        pc.rel = "preconnect";
+        pc.href = "https://images.unsplash.com";
+        cab.appendChild(pc);
+      }
+      var sc = document.createElement("script");
+      sc.src = "/oy-ab-fondo.js?v=1";
+      sc.async = false;
+      cab.appendChild(sc);
+    })();
+  } catch (e) {}
+
   /* ---------- TEST A/B formulario arriba: CERRADO el 04/11/2026 ----------
      Ganó A (la calculadora): 3 leads en 44 visitas frente a 0 en 64 con el
      formulario corto arriba (B). Ya no se carga /oy-ab.js: todas las visitas
