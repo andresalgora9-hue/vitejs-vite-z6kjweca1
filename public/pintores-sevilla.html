@@ -25,6 +25,7 @@
 <!-- ── VELOCIDAD: fuentes sin bloquear el render + menos pesos ── -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://images.pexels.com">
 <link rel="preconnect" href="https://www.googletagmanager.com">
 <link rel="dns-prefetch" href="https://www.googletagmanager.com">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Sora:wght@700;800&family=Inter:wght@400;600;700&display=swap">
@@ -331,6 +332,19 @@ section[id],div[id]{scroll-margin-top:90px}
 .hum-pie{display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;margin-top:22px;max-width:860px}
 .hum-nota{font-size:13.5px;color:var(--ink-soft);line-height:1.6;max-width:420px;margin:0}
 @media(max-width:520px){.hum-tag{font-size:11.5px;bottom:9px}.hum-tag-a{left:9px}.hum-tag-d{right:9px}}
+/* ── Fotos y opiniones (nov 2026). Fotos de banco provisionales: cambiar por fotos reales ── */
+.hero-foto{margin:0 0 18px;border-radius:16px;overflow:hidden;aspect-ratio:2/1;background:var(--bg-soft);border:1px solid var(--line);box-shadow:0 1px 2px rgba(16,24,44,.06),0 18px 36px -14px rgba(16,24,44,.28)}
+.hero-foto img,.foto-sec img{display:block;width:100%;height:100%;object-fit:cover}
+.foto-sec{margin:22px 0 6px;border-radius:16px;overflow:hidden;aspect-ratio:12/5;background:var(--bg-soft);border:1px solid var(--line);box-shadow:0 1px 2px rgba(16,24,44,.06),0 18px 36px -14px rgba(16,24,44,.28)}
+@media(max-width:640px){.trust-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:22px}.trust-chip{font-size:12px;padding:7px 9px;line-height:1.3}.foto-sec{aspect-ratio:16/9}}
+.opis{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:22px}
+@media(max-width:700px){.opis{grid-template-columns:1fr}}
+.opi{margin:0;background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 18px 16px}
+.opi-stars{color:var(--cta);font-size:16px;letter-spacing:2px;margin-bottom:8px}
+.opi blockquote{margin:0 0 12px;font-size:15px;line-height:1.55;color:var(--ink)}
+.opi figcaption{font-size:13px;color:var(--ink-soft)}
+.opi figcaption b{color:var(--ink)}
+.opi-tag{display:inline-block;margin-left:4px;font-size:11.5px;font-weight:700;color:var(--gold-deep);background:var(--gold-soft);border-radius:6px;padding:2px 7px}
 </style>
 </head>
 <body>
@@ -351,10 +365,11 @@ section[id],div[id]{scroll-margin-top:90px}
         <div class="eyebrow">&#128396;&#65039; Sevilla &middot; Pintores verificados para tu piso</div>
         <h1><em>Pintores en Sevilla</em> para tu piso, con el precio antes de llamar</h1>
         <p class="hero-sub">Calcula en 20 segundos lo que cuesta pintar tu casa y <strong>compara pintores verificados</strong> de tu barrio de Sevilla. Sin registro para ver el precio.</p>
+        <figure class="hero-foto"><img src="https://images.pexels.com/photos/7218562/pexels-photo-7218562.jpeg?auto=compress&amp;cs=tinysrgb&amp;fm=webp&amp;fit=crop&amp;w=720&amp;h=360" srcset="https://images.pexels.com/photos/7218562/pexels-photo-7218562.jpeg?auto=compress&amp;cs=tinysrgb&amp;fm=webp&amp;fit=crop&amp;w=480&amp;h=240 480w, https://images.pexels.com/photos/7218562/pexels-photo-7218562.jpeg?auto=compress&amp;cs=tinysrgb&amp;fm=webp&amp;fit=crop&amp;w=720&amp;h=360 720w, https://images.pexels.com/photos/7218562/pexels-photo-7218562.jpeg?auto=compress&amp;cs=tinysrgb&amp;fm=webp&amp;fit=crop&amp;w=1040&amp;h=520 1040w" sizes="(min-width:900px) 520px, calc(100vw - 40px)" width="720" height="360" fetchpriority="high" decoding="async" alt="Pintor con rodillo pintando de blanco la pared de un piso"></figure>
         <div class="trust-row">
           <div class="trust-chip">&#9989; Verificados antes de entrar</div>
           <div class="trust-chip">&#128176; Precio orientativo al momento</div>
-          <div class="trust-chip">&#128248; Fotos de trabajos anteriores</div>
+          <div class="trust-chip">&#128222; Te llama un solo pintor</div>
           <div class="trust-chip">&#128737;&#65039; Sin recargos de &uacute;ltima hora</div>
         </div>
         <div class="hero-ctas">
@@ -414,7 +429,7 @@ section[id],div[id]{scroll-margin-top:90px}
   <div class="stats-inner">
     <div class="stat"><div class="stat-ic">&#9989;</div><div class="stat-l">Todos verificados</div></div>
     <div class="stat"><div class="stat-ic">&#11088;</div><div class="stat-l">Rese&ntilde;as reales</div></div>
-    <div class="stat"><div class="stat-ic">&#128248;</div><div class="stat-l">Fotos de trabajos anteriores</div></div>
+    <div class="stat"><div class="stat-ic">&#128222;</div><div class="stat-l">Un solo pintor te llama</div></div>
     <div class="stat"><div class="stat-ic">&#128176;</div><div class="stat-l">Precio claro antes de llamar</div></div>
   </div>
 </div>
@@ -502,6 +517,7 @@ section[id],div[id]{scroll-margin-top:90px}
     <h2 class="sec-h2">Buscas pintores en Sevilla. Nosotros ya los hemos filtrado.</h2>
     <p class="sec-p">OficioYa no pinta. Colaboramos con los mejores pintores de Sevilla, aut&oacute;nomos y peque&ntilde;os equipos, y antes de que ninguno reciba un trabajo lo evaluamos en tres cosas: <strong>precio, calidad y servicio</strong>. Lo que t&uacute; te ahorras es la parte fea: llamar a seis, comparar presupuestos que no miden lo mismo y confiar en una rese&ntilde;a de internet. Y esa evaluaci&oacute;n <strong>no te cuesta nada</strong>.</p>
 
+    <figure class="foto-sec"><img src="https://images.unsplash.com/photo-1554995207-c18c203602cb?auto=format&amp;fit=crop&amp;q=70&amp;w=720&amp;h=300" srcset="https://images.unsplash.com/photo-1554995207-c18c203602cb?auto=format&amp;fit=crop&amp;q=70&amp;w=720&amp;h=300 720w, https://images.unsplash.com/photo-1554995207-c18c203602cb?auto=format&amp;fit=crop&amp;q=70&amp;w=1200&amp;h=500 1200w" sizes="(min-width:1120px) 1060px, calc(100vw - 40px)" width="1200" height="500" loading="lazy" decoding="async" alt="Sal&oacute;n luminoso con las paredes pintadas en blanco y verde"></figure>
     <div class="features" style="margin-top:26px">
       <div class="feat"><div class="feat-icon">&#128176;</div><h3>Precio</h3><p>Contrastamos sus presupuestos con el precio real de mercado en Sevilla. Fuera quien da una cifra por tel&eacute;fono y la sube al ver las paredes.</p></div>
       <div class="feat"><div class="feat-icon">&#127912;</div><h3>Calidad</h3><p>Revisamos fotos de trabajos terminados y el acabado real: cortes limpios, sin marcas de rodillo, sin chorretones en los marcos.</p></div>
@@ -545,6 +561,16 @@ section[id],div[id]{scroll-margin-top:90px}
     <div class="sec-cta">
       <p>Dinos qu&eacute; necesitas pintar y te decimos el rango de precio al momento. Despu&eacute;s te llamamos nosotros.</p>
       <button type="button" onclick="irAPresupuesto()">Ver mi precio orientativo &rarr;</button>
+    </div>
+  </section>
+
+  <section class="section" id="opiniones" style="padding-top:0">
+    <p class="sec-label">Opiniones</p>
+    <h2 class="sec-h2">Lo que dicen quienes ya han contratado con OficioYa</h2>
+    <p class="sec-p">Rese&ntilde;as reales de clientes que contrataron a un profesional a trav&eacute;s de OficioYa, tal y como las escribieron.</p>
+    <div class="opis">
+      <figure class="opi"><div class="opi-stars" role="img" aria-label="5 de 5 estrellas">&#9733;&#9733;&#9733;&#9733;&#9733;</div><blockquote>&ldquo;Excelente profesional, r&aacute;pido, eficaz, y de un trato muy agradable, adem&aacute;s de econ&oacute;mico. Me ha arreglado el pulsador de la cisterna por 20 euros. Gracias &#128522;&rdquo;</blockquote><figcaption><b>Nuria</b> <span class="opi-tag">Fontaner&iacute;a</span> &middot; julio 2026</figcaption></figure>
+      <figure class="opi"><div class="opi-stars" role="img" aria-label="5 de 5 estrellas">&#9733;&#9733;&#9733;&#9733;&#9733;</div><blockquote>&ldquo;Todos perfecto, puntual en su trabajo y muy recomendable.&rdquo;</blockquote><figcaption><b>Samuele</b> <span class="opi-tag">Electricidad</span> &middot; julio 2026</figcaption></figure>
     </div>
   </section>
 
@@ -683,13 +709,14 @@ section[id],div[id]{scroll-margin-top:90px}
   <section class="section" id="verificacion" style="padding-top:0">
     <p class="sec-label">Por qu&eacute; OficioYa</p>
     <h2 class="sec-h2">Lo que no encuentras buscando &laquo;pintores en Sevilla&raquo; en Google</h2>
+    <figure class="foto-sec"><img src="https://images.unsplash.com/photo-1681505531034-8d67054e07f6?auto=format&amp;fit=crop&amp;q=70&amp;w=720&amp;h=300" srcset="https://images.unsplash.com/photo-1681505531034-8d67054e07f6?auto=format&amp;fit=crop&amp;q=70&amp;w=720&amp;h=300 720w, https://images.unsplash.com/photo-1681505531034-8d67054e07f6?auto=format&amp;fit=crop&amp;q=70&amp;w=1200&amp;h=500 1200w" sizes="(min-width:1120px) 1060px, calc(100vw - 40px)" width="1200" height="500" loading="lazy" decoding="async" alt="Apret&oacute;n de manos sobre un contrato"></figure>
     <div class="features">
-      <div class="feat"><div class="feat-icon">&#9989;</div><h3>Verificados antes de entrar</h3><p>Cada profesional pasa por verificaci&oacute;n y firma un acuerdo antes de aparecer en la plataforma.</p></div>
+      <div class="feat"><div class="feat-icon">&#9989;</div><h3>Verificados antes de entrar</h3><p>Comprobamos su alta de aut&oacute;nomo y firma un contrato con OficioYa antes de recibir ninguna solicitud.</p></div>
       <div class="feat"><div class="feat-icon">&#11088;</div><h3>Solo rese&ntilde;as de clientes reales</h3><p>&Uacute;nicamente opinan vecinos que han contratado el servicio. Sin rese&ntilde;as compradas.</p></div>
-      <div class="feat"><div class="feat-icon">&#128248;</div><h3>Fotos de trabajos anteriores</h3><p>El profesional sube fotos reales de sus trabajos. Ves el resultado antes de contratar.</p></div>
+      <div class="feat"><div class="feat-icon">&#128222;</div><h3>Un solo pintor, no seis llamadas</h3><p>Tu solicitud va a un &uacute;nico pintor de tu zona. No repartimos tu tel&eacute;fono entre varias empresas.</p></div>
       <div class="feat"><div class="feat-icon">&#128176;</div><h3>Precio orientativo primero</h3><p>Sabes un rango antes de hablar con el profesional. Sin sorpresas al final.</p></div>
-      <div class="feat"><div class="feat-icon">&#9889;</div><h3>Disponibilidad real</h3><p>Sabes si el profesional puede empezar cuando lo necesitas, sin llamar y esperar respuesta.</p></div>
-      <div class="feat"><div class="feat-icon">&#128172;</div><h3>Chat directo sin intermediarios</h3><p>Hablas directamente con el profesional desde la app, sin llamadas perdidas.</p></div>
+      <div class="feat"><div class="feat-icon">&#128274;</div><h3>Tus datos, solo para tu presupuesto</h3><p>Solo los ve el pintor que atiende tu solicitud, y &uacute;nicamente para contactarte por este trabajo.</p></div>
+      <div class="feat"><div class="feat-icon">&#128172;</div><h3>Hablas directo con el pintor</h3><p>Al enviar la solicitud puedes llamarle t&uacute; al momento, sin intermediarios.</p></div>
     </div>
     <div class="sec-cta">
       <p>Todo esto empieza con el mismo paso: dinos qu&eacute; necesitas pintar.</p>
@@ -732,7 +759,7 @@ section[id],div[id]{scroll-margin-top:90px}
   <section class="section" style="padding-top:0">
     <div class="cta-box">
       <h2>Tu pintor en Sevilla, <em>sin sorpresas</em></h2>
-      <p>Pintores verificados, con fotos de trabajos reales y precio orientativo antes de llamar.</p>
+      <p>Pintores verificados y precio orientativo antes de llamar.</p>
       <a href="#presupuesto" class="cta-btn" onclick="event.preventDefault();document.getElementById('presupuesto').scrollIntoView({behavior:'smooth',block:'center'});">Ver mi precio orientativo &rarr;</a>
       <p class="cta-note">
         Gratis y sin compromiso para el cliente<br>
