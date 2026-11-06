@@ -24,7 +24,7 @@ export default function Cookies() {
       </div>
 
       <Section title="1. Responsable">
-        <P>Andrés Algora Fernández, empresario individual (nombre comercial OficioYa), NIF 77860535S, con domicilio en C/ Condes de Bustillo 5, Bajo D, 41010 Sevilla, España. Contacto: admin@algoracompound.com</P>
+        <P>Andrés Algora Marín, empresario individual (nombre comercial OficioYa), NIF 77860535S, con domicilio en C/ Condes de Bustillo 5, Bajo D, 41010 Sevilla, España. Contacto: admin@algoracompound.com</P>
         <P>Esta Política de Cookies se aplica al sitio web www.aficioya.com, a sus páginas de destino y a la aplicación web progresiva (PWA) de OficioYa.</P>
       </Section>
 

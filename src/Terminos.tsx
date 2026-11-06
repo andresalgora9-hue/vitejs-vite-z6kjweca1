@@ -13,7 +13,7 @@ export default function Terminos() {
 
       <Section title="1. Información Legal del Titular">
         <P>En cumplimiento del artículo 10 de la Ley 34/2002, de Servicios de la Sociedad de la Información y de Comercio Electrónico (LSSI-CE), se informa de los siguientes datos:</P>
-        <P>• Titular: Andrés Algora Fernández, empresario individual.</P>
+        <P>• Titular: Andrés Algora Marín, empresario individual.</P>
         <P>• NIF: 77860535S.</P>
         <P>• Domicilio: C/ Condes de Bustillo 5, Bajo D, 41010 Sevilla, España.</P>
         <P>• Correo electrónico: admin@algoracompound.com</P>

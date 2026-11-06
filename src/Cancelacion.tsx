@@ -48,7 +48,7 @@ export default function Cancelacion() {
       </Section>
 
       <Section title="8. Contacto">
-        <P>Andrés Algora Fernández (nombre comercial OficioYa), NIF 77860535S, C/ Condes de Bustillo 5, Bajo D, 41010 Sevilla, España. Correo: admin@algoracompound.com</P>
+        <P>Andrés Algora Marín (nombre comercial OficioYa), NIF 77860535S, C/ Condes de Bustillo 5, Bajo D, 41010 Sevilla, España. Correo: admin@algoracompound.com</P>
       </Section>
 
       <LegalFooter/>

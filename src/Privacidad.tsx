@@ -12,7 +12,7 @@ export default function Privacidad() {
       <p style={{ color:C.muted, fontSize:13, marginBottom:40 }}>Versión {PRIVACIDAD_VERSION} · {PRIVACIDAD_FECHA}</p>
 
       <Section title="1. Responsable del Tratamiento">
-        <P>• Titular: Andrés Algora Fernández, empresario individual (nombre comercial OficioYa).</P>
+        <P>• Titular: Andrés Algora Marín, empresario individual (nombre comercial OficioYa).</P>
         <P>• NIF: 77860535S.</P>
         <P>• Domicilio: C/ Condes de Bustillo 5, Bajo D, 41010 Sevilla, España.</P>
         <P>• Contacto en materia de protección de datos: admin@algoracompound.com</P>
