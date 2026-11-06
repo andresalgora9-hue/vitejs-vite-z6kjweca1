@@ -1,0 +1,1210 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<!-- ── CONSENTIMIENTO Y COOKIES (igual que las landings) ── -->
+<script src="/oy-consent.js"></script>
+<script>document.documentElement.classList.add('js');</script>
+<title>OficioYa · Pintores y fontaneros de confianza, sin sorteos</title>
+<meta name="description" content="Pide presupuesto de pintura o fontanería gratis. Te asignamos un profesional comprobado de tu zona y hablas directamente con él.">
+<!-- FASE DE PRUEBA: no indexar /inicio hasta que pase a ser la portada -->
+<meta name="robots" content="noindex, follow">
+<link rel="canonical" href="https://www.aficioya.com/inicio">
+<meta name="theme-color" content="#0F1117">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<meta property="og:title" content="OficioYa · Un buen profesional no debería ser una lotería">
+<meta property="og:description" content="Pintura y fontanería con profesionales comprobados de tu zona. Presupuesto gratis y sin compromiso.">
+<meta property="og:url" content="https://www.aficioya.com/inicio">
+<meta property="og:image" content="https://www.aficioya.com/icon-512.png">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://images.pexels.com">
+<link rel="preconnect" href="https://rjwojxwrsbvwwshwwpvq.supabase.co">
+<link rel="preconnect" href="https://www.googletagmanager.com">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400..900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400..900&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400..900&display=swap"></noscript>
+<link rel="preload" as="image" href="https://images.pexels.com/photos/5799140/pexels-photo-5799140.jpeg?auto=compress&cs=tinysrgb&w=1300" fetchpriority="high">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "name": "OficioYa",
+  "url": "https://www.aficioya.com",
+  "logo": "https://www.aficioya.com/icon-512.png",
+  "image": "https://www.aficioya.com/icon-512.png",
+  "telephone": "+34656398014",
+  "description": "Pintores y fontaneros comprobados. Te asignamos un profesional de tu zona y hablas directamente con él.",
+  "address": {"@type": "PostalAddress", "addressLocality": "Sevilla", "addressRegion": "Andalucía", "addressCountry": "ES"},
+  "areaServed": [{"@type": "City", "name": "Sevilla"}, {"@type": "City", "name": "Málaga"}, {"@type": "City", "name": "Valencia"}],
+  "priceRange": "€-€€"
+}
+</script>
+<style>
+:root{
+  --bg:#0F1117;--ink:#F2F5FA;--ink2:#B4BCCB;--ink3:#96A0B3;--soft:#C9D1DF;
+  --gold:#FFD700;--gold2:#FFD200;--orange:#FF8C00;--warn:#FFC94D;--green:#00D68F;--mint:#7DF0C4;--water:#9ADBFF;
+  --glass:rgba(255,255,255,.055);--line:rgba(255,255,255,.11);
+  --btn:linear-gradient(135deg,#FFFFFF 0%,#F0E6C0 45%,#FFD700 100%);
+  --grad:linear-gradient(135deg,#FFD700,#FF8C00);
+  --spring:cubic-bezier(.34,1.56,.64,1);
+  --blur:blur(22px) saturate(160%);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:#E8EDF5;font-family:'DM Sans',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit}
+img{display:block;max-width:100%}
+button,input{font:inherit;color:inherit}
+button{-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.wrap{max-width:1200px;margin:0 auto;padding:0 32px}
+.sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.glass{background:var(--glass);border:1px solid var(--line);box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 40px 80px -40px rgba(0,0,0,.9);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
+.dark{background:rgba(14,16,23,.72);border:1px solid rgba(255,255,255,.13);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 40px 90px -36px rgba(0,0,0,.95),0 12px 28px -16px rgba(0,0,0,.7);-webkit-backdrop-filter:blur(26px) saturate(150%);backdrop-filter:blur(26px) saturate(150%)}
+
+/* ── FONDO QUE CAMBIA CON EL SCROLL ── */
+.bg{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none;background:radial-gradient(1100px 700px at 88% -12%,rgba(255,184,0,.14),rgba(255,184,0,0) 62%),linear-gradient(180deg,#11131A 0%,#0D0F15 55%,#0A0B10 100%)}
+.bg-glow{position:absolute;top:-20vh;right:-16vw;width:72vw;height:72vw;max-width:1100px;max-height:1100px;border-radius:50%;background:radial-gradient(circle,rgba(255,200,0,.30),rgba(255,140,0,.12) 40%,rgba(255,140,0,0) 68%);will-change:transform}
+.band{position:absolute;left:-12%;width:124%;transform:rotate(-8deg)}
+.band1{top:14%;height:34vh}
+.band2{top:54%;height:20vh}
+.paint{position:absolute;inset:0;transform-origin:0 50%;transform:scaleX(0);will-change:transform;opacity:.24}
+.band1 .paint{border-radius:0 80px 80px 0;background:repeating-linear-gradient(90deg,rgba(255,255,255,.14) 0 2px,rgba(255,255,255,0) 2px 9px),linear-gradient(90deg,#FF8C00 0%,#FFB800 45%,#FFD700 100%)}
+.band2 .paint{border-radius:0 60px 60px 0;opacity:.12;background:linear-gradient(90deg,#FFE7A3,#FFD700 60%,#FFB800)}
+.roller{position:absolute;top:-3vh;bottom:-3vh;left:0;width:26px;margin-left:-13px;border-radius:13px;background:linear-gradient(90deg,#E9E2D3,#fff 40%,#D4CCBC);box-shadow:0 24px 50px -12px rgba(0,0,0,.7);opacity:0;transition:opacity .35s}
+.band2 .roller{top:-2vh;bottom:-2vh;width:20px;margin-left:-10px;border-radius:10px}
+.pipe{position:absolute;inset:0;width:100%;height:100%}
+.pipe path{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.pipe .p0{stroke:rgba(255,255,255,.05);stroke-width:24}
+.pipe .p1{stroke:#FFB800;stroke-width:10}
+.pipe .p2{stroke:rgba(255,255,255,.55);stroke-width:3;transform:translate(-3px,-4px)}
+.pipe circle{fill:#FF9F0A;stroke:#FFD700;stroke-width:3;opacity:0;transition:opacity .3s}
+.pipe rect{fill:#FFD700;opacity:0;transition:opacity .3s}
+.pipe ellipse{fill:#9ADBFF;opacity:0}
+.orb{position:absolute;will-change:transform}
+.orb i{display:block;width:100%;height:100%;border:1px solid rgba(255,255,255,.13);background:radial-gradient(circle at 30% 25%,rgba(255,255,255,.16),rgba(255,255,255,.02) 60%);box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 40px 80px -40px rgba(0,0,0,.9);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);animation:bob 5.2s ease-in-out infinite alternate}
+.o1{left:1%;top:68%;width:180px;height:180px}.o1 i{border-radius:50%}
+.o2{right:9%;top:34%;width:128px;height:128px}.o2 i{border-radius:40px;animation-duration:6.4s;background:radial-gradient(circle at 30% 25%,rgba(255,230,150,.22),rgba(255,255,255,.02) 65%)}
+.o3{left:44%;top:10%;width:72px;height:72px}.o3 i{border-radius:50%;animation-duration:4.6s}
+@keyframes bob{from{transform:translateY(-12px)}to{transform:translateY(14px)}}
+.sun{position:absolute;left:50%;bottom:-60vh;width:150vw;height:115vh;border-radius:50%;background:radial-gradient(closest-side,rgba(255,215,0,.55),rgba(255,140,0,.26) 45%,rgba(255,140,0,0));transform:translate3d(-50%,60%,0) scale(.7);opacity:0;will-change:transform,opacity}
+
+/* ── CABECERA ── */
+.nav{position:sticky;top:12px;z-index:50;padding:0 24px}
+.nav-in{max-width:1200px;margin:12px auto 0;height:62px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 10px 0 16px;border-radius:20px;background:rgba(15,17,23,.62);border:1px solid rgba(255,255,255,.10);box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 20px 40px -24px rgba(0,0,0,.85);-webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%)}
+.logo{display:flex;align-items:center;gap:9px;text-decoration:none;color:#E8EDF5;flex:0 0 auto}
+.logo-ic{width:30px;height:30px;border-radius:8px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 6px 16px -6px rgba(255,160,0,.75),inset 0 1px 0 rgba(255,255,255,.45)}
+.logo-tx{font-weight:900;font-size:19px;letter-spacing:-.02em}
+.logo-tx b{color:var(--gold);font-weight:900}
+.logo-es{font-size:9px;font-weight:800;letter-spacing:.08em;color:var(--gold);background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.2);padding:3px 6px;border-radius:4px}
+.nav-links{display:flex;gap:2px}
+.nav-links a{padding:10px 14px;border-radius:12px;color:var(--soft);text-decoration:none;font-size:14px;font-weight:600}
+.nav-links a:hover{background:rgba(255,255,255,.06);color:#fff}
+.nav-r{display:flex;align-items:center;gap:6px}
+.nav-entrar{padding:10px 12px;color:#AEB6C6;text-decoration:none;font-size:14px;font-weight:600;white-space:nowrap}
+.nav-entrar:hover{color:#fff}
+.btn-s{height:44px;padding:0 16px;border:none;border-radius:14px;background:var(--btn);color:#1A1200;font-size:14px;font-weight:800;cursor:pointer;white-space:nowrap;box-shadow:0 10px 24px -12px rgba(255,200,0,.8)}
+
+/* ── HERO ── */
+.hero{display:grid;grid-template-columns:minmax(0,.86fr) minmax(0,1.14fr);gap:40px;align-items:center;padding-top:56px;padding-bottom:40px}
+.pill{display:inline-flex;align-items:center;gap:9px;margin:0;padding:7px 13px 7px 11px;border-radius:999px;background:rgba(0,214,143,.08);border:1px solid rgba(0,214,143,.3);color:var(--mint);font-size:12.5px;font-weight:700}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex:0 0 auto;animation:pulse 2.4s ease-out infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(0,214,143,.45)}70%{box-shadow:0 0 0 9px rgba(0,214,143,0)}100%{box-shadow:0 0 0 0 rgba(0,214,143,0)}}
+h1{margin:22px 0 0;font-size:clamp(38px,4.8vw,66px);line-height:1.02;letter-spacing:-.04em;font-weight:900;color:var(--ink)}
+h1 span{display:block;color:var(--gold2);text-shadow:0 0 46px rgba(255,170,0,.35)}
+.sub{margin:22px 0 0;max-width:540px;font-size:clamp(17px,1.4vw,20px);line-height:1.55;color:var(--ink2)}
+.tchips{display:flex;flex-wrap:wrap;gap:10px;margin:26px 0 0;padding:0;list-style:none}
+.tchips li{display:flex;align-items:center;gap:8px;padding:10px 13px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);font-size:13.5px;font-weight:600;color:#D5DBE6}
+.tchips svg{flex:0 0 auto}
+
+.hv{position:relative;min-height:700px}
+.photo{position:absolute;top:0;right:0;left:0;height:600px;border-radius:36px;overflow:hidden;background:#1A1D26;box-shadow:0 60px 120px -50px rgba(0,0,0,.9),0 0 0 1px rgba(255,255,255,.10);will-change:transform}
+.photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity .7s ease}
+.photo .imgP{object-position:85% 30%}
+.photo .imgF{opacity:0;object-position:55% 40%}
+.is-f .photo .imgP{opacity:0}
+.is-f .photo .imgF{opacity:1}
+.photo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,11,16,0) 45%,rgba(10,11,16,.55))}
+.fl{position:absolute;z-index:2;will-change:transform}
+.fchip{display:flex;align-items:center;gap:10px;padding:10px 14px 10px 10px;border-radius:18px;background:rgba(14,16,23,.64);border:1px solid rgba(255,255,255,.14);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 24px 50px -20px rgba(0,0,0,.85);-webkit-backdrop-filter:blur(18px) saturate(150%);backdrop-filter:blur(18px) saturate(150%);animation:bob 5s ease-in-out infinite alternate}
+.fchip small{display:block;font-size:11px;color:#A9B1C2;font-weight:600}
+.fchip b{display:block;font-size:15px;font-weight:800;color:var(--ink)}
+.fic{width:38px;height:38px;flex:0 0 38px;border-radius:12px;background:var(--grad);color:#1A1200;display:flex;align-items:center;justify-content:center}
+.fa{top:18px;left:-24px}
+.fb{top:470px;right:-22px}
+.fb .fchip{display:block;padding:14px 16px;min-width:196px;animation-direction:alternate-reverse}
+.fb small{font-size:11px;font-weight:800;letter-spacing:.08em;color:var(--warn)}
+.fb strong{display:block;margin-top:4px;font-size:22px;font-weight:900;color:var(--ink);letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.fb span{display:block;margin-top:2px;font-size:12px;color:#A9B1C2}
+
+/* ── FORMULARIO ── */
+.card{position:relative;z-index:3;width:420px;max-width:100%;margin-top:170px;border-radius:28px;padding:24px;scroll-margin-top:96px}
+.prueba{display:none;margin:0 0 12px;padding:8px 12px;border-radius:12px;background:rgba(154,219,255,.1);border:1px solid rgba(154,219,255,.35);color:#BFE7FF;font-size:12.5px;font-weight:700}
+.is-prueba .prueba{display:block}
+.ft{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.ft h2{margin:0;font-size:20px;font-weight:800;letter-spacing:-.01em;color:var(--ink)}
+.tag-ok{font-size:11px;font-weight:800;color:var(--mint);padding:4px 9px;border-radius:999px;background:rgba(0,214,143,.1);border:1px solid rgba(0,214,143,.3);white-space:nowrap}
+.lbl{margin:18px 0 10px;font-size:11px;font-weight:800;letter-spacing:.12em;color:#A9B1C2;text-transform:uppercase}
+.lbl-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px 10px;margin:18px 0 10px}
+.lbl-row .lbl{margin:0}
+.where{font-size:12px;font-weight:600;color:var(--ink3)}
+.tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.tile{display:flex;flex-direction:column;align-items:flex-start;gap:10px;min-height:104px;padding:14px;text-align:left;cursor:pointer;color:var(--ink);border-radius:16px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.12);box-shadow:inset 0 1px 0 rgba(255,255,255,.06);transition:all .55s var(--spring)}
+.tile .ic{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.07);color:var(--gold);transition:all .55s var(--spring)}
+.tile b{display:block;font-size:16px;font-weight:800}
+.tile small{display:block;margin-top:2px;font-size:12px;color:#A9B1C2;font-weight:500}
+.tile[aria-pressed="true"]{border-radius:26px;background:linear-gradient(160deg,rgba(255,215,0,.2),rgba(255,140,0,.08));border-color:rgba(255,200,0,.62);box-shadow:0 18px 40px -18px rgba(255,160,0,.65),inset 0 1px 0 rgba(255,255,255,.14);transform:translateY(-3px)}
+.tile[aria-pressed="true"] .ic{border-radius:50%;background:var(--grad);color:#1A1200}
+.row{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-height:44px;padding:0 15px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);color:var(--soft);font-size:14px;font-weight:600;cursor:pointer;transition:all .35s var(--spring)}
+.chip:hover{border-color:rgba(255,200,0,.45)}
+.chip[aria-pressed="true"]{background:rgba(255,200,0,.16);border-color:rgba(255,200,0,.65);color:#FFE38A;font-weight:800}
+.chip.dash{border-style:dashed}
+.q{margin:14px 0 8px;font-size:13px;color:var(--soft);font-weight:600}
+.ticket{margin-top:14px;padding:14px 16px;border-radius:18px;background:linear-gradient(135deg,rgba(255,215,0,.13),rgba(255,140,0,.06));border:1px dashed rgba(255,200,0,.5);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.ticket small{display:block;font-size:11px;font-weight:800;letter-spacing:.1em;color:var(--warn)}
+.ticket strong{display:block;margin-top:2px;font-size:24px;font-weight:900;color:#fff;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.ticket p{margin:0;max-width:160px;font-size:11.5px;line-height:1.4;color:var(--ink2);text-align:right}
+.seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:5px;border-radius:16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1)}
+.seg button{min-height:44px;border:none;border-radius:12px;background:transparent;color:var(--soft);font-weight:800;font-size:13.5px;cursor:pointer;transition:all .4s var(--spring)}
+.seg button[aria-pressed="true"]{background:var(--grad);color:#1A1200;box-shadow:0 8px 18px -8px rgba(255,160,0,.8)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.fld{display:block}
+.fld span{display:block;margin-bottom:6px;font-size:12px;color:#A9B1C2;font-weight:600}
+.inp{display:block;width:100%;height:50px;padding:0 16px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);color:var(--ink);font-size:16px;outline:none;transition:border-color .2s,box-shadow .2s}
+.inp:focus{border-color:rgba(255,200,0,.7);box-shadow:0 0 0 3px rgba(255,200,0,.15)}
+.inp::placeholder{color:#7F889A}
+.inp.bad{border-color:#FF9F7A}
+.warn{margin:8px 0 0;font-size:12.5px;line-height:1.45;color:var(--warn)}
+.terms{display:flex;gap:10px;align-items:flex-start;margin-top:14px;font-size:12.5px;line-height:1.45;color:var(--ink2);cursor:pointer}
+.terms input{width:20px;height:20px;margin:0;flex:0 0 auto;accent-color:#FFD700}
+.terms a{color:#FFE38A}
+.terms.err{color:#FFAD8A}
+.msg{min-height:18px;margin:8px 0 0;font-size:13px;font-weight:600;color:#FFAD8A}
+.btn{width:100%;height:56px;margin-top:10px;border:none;border-radius:18px;background:var(--btn);color:#1A1200;font-size:16px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 18px 40px -16px rgba(255,200,0,.75),inset 0 -2px 0 rgba(0,0,0,.08);transition:transform .2s}
+.btn:active{transform:scale(.98)}
+.btn[disabled]{opacity:.7;cursor:default}
+.note{margin:10px 0 0;text-align:center;font-size:12.5px;line-height:1.45;color:var(--ink3)}
+.trampa{position:absolute!important;left:-9999px!important;width:1px;height:1px;opacity:0}
+[hidden]{display:none!important}
+.center{text-align:center;padding:20px 4px 6px}
+.big{width:74px;height:74px;margin:0 auto;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.big.ok{background:rgba(0,214,143,.14);border:1px solid rgba(0,214,143,.45);color:var(--green)}
+.big.go{background:var(--grad);color:#1A1200;animation:pulseg 2.2s ease-out infinite}
+.big.bell{border-radius:24px;background:rgba(255,200,0,.12);border:1px solid rgba(255,200,0,.45);color:var(--gold)}
+.big.ko{border-radius:24px;background:rgba(255,159,122,.12);border:1px solid rgba(255,159,122,.45);color:#FFAD8A}
+@keyframes pulseg{0%{box-shadow:0 0 0 0 rgba(255,200,0,.45)}70%{box-shadow:0 0 0 14px rgba(255,200,0,0)}100%{box-shadow:0 0 0 0 rgba(255,200,0,0)}}
+.center h3{margin:16px 0 6px;font-size:22px;font-weight:900;color:var(--ink)}
+.center p{margin:0;font-size:15px;line-height:1.5;color:var(--soft)}
+.center .btn{text-decoration:none;margin-top:18px}
+.link{margin-top:12px;min-height:44px;padding:0 16px;border-radius:12px;background:transparent;border:1px solid rgba(255,255,255,.16);color:#E8EDF5;font-size:14px;font-weight:700;cursor:pointer}
+.spin{width:66px;height:66px;margin:0 auto;border-radius:18px;background:var(--grad);color:#1A1200;display:flex;align-items:center;justify-content:center;box-shadow:0 18px 40px -14px rgba(255,160,0,.8);animation:morph 1.3s var(--spring) infinite alternate}
+@keyframes morph{from{border-radius:18px;transform:rotate(0)}to{border-radius:50%;transform:rotate(180deg)}}
+.bar{margin-top:20px;height:8px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden}
+.bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#FFD700,#FF8C00);transition:width 1.2s cubic-bezier(.4,0,.2,1)}
+
+/* ── SECCIONES ── */
+.s{padding-top:120px;padding-bottom:40px;scroll-margin-top:90px}
+.eyebrow{margin:0;font-size:12px;font-weight:800;letter-spacing:.16em;color:var(--warn)}
+.h{margin:12px 0 0;font-size:clamp(30px,3.6vw,52px);line-height:1.05;letter-spacing:-.035em;font-weight:900;color:var(--ink)}
+.lead{margin:14px 0 0;font-size:17px;line-height:1.55;color:var(--ink2)}
+.head{max-width:760px}
+.bento{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;margin-top:40px}
+.gcard{border-radius:32px;padding:14px;transition:transform .35s ease-out;scroll-margin-top:90px}
+.gimg{position:relative;height:250px;border-radius:22px;overflow:hidden;background:#1A1D26}
+.gimg img{width:100%;height:100%;object-fit:cover}
+.gbadge{position:absolute;left:14px;top:14px;display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border-radius:999px;background:rgba(14,16,23,.62);border:1px solid rgba(255,255,255,.16);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);color:var(--ink);font-size:13px;font-weight:800}
+.gbody{padding:20px 10px 8px}
+.gbody h3{margin:0;font-size:22px;font-weight:900;letter-spacing:-.02em;color:var(--ink)}
+.gbody>p{margin:6px 0 0;font-size:14px;color:var(--ink2)}
+.wall{position:relative;margin-top:16px;height:150px;border-radius:18px;overflow:hidden;background:#F2EEE6;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08),inset 0 -40px 60px -40px rgba(0,0,0,.3)}
+.coat{position:absolute;top:0;bottom:0;left:0;width:100%;background:#D9C4A2}
+.tex{position:absolute;inset:0;background:repeating-linear-gradient(90deg,rgba(0,0,0,.025) 0 2px,rgba(0,0,0,0) 2px 7px)}
+.plinth{position:absolute;left:0;right:0;bottom:0;height:14px;background:rgba(255,255,255,.6);box-shadow:0 -1px 0 rgba(0,0,0,.08)}
+.wr{position:absolute;top:10px;bottom:18px;left:100%;width:26px;margin-left:-13px;border-radius:13px;background:linear-gradient(90deg,#E9E3D6,#fff 45%,#CFC7B7);box-shadow:0 10px 20px -8px rgba(0,0,0,.5);opacity:0}
+.wn{position:absolute;right:12px;top:12px;padding:5px 11px;border-radius:99px;background:rgba(20,20,20,.6);color:#fff;font-size:12px;font-weight:700}
+.sw{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.sw button{width:44px;height:44px;padding:0;border-radius:50%;border:2px solid rgba(255,255,255,.28);box-shadow:0 6px 14px -8px rgba(0,0,0,.6);cursor:pointer;transition:all .45s var(--spring)}
+.sw button[aria-pressed="true"]{border-radius:14px;border-color:var(--gold);box-shadow:0 0 0 4px rgba(255,215,0,.22),0 10px 22px -10px rgba(0,0,0,.7)}
+.gfoot{margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,.09);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.gfoot small{display:block;font-size:12.5px;color:#A9B1C2;font-weight:600}
+.gfoot strong{display:block;font-size:20px;font-weight:900;color:var(--ink);letter-spacing:-.01em}
+.btn-g{min-height:48px;padding:0 18px;border-radius:16px;background:rgba(255,200,0,.12);border:1px solid rgba(255,200,0,.55);color:#FFE38A;font-size:14.5px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:all .4s ease}
+.btn-g.hot{background:var(--btn);border-color:transparent;color:#1A1200}
+.tank{position:relative;margin-top:16px;height:150px;border-radius:18px;overflow:hidden;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.12)}
+.water{position:absolute;left:0;right:0;bottom:0;height:45%;background:linear-gradient(180deg,rgba(130,210,255,.9),rgba(40,130,215,.95));transition:height .5s var(--spring)}
+.water::before{content:"";position:absolute;left:-10%;right:-10%;top:-9px;height:18px;border-radius:50%;background:rgba(175,228,255,.95);animation:wave 2.6s ease-in-out infinite alternate}
+@keyframes wave{from{transform:translateX(-4%)}to{transform:translateX(4%)}}
+.wl{position:absolute;left:14px;top:14px;padding:6px 12px;border-radius:99px;background:rgba(10,11,16,.66);font-size:13px;font-weight:800;color:var(--water)}
+.rlab{display:block;margin-top:14px;font-size:13px;color:var(--soft);font-weight:600}
+.range{display:block;width:100%;margin:8px 0 0;height:28px;accent-color:#FFD700;cursor:pointer}
+.rl{display:flex;justify-content:space-between;font-size:12px;color:var(--ink3)}
+.advice{max-width:300px;font-size:15px;font-weight:800;line-height:1.4;color:var(--ink)}
+
+.steps{position:relative;margin-top:48px}
+.sline{position:absolute;left:0;right:0;top:46px;height:2px;background:rgba(255,255,255,.08)}
+.sline i{display:block;height:100%;width:0;background:linear-gradient(90deg,#FFD700,#FF8C00);box-shadow:0 0 18px rgba(255,190,0,.6)}
+.steps ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;position:relative}
+.steps li{padding:22px;border-radius:26px}
+.steps li:nth-child(2){margin-top:30px}.steps li:nth-child(3){margin-top:60px}.steps li:nth-child(4){margin-top:90px}
+.num{width:50px;height:50px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:var(--gold);background:rgba(255,255,255,.05);border:1px solid rgba(255,200,0,.5);transition:all .6s var(--spring)}
+.steps li.on .num{border-radius:50%;background:var(--grad);color:#1A1200}
+.steps h3{margin:18px 0 8px;font-size:19px;font-weight:800;letter-spacing:-.01em;color:var(--ink)}
+.steps p{margin:0;font-size:14.5px;line-height:1.55;color:var(--ink2)}
+
+.trust{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:56px;align-items:center}
+.tphoto{position:relative}
+.ph{height:560px;border-radius:32px;overflow:hidden;background:#1A1D26;box-shadow:0 60px 120px -50px rgba(0,0,0,.9),0 0 0 1px rgba(255,255,255,.08)}
+.ph img{width:100%;height:100%;object-fit:cover;object-position:50% 30%}
+.review{position:absolute;right:-28px;bottom:-36px;width:360px;margin:0;padding:20px;border-radius:24px;will-change:transform}
+.stars{display:flex;gap:3px;color:var(--gold)}
+.review blockquote{margin:10px 0 0;font-size:15px;line-height:1.55;color:#E8EDF5}
+.review figcaption{margin-top:12px;font-size:13px;color:#A9B1C2;font-weight:600}
+.tlist{list-style:none;padding:0;margin:26px 0 0;display:grid;gap:12px}
+.tlist li{display:flex;gap:14px;align-items:flex-start;padding:16px;border-radius:20px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1)}
+.tlist .ic{flex:0 0 40px;width:40px;height:40px;border-radius:13px;background:var(--grad);color:#1A1200;display:flex;align-items:center;justify-content:center}
+.tlist strong{display:block;font-size:16px;color:var(--ink)}
+.tlist em{display:block;margin-top:4px;font-style:normal;font-size:14px;line-height:1.5;color:var(--ink2)}
+.stat{margin-top:28px;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.stat b{font-size:clamp(52px,6vw,76px);font-weight:900;letter-spacing:-.04em;color:var(--gold2);text-shadow:0 0 40px rgba(255,170,0,.3);font-variant-numeric:tabular-nums}
+.stat span{max-width:290px;font-size:15px;line-height:1.45;color:var(--ink2)}
+
+.cities{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:36px}
+.city{padding:22px;border-radius:26px}
+.city-h{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.city h3{margin:0;font-size:24px;font-weight:900;letter-spacing:-.02em;color:var(--ink)}
+.live{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--mint)}
+.live i{width:8px;height:8px;border-radius:50%;background:var(--green)}
+.city p{margin:10px 0 0;font-size:14.5px;font-weight:600;color:#FFE38A}
+.city.other{border:1px dashed rgba(255,200,0,.45);background:rgba(255,200,0,.04);box-shadow:none}
+.city.other p{color:var(--ink2);font-weight:500;line-height:1.5}
+.btn-c{margin-top:18px;min-height:46px;padding:0 16px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);color:var(--ink);font-size:14px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+
+.cta{position:relative;overflow:hidden;margin:120px 0 56px;border-radius:40px;padding:72px 40px;text-align:center}
+.cta::before{content:"";position:absolute;left:50%;top:100%;width:900px;height:520px;transform:translate(-50%,-52%);border-radius:50%;background:radial-gradient(closest-side,rgba(255,200,0,.32),rgba(255,200,0,0));pointer-events:none}
+.cta h2{position:relative;margin:0;font-size:clamp(34px,4.6vw,64px);font-weight:900;letter-spacing:-.04em;line-height:1.02;color:var(--ink)}
+.cta p{position:relative;margin:14px auto 0;max-width:520px;font-size:17px;line-height:1.55;color:var(--ink2)}
+.cta-b{position:relative;display:flex;justify-content:center;gap:14px;margin-top:30px;flex-wrap:wrap}
+.cta-b button{height:64px;padding:0 30px;border-radius:22px;font-size:17px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:10px;animation:breathe 2.6s var(--spring) infinite alternate}
+.cta-b .bp{border:none;background:var(--btn);color:#1A1200;box-shadow:0 20px 44px -18px rgba(255,200,0,.8)}
+.cta-b .bf{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.2);color:var(--ink);animation-delay:-1.3s}
+@keyframes breathe{from{border-radius:22px}to{border-radius:32px}}
+
+footer{border-top:1px solid rgba(255,255,255,.08)}
+.foot{display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between;padding-top:28px;padding-bottom:44px;color:var(--ink3);font-size:13px}
+.foot nav{display:flex;gap:18px;flex-wrap:wrap}
+.foot a{color:var(--ink2);text-decoration:none}
+.foot a:hover{color:#fff}
+.flogo{display:flex;align-items:center;gap:8px;color:#E8EDF5;text-decoration:none}
+.flogo i{width:24px;height:24px;border-radius:7px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:12px;font-style:normal}
+.flogo span{font-weight:900;font-size:16px;letter-spacing:-.02em}
+.flogo b{color:var(--gold)}
+
+.mbar{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:60;display:none;transform:translateY(140%);transition:transform .45s var(--spring)}
+.mbar.show{transform:none}
+.mbar button{width:100%;height:56px;border:none;border-radius:18px;background:var(--btn);color:#1A1200;font-size:16px;font-weight:800;box-shadow:0 18px 40px -12px rgba(0,0,0,.8),0 10px 30px -14px rgba(255,200,0,.7);cursor:pointer}
+
+.js .rv{opacity:0;transform:translateY(28px);transition:opacity .9s ease,transform .9s cubic-bezier(.2,.8,.2,1)}
+.js .rv.in{opacity:1;transform:none}
+
+@media (max-width:980px){
+  .nav-links{display:none}
+  .hero{grid-template-columns:minmax(0,1fr);gap:26px;padding-top:26px}
+  .hv{min-height:0}
+  .photo{position:relative;width:100%;height:320px;border-radius:28px}
+  .photo .imgP{object-position:88% 30%}
+  .card{width:100%;margin-top:-84px;padding:18px}
+  .fa{left:12px;top:14px}
+  .fb{top:132px;left:12px;right:auto}
+  .bento{grid-template-columns:minmax(0,1fr)}
+  .steps ol{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .sline{display:none}
+  .steps li:nth-child(n){margin-top:0}
+  .trust{grid-template-columns:minmax(0,1fr);gap:36px}
+  .ph{height:340px}
+  .review{position:relative;right:auto;bottom:auto;width:auto;margin:-70px 12px 0}
+  .mbar{display:block}
+}
+@media (max-width:820px){
+  .wrap{padding:0 16px}
+  .nav{padding:0 10px}
+  .logo-es{display:none}
+  .nav-entrar{padding:10px 6px}
+  .s{padding-top:72px;padding-bottom:24px}
+  .gimg{height:200px}
+  .cta{margin:72px 0 32px;padding:44px 20px}
+  .orb i{-webkit-backdrop-filter:none;backdrop-filter:none}
+  .roller{display:none}
+}
+@media (max-width:560px){
+  .steps ol{grid-template-columns:minmax(0,1fr)}
+  .two{grid-template-columns:minmax(0,1fr)}
+  .fchip b{font-size:14px}
+  .fb .fchip{min-width:0}
+  .fb strong{font-size:19px}
+  .btn-s{padding:0 12px;font-size:13.5px}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .js .rv{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+
+<div class="bg" aria-hidden="true">
+  <div class="bg-glow"></div>
+  <div class="band band1"><div class="paint"></div><div class="roller"></div></div>
+  <div class="band band2"><div class="paint"></div><div class="roller"></div></div>
+  <svg class="pipe" viewBox="0 0 1440 900" preserveAspectRatio="xMaxYMid slice">
+    <path class="p0" d="M -40 760 H 300 Q 340 760 340 720 V 470 Q 340 430 380 430 H 860 Q 900 430 900 390 V 250 Q 900 210 940 210 H 1160 Q 1200 210 1200 250 V 300"></path>
+    <path class="p1 pp" d="M -40 760 H 300 Q 340 760 340 720 V 470 Q 340 430 380 430 H 860 Q 900 430 900 390 V 250 Q 900 210 940 210 H 1160 Q 1200 210 1200 250 V 300"></path>
+    <path class="p2 pp" d="M -40 760 H 300 Q 340 760 340 720 V 470 Q 340 430 380 430 H 860 Q 900 430 900 390 V 250 Q 900 210 940 210 H 1160 Q 1200 210 1200 250 V 300"></path>
+    <circle cx="322" cy="742" r="15"></circle>
+    <circle cx="358" cy="448" r="15"></circle>
+    <circle cx="882" cy="412" r="15"></circle>
+    <circle cx="918" cy="228" r="15"></circle>
+    <circle cx="1182" cy="228" r="15"></circle>
+    <rect x="1178" y="292" width="44" height="18" rx="6"></rect>
+    <ellipse cx="1200" cy="322" rx="7" ry="10"></ellipse>
+    <ellipse cx="1200" cy="322" rx="7" ry="10"></ellipse>
+    <ellipse cx="1200" cy="322" rx="7" ry="10"></ellipse>
+    <ellipse cx="1200" cy="322" rx="7" ry="10"></ellipse>
+  </svg>
+  <div class="orb o1"><i></i></div>
+  <div class="orb o2"><i></i></div>
+  <div class="orb o3"><i></i></div>
+  <div class="sun"></div>
+</div>
+
+<header class="nav">
+  <div class="nav-in">
+    <a class="logo" href="#inicio" aria-label="OficioYa, ir arriba">
+      <span class="logo-ic" aria-hidden="true">🔨</span>
+      <span class="logo-tx">Oficio<b>Ya</b></span>
+      <span class="logo-es">ESPAÑA</span>
+    </a>
+    <nav class="nav-links" aria-label="Secciones">
+      <a href="#oficios">Pintura y fontanería</a>
+      <a href="#como">Cómo funciona</a>
+      <a href="#confianza">Confianza</a>
+      <a href="#ciudades">Ciudades</a>
+    </nav>
+    <div class="nav-r">
+      <a class="nav-entrar" id="entrar" href="/?app=1">Entrar</a>
+      <button class="btn-s" type="button" data-go="">Pedir presupuesto</button>
+    </div>
+  </div>
+</header>
+
+<main>
+<section class="wrap hero" id="inicio">
+  <div class="hero-copy rv">
+    <p class="pill"><span class="dot" aria-hidden="true"></span><span>Ahora en <span data-ciudades>Sevilla, Málaga y Valencia</span></span></p>
+    <h1>Buscar un buen profesional <span>no debería ser una lotería.</span></h1>
+    <p class="sub">Pintura y fontanería en <span data-ciudades>Sevilla, Málaga y Valencia</span>. Te asignamos un profesional comprobado de tu zona y hablas directamente con él.</p>
+    <ul class="tchips">
+      <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg>Autónomos comprobados</li>
+      <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Un profesional, no seis llamadas</li>
+      <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 6.5A7 7 0 1 0 17 17.5"/><path d="M4 10h9"/><path d="M4 14h9"/></svg>Pagas al profesional, no a nosotros</li>
+    </ul>
+  </div>
+
+  <div class="hv" id="hv">
+    <div class="photo" id="photo">
+      <img class="imgP" src="https://images.pexels.com/photos/5799140/pexels-photo-5799140.jpeg?auto=compress&cs=tinysrgb&w=1300" srcset="https://images.pexels.com/photos/5799140/pexels-photo-5799140.jpeg?auto=compress&cs=tinysrgb&w=900 900w, https://images.pexels.com/photos/5799140/pexels-photo-5799140.jpeg?auto=compress&cs=tinysrgb&w=1300 1300w, https://images.pexels.com/photos/5799140/pexels-photo-5799140.jpeg?auto=compress&cs=tinysrgb&w=1800 1800w" sizes="(max-width:980px) 100vw, 640px" width="1300" height="867" alt="Pintora sonriendo junto a una pared recién pintada de naranja" fetchpriority="high">
+      <img class="imgF" src="https://images.pexels.com/photos/31213992/pexels-photo-31213992.jpeg?auto=compress&cs=tinysrgb&w=1000" width="1000" height="667" alt="Agua cayendo del grifo en un lavabo" loading="lazy" decoding="async">
+    </div>
+    <div class="fl fa" data-par="0.10"><div class="fchip"><span class="fic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg></span><span><small>Profesional comprobado</small><b>Alta de autónomo y contrato</b></span></div></div>
+    <div class="fl fb" data-par="0.18"><div class="fchip"><small id="chipBk">PRECIO ORIENTATIVO</small><strong id="chipBv">680 € – 1.200 €</strong><span id="chipBs">Piso completo · 60–100 m²</span></div></div>
+
+    <div class="card dark" id="pedir">
+      <!-- FORMULARIO -->
+      <div class="panel" id="pForm">
+        <p class="prueba">Modo prueba: no se envía nada al CRM ni a los profesionales.</p>
+        <div class="ft"><h2>Pide presupuesto gratis</h2><span class="tag-ok">Sin compromiso</span></div>
+        <form id="form" novalidate>
+          <p class="lbl">1 · ¿Qué necesitas?</p>
+          <div class="tiles" role="group" aria-label="Oficio">
+            <button type="button" class="tile" data-trade="pintura" aria-pressed="true">
+              <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="15" height="6" rx="2"/><path d="M18 6h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-8v3"/><rect x="10" y="14" width="4" height="7" rx="1"/></svg></span>
+              <span><b>Pintura</b><small>Pisos, habitaciones y fachadas</small></span>
+            </button>
+            <button type="button" class="tile" data-trade="fontaneria" aria-pressed="false">
+              <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.7c-3.3 4.1-6 7.6-6 11a6 6 0 0 0 12 0c0-3.4-2.7-6.9-6-11z"/></svg></span>
+              <span><b>Fontanería</b><small>Fugas, atascos y cisternas</small></span>
+            </button>
+          </div>
+
+          <div class="lbl-row"><p class="lbl">2 · ¿Dónde?</p><span class="where" id="where"></span></div>
+          <div class="row" id="cityRow" role="group" aria-label="Ciudad"></div>
+          <div id="otraBox" hidden>
+            <label class="fld" style="margin-top:12px"><span>Tu ciudad</span><input class="inp" id="otraCiudad" type="text" autocomplete="address-level2" placeholder="Escribe tu ciudad" maxlength="60"></label>
+            <p class="warn" id="otraWarn">Todavía no tenemos profesionales fijos ahí. Déjanos tus datos y te avisamos en cuanto lleguemos.</p>
+          </div>
+
+          <div id="bloqueP">
+            <p class="lbl">3 · ¿Qué pintamos?</p>
+            <div class="row" id="tipoRow" role="group" aria-label="Qué pintamos"></div>
+            <p class="q" id="tamQ">¿De qué tamaño es el piso?</p>
+            <div class="row" id="tamRow" role="group" aria-label="Tamaño"></div>
+            <div class="ticket">
+              <div><small>PRECIO ORIENTATIVO</small><strong id="precio">680 € – 1.200 €</strong></div>
+              <p>El pintor confirma el precio al ver la vivienda</p>
+            </div>
+          </div>
+
+          <div id="bloqueF" hidden>
+            <p class="lbl">3 · ¿Qué pasa?</p>
+            <div class="row" id="probRow" role="group" aria-label="Qué pasa"></div>
+            <p class="q">¿Cómo de urgente es?</p>
+            <div class="seg" id="urgRow" role="group" aria-label="Urgencia"></div>
+          </div>
+
+          <p class="lbl" id="datosLbl">4 · Tus datos</p>
+          <div class="two">
+            <label class="fld"><span>Tu nombre</span><input class="inp" id="nombre" name="nombre" type="text" autocomplete="name" placeholder="Nombre" maxlength="60"></label>
+            <label class="fld"><span>Tu teléfono</span><input class="inp" id="tel" name="telefono" type="tel" inputmode="tel" autocomplete="tel" placeholder="612 345 678" maxlength="16"></label>
+          </div>
+          <input class="trampa" id="web" name="web" tabindex="-1" autocomplete="off" aria-hidden="true">
+          <label class="terms" id="termsBox"><input type="checkbox" id="terms"><span>He leído y acepto las <a href="/terminos" target="_blank" rel="noopener">Condiciones de Uso</a> y la <a href="/privacidad" target="_blank" rel="noopener">Política de Privacidad</a>.</span></label>
+          <p class="msg" id="msg" aria-live="polite"></p>
+          <button class="btn" id="enviar" type="submit"><span id="ctaTxt">Ver mi pintor asignado</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></button>
+          <p class="note" id="ctaNota">Gratis y sin compromiso. Solo usamos tus datos para tu presupuesto.</p>
+        </form>
+      </div>
+
+      <!-- ENVIANDO -->
+      <div class="panel center" id="pEnvio" hidden aria-live="polite">
+        <div class="spin"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></div>
+        <h3 id="envioT">Buscando pintor en Sevilla…</h3>
+        <p>Te asignamos el profesional de tu zona.</p>
+        <div class="bar"><i id="barra"></i></div>
+      </div>
+
+      <!-- LISTO (pintura) / LLAMADA (fontanería) / LISTA DE ESPERA / FALLO -->
+      <div class="panel center" id="pOk" hidden aria-live="polite">
+        <div class="big ok" id="okIc"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></div>
+        <h3 id="okT">¡Listo!</h3>
+        <p id="okP"></p>
+        <a class="btn" id="okBtn" href="tel:+34656398014"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg><span id="okBtnTx">Llamar ahora</span></a>
+        <button class="link" type="button" id="otraVez">Empezar otra solicitud</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="wrap s" id="oficios">
+  <div class="head rv">
+    <p class="eyebrow">PRUEBA ANTES DE PEDIR</p>
+    <h2 class="h">Pintura y fontanería, sin sorpresas.</h2>
+    <p class="lead">Toca y mueve. Así sabes lo que pides antes de pedirlo.</p>
+  </div>
+  <div class="bento">
+    <article class="gcard glass rv" id="pintura">
+      <div class="gimg">
+        <img src="https://images.pexels.com/photos/6474480/pexels-photo-6474480.jpeg?auto=compress&cs=tinysrgb&w=900" width="900" height="1350" alt="Pintor con gorra pintando una pared con rodillo" loading="lazy" decoding="async" style="object-position:30% 38%">
+        <span class="gbadge"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="15" height="6" rx="2"/><path d="M18 6h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-8v3"/><rect x="10" y="14" width="4" height="7" rx="1"/></svg>Pintura</span>
+      </div>
+      <div class="gbody">
+        <h3>Elige un color y mira cómo queda</h3>
+        <p>Toca un color: el rodillo pinta la pared.</p>
+        <div class="wall" id="wall"><div class="coat" id="coat"></div><div class="tex"></div><div class="plinth"></div><div class="wr" id="wr"></div><span class="wn" id="wn">Arena</span></div>
+        <div class="sw" id="sw" role="group" aria-label="Colores de pared"></div>
+        <div class="gfoot">
+          <div><small>Piso de 60–100 m² en Sevilla</small><strong>680 € – 1.200 €</strong></div>
+          <button class="btn-g" type="button" data-go="pintura">Calcular mi precio<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></button>
+        </div>
+      </div>
+    </article>
+
+    <article class="gcard glass rv" id="fontaneria">
+      <div class="gimg">
+        <img src="https://images.pexels.com/photos/31213992/pexels-photo-31213992.jpeg?auto=compress&cs=tinysrgb&w=1000" width="1000" height="667" alt="Agua cayendo del grifo en un lavabo" loading="lazy" decoding="async" style="object-position:55% 40%">
+        <span class="gbadge"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9ADBFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.7c-3.3 4.1-6 7.6-6 11a6 6 0 0 0 12 0c0-3.4-2.7-6.9-6-11z"/></svg>Fontanería</span>
+      </div>
+      <div class="gbody">
+        <h3>¿Cuánta agua se está saliendo?</h3>
+        <p>Mueve el nivel y te decimos qué hacer.</p>
+        <div class="tank"><div class="water" id="water"></div><span class="wl" id="wl">Sale agua</span></div>
+        <label class="rlab" for="nivel">Nivel del problema</label>
+        <input class="range" id="nivel" type="range" min="0" max="100" value="45">
+        <div class="rl"><span>Gotea</span><span>Sale agua</span><span>No para</span></div>
+        <div class="gfoot">
+          <div class="advice" id="advice">Mejor hoy. Cierra la llave de paso y pide fontanero.</div>
+          <button class="btn-g" type="button" id="aguaBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg><span id="aguaBtnTx">Ver fontanero disponible</span></button>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="wrap s" id="como">
+  <div class="head rv">
+    <p class="eyebrow">CÓMO FUNCIONA</p>
+    <h2 class="h">Un profesional comprobado, asignado al momento.</h2>
+  </div>
+  <div class="steps">
+    <div class="sline" aria-hidden="true"><i id="sline"></i></div>
+    <ol>
+      <li class="glass rv"><div class="num">1</div><h3>Nos cuentas qué necesitas</h3><p>Oficio, ciudad y lo que pasa. Desde el móvil y en menos de un minuto.</p></li>
+      <li class="glass rv"><div class="num">2</div><h3>Te asignamos un profesional</h3><p>El de tu zona, que ya ha pasado nuestra comprobación. Ves su nombre al momento.</p></li>
+      <li class="glass rv"><div class="num">3</div><h3>Hablas directamente con él</h3><p>Te llama para ver el trabajo y darte el precio. Sin intermediarios ni seis llamadas.</p></li>
+      <li class="glass rv"><div class="num">4</div><h3>Pagas al profesional, no a nosotros</h3><p>Tu dinero no pasa por OficioYa en ningún momento.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section class="wrap s trust" id="confianza">
+  <div class="tphoto rv">
+    <div class="ph"><img id="trustImg" src="https://images.pexels.com/photos/36729704/pexels-photo-36729704.jpeg?auto=compress&cs=tinysrgb&w=1100" width="1100" height="619" alt="Pareja sonriendo en su casa" loading="lazy" decoding="async"></div>
+    <figure class="review dark" id="review">
+      <div class="stars" role="img" aria-label="5 de 5 estrellas">
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg>
+      </div>
+      <blockquote>“Excelente profesional, rápido, eficaz, y de un trato muy agradable, además de económico. Me ha arreglado el pulsador de la cisterna por 20 euros.”</blockquote>
+      <figcaption>Nuria · Fontanería · julio de 2026</figcaption>
+    </figure>
+  </div>
+  <div class="rv">
+    <p class="eyebrow">CONFIANZA</p>
+    <h2 class="h">Te lo decimos claro: aquí no entra cualquiera a trabajar en tu casa.</h2>
+    <ul class="tlist">
+      <li><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg></span><span><strong>Comprobamos a cada profesional</strong><em>Su alta de autónomo y un contrato firmado con OficioYa, antes de recibir ninguna solicitud.</em></span></li>
+      <li><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span><span><strong>Un solo profesional, no seis llamadas</strong><em>Tus datos solo se usan para tu presupuesto.</em></span></li>
+      <li><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 6.5A7 7 0 1 0 17 17.5"/><path d="M4 10h9"/><path d="M4 14h9"/></svg></span><span><strong>Pagas al profesional, no a nosotros</strong><em>Tu dinero no pasa por OficioYa en ningún momento.</em></span></li>
+    </ul>
+    <div class="stat"><b id="statN">+300</b><span>hogares nos han pedido presupuesto de pintura y fontanería desde julio de 2026</span></div>
+  </div>
+</section>
+
+<section class="wrap s" id="ciudades">
+  <div class="head rv">
+    <p class="eyebrow">DÓNDE ESTAMOS</p>
+    <h2 class="h">Ahora mismo, en <span data-ciudades>Sevilla, Málaga y Valencia</span>.</h2>
+  </div>
+  <div class="cities" id="cityCards"></div>
+</section>
+
+<section class="wrap" id="final">
+  <div class="cta glass rv">
+    <h2>¿Qué arreglamos hoy?</h2>
+    <p>Te asignamos un profesional comprobado de tu zona. Gratis y sin compromiso.</p>
+    <div class="cta-b">
+      <button class="bp" type="button" data-go="pintura"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="15" height="6" rx="2"/><path d="M18 6h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-8v3"/><rect x="10" y="14" width="4" height="7" rx="1"/></svg>Pintura</button>
+      <button class="bf" type="button" data-go="fontaneria"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9ADBFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.7c-3.3 4.1-6 7.6-6 11a6 6 0 0 0 12 0c0-3.4-2.7-6.9-6-11z"/></svg>Fontanería</button>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <a class="flogo" href="#inicio" aria-label="OficioYa, ir arriba"><i aria-hidden="true">🔨</i><span>Oficio<b>Ya</b></span></a>
+    <nav aria-label="Pie de página">
+      <a href="/registro">Soy profesional</a>
+      <a href="/terminos">Condiciones de uso</a>
+      <a href="/privacidad">Privacidad</a>
+      <a href="/cookies">Cookies</a>
+    </nav>
+    <span>© 2026 OficioYa · Sevilla</span>
+  </div>
+</footer>
+
+<div class="mbar" id="mbar"><button type="button" data-go="">Pide presupuesto gratis</button></div>
+
+<script>
+(function () {
+  "use strict";
+  var SB = "https://rjwojxwrsbvwwshwwpvq.supabase.co";
+  var KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE";
+  var TEL_OY = "+34656398014";
+  var PRUEBA = /[?&]prueba=1(&|$)/.test(location.search);
+  if (PRUEBA) document.documentElement.classList.add("is-prueba");
+
+  /* Ciudades activas: se cargan de la tabla cities (active + trades_enabled). Esta lista es solo el respaldo. */
+  var CIUDADES = [
+    { slug: "sevilla", name: "Sevilla", of: ["pintura", "fontaneria"] },
+    { slug: "malaga", name: "Málaga", of: ["fontaneria"] },
+    { slug: "valencia", name: "Valencia", of: ["pintura"] }
+  ];
+  /* Rangos de la calculadora de pintores-sevilla */
+  var RANGOS = {
+    habitaciones: { p1: [100, 165], p2: [200, 420], p3: [420, 760] },
+    piso_completo: { p1: [380, 680], p2: [680, 1200], p3: [1200, 1950] },
+    fachada: { p1: [900, 1500], p2: [1500, 2600], p3: [2600, 5250] }
+  };
+  var TIPOS = [["habitaciones", "Habitaciones"], ["piso_completo", "Piso completo"], ["fachada", "Fachada"]];
+  var TAMANOS = {
+    habitaciones: ["¿Cuántas habitaciones?", [["p1", "1 habitación"], ["p2", "2-3 habitaciones"], ["p3", "4 o más"]]],
+    piso_completo: ["¿De qué tamaño es el piso?", [["p1", "Menos de 60 m²"], ["p2", "60–100 m²"], ["p3", "Más de 100 m²"]]],
+    fachada: ["¿De qué tamaño es la fachada?", [["p1", "Menos de 50 m²"], ["p2", "50–120 m²"], ["p3", "Más de 120 m²"]]]
+  };
+  var PROBLEMAS = ["Fuga de agua", "Atasco", "Cisterna", "Grifo", "Otra cosa"];
+  var URG = ["Puede esperar", "Hoy", "¡Ya!"];
+  var COLORES = [["Blanco roto", "#F2EEE6"], ["Arena", "#D9C4A2"], ["Verde salvia", "#A9B9A1"], ["Azul niebla", "#A8BCCC"], ["Terracota suave", "#D39C7E"]];
+  /* Valor del lead para Google Ads (igual que las landings) */
+  function valorLead(trade, city) { return trade === "fontaneria" ? 40 : (city === "valencia" ? 85 : 80); }
+
+  var st = { trade: "pintura", city: null, otra: false, pTipo: "piso_completo", pTam: "p2", fProb: "Fuga de agua", fUrg: 1, enviando: false };
+
+  function $(s, c) { return (c || document).querySelector(s); }
+  function $$(s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); }
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  function seg(v, a, b) { return clamp((v - a) / (b - a), 0, 1); }
+  function ease(t) { return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
+  function fmt(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
+  function sinTildes(s) { return String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim(); }
+  function slugify(s) { return sinTildes(s).replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, ""); }
+  function gt() { if (!PRUEBA && typeof window.gtag === "function") { try { window.gtag.apply(null, arguments); } catch (e) {} } }
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+  function nombresCiudades() {
+    var n = CIUDADES.map(function (c) { return c.name; });
+    return n.length > 1 ? n.slice(0, -1).join(", ") + " y " + n[n.length - 1] : (n[0] || "");
+  }
+  function ciudadesDe(trade) { return CIUDADES.filter(function (c) { return c.of.indexOf(trade) > -1; }); }
+  function ciudad(slug) { for (var i = 0; i < CIUDADES.length; i++) if (CIUDADES[i].slug === slug) return CIUDADES[i]; return null; }
+
+  /* Ciudad de partida: ?ciudad=, utm_campaign o la última que usó en la web */
+  function ciudadPreferida() {
+    var q = new URLSearchParams(location.search);
+    var cands = [q.get("ciudad"), q.get("utm_campaign"), lsGet("oy_ciudad")];
+    for (var i = 0; i < cands.length; i++) {
+      var v = slugify(cands[i]);
+      if (!v) continue;
+      for (var j = 0; j < CIUDADES.length; j++) {
+        if (v === CIUDADES[j].slug || v.indexOf(CIUDADES[j].slug) > -1) return CIUDADES[j].slug;
+      }
+    }
+    return null;
+  }
+  function asegurarCiudad() {
+    if (st.otra) return;
+    var disp = ciudadesDe(st.trade);
+    if (!disp.length) { st.otra = true; return; }
+    for (var i = 0; i < disp.length; i++) if (disp[i].slug === st.city) return;
+    var pref = ciudadPreferida();
+    for (var j = 0; j < disp.length; j++) if (disp[j].slug === pref) { st.city = pref; return; }
+    st.city = disp[0].slug;
+  }
+
+  /* ---------- Pintar el formulario ---------- */
+  function chip(label, pressed, attrs, cls) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = cls || "chip";
+    b.textContent = label;
+    b.setAttribute("aria-pressed", pressed ? "true" : "false");
+    for (var k in attrs) b.setAttribute(k, attrs[k]);
+    return b;
+  }
+  function render() {
+    var isP = st.trade === "pintura";
+    $$(".tile").forEach(function (t) { t.setAttribute("aria-pressed", t.getAttribute("data-trade") === st.trade ? "true" : "false"); });
+    $("#hv").classList.toggle("is-f", !isP);
+
+    var cr = $("#cityRow");
+    cr.innerHTML = "";
+    ciudadesDe(st.trade).forEach(function (c) { cr.appendChild(chip(c.name, !st.otra && st.city === c.slug, { "data-city": c.slug })); });
+    cr.appendChild(chip("Otra ciudad", st.otra, { "data-otra": "1" }, "chip dash"));
+    $("#otraBox").hidden = !st.otra;
+    $("#otraWarn").textContent = "Todavía no tenemos " + (isP ? "pintores" : "fontaneros") + " fijos ahí. Déjanos tus datos y te avisamos en cuanto lleguemos.";
+    var c = ciudad(st.city);
+    $("#where").textContent = st.otra ? "" : (c ? (isP ? "Pintores en " : "Fontaneros en ") + c.name : "");
+
+    $("#bloqueP").hidden = !isP || st.otra;
+    $("#bloqueF").hidden = isP || st.otra;
+
+    var tr = $("#tipoRow");
+    tr.innerHTML = "";
+    TIPOS.forEach(function (t) { tr.appendChild(chip(t[1], st.pTipo === t[0], { "data-tipo": t[0] })); });
+    var tm = TAMANOS[st.pTipo];
+    $("#tamQ").textContent = tm[0];
+    var zr = $("#tamRow");
+    zr.innerHTML = "";
+    tm[1].forEach(function (o) { zr.appendChild(chip(o[1], st.pTam === o[0], { "data-tam": o[0] })); });
+    $("#precio").textContent = precioTxt();
+
+    var pr = $("#probRow");
+    pr.innerHTML = "";
+    PROBLEMAS.forEach(function (p) { pr.appendChild(chip(p, st.fProb === p, { "data-prob": p })); });
+    var ur = $("#urgRow");
+    ur.innerHTML = "";
+    URG.forEach(function (u, i) { ur.appendChild(chip(u, st.fUrg === i, { "data-urg": String(i) }, "segb")); });
+
+    $("#datosLbl").textContent = st.otra ? "3 · Tus datos" : "4 · Tus datos";
+    $("#ctaTxt").textContent = st.otra ? "Avisadme cuando lleguéis" : (isP ? "Ver mi pintor asignado" : "Llamar al fontanero");
+    $("#ctaNota").textContent = st.otra ? "Solo te escribimos para avisarte." :
+      (isP ? "Gratis y sin compromiso. Solo usamos tus datos para tu presupuesto." : "Te pasamos con el fontanero de tu zona y hablas directamente con él.");
+
+    if (isP) {
+      $("#chipBk").textContent = "PRECIO ORIENTATIVO";
+      $("#chipBv").textContent = precioTxt();
+      $("#chipBs").textContent = tipoTxt() + " · " + tamTxt();
+    } else {
+      $("#chipBk").textContent = "FONTANERÍA";
+      $("#chipBv").textContent = "Llamada directa";
+      $("#chipBs").textContent = "Hablas con el fontanero de tu zona";
+    }
+  }
+  function precioTxt() { var r = RANGOS[st.pTipo][st.pTam]; return fmt(r[0]) + " € – " + fmt(r[1]) + " €"; }
+  function tipoTxt() { for (var i = 0; i < TIPOS.length; i++) if (TIPOS[i][0] === st.pTipo) return TIPOS[i][1]; return ""; }
+  function tamTxt() { var o = TAMANOS[st.pTipo][1]; for (var i = 0; i < o.length; i++) if (o[i][0] === st.pTam) return o[i][1]; return ""; }
+
+  function pintarCiudades() {
+    $$("[data-ciudades]").forEach(function (el) { el.textContent = nombresCiudades(); });
+    var box = $("#cityCards");
+    box.innerHTML = "";
+    CIUDADES.forEach(function (c) {
+      var d = document.createElement("div");
+      d.className = "city glass";
+      var h = document.createElement("div"); h.className = "city-h";
+      var t = document.createElement("h3"); t.textContent = c.name;
+      var l = document.createElement("span"); l.className = "live"; l.innerHTML = "<i></i>Activa";
+      h.appendChild(t); h.appendChild(l);
+      var p = document.createElement("p");
+      p.textContent = c.of.map(function (o) { return o === "pintura" ? "Pintura" : "Fontanería"; }).join(" · ");
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "btn-c";
+      b.setAttribute("data-go", c.of[0]);
+      b.setAttribute("data-go-city", c.slug);
+      b.innerHTML = 'Pedir en <span></span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>';
+      b.querySelector("span").textContent = c.name;
+      d.appendChild(h); d.appendChild(p); d.appendChild(b);
+      box.appendChild(d);
+    });
+    var o = document.createElement("div");
+    o.className = "city other";
+    o.innerHTML = '<div class="city-h"><h3>¿Tu ciudad no está?</h3></div><p>Déjanos tus datos y te avisamos en cuanto lleguemos.</p><button type="button" class="btn-c" data-go="" data-go-otra="1">Apuntarme<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></button>';
+    box.appendChild(o);
+  }
+
+  function irAlFormulario(trade, extra) {
+    if (trade) st.trade = trade;
+    if (extra) for (var k in extra) st[k] = extra[k];
+    if (!extra || !extra.otra) { if (extra && extra.city) st.otra = false; }
+    asegurarCiudad();
+    mostrar("pForm");
+    render();
+    var card = $("#pedir");
+    card.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+  }
+
+  /* ---------- Clics ---------- */
+  document.addEventListener("click", function (e) {
+    var t = e.target.closest ? e.target.closest("button, a") : null;
+    if (!t) return;
+    if (t.hasAttribute("data-trade")) { st.trade = t.getAttribute("data-trade"); asegurarCiudad(); render(); return; }
+    if (t.hasAttribute("data-city")) { st.city = t.getAttribute("data-city"); st.otra = false; render(); return; }
+    if (t.hasAttribute("data-otra")) { st.otra = true; render(); setTimeout(function () { $("#otraCiudad").focus(); }, 30); return; }
+    if (t.hasAttribute("data-tipo")) { st.pTipo = t.getAttribute("data-tipo"); st.pTam = "p2"; render(); return; }
+    if (t.hasAttribute("data-tam")) { st.pTam = t.getAttribute("data-tam"); render(); return; }
+    if (t.hasAttribute("data-prob")) { st.fProb = t.getAttribute("data-prob"); render(); return; }
+    if (t.hasAttribute("data-urg")) { st.fUrg = Number(t.getAttribute("data-urg")); render(); return; }
+    if (t.hasAttribute("data-go")) {
+      var tr = t.getAttribute("data-go") || "";
+      var ex = {};
+      if (t.hasAttribute("data-go-city")) { ex.city = t.getAttribute("data-go-city"); ex.otra = false; }
+      if (t.hasAttribute("data-go-otra")) ex.otra = true;
+      irAlFormulario(tr || null, ex);
+      return;
+    }
+  });
+
+  /* ---------- Enviar: misma función que las landings (oy_lead_contacto) ---------- */
+  function origen() {
+    var o = {};
+    try { o = JSON.parse(sessionStorage.getItem("oy_origen") || "{}") || {}; } catch (e) { o = {}; }
+    try {
+      var q = new URLSearchParams(location.search);
+      ["gclid", "utm_source", "utm_campaign", "utm_content"].forEach(function (k) { if (q.get(k)) o[k] = q.get(k); });
+    } catch (e) {}
+    ["utm_source", "utm_campaign", "utm_content"].forEach(function (k) { if (!o[k]) { var v = lsGet("oy_" + k); if (v) o[k] = v; } });
+    if (!o.gclid) {
+      try { var raw = JSON.parse(lsGet("oy_gclid") || "null"); if (raw && raw.v && Date.now() - (raw.t || 0) < 90 * 864e5) o.gclid = raw.v; } catch (e) {}
+    }
+    if (!o.gclid) {
+      var m = document.cookie.match(/(?:^|;\s*)_gcl_aw=([^;]+)/);
+      if (m) { var p = decodeURIComponent(m[1]).split("."); if (p.length >= 3) o.gclid = p.slice(2).join("."); }
+    }
+    return o;
+  }
+  function guardarAceptacion(zona) {
+    var v = (window.OY && window.OY.TERMINOS_VERSION) || "2.0";
+    var s = JSON.stringify({ terminos: v, privacidad: v, at: new Date().toISOString(), punto: "landing:inicio", ciudad: zona, ua: navigator.userAgent.slice(0, 180) });
+    try {
+      var d = new Date(); d.setTime(d.getTime() + 30 * 864e5);
+      document.cookie = "oy_terms=" + encodeURIComponent(s) + ";expires=" + d.toUTCString() + ";path=/;SameSite=Lax" + (location.hostname.indexOf("aficioya.com") > -1 ? ";domain=.aficioya.com" : "");
+    } catch (e) {}
+    lsSet("oy_terms", s);
+    lsSet("oy_ciudad", zona);
+    lsSet("oy_landing", "inicio");
+  }
+  function msg(t) { $("#msg").textContent = t || ""; }
+  function mostrar(id) {
+    ["pForm", "pEnvio", "pOk"].forEach(function (p) { $("#" + p).hidden = p !== id; });
+    if (id !== "pForm") { var c = $("#pedir"), r = c.getBoundingClientRect(); if (r.top < 70 || r.bottom > innerHeight) c.scrollIntoView({ behavior: "smooth", block: "center" }); }
+  }
+
+  function llamarRPC(cuerpo) {
+    if (PRUEBA) {
+      return new Promise(function (ok) { setTimeout(function () { ok({ ok: true, nuevo: true, solicitud: "prueba", telefono: TEL_OY, whatsapp: "34656398014", profesional: null, prueba: true }); }, 500); });
+    }
+    var ctrl = window.AbortController ? new AbortController() : null;
+    var reloj = setTimeout(function () { if (ctrl) ctrl.abort(); }, 8000);
+    return fetch(SB + "/rest/v1/rpc/oy_lead_contacto", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", apikey: KEY, Authorization: "Bearer " + KEY },
+      body: JSON.stringify({ p: cuerpo }),
+      signal: ctrl ? ctrl.signal : undefined
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (res) { clearTimeout(reloj); return res || { ok: false, fallo: true }; })
+      .catch(function () { clearTimeout(reloj); return { ok: false, fallo: true }; });
+  }
+
+  $("#form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (st.enviando) return;
+    msg("");
+    $$(".inp").forEach(function (i) { i.classList.remove("bad"); });
+    $("#termsBox").classList.remove("err");
+    var isP = st.trade === "pintura";
+    var inNom = $("#nombre"), inTel = $("#tel"), inOtra = $("#otraCiudad");
+    var nombre = inNom.value.trim();
+    var tel = inTel.value.replace(/\D/g, "").slice(-9);
+    var otraTxt = inOtra.value.trim();
+    if (st.otra && otraTxt.length < 2) { msg("Escribe tu ciudad."); inOtra.classList.add("bad"); inOtra.focus(); return; }
+    if (nombre.length < 2) { msg("Escribe tu nombre."); inNom.classList.add("bad"); inNom.focus(); return; }
+    if (!/^[6789]\d{8}$/.test(tel)) { msg("Escribe un teléfono válido (9 cifras)."); inTel.classList.add("bad"); inTel.focus(); return; }
+    if (!$("#terms").checked) { msg("Acepta las condiciones para continuar."); $("#termsBox").classList.add("err"); return; }
+    if ($("#web").value) return;
+
+    var c = ciudad(st.city);
+    var citySlug = st.otra ? slugify(otraTxt) : st.city;
+    var zona = st.otra ? otraTxt : (c ? c.name : "");
+    guardarAceptacion(zona);
+    lsSet("oy_contacto_datos", JSON.stringify({ nombre: nombre, telefono: inTel.value.trim() }));
+
+    var canal = (!isP && !st.otra) ? "llamada" : "formulario";
+    var desc;
+    if (st.otra) desc = "Ciudad todavía sin profesionales de OficioYa (" + zona + "). Quiere " + (isP ? "pintura" : "fontanería") + ". Desde la portada.";
+    else if (isP) desc = "Pintura: " + tipoTxt() + " (" + tamTxt() + "). Precio orientativo mostrado: " + precioTxt() + ". Desde la portada.";
+    else desc = "Fontanería: " + st.fProb + ". Urgencia: " + URG[st.fUrg] + ". Quiere hablar por teléfono (dejó sus datos en la web antes de llamar).";
+
+    var o = origen();
+    var cuerpo = {
+      nombre: nombre, telefono: tel, oficio: isP ? "Pintor" : "Fontanero", canal: canal,
+      city_slug: citySlug, zona: zona, landing: "inicio", descripcion: desc,
+      gclid: o.gclid || "", utm_source: o.utm_source || "", utm_campaign: o.utm_campaign || "", utm_content: o.utm_content || ""
+    };
+
+    st.enviando = true;
+    $("#enviar").disabled = true;
+    $("#envioT").textContent = st.otra ? "Guardando tus datos…" : ("Buscando " + (isP ? "pintor" : "fontanero") + " en " + zona + "…");
+    mostrar("pEnvio");
+    var barra = $("#barra");
+    barra.style.transition = "none"; barra.style.width = "0%";
+    void barra.offsetWidth;
+    barra.style.transition = ""; barra.style.width = "100%";
+    var t0 = Date.now();
+
+    llamarRPC(cuerpo).then(function (res) {
+      var espera = Math.max(0, 1100 - (Date.now() - t0));
+      setTimeout(function () {
+        st.enviando = false;
+        $("#enviar").disabled = false;
+        if (res && res.ok === false && (res.error === "telefono" || res.error === "nombre")) {
+          mostrar("pForm");
+          msg(res.error === "telefono" ? "Escribe un teléfono válido (9 cifras)." : "Escribe tu nombre.");
+          return;
+        }
+        terminar(res || { ok: false, fallo: true }, cuerpo, nombre);
+      }, espera);
+    });
+  });
+
+  function numBonito(t) { return String(t || "").replace(/^\+34/, "").replace(/(\d{3})(\d{3})(\d{3})/, "$1 $2 $3"); }
+
+  function terminar(res, cuerpo, nombre) {
+    var isP = cuerpo.oficio === "Pintor";
+    var nom1 = nombre.split(" ")[0];
+    var pro = res.profesional || "";
+    var okIc = $("#okIc"), okT = $("#okT"), okP = $("#okP"), okBtn = $("#okBtn"), okBtnTx = $("#okBtnTx");
+    okBtn.hidden = false;
+
+    if (!res.ok) {
+      okIc.className = "big ko";
+      okT.textContent = "No se ha podido enviar";
+      okP.textContent = "Llámanos al " + numBonito(TEL_OY) + " y te atendemos ahora.";
+      okBtn.href = "tel:" + TEL_OY;
+      okBtnTx.textContent = "Llamar a OficioYa";
+      gt("event", "contact", { event_category: "inicio", event_label: "fallo_envio" });
+      mostrar("pOk");
+      return;
+    }
+
+    if (st.otra) {
+      okIc.className = "big bell";
+      okT.textContent = "Apuntado, " + nom1;
+      okP.textContent = "Te avisamos en cuanto tengamos " + (isP ? "pintores" : "fontaneros") + " en " + cuerpo.zona + ".";
+      okBtn.hidden = true;
+      if (res.nuevo) gt("event", "lista_espera", { event_category: "inicio", event_label: cuerpo.city_slug });
+      mostrar("pOk");
+      return;
+    }
+
+    var valor = valorLead(st.trade, cuerpo.city_slug);
+    if (res.nuevo) {
+      gt("event", "generate_lead", { event_category: isP ? "solicitud_pintor" : "solicitud_llamada", event_label: isP ? "inicio_" + st.pTipo + "_" + st.pTam : "inicio", value: valor, currency: "EUR" });
+      if (!PRUEBA && typeof window.fbq === "function") { try { window.fbq("track", "Lead", { content_name: cuerpo.canal, content_category: cuerpo.oficio }); } catch (e) {} }
+    } else {
+      gt("event", "contact", { event_category: isP ? "solicitud_pintor" : "solicitud_llamada", event_label: "repetido" });
+    }
+
+    var numero = numBonito(res.telefono);
+    okBtn.href = "tel:" + res.telefono;
+    if (isP) {
+      okIc.className = "big ok";
+      okT.textContent = "¡Listo, " + nom1 + "!";
+      okP.textContent = (pro ? pro + " ya tiene tu solicitud y te llamará al " : "Ya tenemos tu solicitud. Te llamamos al ") + numBonito(cuerpo.telefono) + " para darte el presupuesto.";
+      okBtnTx.textContent = pro ? "Llamar ahora a " + pro : "Llamar ahora";
+      mostrar("pOk");
+    } else {
+      okIc.className = "big go";
+      okT.textContent = pro ? "Llamando a " + pro + "…" : "Llamando a OficioYa…";
+      okP.textContent = (pro ? pro + " ya tiene tus datos. " : "Ya tenemos tus datos. ") + "Si la llamada no se abre, llama al " + numero + ".";
+      okBtnTx.textContent = "Llamar al " + numero;
+      mostrar("pOk");
+      if (!PRUEBA) setTimeout(function () { location.href = "tel:" + res.telefono; }, 700);
+    }
+  }
+
+  $("#okBtn").addEventListener("click", function () { gt("event", "contact", { event_category: "contacto_llamada", event_label: "inicio_tras_formulario" }); });
+  $("#otraVez").addEventListener("click", function () { mostrar("pForm"); render(); });
+  $("#terms").addEventListener("change", function () { if (this.checked) { $("#termsBox").classList.remove("err"); if (/condiciones/i.test($("#msg").textContent)) msg(""); } });
+
+  /* ---------- Pinta tu pared ---------- */
+  var cur = 1;
+  var sw = $("#sw");
+  COLORES.forEach(function (c, i) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.style.background = c[1];
+    b.setAttribute("aria-label", "Pintar de " + c[0]);
+    b.setAttribute("aria-pressed", i === cur ? "true" : "false");
+    b.addEventListener("click", function () { pintar(i); });
+    sw.appendChild(b);
+  });
+  function pintar(i) {
+    if (i === cur) return;
+    var wall = $("#wall"), coat = $("#coat"), wr = $("#wr");
+    wall.style.background = COLORES[cur][1];
+    coat.style.transition = "none"; coat.style.width = "0%"; coat.style.background = COLORES[i][1];
+    wr.style.transition = "none"; wr.style.left = "0%"; wr.style.opacity = "1";
+    void coat.offsetWidth;
+    coat.style.transition = "width 1.2s cubic-bezier(.65,0,.35,1)"; coat.style.width = "100%";
+    wr.style.transition = "left 1.2s cubic-bezier(.65,0,.35,1), opacity .4s ease 1.1s"; wr.style.left = "100%"; wr.style.opacity = "0";
+    cur = i;
+    $("#wn").textContent = COLORES[i][0];
+    $$("#sw button").forEach(function (b, j) { b.setAttribute("aria-pressed", j === i ? "true" : "false"); });
+  }
+
+  /* ---------- Nivel del agua ---------- */
+  var nivel = $("#nivel");
+  function agua() {
+    var n = Number(nivel.value), k = n < 34 ? 0 : (n < 67 ? 1 : 2);
+    $("#water").style.height = Math.max(8, n) + "%";
+    var wl = $("#wl");
+    wl.textContent = ["Gotea un poco", "Sale agua", "No para"][k];
+    wl.style.color = ["#9ADBFF", "#FFD27A", "#FFAD8A"][k];
+    $("#advice").textContent = ["Puede esperar a mañana. Si puedes, cierra la llave de paso.", "Mejor hoy. Cierra la llave de paso y pide fontanero.", "Urgente: cierra la llave general y llama ya."][k];
+    $("#aguaBtnTx").textContent = ["Pedir fontanero", "Ver fontanero disponible", "Llamar ahora"][k];
+    $("#aguaBtn").classList.toggle("hot", k === 2);
+    return k;
+  }
+  nivel.addEventListener("input", agua);
+  $("#aguaBtn").addEventListener("click", function () { irAlFormulario("fontaneria", { fUrg: agua() }); });
+  agua();
+
+  /* ---------- Fondo y profundidad al hacer scroll ---------- */
+  var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var BG = {
+    glow: $(".bg-glow"), p1: $(".band1 .paint"), r1: $(".band1 .roller"), p2: $(".band2 .paint"), r2: $(".band2 .roller"),
+    svg: $(".pipe"), pipes: $$(".pipe .pp"), joints: $$(".pipe circle"), spout: $(".pipe rect"), drops: $$(".pipe ellipse"),
+    orbs: $$(".orb"), sun: $(".sun")
+  };
+  var LEN = 1900;
+  try { LEN = BG.pipes[0].getTotalLength() || 1900; } catch (e) {}
+  BG.pipes.forEach(function (p) { p.style.strokeDasharray = LEN; p.style.strokeDashoffset = LEN; });
+  var FR = [0.207, 0.381, 0.684, 0.797, 0.954];
+  var secOf = $("#oficios"), secComo = $("#como"), secTrust = $("#confianza"), secFin = $("#final");
+  var photo = $("#photo"), floats = $$(".fl"), review = $("#review"), sline = $("#sline"), pasos = $$(".steps li");
+  var wide = true, raf = 0;
+  function medir() { wide = innerWidth > 980; }
+  function prog(el, vh) { var r = el.getBoundingClientRect(); return clamp((vh - r.top) / (vh + r.height), 0, 1); }
+  function frame() {
+    raf = 0;
+    var y = window.scrollY || window.pageYOffset, vh = window.innerHeight;
+    var max = Math.max(1, document.documentElement.scrollHeight - vh), p = clamp(y / max, 0, 1);
+    var po = prog(secOf, vh), pc = prog(secComo, vh), pf = prog(secFin, vh), pt = prog(secTrust, vh);
+    var paint = ease(seg(po, 0.02, 0.5)), paint2 = ease(seg(po, 0.15, 0.62));
+    var pipe = ease(seg(pc, 0.05, 0.62)), dry = seg(pc, 0.3, 0.85), sun = ease(seg(pf, 0.1, 0.75));
+    if (reduce) { paint = paint2 = 1; pipe = 1; sun = 0; }
+
+    BG.glow.style.transform = "translate3d(" + (-p * 38).toFixed(2) + "vw," + (p * 50).toFixed(2) + "vh,0) scale(" + (1 + p * 0.35).toFixed(3) + ")";
+    BG.glow.style.opacity = (0.95 - sun * 0.5).toFixed(3);
+    BG.p1.style.transform = "scaleX(" + paint.toFixed(4) + ")";
+    BG.p1.style.opacity = (0.24 - dry * 0.14).toFixed(3);
+    BG.r1.style.left = (paint * 100).toFixed(2) + "%";
+    BG.r1.style.opacity = paint > 0.003 && paint < 0.997 ? "0.6" : "0";
+    BG.p2.style.transform = "scaleX(" + paint2.toFixed(4) + ")";
+    BG.p2.style.opacity = (0.12 - dry * 0.06).toFixed(3);
+    BG.r2.style.left = (paint2 * 100).toFixed(2) + "%";
+    BG.r2.style.opacity = paint2 > 0.003 && paint2 < 0.997 ? "0.5" : "0";
+
+    BG.svg.style.opacity = (0.55 - sun * 0.3).toFixed(3);
+    var off = (LEN * (1 - pipe)).toFixed(1);
+    BG.pipes.forEach(function (el) { el.style.strokeDashoffset = off; });
+    BG.joints.forEach(function (j, i) { j.style.opacity = pipe >= FR[i] ? "1" : "0"; });
+    BG.spout.style.opacity = pipe >= 0.995 ? "1" : "0";
+    var dripO = seg(pipe, 0.96, 1);
+    BG.drops.forEach(function (d, i) {
+      var f = (y * 0.6 + i * 95) % 380;
+      d.setAttribute("cy", (322 + f).toFixed(1));
+      d.style.opacity = (dripO * (1 - f / 380) * 0.9).toFixed(3);
+    });
+
+    if (!reduce) {
+      var k = [[0.04, 700, 900, 40, 70], [0.02, 650, 800, 30, 90], [-0.03, 500, 600, 50, 60]];
+      BG.orbs.forEach(function (o, i) {
+        var q = k[i];
+        o.style.transform = "translate3d(" + (Math.sin(y / q[1]) * q[3]).toFixed(1) + "px," + (Math.cos(y / q[2]) * q[4] - y * q[0]).toFixed(1) + "px,0)";
+      });
+    }
+    BG.sun.style.transform = "translate3d(-50%," + ((1 - sun) * 60).toFixed(2) + "%,0) scale(" + (0.7 + sun * 0.5).toFixed(3) + ")";
+    BG.sun.style.opacity = (sun * 0.95).toFixed(3);
+
+    if (!reduce && y < 1400) {
+      photo.style.transform = "translate3d(0," + (y * 0.06).toFixed(1) + "px,0)";
+      floats.forEach(function (f) { f.style.transform = wide ? "translate3d(0," + (-y * Number(f.getAttribute("data-par"))).toFixed(1) + "px,0)" : ""; });
+    }
+    var lp = seg(pc, 0.18, 0.6);
+    sline.style.width = (lp * 100).toFixed(1) + "%";
+    pasos.forEach(function (li, i) { li.classList.toggle("on", lp >= i / 3 - 0.001 || reduce); });
+    if (wide && !reduce) review.style.transform = "translate3d(0," + ((0.5 - pt) * 70).toFixed(1) + "px,0)";
+    else review.style.transform = "";
+  }
+  function pedirFrame() { if (!raf) raf = requestAnimationFrame(frame); }
+  window.addEventListener("scroll", pedirFrame, { passive: true });
+  window.addEventListener("resize", function () { medir(); pedirFrame(); });
+  medir();
+  frame();
+
+  /* ---------- Tarjetas que se inclinan (ratón) ---------- */
+  if (!reduce && matchMedia("(pointer: fine)").matches) {
+    $$(".gcard").forEach(function (card) {
+      card.addEventListener("pointermove", function (e) {
+        if (!wide) return;
+        var r = card.getBoundingClientRect();
+        var x = (e.clientX - r.left) / r.width - 0.5, yv = (e.clientY - r.top) / r.height - 0.5;
+        card.style.transform = "perspective(1400px) rotateX(" + (-yv * 5).toFixed(2) + "deg) rotateY(" + (x * 7).toFixed(2) + "deg)";
+      });
+      card.addEventListener("pointerleave", function () { card.style.transform = ""; });
+    });
+  }
+
+  /* ---------- Aparecer al entrar en pantalla + contador ---------- */
+  var statHecho = false;
+  function contar() {
+    if (statHecho) return;
+    statHecho = true;
+    var el = $("#statN"), t0 = performance.now();
+    if (reduce) { el.textContent = "+300"; return; }
+    (function paso(t) {
+      var k = clamp((t - t0) / 1300, 0, 1);
+      el.textContent = "+" + Math.round(300 * ease(k));
+      if (k < 1) requestAnimationFrame(paso);
+    })(t0);
+  }
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (en) {
+        if (en.isIntersecting) {
+          en.target.classList.add("in");
+          if (en.target.querySelector && en.target.querySelector("#statN")) contar();
+          io.unobserve(en.target);
+        }
+      });
+    }, { rootMargin: "0px 0px -8% 0px", threshold: 0.08 });
+    $$(".rv").forEach(function (el) { io.observe(el); });
+
+    /* Barra fija en móvil cuando el formulario no se ve */
+    var mbar = $("#mbar"), formVisible = true;
+    var io2 = new IntersectionObserver(function (es) {
+      formVisible = es[0].isIntersecting;
+      mbar.classList.toggle("show", !formVisible && (window.scrollY || 0) > 400);
+    }, { threshold: 0.05 });
+    io2.observe($("#pedir"));
+    window.addEventListener("scroll", function () { mbar.classList.toggle("show", !formVisible && (window.scrollY || 0) > 400); }, { passive: true });
+  } else {
+    $$(".rv").forEach(function (el) { el.classList.add("in"); });
+    contar();
+  }
+
+  /* ---------- Sesión iniciada: el enlace lleva a su cuenta ---------- */
+  if (lsGet("oy_user")) $("#entrar").textContent = "Mi cuenta";
+
+  /* ---------- Arranque ---------- */
+  asegurarCiudad();
+  pintarCiudades();
+  render();
+
+  /* Ciudades activas desde la base de datos (sin bloquear la página) */
+  fetch(SB + "/rest/v1/cities?select=name,slug,trades_enabled,launched_at&active=eq.true&order=launched_at.asc.nullslast", {
+    headers: { apikey: KEY, Authorization: "Bearer " + KEY }
+  })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (rows) {
+      if (!rows || !rows.length) return;
+      var lista = rows.map(function (r) {
+        var of = [];
+        (r.trades_enabled || []).forEach(function (t) {
+          var s = sinTildes(t);
+          if (s.indexOf("pint") > -1 && of.indexOf("pintura") < 0) of.push("pintura");
+          if (s.indexOf("fontan") > -1 && of.indexOf("fontaneria") < 0) of.push("fontaneria");
+        });
+        return { slug: r.slug, name: r.name, of: of };
+      }).filter(function (c) { return c.slug && c.of.length; });
+      if (!lista.length) return;
+      CIUDADES = lista;
+      asegurarCiudad();
+      pintarCiudades();
+      if (!$("#pForm").hidden) render();
+    })
+    .catch(function () {});
+})();
+</script>
+
+<!-- Medición: igual que las landings -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=AW-401-649-4560"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'AW-401-649-4560');
+  gtag('config', 'G-S6F18YG34M');
+</script>
+</body>
+</html>
