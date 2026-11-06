@@ -38,7 +38,7 @@
   "telephone": "+34656398014",
   "description": "Pintores y fontaneros comprobados. Te asignamos un profesional de tu zona y hablas directamente con él.",
   "address": {"@type": "PostalAddress", "addressLocality": "Sevilla", "addressRegion": "Andalucía", "addressCountry": "ES"},
-  "areaServed": [{"@type": "City", "name": "Sevilla"}, {"@type": "City", "name": "Málaga"}, {"@type": "City", "name": "Valencia"}],
+  "areaServed": [{"@type": "City", "name": "Sevilla"}, {"@type": "City", "name": "Valencia"}],
   "priceRange": "€-€€"
 }
 </script>
@@ -404,9 +404,9 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
 <main>
 <section class="wrap hero" id="inicio">
   <div class="hero-copy rv">
-    <p class="pill"><span class="dot" aria-hidden="true"></span><span>Ahora en <span data-ciudades>Sevilla, Málaga y Valencia</span></span></p>
+    <p class="pill"><span class="dot" aria-hidden="true"></span><span>Ahora en <span data-ciudades>Sevilla y Valencia</span></span></p>
     <h1>Buscar un buen profesional <span>no debería ser una lotería.</span></h1>
-    <p class="sub">Pintura y fontanería en <span data-ciudades>Sevilla, Málaga y Valencia</span>. Te asignamos un profesional comprobado de tu zona y hablas directamente con él.</p>
+    <p class="sub"><span data-oferta>Pintura en Sevilla y Valencia, y fontanería en Sevilla</span>. Te asignamos un profesional comprobado de tu zona y hablas directamente con él.</p>
     <ul class="tchips">
       <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg>Autónomos comprobados</li>
       <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Un profesional, no seis llamadas</li>
@@ -589,7 +589,7 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
 <section class="wrap s" id="ciudades">
   <div class="head rv">
     <p class="eyebrow">DÓNDE ESTAMOS</p>
-    <h2 class="h">Ahora mismo, en <span data-ciudades>Sevilla, Málaga y Valencia</span>.</h2>
+    <h2 class="h">Ahora mismo, en <span data-ciudades>Sevilla y Valencia</span>.</h2>
   </div>
   <div class="cities" id="cityCards"></div>
 </section>
@@ -630,10 +630,9 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
   var PRUEBA = /[?&]prueba=1(&|$)/.test(location.search);
   if (PRUEBA) document.documentElement.classList.add("is-prueba");
 
-  /* Ciudades activas: se cargan de la tabla cities (active + trades_enabled). Esta lista es solo el respaldo. */
+  /* Ciudades y oficios con profesional asignado: se cargan de lead_routing (nombres de cities). Esta lista es solo el respaldo. */
   var CIUDADES = [
     { slug: "sevilla", name: "Sevilla", of: ["pintura", "fontaneria"] },
-    { slug: "malaga", name: "Málaga", of: ["fontaneria"] },
     { slug: "valencia", name: "Valencia", of: ["pintura"] }
   ];
   /* Rangos de la calculadora de pintores-sevilla */
@@ -668,9 +667,14 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
   function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
 
-  function nombresCiudades() {
-    var n = CIUDADES.map(function (c) { return c.name; });
-    return n.length > 1 ? n.slice(0, -1).join(", ") + " y " + n[n.length - 1] : (n[0] || "");
+  function enLista(n) { return n.length > 1 ? n.slice(0, -1).join(", ") + " y " + n[n.length - 1] : (n[0] || ""); }
+  function nombres(lista) { return enLista(lista.map(function (c) { return c.name; })); }
+  function nombresCiudades() { return nombres(CIUDADES); }
+  function ofertaTxt() {
+    var p = nombres(ciudadesDe("pintura")), f = nombres(ciudadesDe("fontaneria"));
+    if (p && p === f) return "Pintura y fontanería en " + p;
+    if (p && f) return "Pintura en " + p + ", y fontanería en " + f;
+    return p ? "Pintura en " + p : "Fontanería en " + f;
   }
   function ciudadesDe(trade) { return CIUDADES.filter(function (c) { return c.of.indexOf(trade) > -1; }); }
   function ciudad(slug) { for (var i = 0; i < CIUDADES.length; i++) if (CIUDADES[i].slug === slug) return CIUDADES[i]; return null; }
@@ -763,6 +767,7 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
 
   function pintarCiudades() {
     $$("[data-ciudades]").forEach(function (el) { el.textContent = nombresCiudades(); });
+    $$("[data-oferta]").forEach(function (el) { el.textContent = ofertaTxt(); });
     var box = $("#cityCards");
     box.innerHTML = "";
     CIUDADES.forEach(function (c) {
@@ -1170,24 +1175,34 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
   pintarCiudades();
   render();
 
-  /* Ciudades activas desde la base de datos (sin bloquear la página) */
-  fetch(SB + "/rest/v1/cities?select=name,slug,trades_enabled,launched_at&active=eq.true&order=launched_at.asc.nullslast", {
-    headers: { apikey: KEY, Authorization: "Bearer " + KEY }
-  })
-    .then(function (r) { return r.ok ? r.json() : null; })
-    .then(function (rows) {
-      if (!rows || !rows.length) return;
-      var lista = rows.map(function (r) {
-        var of = [];
-        (r.trades_enabled || []).forEach(function (t) {
-          var s = sinTildes(t);
-          if (s.indexOf("pint") > -1 && of.indexOf("pintura") < 0) of.push("pintura");
-          if (s.indexOf("fontan") > -1 && of.indexOf("fontaneria") < 0) of.push("fontaneria");
-        });
-        return { slug: r.slug, name: r.name, of: of };
-      }).filter(function (c) { return c.slug && c.of.length; });
-      if (!lista.length) return;
-      CIUDADES = lista;
+  /* Ciudades y oficios donde hay profesional asignado (lead_routing); nombre y orden de cities. Sin bloquear la página. */
+  function leer(ruta) {
+    return fetch(SB + "/rest/v1/" + ruta, { headers: { apikey: KEY, Authorization: "Bearer " + KEY } })
+      .then(function (r) { return r.ok ? r.json() : null; });
+  }
+  leer("lead_routing?select=trade_key,city_slug&active=eq.true&pro_id=not.is.null")
+    .then(function (rutas) {
+      if (!rutas || !rutas.length) return null;
+      var porCiudad = {};
+      rutas.forEach(function (r) {
+        var s = sinTildes(r.trade_key), o = s.indexOf("pint") === 0 ? "pintura" : (s.indexOf("fontan") === 0 ? "fontaneria" : "");
+        if (!o || !r.city_slug) return;
+        porCiudad[r.city_slug] = porCiudad[r.city_slug] || [];
+        if (porCiudad[r.city_slug].indexOf(o) < 0) porCiudad[r.city_slug].push(o);
+      });
+      var slugs = Object.keys(porCiudad);
+      if (!slugs.length) return null;
+      return leer("cities?select=name,slug,launched_at&slug=in.(" + slugs.map(encodeURIComponent).join(",") + ")&order=launched_at.asc.nullslast")
+        .then(function (cs) { return { porCiudad: porCiudad, cs: cs || [] }; });
+    })
+    .then(function (d) {
+      if (!d) return;
+      var nuevas = [];
+      d.cs.forEach(function (c) { if (d.porCiudad[c.slug]) { nuevas.push({ slug: c.slug, name: c.name, of: d.porCiudad[c.slug] }); delete d.porCiudad[c.slug]; } });
+      Object.keys(d.porCiudad).forEach(function (s) { nuevas.push({ slug: s, name: s.charAt(0).toUpperCase() + s.slice(1), of: d.porCiudad[s] }); });
+      nuevas.forEach(function (c) { c.of.sort().reverse(); });
+      if (!nuevas.length) return;
+      CIUDADES = nuevas;
       asegurarCiudad();
       pintarCiudades();
       if (!$("#pForm").hidden) render();
