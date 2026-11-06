@@ -258,6 +258,49 @@ body.arrastre .tablero{scroll-snap-type:none}
 .guion-doc .tabla td{white-space:normal;min-width:120px;vertical-align:top}
 .guion-doc .tabla td:first-child{font-weight:600}
 .guion-texto{min-height:60vh;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13.5px;line-height:1.5}
+/* Firma electrónica del contrato */
+.enlace{border:1.5px solid var(--naranja);border-radius:14px;padding:12px;display:grid;gap:10px}
+.enlace-cab{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.enlace-cab b{font-size:16px}
+.enlace-url{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;min-height:42px;padding:8px 10px;color:var(--ink-soft)}
+.enlace .nota,.crear-firma .nota{margin-top:0}
+.links{display:flex;flex-wrap:wrap;gap:2px 16px}
+.crear-firma{display:grid;gap:8px}
+.crear-firma .lbl{margin:2px 0 0}
+.precio-firma{font-size:14.5px;color:var(--ink-soft)}
+.precio-firma b{color:var(--ink)}
+.precio-firma .aviso{display:block;color:var(--ambar);margin-top:2px}
+.papel{margin-top:12px;border-top:1px dashed var(--line-strong);padding-top:10px}
+.papel summary{cursor:pointer;color:var(--ink-soft);font-weight:600;font-size:14px}
+.modal .caja-m.ancha{max-width:600px;max-height:88vh;overflow:auto}
+.evid{display:grid;grid-template-columns:auto 1fr;gap:5px 12px;font-size:14px;margin:10px 0 12px}
+.evid dt{color:var(--ink-soft)}
+.evid dd{font-weight:600;word-break:break-word}
+.evid .hash{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;font-weight:500;word-break:break-all}
+.registro{list-style:none;display:grid;gap:6px;font-size:13.5px;margin-top:6px}
+.registro li{border-left:2px solid var(--line-strong);padding-left:8px}
+.registro time{color:var(--ink-faint);font-size:12px;display:block}
+.der .sin-enlace{color:var(--ambar);font-weight:700}
+#msg-contrato{white-space:pre-line}
+/* Contratos por ciudad */
+.contratos-tabla td{vertical-align:middle}
+.contratos-tabla td.c{width:1%}
+.ver-c{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--line-strong);background:var(--surface-2);border-radius:999px;padding:6px 12px;font-weight:700;font-size:13.5px;cursor:pointer;white-space:nowrap;color:var(--ink)}
+.ver-c:hover{border-color:var(--naranja)}
+.ver-c svg{width:15px;height:15px;color:var(--naranja)}
+.ver-c:disabled{opacity:.5;cursor:default}
+/* Visor de PDF */
+.visor-pdf{position:fixed;inset:0;z-index:95;background:#15181E;display:flex;flex-direction:column}
+.vp-cab{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:calc(10px + env(safe-area-inset-top,0px)) 14px 10px;background:var(--surface);border-bottom:1px solid var(--line)}
+.vp-cab b{font-size:15.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.vp-acc{display:flex;gap:8px;align-items:center;flex:none}
+.vp-acc .btn{min-height:40px;padding:0 13px;font-size:14.5px}
+.vp-cuerpo{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px 12px calc(16px + env(safe-area-inset-bottom,0px));display:grid;gap:10px;justify-items:center;align-content:start}
+.vp-pag{position:relative;width:100%;max-width:860px;background:#fff;border-radius:4px;box-shadow:0 2px 10px rgba(0,0,0,.35);overflow:hidden}
+.vp-pag canvas{position:absolute;inset:0;width:100%;height:100%}
+.vp-pag .num{position:absolute;right:8px;bottom:6px;font-size:11.5px;font-weight:700;color:#8A909C;background:rgba(255,255,255,.85);padding:1px 6px;border-radius:999px}
+.vp-msg{color:#F2EFE9;text-align:center;padding:40px 16px;font-size:15.5px;max-width:420px}
+.vp-msg .btn{margin-top:14px}
 /* Dentro del panel de admin: colores del panel y sin cabecera propia */
 :root.embed{
   color-scheme: dark;
@@ -359,7 +402,7 @@ body.arrastre .tablero{scroll-snap-type:none}
       <div class="lista" id="l-nuevos"></div>
       <div class="titulo-sec"><h2>Llamadas para hoy</h2><small>Programadas o atrasadas</small></div>
       <div class="lista" id="l-hoy"></div>
-      <div class="titulo-sec"><h2>Contratos sin devolver</h2><small>Enviados y pendientes de firma</small></div>
+      <div class="titulo-sec"><h2>Contratos sin firmar</h2><small>Enlaces enviados y pendientes de firma</small></div>
       <div class="lista" id="l-contratos"></div>
       <div class="titulo-sec"><h2>Firmados sin dar de alta</h2><small>Crea su cuenta para que puedan recibir clientes</small></div>
       <div class="lista" id="l-altas"></div>
@@ -394,13 +437,17 @@ body.arrastre .tablero{scroll-snap-type:none}
       <input id="h-buscar-precio" placeholder="Buscar ciudad" aria-label="Buscar ciudad" autocomplete="off" style="margin-bottom:10px">
       <div class="scroll"><table class="tabla precios-tabla" id="h-precios"></table></div>
       <p class="nota">Toca una ciudad para cambiar sus precios. Al dar de alta a un profesional, su precio queda fijo en su ficha: si luego cambias la tabla, no le afecta.</p>
-      <div class="titulo-sec"><h2>Contratos</h2><small>Descárgalo y envíaselo al profesional</small></div>
-      <div class="herr" id="h-contratos"></div>
+      <div class="titulo-sec"><h2>Contratos por ciudad</h2><small>El mismo que firma el profesional con el enlace de su ficha</small></div>
+      <input id="h-buscar-contrato" placeholder="Buscar ciudad" aria-label="Buscar ciudad en los contratos" autocomplete="off" style="margin-bottom:10px">
+      <div class="scroll"><table class="tabla contratos-tabla" id="h-contratos-ciudad"></table></div>
+      <p class="nota" id="h-contratos-nota"></p>
+      <div class="herr" id="h-contratos" style="margin-top:10px"></div>
       <div class="titulo-sec"><h2>Cómo cerrar a un profesional</h2></div>
       <ol class="pasos-h">
         <li><b>Llámale</b> y explícale las condiciones (tienes el guion debajo). Su precio por lead es el de su ciudad en la tabla de arriba.</li>
-        <li>Si le interesa, <b>envíale el contrato de su oficio</b> por WhatsApp o email y márcalo como <b>Contrato enviado</b>.</li>
-        <li>Cuando te lo devuelva firmado, entra en su ficha, <b>sube el contrato firmado</b> (PDF o foto) y pulsa <b>Completado</b>.</li>
+        <li>Si le interesa, en su ficha pulsa <b>Crear enlace para firmar</b> y <b>envíaselo por WhatsApp</b> sin colgar. Márcalo como <b>Contrato enviado</b>.</li>
+        <li>Lo lee y lo firma desde el móvil: pone sus datos, confirma su email con un código, hace una foto de su DNI y firma con el dedo. En su ficha ves si ha abierto el enlace.</li>
+        <li>Al firmar pasa solo a <b>Firmado</b>: se ocupa su plaza, se suma tu comisión y le llega su copia por email con el enlace para pagar la activación.</li>
         <li>En su ficha, pulsa <b>Dar de alta en OficioYa</b> y rellena sus datos fiscales, horario y servicios. Se crea su cuenta y se emite su factura de alta.</li>
         <li><b>Envíale su acceso por WhatsApp</b> con el botón que aparece al terminar.</li>
         <li>Cuando pague la factura de alta, tu comisión de 50 € pasa a <b>a pagar</b> y Andrés lanza los anuncios en su ciudad.</li>
@@ -414,7 +461,7 @@ body.arrastre .tablero{scroll-snap-type:none}
         <div class="fila" style="margin-top:8px"><button class="btn sec" id="guion-cancelar">Cancelar</button><button class="btn" id="guion-guardar">Guardar guion</button></div>
       </div>
       <button class="btn sec" id="guion-btn-editar" style="margin-top:10px">Editar guion</button>
-      <div class="titulo-sec"><h2>Mensaje para enviar el contrato</h2></div>
+      <div class="titulo-sec"><h2>Mensaje para enviar el contrato</h2><small>El botón de WhatsApp de su ficha ya lo manda con su enlace</small></div>
       <div class="guion"><p id="msg-contrato"></p><button class="btn sec" id="copiar-msg">Copiar mensaje</button></div>
     </section>
 
@@ -433,12 +480,19 @@ body.arrastre .tablero{scroll-snap-type:none}
 <aside class="ficha" id="ficha" hidden role="dialog" aria-modal="true" aria-labelledby="fi-nombre"></aside>
 <div class="toast" id="toast" hidden></div>
 <div class="modal" id="modal" hidden></div>
+<div class="visor-pdf" id="visor-pdf" hidden role="dialog" aria-modal="true" aria-labelledby="vp-titulo">
+  <div class="vp-cab"><b id="vp-titulo">Contrato</b><div class="vp-acc"><button class="btn sec" id="vp-bajar" disabled>Descargar</button><button class="cerrar" id="vp-cerrar" aria-label="Cerrar el contrato">×</button></div></div>
+  <div class="vp-cuerpo" id="vp-cuerpo"></div>
+</div>
 <input type="file" id="subir-archivo" accept="application/pdf,image/*" hidden>
 
 <script>
 var SB_URL = 'https://rjwojxwrsbvwwshwwpvq.supabase.co';
 var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE';
-var COMISION = 50, MAX_MB = 6, ACTIVACION = 99;
+var COMISION = 50, MAX_MB = 6;
+/* Activación del contrato general actual y la de los contratos antiguos (en papel o PDF propio) */
+var ACTIVACION = 200, ACTIVACION_ANTES = 99;
+var FN_FIRMA = SB_URL + '/functions/v1/firma-contrato', URL_FIRMA = 'https://aficioya.com/firmar.html?t=';
 var ESTADOS = [
   ['nuevo','Nuevo'],['contactado','Contactado'],['interesado','Interesado'],['contrato_enviado','Contrato enviado'],
   ['completado','Completado · contrato firmado'],['pagado','Activo · activación cobrada'],
@@ -478,7 +532,7 @@ function sum(a){ return a.reduce(function(s,l){ return s + Number(l.comision||0)
 
 /* ---------- API ---------- */
 /* Acceso de solo lectura (rol lector): en vez de guardar o contactar, sale una ventanita */
-var SOLO_LEER = ['captacion_datos', 'captacion_version', 'captacion_descargar_documento', 'captacion_contadores'];
+var SOLO_LEER = ['captacion_datos', 'captacion_version', 'captacion_descargar_documento', 'captacion_contadores', 'captacion_firmas'];
 function soloLectura(){
   var m = $('modal');
   m.innerHTML = '<div class="caja-m" role="dialog" aria-modal="true" aria-labelledby="sl-t"><h3 id="sl-t">¡Te queda poco para empezar a facturar!</h3>'
@@ -503,11 +557,29 @@ function rpc(fn, body){
     return r.json().then(function(j){ if(!r.ok) throw new Error(j && j.message || ('HTTP '+r.status)); return j; });
   });
 }
+/* Función de firma electrónica (preparar el contrato general, ver el modelo) */
+function fnFirma(accion, cuerpo, binario){
+  if(D.rol === 'lector' && accion !== 'ver_modelo'){ soloLectura(); return Promise.reject(new Error('solo lectura')); }
+  var b = { accion: accion, clave: CLAVE }; for(var k in (cuerpo||{})) b[k] = cuerpo[k];
+  return fetch(FN_FIRMA, {
+    method:'POST',
+    headers:{ 'apikey':SB_KEY, 'Authorization':'Bearer '+SB_KEY, 'Content-Type':'application/json' },
+    body: JSON.stringify(b)
+  }).then(function(r){
+    if(binario && r.ok) return r.blob();
+    return r.json().catch(function(){ return {}; }).then(function(j){ if(!r.ok) throw new Error(j && j.error || ('HTTP '+r.status)); return j; });
+  });
+}
 var idsVistos = null, recien = {};
 function cargar(suave){
-  return rpc('captacion_datos', { p_clave: CLAVE }).then(function(d){
+  return Promise.all([
+    rpc('captacion_datos', { p_clave: CLAVE }),
+    rpc('captacion_firmas', { p_clave: CLAVE }).catch(function(){ return null; })
+  ]).then(function(res){
+    var d = res[0], fi = res[1];
     var antes = idsVistos;
     D = d; D.documentos = D.documentos || []; D.avisos = D.avisos || []; D.precios = D.precios || []; D.altas = D.altas || []; D.textos = D.textos || {};
+    D.firmas = (fi && fi.firmas) || []; D.modelos = (fi && fi.modelos) || [];
     idsVistos = {}; D.leads.forEach(function(l){ idsVistos[l.id] = 1; });
     if(antes){
       var nuevos = D.leads.filter(function(l){ return !antes[l.id]; });
@@ -641,7 +713,8 @@ function pintarHoy(){
   var nuevos = L.filter(function(l){ return l.estado==='nuevo'; }).sort(function(a,b){ return new Date(a.created_at)-new Date(b.created_at); });
   var hoy = L.filter(function(l){ return l.proxima_llamada && new Date(l.proxima_llamada) <= fin && ['contactado','interesado','lista_espera'].indexOf(l.estado) > -1; })
              .sort(function(a,b){ return new Date(a.proxima_llamada)-new Date(b.proxima_llamada); });
-  var contratos = L.filter(function(l){ return l.estado==='contrato_enviado'; }).sort(function(a,b){ return new Date(a.updated_at)-new Date(b.updated_at); });
+  var contratos = L.filter(function(l){ return l.estado==='contrato_enviado' || (firmaActiva(l.id) && CERRADO.indexOf(l.estado) < 0 && l.estado !== 'no_interesado'); })
+                   .sort(function(a,b){ return new Date(a.updated_at)-new Date(b.updated_at); });
   var reint = L.filter(function(l){ return l.estado==='no_contesta' && l.intentos < 5 && (!l.proxima_llamada || new Date(l.proxima_llamada) <= fin); })
                .sort(function(a,b){ return a.intentos - b.intentos; });
   var sinAlta = L.filter(function(l){ return CERRADO.indexOf(l.estado) > -1 && !l.pro_user_id; })
@@ -656,7 +729,10 @@ function pintarHoy(){
     + '<div class="cifra verde"><strong>' + euros(sum(cerradosMes)) + '</strong><span>Comisión del mes</span></div>';
   pintarLista('l-nuevos', nuevos, 'No hay profesionales nuevos por llamar.');
   pintarLista('l-hoy', hoy, 'No tienes llamadas programadas para hoy.', function(l){ return '<span class="estado ' + l.estado + '">' + esc(NOMBRE_ESTADO[l.estado]) + '</span><br>' + fecha(l.proxima_llamada, true); });
-  pintarLista('l-contratos', contratos, 'No hay contratos pendientes de firma.', function(l){ return 'Enviado ' + hace(l.updated_at); });
+  pintarLista('l-contratos', contratos, 'No hay contratos pendientes de firma.', function(l){
+    var f = firmaActiva(l.id);
+    return f ? esc(estadoFirmaCorto(f)) : '<span class="sin-enlace">Sin enlace para firmar</span><br>Enviado ' + hace(l.updated_at);
+  });
   pintarLista('l-reintentar', reint, 'Nadie pendiente de reintentar.', function(l){ return l.intentos + ' intento' + (l.intentos===1?'':'s'); });
   pintarLista('l-altas', sinAlta, 'Todos los firmados están dados de alta.', function(l){ return 'Firmado ' + hace(l.completado_at || l.updated_at); });
 }
@@ -726,7 +802,7 @@ function pintarTodos(){
   var base = filtrarBase();
   var abiertos = base.filter(function(l){ return ABIERTOS.indexOf(l.estado) > -1; });
   $('resumen-pipe').innerHTML = '<b>' + base.length + '</b> profesionales · <b>' + abiertos.length + '</b> en curso'
-    + (esAdmin() && abiertos.length ? ' · <b>' + euros(abiertos.length * ACTIVACION) + '</b> en activaciones posibles' : '');
+    + (esAdmin() && abiertos.length ? ' · <b>' + euros(abiertos.reduce(function(s, l){ return s + valorActivacion(l); }, 0)) + '</b> en activaciones posibles' : '');
 
   if(tablero) pintarTablero(base);
   else pintarLista('l-todos', base.filter(function(l){ return !filtroEstado || l.estado === filtroEstado; }), 'No hay profesionales con estos filtros.');
@@ -740,7 +816,11 @@ function tarjetaK(l){
     chips.push('<span class="chip ' + (atr ? 'rojo' : 'ambar') + '">' + (atr ? 'Llamada atrasada' : 'Llamar ' + cuandoLlamar(pl)) + '</span>');
   }
   if(l.intentos) chips.push('<span class="chip">' + l.intentos + (l.intentos===1 ? ' llamada' : ' llamadas') + '</span>');
-  if(docsDe(l.id).length) chips.push('<span class="chip ok">Contrato subido</span>');
+  var fh = firmaHecha(l.id), fa = fh ? null : firmaActiva(l.id);
+  if(fh) chips.push('<span class="chip ok">Firmado online</span>');
+  else if(fa) chips.push(chipFirma(fa));
+  else if(docsDe(l.id).length) chips.push('<span class="chip ok">Contrato subido</span>');
+  else if(l.estado === 'contrato_enviado') chips.push('<span class="chip ambar">Sin enlace para firmar</span>');
   if(CERRADO.indexOf(l.estado) > -1) chips.push(l.pro_user_id ? '<span class="chip ok">Alta hecha</span>' : '<span class="chip ambar">Falta el alta</span>');
   if(l.estado==='no_interesado' && l.motivo) chips.push('<span class="chip">' + esc(l.motivo) + '</span>');
   return '<div class="tarjeta ' + (l.oficio==='fontanero' ? 'f' : 'p') + (urg ? ' urgente' : '') + '" data-id="' + l.id + '" tabindex="0" role="button" aria-label="' + esc(l.nombre) + ', ' + esc(tituloEstado(l.estado)) + '">'
@@ -756,7 +836,7 @@ function pintarTablero(lista){
   t.innerHTML = COLS.map(function(c){
     var est = c[0], items = lista.filter(function(l){ return l.estado===est; });
     var valor = '';
-    if(admin && items.length && (ABIERTOS.indexOf(est) > -1 || est==='pagado')) valor = euros(items.length * ACTIVACION) + (est==='pagado' ? ' cobrados' : '');
+    if(admin && items.length && (ABIERTOS.indexOf(est) > -1 || est==='pagado')) valor = euros(items.reduce(function(s, l){ return s + valorActivacion(l); }, 0)) + (est==='pagado' ? ' cobrados' : '');
     return '<div class="col" data-estado="' + est + '" style="--c:' + c[1] + '">'
       + '<div class="col-cab"><h3>' + esc(tituloEstado(est)) + '<span>' + items.length + '</span></h3><small>' + c[2] + (valor ? ' · ' + valor : '') + '</small></div>'
       + '<div class="col-cuerpo">' + (items.length ? items.map(tarjetaK).join('') : '<div class="col-vacia">Arrastra aquí</div>') + '</div></div>';
@@ -772,6 +852,7 @@ function puedeMover(l, d){
   if(CERRADO.indexOf(l.estado) > -1 && !admin) return { ok:false, msg:'Ya está cerrado: solo Andrés puede moverlo' };
   if(d === 'pagado' && !admin) return { ok:false, msg:'Solo Andrés confirma el cobro de la activación' };
   if(d === 'pagado' && l.estado !== 'completado') return { ok:false, msg:'Primero tiene que estar firmado' };
+  if(d === 'completado' && !admin) return { ok:false, msg:'Pasa solo a Firmado cuando firma con el enlace del contrato' };
   if(d === 'completado' && !docsDe(l.id).length) return { ok:true, falta:true };
   return { ok:true };
 }
@@ -779,7 +860,7 @@ function moverA(l, d){
   if(!l || d === l.estado) return;
   var p = puedeMover(l, d);
   if(!p.ok){ toast(p.msg); return; }
-  if(p.falta){ toast('Sube el contrato firmado y pulsa Completado'); abrirFicha(l.id); return; }
+  if(p.falta){ toast('Falta el contrato firmado: crea el enlace para firmar o sube el firmado en papel'); abrirFicha(l.id); return; }
   if(d === 'no_interesado'){ pedirMotivo(l, function(m){ aplicar(l, d, { motivo:m, proxima_llamada:'' }); }); return; }
   if(d === 'completado'){
     if(confirm('¿' + l.nombre + ' ha firmado el contrato? Se ocupa su plaza en ' + (l.ciudad||'su ciudad') + ' y se suman ' + COMISION + ' € de comisión.')) aplicar(l, d, { proxima_llamada:'' });
@@ -926,15 +1007,37 @@ function descargar(id){
     setTimeout(function(){ URL.revokeObjectURL(url); a.remove(); }, 4000);
   }).catch(function(e){ toast('No se ha podido descargar: ' + e.message); });
 }
-function elegirArchivo(destino){ subida = destino; $('subir-archivo').value = ''; $('subir-archivo').click(); }
+function elegirArchivo(destino){
+  subida = destino; $('subir-archivo').value = '';
+  $('subir-archivo').accept = destino.tipo === 'para_firmar' ? 'application/pdf' : 'application/pdf,image/*';
+  $('subir-archivo').click();
+}
+function bajarBlob(blob, nombre){
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a'); a.href = url; a.download = nombre; document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(url); a.remove(); }, 4000);
+}
+function bajarB64(b64, mime, nombre){
+  var bin = atob(b64), arr = new Uint8Array(bin.length);
+  for(var i=0;i<bin.length;i++) arr[i] = bin.charCodeAt(i);
+  bajarBlob(new Blob([arr], { type: mime }), nombre);
+}
 $('subir-archivo').addEventListener('change', function(){
   var f = this.files && this.files[0], dest = subida;
   if(!f || !dest){ subida = null; return; }
   if(f.size > MAX_MB*1048576){ toast('El archivo pesa más de ' + MAX_MB + ' MB'); subida = null; return; }
   var mime = f.type || (/\.pdf$/i.test(f.name) ? 'application/pdf' : /\.(heic|heif)$/i.test(f.name) ? 'image/heic' : '');
+  if(dest.tipo === 'para_firmar' && mime !== 'application/pdf'){ toast('El contrato para firmar tiene que ser un PDF'); subida = null; return; }
   var r = new FileReader();
   r.onload = function(){
     var b64 = String(r.result).split(',')[1];
+    if(dest.tipo === 'para_firmar'){
+      toast('Creando el enlace…');
+      rpc('captacion_firma_crear', { p_clave: CLAVE, p_lead: dest.lead, p_nombre: f.name, p_base64: b64 })
+        .then(function(){ toast('Enlace creado con tu PDF: envíaselo por WhatsApp', 4000); subida = null; return cargar(); })
+        .catch(function(e){ subida = null; toast('No se ha creado el enlace: ' + e.message, 5000); });
+      return;
+    }
     toast('Subiendo…');
     rpc('captacion_subir_documento', { p_clave: CLAVE, p_lead: dest.lead || null, p_tipo: dest.tipo, p_oficio: dest.oficio || '',
         p_titulo: dest.titulo || '', p_nombre: f.name, p_mime: mime, p_base64: b64 })
@@ -945,27 +1048,141 @@ $('subir-archivo').addEventListener('change', function(){
   r.readAsDataURL(f);
 });
 
+/* ---------- Visor de PDF (contratos) ---------- */
+var PDFJS_CDN = ['https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/legacy/build/', 'https://unpkg.com/pdfjs-dist@3.11.174/legacy/build/'];
+var visor = { blob:null, nombre:'', doc:null, obs:null, turno:0 };
+function cargarScript(src){
+  return new Promise(function(ok, ko){
+    var s = document.createElement('script'); s.src = src; s.async = true;
+    s.onload = function(){ ok(); }; s.onerror = function(){ s.remove(); ko(new Error('no carga')); };
+    document.head.appendChild(s);
+  });
+}
+function cargarPdfjs(i){
+  i = i || 0;
+  if(window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+  if(i >= PDFJS_CDN.length) return Promise.reject(new Error('sin visor'));
+  return cargarScript(PDFJS_CDN[i] + 'pdf.min.js').then(function(){
+    if(!window.pdfjsLib) throw new Error('sin visor');
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_CDN[i] + 'pdf.worker.min.js';
+    return window.pdfjsLib;
+  }).catch(function(){ return cargarPdfjs(i + 1); });
+}
+function abrirVisor(titulo){
+  visor.turno++; visor.blob = null; visor.nombre = titulo;
+  $('vp-titulo').textContent = titulo; $('vp-bajar').disabled = true;
+  $('vp-cuerpo').innerHTML = '<p class="vp-msg">Preparando el contrato…</p>';
+  $('visor-pdf').hidden = false; document.body.style.overflow = 'hidden';
+  $('vp-cerrar').focus();
+  return visor.turno;
+}
+function errorVisor(t){ if(!$('visor-pdf').hidden) $('vp-cuerpo').innerHTML = '<p class="vp-msg">' + esc(t) + '</p>'; }
+function cerrarVisor(){
+  visor.turno++;
+  if(visor.obs){ visor.obs.disconnect(); visor.obs = null; }
+  if(visor.doc){ try{ visor.doc.destroy(); }catch(e){} visor.doc = null; }
+  visor.blob = null; $('visor-pdf').hidden = true; $('vp-cuerpo').innerHTML = '';
+  if($('ficha').hidden) document.body.style.overflow = '';
+}
+function mostrarPdf(blob, nombre){
+  var turno = visor.turno;
+  if($('visor-pdf').hidden) return;
+  visor.blob = blob; visor.nombre = nombre; $('vp-bajar').disabled = false;
+  $('vp-titulo').textContent = nombre.replace(/\.pdf$/i, '');
+  var cuerpo = $('vp-cuerpo');
+  (blob.arrayBuffer ? blob.arrayBuffer() : new Promise(function(ok, ko){ var r = new FileReader(); r.onload = function(){ ok(r.result); }; r.onerror = ko; r.readAsArrayBuffer(blob); })).then(function(buf){
+    return cargarPdfjs().then(function(lib){ return lib.getDocument({ data: new Uint8Array(buf), isEvalSupported: false }).promise; });
+  }).then(function(doc){
+    if(turno !== visor.turno){ doc.destroy(); return; }
+    visor.doc = doc; cuerpo.innerHTML = '';
+    var pintadas = {};
+    var pintar = function(div, i){
+      if(pintadas[i]) return; pintadas[i] = true;
+      doc.getPage(i).then(function(pg){
+        var dpr = Math.min(window.devicePixelRatio || 1, 2), vp1 = pg.getViewport({ scale: 1 });
+        var vp = pg.getViewport({ scale: Math.max(1, (div.clientWidth || 600) * dpr / vp1.width) });
+        var cv = document.createElement('canvas'); cv.width = Math.floor(vp.width); cv.height = Math.floor(vp.height);
+        return pg.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise.then(function(){ if(turno === visor.turno) div.insertBefore(cv, div.firstChild); });
+      }).catch(function(){ pintadas[i] = false; });
+    };
+    visor.obs = 'IntersectionObserver' in window ? new IntersectionObserver(function(ents){
+      ents.forEach(function(en){ if(en.isIntersecting) pintar(en.target, Number(en.target.getAttribute('data-p'))); });
+    }, { root: cuerpo, rootMargin: '900px 0px' }) : null;
+    for(var i = 1; i <= doc.numPages; i++){
+      var div = document.createElement('div'); div.className = 'vp-pag'; div.setAttribute('data-p', i); div.style.paddingTop = '141.4%';
+      div.innerHTML = '<span class="num">' + i + ' / ' + doc.numPages + '</span>';
+      cuerpo.appendChild(div);
+      if(visor.obs) visor.obs.observe(div); else pintar(div, i);
+    }
+  }).catch(function(){
+    if(turno !== visor.turno) return;
+    cuerpo.innerHTML = '<div class="vp-msg">No se puede mostrar aquí. Descárgalo para leerlo.<br><button class="btn" id="vp-bajar2">Descargar el contrato</button></div>';
+    $('vp-bajar2').onclick = function(){ bajarBlob(blob, nombre); };
+  });
+}
+/* Abre un documento guardado: los PDF en el visor; las fotos se descargan */
+function verDocumento(id){
+  var d = D.documentos.filter(function(x){ return x.id === id; })[0];
+  if(d && d.mime && d.mime !== 'application/pdf'){ descargar(id); return; }
+  var turno = abrirVisor(d ? d.nombre_archivo.replace(/\.pdf$/i, '') : 'Contrato');
+  rpc('captacion_descargar_documento', { p_clave: CLAVE, p_id: id }).then(function(x){
+    if(turno !== visor.turno) return;
+    var bin = atob(x.base64), arr = new Uint8Array(bin.length);
+    for(var i=0;i<bin.length;i++) arr[i] = bin.charCodeAt(i);
+    var blob = new Blob([arr], { type: x.mime });
+    if(x.mime !== 'application/pdf'){ cerrarVisor(); bajarBlob(blob, x.nombre); return; }
+    mostrarPdf(blob, x.nombre);
+  }).catch(function(e){ errorVisor('No se ha podido abrir: ' + e.message); });
+}
+$('vp-cerrar').addEventListener('click', cerrarVisor);
+$('vp-bajar').addEventListener('click', function(){ if(visor.blob) bajarBlob(visor.blob, visor.nombre); });
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape' && !$('visor-pdf').hidden){ e.stopImmediatePropagation(); cerrarVisor(); }
+}, true);
+
 /* ---------- Herramientas ---------- */
-function mensajeContrato(l){
-  var n = l ? l.nombre.split(' ')[0] : '[nombre]', of = l ? oficioTxt(l.oficio).toLowerCase() : '[oficio]', ci = l ? (l.ciudad||'tu ciudad') : '[ciudad]';
-  return 'Hola ' + n + ', soy Sandra de OficioYa. Te envío el contrato para activar tu plaza de ' + of + ' en ' + ci
-    + '. Rellena tus datos, fírmalo y me lo devuelves por aquí (PDF o foto). En cuanto lo tenga, activamos tu plaza y empezamos con los anuncios en tu ciudad. Cualquier duda, dime.';
+function miNombre(){ return String(D.nombre || '').trim().split(' ')[0] || (D.rol === 'admin' ? 'Andrés' : 'Sandra'); }
+function mensajeContrato(l, enlace, ciudad){
+  var n = l ? l.nombre.split(' ')[0] : '[nombre]', of = l ? oficioTxt(l.oficio).toLowerCase() : '[oficio]', ci = ciudad || (l ? (l.ciudad||'tu ciudad') : '[ciudad]');
+  return 'Hola ' + n + ', soy ' + miNombre() + ' de OficioYa. Aquí tienes tu contrato para activar tu plaza de ' + of + ' en ' + ci + ':\n' + (enlace || '[enlace para firmar]')
+    + '\n\nLo lees y lo firmas desde el móvil en 5 minutos: te pide tus datos, un código que te llega al email, una foto de tu DNI y tu firma con el dedo. Al firmar te llega tu copia por email. Cualquier duda, dime.';
+}
+function modeloDe(oficio){ return (D.modelos||[]).filter(function(m){ return m.oficio === oficio; })[0] || null; }
+function fechaVersion(v){ var d = new Date(String(v) + 'T12:00:00'); return isNaN(d) ? v : d.toLocaleDateString('es-ES', { day:'numeric', month:'short', year:'numeric' }); }
+var ICONO_DOC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h4"/></svg>';
+function pintarContratosCiudad(){
+  var q = sinTildes($('h-buscar-contrato').value.trim());
+  var lista = ciudadesPrecio().filter(function(p){ return !q || sinTildes(p.ciudad).indexOf(q) > -1; });
+  var boton = function(p, o){
+    var v = Number(o === 'fontanero' ? p.fontanero : p.pintor);
+    return v > 0 ? '<button class="ver-c" data-contrato="' + o + '" data-slug="' + esc(p.slug) + '" aria-label="Ver contrato de ' + oficioTxt(o).toLowerCase() + ' en ' + esc(p.ciudad) + '">' + ICONO_DOC + euros(v) + ' + IVA</button>' : '<span class="nota">Sin precio</span>';
+  };
+  $('h-contratos-ciudad').innerHTML = '<tr><th>Ciudad</th><th>Pintura</th><th>Fontanería</th></tr>'
+    + (lista.length ? lista.map(function(p){
+        return '<tr><td><b>' + esc(p.ciudad) + '</b></td><td class="c">' + boton(p, 'pintor') + '</td><td class="c">' + boton(p, 'fontanero') + '</td></tr>';
+      }).join('') : '<tr><td colspan="3">No hay ninguna ciudad con ese nombre.</td></tr>');
+  var mp = modeloDe('pintor'), mf = modeloDe('fontanero'), act = (mp || mf) ? Number((mp || mf).activacion) : ACTIVACION;
+  $('h-contratos-nota').textContent = 'Toca un precio para abrir el contrato de esa ciudad. Todos llevan la activación de ' + euros(act) + ' + IVA'
+    + ((mp || mf) ? ' (versión del ' + fechaVersion((mp || mf).version) + ')' : '') + '. Si cambias un precio en la tabla de arriba, cambia también aquí y en los enlaces nuevos; los ya enviados no se tocan.';
 }
 function pintarHerramientas(){
-  $('h-contratos').innerHTML = ['fontanero','pintor'].map(function(o){
-    var p = plantilla(o);
-    return '<div class="tarjeta-h"><div><b>Contrato de ' + oficioTxt(o).toLowerCase() + '</b><span>'
-      + (p ? esc(p.nombre_archivo) + ' · ' + kb(p.tamano) + ' · ' + fecha(p.created_at) : 'Todavía no hay contrato subido') + '</span></div>'
-      + '<div class="acc">' + (p ? '<button class="btn" data-desc="' + p.id + '">Descargar</button>' : '')
-      + (esAdmin() ? '<button class="btn sec" data-subir-plantilla="' + o + '">' + (p ? 'Sustituir' : 'Subir') + '</button>' : '') + '</div></div>';
-  }).join('');
-  $('msg-contrato').textContent = mensajeContrato(null);
+  var admin = esAdmin();
+  pintarContratosCiudad();
+  $('h-contratos').innerHTML = (admin ? '<details class="papel"><summary>PDF antiguos para firmar en papel (solo tú los ves)</summary><div class="herr" style="margin-top:10px">'
+      + ['fontanero','pintor'].map(function(o){
+          var p = plantilla(o);
+          return '<div class="tarjeta-h"><div><b>Contrato de ' + oficioTxt(o).toLowerCase() + ' en PDF</b><span>'
+            + (p ? esc(p.nombre_archivo) + ' · ' + kb(p.tamano) + ' · ' + fecha(p.created_at) : 'No hay PDF subido') + '</span></div>'
+            + '<div class="acc">' + (p ? '<button class="btn sec" data-desc="' + p.id + '">Descargar</button>' : '')
+            + '<button class="btn sec" data-subir-plantilla="' + o + '">' + (p ? 'Sustituir' : 'Subir') + '</button></div></div>';
+        }).join('') + '</div></details>' : '');
+  $('msg-contrato').textContent = mensajeContrato(null, null);
   pintarPrecios();
   pintarGuion();
 }
 
 /* ---------- Guion de llamada (se guarda en la base de datos; si no hay, se usa este) ---------- */
-var GUION_INICIAL = "## Cómo usar este guion\n\nCada llamada tiene un solo objetivo: que cuelgue con el contrato en su WhatsApp y una fecha para volver a hablar. Dura entre 15 y 20 minutos y va en 9 pasos, siempre en este orden.\n\n- **Tú llevas la llamada.** Antes de cada bloque anuncia lo que viene: «Ahora te explico X y después Y». Al acabarlo, pide un sí pequeño («¿Hasta aquí bien?») y pasa al siguiente.\n- **Habla en afirmativo.** «Te envío el contrato ahora», no «¿Quieres que te lo envíe?». «Esto funciona así», no «Creo que…».\n- **Pregunta y calla.** Después de una pregunta, espera. El silencio trabaja para ti.\n- **Usa sus números.** Su ticket medio y cuántos trabajos cierra convencen más que cualquier ejemplo nuestro.\n- **Las dudas, al final.** Si te corta con una pregunta: «Buena pregunta, te la resuelvo en un minuto cuando te explique la oferta». Apúntala y síguela.\n- **No prometas un número fijo de clientes.** Habla de objetivos y de lo que ya pasa en Sevilla. Lo que se promete de más se paga luego en bajas.\n\nLo que va entre «» son frases para decir tal cual. Lo que va entre [corchetes] lo rellenas con sus datos.\n\n## Antes de llamar (2 minutos)\n\n1. Abre su ficha en el CRM: oficio, ciudad y cuándo se registró.\n2. Mira cuántas plazas quedan en su ciudad (sale en la ficha). Si quedan 1 o 2, lo usarás en el cierre.\n3. Mira su precio por lead en Herramientas → Precios por lead. Si la ciudad tiene aviso, habla antes con Andrés.\n4. Ten a mano la calculadora del móvil o las tablas del paso 3.\n5. Ten preparado el contrato de su oficio para mandarlo por WhatsApp sin colgar.\n\n## Paso 1 · Apertura y mapa de la llamada (1 minuto)\n\n«Hola, [nombre], soy Sandra, de OficioYa. Te llamo porque has solicitado una plaza de [oficio] en [ciudad]. ¿Tienes 15 minutos ahora?»\n\n- **Si no puede:** «Sin problema. ¿Te viene mejor hoy a las [hora] o mañana a las [hora]?». Dale siempre dos opciones, nunca un «¿cuándo te viene bien?». Apúntalo en Próxima llamada.\n- **Si puede, comprueba el requisito:** «Antes de nada: estás dado de alta como autónomo, ¿verdad?». Si no lo está, ve directamente a esa respuesta en el paso 7.\n\nY ahora el mapa de la llamada, que es lo que te da el control:\n\n«Perfecto. Te cuento cómo va a ir, así no perdemos tiempo. Primero te explico quiénes somos y qué hacemos en Sevilla. Después vemos cuánto puedes facturar con nosotros, con tus números. Luego te explico la oferta y cómo te llegan los clientes. Al final te resuelvo todas las dudas y, si te encaja, te dejo el contrato. ¿Te parece?»\n\n## Paso 2 · Quiénes somos y qué hacemos (3 minutos)\n\n«Empiezo por quiénes somos. OficioYa es una plataforma de Sevilla que consigue clientes para fontaneros y pintores. Ponemos anuncios en Google, cuando alguien busca “fontanero en [ciudad]” o “pintores en [ciudad]”, y en redes sociales. Cuando un vecino pide presupuesto, se lo pasamos a un profesional de su zona. Solo a uno.»\n\nAhora haz una pregunta para saber qué le duele: «Por curiosidad, ¿cómo te llegan ahora los clientes? ¿Has probado alguna plataforma o agencia?»\n\nSegún lo que te cuente, elige uno o dos de estos problemas y empieza con: «Lo montamos así porque los profesionales con los que hablamos estaban hartos de…»\n\n| Si te cuenta que… | Le dices |\n| --- | --- |\n| Ha usado plataformas de presupuestos | «En otras plataformas el mismo cliente le llega a tres o cuatro profesionales a la vez. Gana el que llama primero o el más barato. Aquí cada cliente es solo tuyo.» |\n| Paga o ha pagado cuotas | «Hay sitios donde pagas una cuota todos los meses, te entre trabajo o no. Aquí no hay cuota: si un mes no te llega nadie, no pagas nada.» |\n| Ha comprado bonos o créditos | «En otras compras un bono por adelantado antes de ver un solo cliente. Aquí pagas los clientes después de recibirlos.» |\n| Ha trabajado con una agencia | «Una agencia te cobra su cuota, más lo que gastes en anuncios, y el riesgo es tuyo. Aquí la publicidad la ponemos y la pagamos nosotros.» |\n| Ha probado anuncios por su cuenta | «Montar tú los anuncios es aprender, probar y gastar sin saber si va a funcionar. Nosotros llevamos meses afinando las campañas en Sevilla.» |\n| Le preocupa la competencia | «Solo hay 2 plazas de [oficio] en cada ciudad. No compites con 30 profesionales por el mismo cliente.» |\n| Le llega todo por el boca a boca | «El boca a boca es lo mejor, pero no lo controlas: hay meses buenos y meses vacíos. Esto te da clientes nuevos todas las semanas.» |\n\nCierra el bloque: «Eso es lo que hacemos. Ahora te enseño qué queremos conseguir contigo, con números.»\n\n## Paso 3 · Lo que queremos conseguir contigo (4 minutos)\n\nPrimero, dos preguntas. Sus respuestas son tus números para el resto de la llamada:\n\n1. «¿Cuánto te deja de media un trabajo?» Si no lo sabe, usa 250 € en fontanería y 750 € en pintura.\n2. «De cada 10 clientes a los que das presupuesto, ¿cuántos cierras?»\n\nLa cuenta es siempre la misma: **clientes al mes × los que cierra × lo que le deja cada trabajo**.\n\n«Nuestro objetivo contigo es traerte entre [20 y 40] clientes al mes. Con lo que me has dicho, si cierras [4] de cada 10 y cada trabajo te deja [250 €], son [4.000 €] al mes en trabajos nuevos.»\n\n**Fontanería** (trabajo medio de 250 €)\n\n| Cierra | 20 clientes al mes | 40 clientes al mes |\n| --- | --- | --- |\n| 4 de cada 10 | 8 trabajos · 2.000 € | 16 trabajos · 4.000 € |\n| 5 de cada 10 | 10 trabajos · 2.500 € | 20 trabajos · 5.000 € |\n| 6 de cada 10 | 12 trabajos · 3.000 € | 24 trabajos · 6.000 € |\n| 7 de cada 10 | 14 trabajos · 3.500 € | 28 trabajos · 7.000 € |\n| 8 de cada 10 | 16 trabajos · 4.000 € | 32 trabajos · 8.000 € |\n| Paga por los clientes (40 € en Sevilla) | 800 € + IVA | 1.600 € + IVA |\n\n**Pintura** (trabajo medio de 750 €)\n\n| Cierra | 10 clientes al mes | 20 clientes al mes |\n| --- | --- | --- |\n| 4 de cada 10 | 4 trabajos · 3.000 € | 8 trabajos · 6.000 € |\n| 5 de cada 10 | 5 trabajos · 3.750 € | 10 trabajos · 7.500 € |\n| 6 de cada 10 | 6 trabajos · 4.500 € | 12 trabajos · 9.000 € |\n| 7 de cada 10 | 7 trabajos · 5.250 € | 14 trabajos · 10.500 € |\n| 8 de cada 10 | 8 trabajos · 6.000 € | 16 trabajos · 12.000 € |\n| Paga por los clientes (80 € en Sevilla) | 800 € + IVA | 1.600 € + IVA |\n\nFuera de Sevilla, la última fila se calcula con el precio de su ciudad (Herramientas → Precios por lead).\n\nLa frase que más convence: «Fíjate: con un solo trabajo de [250 €] pagas [6] clientes. El resto es beneficio.» En Sevilla, un trabajo de fontanería paga 6 clientes y uno de pintura paga 9.\n\nCierra el bloque: «Eso es el objetivo. Ahora te cuento lo que ya está pasando en Sevilla, que es lo que de verdad importa.»\n\n## Paso 4 · Lo que ya está pasando en Sevilla (2 minutos)\n\nDatos a 25 de octubre de 2026, sacados del sistema. Andrés los actualiza cada mes.\n\n| Dato | Cifra |\n| --- | --- |\n| Peticiones de presupuesto en Sevilla, septiembre | 80 (50 de fontanería y 30 de pintura) |\n| Lo mismo, con Málaga y Granada | Casi 100 |\n| Peticiones en Sevilla, octubre hasta el día 25 | 77 (64 de fontanería y 13 de pintura) |\n| Marcos, fontanero, desde julio | 27 trabajos terminados registrados, de 266 € de media |\n| Jorge, pintor, primeros días (desde mediados de octubre) | 5 clientes, un trabajo cerrado de 1.400 € y 2 presupuestos enviados |\n\nLas peticiones son solo las de formulario: además entran llamadas y WhatsApp que no están en esas cifras.\n\n«Para que veas que no te hablo de teoría: en septiembre entraron 80 peticiones de presupuesto solo en Sevilla, y en octubre llevamos 77. Jorge, nuestro pintor, empezó hace unos días: le han llegado 5 clientes y ya ha cerrado un trabajo de 1.400 €. Esos 5 clientes le costaron 400 €. Con un solo trabajo lo ha recuperado más de tres veces.»\n\nSi es de otra ciudad: «Sevilla es donde más tiempo llevamos. En [ciudad] montamos exactamente lo mismo.»\n\nCierra el bloque: «Ahora te explico la oferta, punto por punto.»\n\n## Paso 5 · La oferta, punto por punto (3 minutos)\n\n«Te explico qué incluye y qué necesitas para empezar.» Cada punto le quita una preocupación antes de que la diga.\n\n| Punto | Le dices | Lo que le quitas |\n| --- | --- | --- |\n| Publicidad | «La publicidad en tu ciudad la ponemos y la pagamos nosotros.» | Arriesgar dinero en anuncios |\n| Pago por cliente | «Solo pagas cada cliente que te llega: [precio] € + IVA en [ciudad]. Sin cuota mensual.» | Pagar meses sin trabajo |\n| Cliente exclusivo | «Cada cliente va a un solo profesional. No se reparte ni se subasta.» | Competir por el mismo cliente |\n| Plazas limitadas | «Solo hay 2 plazas de [oficio] en [ciudad], y quedan [N].» | Que haya 30 profesionales detrás |\n| Pago después | «Te facturamos a principio de mes los clientes del mes anterior, o antes si llegas a 820 € + IVA. Tienes 5 días para pagar.» | Adelantar dinero |\n| Solo clientes válidos | «Solo pagas los clientes válidos. Si te llega un teléfono que no existe o alguien que no ha pedido nada, nos avisas y lo revisamos.» | Pagar por basura |\n| Aviso al móvil | «Te llegan al móvil al momento, con aviso, y los llevas en tu panel.» | Perder clientes por no verlos |\n\n**Lo que necesita para empezar:**\n\n1. **El contrato firmado.** Es lo único imprescindible.\n2. **La activación:** 99 € + IVA (119,79 € en total), por transferencia o Bizum a la cuenta que pone el contrato, en los 5 días siguientes a firmar. Te manda el comprobante.\n3. **Alta de autónomo y seguro de responsabilidad civil.** Pídelos «para comprobar que todo está en regla». Si le choca, no insistas: con el contrato y la activación basta.\n\nCómo presentar la activación: «Lo único que pagas por adelantado son 99 €. Cubren tu alta, te reservan la plaza para que no la coja nadie más y ponen en marcha la campaña en [ciudad]. Con un solo trabajo los recuperas. Y si por lo que sea no arrancamos la campaña en 30 días, te los devolvemos: está en el contrato.»\n\nCierra el bloque: «Ahora te cuento qué pasa cuando te llega un cliente, con un ejemplo.»\n\n## Paso 6 · Cómo te llegan los clientes (3 minutos)\n\n«Te pongo un ejemplo de cómo funciona en el día a día.»\n\n1. Una vecina de [ciudad] busca en Google «[fontanero / pintor] en [ciudad]», ve nuestro anuncio y pide presupuesto. Puede hacerlo con el formulario, llamando o por WhatsApp.\n2. En ese momento te llega un aviso al móvil: «Nuevo cliente esperando tu llamada», con su nombre, su teléfono, la zona y lo que necesita.\n3. La llamas cuanto antes. Lo ideal es en los primeros minutos: el que llama rápido es el que cierra.\n4. En tu panel la vas moviendo: Contactado, Presupuesto enviado, Ganado o Perdido. Así ves cuántos trabajos cierras cada mes.\n5. Si el cliente llama directamente desde el anuncio, lo registramos nosotros y te aparece igual, para que completes sus datos.\n6. A principio de mes te llega la factura con los clientes del mes anterior.\n\n«Para empezar a recibirlos: firmas el contrato, pagas la activación, te damos de alta y te mandamos tu acceso. En cuanto llega la activación, arrancamos los anuncios en [ciudad].»\n\nSi le ves dudoso: «Si quieres, te lo enseño en una videollamada de 5 minutos.»\n\nCierra el bloque: «Esto es todo. Ahora dime tú, ¿qué dudas tienes?»\n\n## Paso 7 · Sus preguntas (lo que haga falta)\n\nResponde corto, comprueba («¿Te queda claro?») y vuelve siempre al mismo sitio: «Entonces te envío el contrato y lo ves con calma.»\n\n| Si te dice… | Le respondes |\n| --- | --- |\n| «Es caro» | «¿Cuánto te deja un trabajo? [250 €]. Entonces con un trabajo pagas [6] clientes. Si de cada 10 cierras 4, ganas dinero desde el primer mes.» |\n| «¿Cuántos clientes me vais a mandar?» | «El objetivo es [20 a 40] al mes. No te voy a prometer un número exacto porque depende de la demanda de cada semana, pero en Sevilla ya entran más de 70 peticiones al mes.» |\n| «¿Se lo mandáis también a otros?» | «No. Cada cliente va a un solo profesional. Es tuyo.» |\n| «¿Y si el cliente no es real o no contesta?» | «Solo pagas los clientes válidos. Si te llega uno que no existe, nos avisas y lo revisamos.» |\n| «¿Por qué tengo que pagar la activación?» | «Es lo que pone en marcha la campaña en tu ciudad y te reserva la plaza. Son 99 €, se recuperan con un trabajo, y si no arrancamos en 30 días te los devolvemos.» |\n| «¿Puedo probar sin pagar nada?» | «Sin activación no hay anuncios en tu ciudad, por eso es tan pequeña. Es lo único que pagas antes de recibir clientes.» |\n| «¿Hay permanencia o cuota?» | «No hay cuota mensual: pagas solo los clientes que recibes. Las condiciones para terminar el contrato vienen en el contrato y te las leo si quieres.» |\n| «Ya tengo bastante trabajo» | «Eso es que trabajas bien. Esto no es para llenarte la agenda, es para que elijas: los trabajos que te interesan los cierras y el resto los rechazas en la llamada.» |\n| «Déjame pensarlo» | «Claro. ¿Qué es lo que te hace dudar: el precio, cuántos clientes te llegan o cómo funciona?» Resuélvelo y sigue: «Te envío el contrato para que lo leas tranquilo y te llamo el [día] a las [hora].» |\n| «Lo tengo que hablar con mi socio / mi mujer» | «Perfecto. Te envío el contrato y hacemos una llamada los tres el [día]. ¿Te viene bien a las [hora]?» |\n| «No soy autónomo» | «Es requisito: tienes que poder facturar. Cuando te des de alta, escríbeme y miramos si sigue habiendo plaza en [ciudad].» Marca No interesado, motivo «No es autónomo». |\n| «¿De dónde salen los clientes?» | «De nuestros anuncios en Google y en redes sociales, en tu ciudad. Son personas que buscan un [fontanero / pintor] ese mismo día.» |\n| «En mi ciudad ya no hay plaza» | «Te dejo en lista de espera y eres el primero al que llamo si se libera una.» |\n\nSi te pregunta algo que no está aquí: «Eso te lo confirmo con Andrés y te lo digo mañana». Apúntalo en la nota y nunca te lo inventes.\n\n## Paso 8 · Completar su ficha (3 minutos)\n\n«Antes de enviarte el contrato necesito unos datos para preparar tu campaña. Así solo te llegan clientes que puedes atender.» Pregunta solo lo que todavía no tengas:\n\n- **Horario:** qué días y a qué horas trabaja, si atiende urgencias 24 h y si trabaja fines de semana y festivos.\n- **Zona:** barrios y pueblos que cubre, hasta cuántos kilómetros se mueve y a qué zonas no va.\n- **Servicios:** los que hace (usa la lista de su oficio) y los que no quiere recibir nunca.\n- **Capacidad:** cuántos clientes nuevos puede atender por semana.\n- **Facturación:** nombre o empresa, NIF o CIF, dirección fiscal y email. Con ese email entrará en la app y le llegarán las facturas.\n- **Papeles:** alta de autónomo y seguro de responsabilidad civil, si no le choca.\n\nTodo esto lo metes después en «Dar de alta en OficioYa», cuando firme.\n\n## Paso 9 · Cierre (2 minutos)\n\nMándale el contrato sin colgar y comprueba que le ha llegado.\n\n«Perfecto, [nombre]. Te acabo de mandar el contrato por WhatsApp. ¿Te ha llegado? Rellena tus datos, fírmalo a mano o con el móvil y me lo devuelves por ahí en PDF o en foto. En el contrato vienen los datos de la cuenta para la activación: 99 € + IVA, 119,79 € en total, por transferencia o Bizum. Cuando la hagas, mándame el comprobante.»\n\nSi quedan pocas plazas: «En [ciudad] quedan [N] plazas de [oficio]. La tuya queda reservada con el contrato firmado y la activación.»\n\nDeja fijada la siguiente llamada: «Te llamo pasado mañana, el [día] a las [hora], para ver qué te ha parecido y resolverte lo que te surja. ¿Te viene bien?»\n\nAl colgar, en el CRM:\n\n1. Márcalo como Contrato enviado.\n2. Pon la próxima llamada con el día y la hora que habéis quedado.\n3. Escribe en la nota sus dudas y lo que te ha dicho de horario, zona y servicios.\n\n## Seguimiento hasta la firma\n\nEl primer seguimiento es como mucho a los 2 días. Desde ahí, un contacto al día hasta que firme o diga que no. Alterna llamada y WhatsApp.\n\n| Cuándo | Qué haces | Mensaje |\n| --- | --- | --- |\n| Día 0, al colgar | WhatsApp con el contrato | El mensaje de Herramientas → Mensaje para enviar el contrato |\n| Día 2 | Llamada a la hora acordada. Si no contesta, WhatsApp | «Hola [nombre], soy Sandra de OficioYa. ¿Has podido ver el contrato? Te llamo hoy a las [hora] y te resuelvo lo que necesites.» |\n| Día 3 | Llamada o WhatsApp | «[Nombre], en [ciudad] quedan [N] plazas de [oficio]. ¿Te reservo la tuya?» |\n| Día 4 | Llamada o WhatsApp | «¿Te ha surgido alguna duda con el contrato? Si quieres lo vemos en 5 minutos por videollamada.» |\n| Día 5 en adelante | Un contacto al día, hasta 5 intentos sin respuesta | «[Nombre], no quiero insistir más. Si en algún momento te interesa, escríbeme y miramos si sigue habiendo plaza en [ciudad].» |\n\nCuando firme: sube el contrato a su ficha y pulsa Completado. Después pulsa «Dar de alta en OficioYa» y mándale su acceso por WhatsApp con el botón que aparece al terminar.\n\nSi a los 5 intentos no contesta, márcalo como No contesta. Si te dice que no, márcalo como No interesado con el motivo.\n";
+var GUION_INICIAL = "## Cómo usar este guion\n\nCada llamada tiene un solo objetivo: que cuelgue con el contrato en su WhatsApp y una fecha para volver a hablar. Dura entre 15 y 20 minutos y va en 9 pasos, siempre en este orden.\n\n- **Tú llevas la llamada.** Antes de cada bloque anuncia lo que viene: «Ahora te explico X y después Y». Al acabarlo, pide un sí pequeño («¿Hasta aquí bien?») y pasa al siguiente.\n- **Habla en afirmativo.** «Te envío el contrato ahora», no «¿Quieres que te lo envíe?». «Esto funciona así», no «Creo que…».\n- **Pregunta y calla.** Después de una pregunta, espera. El silencio trabaja para ti.\n- **Usa sus números.** Su ticket medio y cuántos trabajos cierra convencen más que cualquier ejemplo nuestro.\n- **Las dudas, al final.** Si te corta con una pregunta: «Buena pregunta, te la resuelvo en un minuto cuando te explique la oferta». Apúntala y síguela.\n- **No prometas un número fijo de clientes.** Habla de objetivos y de lo que ya pasa en Sevilla. Lo que se promete de más se paga luego en bajas.\n\nLo que va entre «» son frases para decir tal cual. Lo que va entre [corchetes] lo rellenas con sus datos.\n\n## Antes de llamar (2 minutos)\n\n1. Abre su ficha en el CRM: oficio, ciudad y cuándo se registró.\n2. Mira cuántas plazas quedan en su ciudad (sale en la ficha). Si quedan 1 o 2, lo usarás en el cierre.\n3. Mira su precio por lead en Herramientas → Precios por lead. Si la ciudad tiene aviso, habla antes con Andrés.\n4. Ten a mano la calculadora del móvil o las tablas del paso 3.\n5. Ten abierta su ficha: desde ahí creas el enlace para firmar el contrato y se lo mandas por WhatsApp sin colgar.\n\n## Paso 1 · Apertura y mapa de la llamada (1 minuto)\n\n«Hola, [nombre], soy Sandra, de OficioYa. Te llamo porque has solicitado una plaza de [oficio] en [ciudad]. ¿Tienes 15 minutos ahora?»\n\n- **Si no puede:** «Sin problema. ¿Te viene mejor hoy a las [hora] o mañana a las [hora]?». Dale siempre dos opciones, nunca un «¿cuándo te viene bien?». Apúntalo en Próxima llamada.\n- **Si puede, comprueba el requisito:** «Antes de nada: estás dado de alta como autónomo, ¿verdad?». Si no lo está, ve directamente a esa respuesta en el paso 7.\n\nY ahora el mapa de la llamada, que es lo que te da el control:\n\n«Perfecto. Te cuento cómo va a ir, así no perdemos tiempo. Primero te explico quiénes somos y qué hacemos en Sevilla. Después vemos cuánto puedes facturar con nosotros, con tus números. Luego te explico la oferta y cómo te llegan los clientes. Al final te resuelvo todas las dudas y, si te encaja, te dejo el contrato. ¿Te parece?»\n\n## Paso 2 · Quiénes somos y qué hacemos (3 minutos)\n\n«Empiezo por quiénes somos. OficioYa es una plataforma de Sevilla que consigue clientes para fontaneros y pintores. Ponemos anuncios en Google, cuando alguien busca “fontanero en [ciudad]” o “pintores en [ciudad]”, y en redes sociales. Cuando un vecino pide presupuesto, se lo pasamos a un profesional de su zona. Solo a uno.»\n\nAhora haz una pregunta para saber qué le duele: «Por curiosidad, ¿cómo te llegan ahora los clientes? ¿Has probado alguna plataforma o agencia?»\n\nSegún lo que te cuente, elige uno o dos de estos problemas y empieza con: «Lo montamos así porque los profesionales con los que hablamos estaban hartos de…»\n\n| Si te cuenta que… | Le dices |\n| --- | --- |\n| Ha usado plataformas de presupuestos | «En otras plataformas el mismo cliente le llega a tres o cuatro profesionales a la vez. Gana el que llama primero o el más barato. Aquí cada cliente es solo tuyo.» |\n| Paga o ha pagado cuotas | «Hay sitios donde pagas una cuota todos los meses, te entre trabajo o no. Aquí no hay cuota: si un mes no te llega nadie, no pagas nada.» |\n| Ha comprado bonos o créditos | «En otras compras un bono por adelantado antes de ver un solo cliente. Aquí pagas los clientes después de recibirlos.» |\n| Ha trabajado con una agencia | «Una agencia te cobra su cuota, más lo que gastes en anuncios, y el riesgo es tuyo. Aquí la publicidad la ponemos y la pagamos nosotros.» |\n| Ha probado anuncios por su cuenta | «Montar tú los anuncios es aprender, probar y gastar sin saber si va a funcionar. Nosotros llevamos meses afinando las campañas en Sevilla.» |\n| Le preocupa la competencia | «Solo hay 2 plazas de [oficio] en cada ciudad. No compites con 30 profesionales por el mismo cliente.» |\n| Le llega todo por el boca a boca | «El boca a boca es lo mejor, pero no lo controlas: hay meses buenos y meses vacíos. Esto te da clientes nuevos todas las semanas.» |\n\nCierra el bloque: «Eso es lo que hacemos. Ahora te enseño qué queremos conseguir contigo, con números.»\n\n## Paso 3 · Lo que queremos conseguir contigo (4 minutos)\n\nPrimero, dos preguntas. Sus respuestas son tus números para el resto de la llamada:\n\n1. «¿Cuánto te deja de media un trabajo?» Si no lo sabe, usa 250 € en fontanería y 750 € en pintura.\n2. «De cada 10 clientes a los que das presupuesto, ¿cuántos cierras?»\n\nLa cuenta es siempre la misma: **clientes al mes × los que cierra × lo que le deja cada trabajo**.\n\n«Nuestro objetivo contigo es traerte entre [20 y 40] clientes al mes. Con lo que me has dicho, si cierras [4] de cada 10 y cada trabajo te deja [250 €], son [4.000 €] al mes en trabajos nuevos.»\n\n**Fontanería** (trabajo medio de 250 €)\n\n| Cierra | 20 clientes al mes | 40 clientes al mes |\n| --- | --- | --- |\n| 4 de cada 10 | 8 trabajos · 2.000 € | 16 trabajos · 4.000 € |\n| 5 de cada 10 | 10 trabajos · 2.500 € | 20 trabajos · 5.000 € |\n| 6 de cada 10 | 12 trabajos · 3.000 € | 24 trabajos · 6.000 € |\n| 7 de cada 10 | 14 trabajos · 3.500 € | 28 trabajos · 7.000 € |\n| 8 de cada 10 | 16 trabajos · 4.000 € | 32 trabajos · 8.000 € |\n| Paga por los clientes (40 € en Sevilla) | 800 € + IVA | 1.600 € + IVA |\n\n**Pintura** (trabajo medio de 750 €)\n\n| Cierra | 10 clientes al mes | 20 clientes al mes |\n| --- | --- | --- |\n| 4 de cada 10 | 4 trabajos · 3.000 € | 8 trabajos · 6.000 € |\n| 5 de cada 10 | 5 trabajos · 3.750 € | 10 trabajos · 7.500 € |\n| 6 de cada 10 | 6 trabajos · 4.500 € | 12 trabajos · 9.000 € |\n| 7 de cada 10 | 7 trabajos · 5.250 € | 14 trabajos · 10.500 € |\n| 8 de cada 10 | 8 trabajos · 6.000 € | 16 trabajos · 12.000 € |\n| Paga por los clientes (80 € en Sevilla) | 800 € + IVA | 1.600 € + IVA |\n\nFuera de Sevilla, la última fila se calcula con el precio de su ciudad (Herramientas → Precios por lead).\n\nLa frase que más convence: «Fíjate: con un solo trabajo de [250 €] pagas [6] clientes. El resto es beneficio.» En Sevilla, un trabajo de fontanería paga 6 clientes y uno de pintura paga 9.\n\nCierra el bloque: «Eso es el objetivo. Ahora te cuento lo que ya está pasando en Sevilla, que es lo que de verdad importa.»\n\n## Paso 4 · Lo que ya está pasando en Sevilla (2 minutos)\n\nDatos a 25 de octubre de 2026, sacados del sistema. Andrés los actualiza cada mes.\n\n| Dato | Cifra |\n| --- | --- |\n| Peticiones de presupuesto en Sevilla, septiembre | 80 (50 de fontanería y 30 de pintura) |\n| Lo mismo, con Málaga y Granada | Casi 100 |\n| Peticiones en Sevilla, octubre hasta el día 25 | 77 (64 de fontanería y 13 de pintura) |\n| Marcos, fontanero, desde julio | 27 trabajos terminados registrados, de 266 € de media |\n| Jorge, pintor, primeros días (desde mediados de octubre) | 5 clientes, un trabajo cerrado de 1.400 € y 2 presupuestos enviados |\n\nLas peticiones son solo las de formulario: además entran llamadas y WhatsApp que no están en esas cifras.\n\n«Para que veas que no te hablo de teoría: en septiembre entraron 80 peticiones de presupuesto solo en Sevilla, y en octubre llevamos 77. Jorge, nuestro pintor, empezó hace unos días: le han llegado 5 clientes y ya ha cerrado un trabajo de 1.400 €. Esos 5 clientes le costaron 400 €. Con un solo trabajo lo ha recuperado más de tres veces.»\n\nSi es de otra ciudad: «Sevilla es donde más tiempo llevamos. En [ciudad] montamos exactamente lo mismo.»\n\nCierra el bloque: «Ahora te explico la oferta, punto por punto.»\n\n## Paso 5 · La oferta, punto por punto (3 minutos)\n\n«Te explico qué incluye y qué necesitas para empezar.» Cada punto le quita una preocupación antes de que la diga.\n\n| Punto | Le dices | Lo que le quitas |\n| --- | --- | --- |\n| Publicidad | «La publicidad en tu ciudad la ponemos y la pagamos nosotros.» | Arriesgar dinero en anuncios |\n| Pago por cliente | «Solo pagas cada cliente que te llega: [precio] € + IVA en [ciudad]. Sin cuota mensual.» | Pagar meses sin trabajo |\n| Cliente exclusivo | «Cada cliente va a un solo profesional. No se reparte ni se subasta.» | Competir por el mismo cliente |\n| Plazas limitadas | «Solo hay 2 plazas de [oficio] en [ciudad], y quedan [N].» | Que haya 30 profesionales detrás |\n| Pago después | «Te facturamos a principio de mes los clientes del mes anterior, o antes si llegas a 820 € + IVA. Tienes 5 días para pagar.» | Adelantar dinero |\n| Solo clientes válidos | «Solo pagas los clientes válidos. Si te llega un teléfono que no existe o alguien que no ha pedido nada, nos avisas y lo revisamos.» | Pagar por basura |\n| Aviso al móvil | «Te llegan al móvil al momento, con aviso, y los llevas en tu panel.» | Perder clientes por no verlos |\n\n**Lo que necesita para empezar:**\n\n1. **El contrato firmado.** Lo firma desde el móvil con el enlace que le mandas: es lo único imprescindible.\n2. **La activación:** 200 € + IVA (242 € en total), en los 5 días siguientes a firmar. Al firmar le llega por email el enlace para pagarla con tarjeta o Bizum. También puede pagarla por transferencia a la cuenta del contrato y mandarte el comprobante.\n3. **Alta de autónomo y seguro de responsabilidad civil.** Pídelos «para comprobar que todo está en regla». Si le choca, no insistas: con el contrato y la activación basta.\n\nCómo presentar la activación: «Lo único que pagas por adelantado son 200 € más IVA. Cubren tu alta, te reservan la plaza para que no la coja nadie más y ponen en marcha la campaña en [ciudad]. Con un solo trabajo los recuperas. Y si por lo que sea no arrancamos la campaña en 30 días, te los devolvemos: está en el contrato.»\n\nCierra el bloque: «Ahora te cuento qué pasa cuando te llega un cliente, con un ejemplo.»\n\n## Paso 6 · Cómo te llegan los clientes (3 minutos)\n\n«Te pongo un ejemplo de cómo funciona en el día a día.»\n\n1. Una vecina de [ciudad] busca en Google «[fontanero / pintor] en [ciudad]», ve nuestro anuncio y pide presupuesto. Puede hacerlo con el formulario, llamando o por WhatsApp.\n2. En ese momento te llega un aviso al móvil: «Nuevo cliente esperando tu llamada», con su nombre, su teléfono, la zona y lo que necesita.\n3. La llamas cuanto antes. Lo ideal es en los primeros minutos: el que llama rápido es el que cierra.\n4. En tu panel la vas moviendo: Contactado, Presupuesto enviado, Ganado o Perdido. Así ves cuántos trabajos cierras cada mes.\n5. Si el cliente llama directamente desde el anuncio, lo registramos nosotros y te aparece igual, para que completes sus datos.\n6. A principio de mes te llega la factura con los clientes del mes anterior.\n\n«Para empezar a recibirlos: firmas el contrato, pagas la activación, te damos de alta y te mandamos tu acceso. En cuanto llega la activación, arrancamos los anuncios en [ciudad].»\n\nSi le ves dudoso: «Si quieres, te lo enseño en una videollamada de 5 minutos.»\n\nCierra el bloque: «Esto es todo. Ahora dime tú, ¿qué dudas tienes?»\n\n## Paso 7 · Sus preguntas (lo que haga falta)\n\nResponde corto, comprueba («¿Te queda claro?») y vuelve siempre al mismo sitio: «Entonces te envío el contrato y lo ves con calma.»\n\n| Si te dice… | Le respondes |\n| --- | --- |\n| «Es caro» | «¿Cuánto te deja un trabajo? [250 €]. Entonces con un trabajo pagas [6] clientes. Si de cada 10 cierras 4, ganas dinero desde el primer mes.» |\n| «¿Cuántos clientes me vais a mandar?» | «El objetivo es [20 a 40] al mes. No te voy a prometer un número exacto porque depende de la demanda de cada semana, pero en Sevilla ya entran más de 70 peticiones al mes.» |\n| «¿Se lo mandáis también a otros?» | «No. Cada cliente va a un solo profesional. Es tuyo.» |\n| «¿Y si el cliente no es real o no contesta?» | «Solo pagas los clientes válidos. Si te llega uno que no existe, nos avisas y lo revisamos.» |\n| «¿Por qué tengo que pagar la activación?» | «Es lo que pone en marcha la campaña en tu ciudad y te reserva la plaza. Son 200 € más IVA, se recuperan con un trabajo, y si no arrancamos en 30 días te los devolvemos.» |\n| «¿Puedo probar sin pagar nada?» | «Sin activación no hay anuncios en tu ciudad, por eso es tan pequeña. Es lo único que pagas antes de recibir clientes.» |\n| «¿Hay permanencia o cuota?» | «No hay cuota mensual: pagas solo los clientes que recibes. Las condiciones para terminar el contrato vienen en el contrato y te las leo si quieres.» |\n| «Ya tengo bastante trabajo» | «Eso es que trabajas bien. Esto no es para llenarte la agenda, es para que elijas: los trabajos que te interesan los cierras y el resto los rechazas en la llamada.» |\n| «Déjame pensarlo» | «Claro. ¿Qué es lo que te hace dudar: el precio, cuántos clientes te llegan o cómo funciona?» Resuélvelo y sigue: «Te envío el contrato para que lo leas tranquilo y te llamo el [día] a las [hora].» |\n| «Lo tengo que hablar con mi socio / mi mujer» | «Perfecto. Te envío el contrato y hacemos una llamada los tres el [día]. ¿Te viene bien a las [hora]?» |\n| «No soy autónomo» | «Es requisito: tienes que poder facturar. Cuando te des de alta, escríbeme y miramos si sigue habiendo plaza en [ciudad].» Marca No interesado, motivo «No es autónomo». |\n| «¿De dónde salen los clientes?» | «De nuestros anuncios en Google y en redes sociales, en tu ciudad. Son personas que buscan un [fontanero / pintor] ese mismo día.» |\n| «En mi ciudad ya no hay plaza» | «Te dejo en lista de espera y eres el primero al que llamo si se libera una.» |\n\nSi te pregunta algo que no está aquí: «Eso te lo confirmo con Andrés y te lo digo mañana». Apúntalo en la nota y nunca te lo inventes.\n\n## Paso 8 · Completar su ficha (3 minutos)\n\n«Antes de enviarte el contrato necesito unos datos para preparar tu campaña. Así solo te llegan clientes que puedes atender.» Pregunta solo lo que todavía no tengas:\n\n- **Horario:** qué días y a qué horas trabaja, si atiende urgencias 24 h y si trabaja fines de semana y festivos.\n- **Zona:** barrios y pueblos que cubre, hasta cuántos kilómetros se mueve y a qué zonas no va.\n- **Servicios:** los que hace (usa la lista de su oficio) y los que no quiere recibir nunca.\n- **Capacidad:** cuántos clientes nuevos puede atender por semana.\n- **Facturación:** nombre o empresa, NIF o CIF, dirección fiscal y email. Con ese email entrará en la app y le llegarán las facturas.\n- **Papeles:** alta de autónomo y seguro de responsabilidad civil, si no le choca.\n\nTodo esto lo metes después en «Dar de alta en OficioYa», cuando firme.\n\n## Paso 9 · Cierre (2 minutos)\n\nEn su ficha pulsa **Crear enlace para firmar**, mándaselo por WhatsApp sin colgar y comprueba que le ha llegado.\n\n«Perfecto, [nombre]. Te acabo de mandar por WhatsApp el enlace de tu contrato. ¿Te ha llegado? Lo abres, lo lees y lo firmas desde el móvil en cinco minutos: te pide tus datos, un código que te llega al email, una foto de tu DNI y tu firma con el dedo. Al firmar te llega tu copia por email con el enlace para pagar la activación: 200 € + IVA, 242 € en total, con tarjeta o Bizum.»\n\nSi quedan pocas plazas: «En [ciudad] quedan [N] plazas de [oficio]. La tuya queda reservada con el contrato firmado y la activación.»\n\nDeja fijada la siguiente llamada: «Te llamo pasado mañana, el [día] a las [hora], para ver qué te ha parecido y resolverte lo que te surja. ¿Te viene bien?»\n\nAl colgar, en el CRM:\n\n1. Márcalo como Contrato enviado.\n2. Pon la próxima llamada con el día y la hora que habéis quedado.\n3. Escribe en la nota sus dudas y lo que te ha dicho de horario, zona y servicios.\n\n## Seguimiento hasta la firma\n\nEl primer seguimiento es como mucho a los 2 días. Desde ahí, un contacto al día hasta que firme o diga que no. Alterna llamada y WhatsApp.\n\n| Cuándo | Qué haces | Mensaje |\n| --- | --- | --- |\n| Día 0, al colgar | WhatsApp con el enlace del contrato | El botón «Enviar por WhatsApp» de su ficha |\n| Día 2 | Llamada a la hora acordada. Si no contesta, WhatsApp | «Hola [nombre], soy Sandra de OficioYa. ¿Has podido ver el contrato? Te llamo hoy a las [hora] y te resuelvo lo que necesites.» |\n| Día 3 | Llamada o WhatsApp | «[Nombre], en [ciudad] quedan [N] plazas de [oficio]. ¿Te reservo la tuya?» |\n| Día 4 | Llamada o WhatsApp | «¿Te ha surgido alguna duda con el contrato? Si quieres lo vemos en 5 minutos por videollamada.» |\n| Día 5 en adelante | Un contacto al día, hasta 5 intentos sin respuesta | «[Nombre], no quiero insistir más. Si en algún momento te interesa, escríbeme y miramos si sigue habiendo plaza en [ciudad].» |\n\nEn su ficha ves si ha abierto el enlace y si ha confirmado su email. Si lo abrió y no firmó, llámale: casi siempre es una duda.\n\nCuando firme, pasa solo a Firmado. Después pulsa «Dar de alta en OficioYa» y mándale su acceso por WhatsApp con el botón que aparece al terminar.\n\nSi a los 5 intentos no contesta, márcalo como No contesta. Si te dice que no, márcalo como No interesado con el motivo.\n";
 var editandoGuion = false;
 function guionTexto(){ return (D.textos && D.textos.guion && D.textos.guion.texto) || GUION_INICIAL; }
 function mdLinea(t){
@@ -1095,6 +1312,17 @@ function editarPrecio(slug){
       .catch(function(e){ $('pr-si').disabled = false; $('pr-err').textContent = 'No se han guardado: ' + e.message; });
   };
 }
+$('h-buscar-contrato').addEventListener('input', pintarContratosCiudad);
+$('h-contratos-ciudad').addEventListener('click', function(e){
+  var b = e.target.closest('[data-contrato]'); if(!b) return;
+  var o = b.getAttribute('data-contrato'), p = precioCiudad(b.getAttribute('data-slug'));
+  if(!p) return;
+  var nombre = 'Contrato ' + oficioTxt(o) + ' ' + p.ciudad;
+  abrirVisor(nombre);
+  fnFirma('ver_modelo', { oficio: o, slug: p.slug }, true)
+    .then(function(blob){ mostrarPdf(blob, nombre + '.pdf'); })
+    .catch(function(err){ errorVisor('No se ha podido preparar el contrato: ' + err.message); });
+});
 $('h-contratos').addEventListener('click', function(e){
   var d = e.target.closest('[data-desc]'); if(d) descargar(d.getAttribute('data-desc'));
   var s = e.target.closest('[data-subir-plantilla]');
@@ -1355,7 +1583,7 @@ function atascos(){
       if(atrasada) r = 'Llamada programada atrasada desde ' + cuandoLlamar(new Date(prox));
       else if(!futura && h > 72) r = (l.estado === 'interesado' ? 'Interesado' : 'Contactado') + ' hace ' + dur(h) + ' y sin próxima llamada';
     }
-    else if(l.estado === 'contrato_enviado' && h > 120) r = 'Contrato enviado hace ' + dur(h) + ' y sin firmar';
+    else if(l.estado === 'contrato_enviado' && h > 120){ var fa = firmaActiva(l.id); r = 'Contrato enviado hace ' + dur(h) + ' y sin firmar · ' + (fa ? estadoFirmaCorto(fa).toLowerCase() : 'sin enlace para firmar'); }
     else if(l.estado === 'completado' && h > 72){ r = 'Firmó hace ' + dur(h) + ': falta que confirmes el cobro'; tu = true; }
     else if(l.estado === 'no_contesta'){
       if(l.intentos >= 5) r = '5 intentos sin respuesta: hay que cerrarlo';
@@ -1454,6 +1682,140 @@ function pintarGestion(){
   $('g-actividad').innerHTML = '<tr><th>Día</th><th class="n">Llamadas</th><th class="n">Cambios de etapa</th><th class="n">Notas</th><th class="n">Firmados</th></tr>' + dias.join('');
 }
 
+/* ---------- Firma electrónica del contrato ---------- */
+function conIva(n){ return Math.round(Number(n) * 121) / 100; }
+function firmasDe(id){ return (D.firmas||[]).filter(function(f){ return f.lead_id === id; }); }
+function vigente(f){ return f.estado === 'pendiente' && new Date(f.caduca_at) > new Date(); }
+function firmaActiva(id){ return firmasDe(id).filter(vigente)[0] || null; }
+function firmaHecha(id){ return firmasDe(id).filter(function(f){ return f.estado === 'firmado'; })[0] || null; }
+/* Activación que firmó (el contrato general la lleva escrita; los antiguos eran de 99 €) */
+function activacionDe(l){ var f = firmaHecha(l.id); return f && f.condiciones && f.condiciones.activacion != null ? Number(f.condiciones.activacion) : ACTIVACION_ANTES; }
+function valorActivacion(l){ return CERRADO.indexOf(l.estado) > -1 ? activacionDe(l) : ACTIVACION; }
+function estadoFirmaCorto(f){
+  if(f.email_verificado_at) return 'Email confirmado: le falta firmar';
+  if(f.abierto_at) return 'Abrió el enlace ' + hace(f.ultima_apertura_at || f.abierto_at) + (f.aperturas > 1 ? ' (' + f.aperturas + ' veces)' : '');
+  return 'Enlace sin abrir · creado ' + hace(f.created_at);
+}
+function chipFirma(f){
+  if(f.estado === 'firmado') return '<span class="chip ok">Firmado online</span>';
+  if(f.email_verificado_at) return '<span class="chip ambar">Email confirmado: falta firmar</span>';
+  if(f.abierto_at) return '<span class="chip ambar">Ha abierto el enlace' + (f.aperturas > 1 ? ' · ' + f.aperturas + ' veces' : '') + '</span>';
+  return '<span class="chip">Enlace sin abrir</span>';
+}
+function formFirma(l, slug){
+  slug = slug || l.ciudad_slug || '';
+  if(!precioCiudad(slug)) slug = '';
+  var opts = '<option value="">Elige la ciudad</option>' + ciudadesPrecio().map(function(p){
+    return '<option value="' + esc(p.slug) + '"' + (p.slug === slug ? ' selected' : '') + '>' + esc(p.ciudad) + '</option>'; }).join('');
+  var m = modeloDe(l.oficio), antiguo = l.estado === 'contrato_enviado' && !firmasDe(l.id).length;
+  return '<div class="crear-firma">'
+    + '<p class="nota">Se prepara su contrato de ' + oficioTxt(l.oficio).toLowerCase() + ' con la ciudad y el precio de la tabla, y un enlace para que lo firme desde el móvil con su DNI.</p>'
+    + (antiguo ? '<p class="aviso-plaza" style="margin:0">Si le mandaste el contrato antiguo en PDF, ojo: en el nuevo la activación es de ' + euros(m ? Number(m.activacion) : ACTIVACION) + ' + IVA. Cuéntaselo al enviarle el enlace.</p>' : '')
+    + '<label class="lbl" for="fi-firma-ciudad">Ciudad del contrato</label><select id="fi-firma-ciudad">' + opts + '</select>'
+    + '<p class="precio-firma" id="fi-firma-precio"></p>'
+    + '<button class="btn ok full" id="fi-firma-crear">Crear enlace para firmar</button>'
+    + '<button class="link" id="fi-firma-pdf" style="justify-self:start">¿Contrato especial? Sube tu PDF para que lo firme</button></div>';
+}
+function pintarPrecioFirma(l){
+  var s = $('fi-firma-ciudad'); if(!s) return;
+  var p = precioCiudad(s.value), t = precioDe(s.value, l.oficio), m = modeloDe(l.oficio);
+  var nota = p && p.nota && (l.oficio === 'fontanero' || !/^fontaner/i.test(p.nota)) ? '<span class="aviso">' + esc(p.nota) + '</span>' : '';
+  $('fi-firma-precio').innerHTML = !s.value ? 'Elige la ciudad donde va a trabajar.'
+    : t != null ? '<b>' + euros(t) + ' + IVA</b> por cliente · activación <b>' + euros(m ? Number(m.activacion) : ACTIVACION) + ' + IVA</b>' + nota
+    : 'Esa ciudad no tiene precio en la tabla.';
+}
+function marcarEnviado(l){
+  if(['nuevo','contactado','interesado','no_contesta','lista_espera'].indexOf(l.estado) < 0) return;
+  setTimeout(function(){ if(confirm('¿Le has enviado el enlace? Lo marco como "Contrato enviado".')) guardar(l.id, { estado:'contrato_enviado' }, 'Marcado como contrato enviado'); }, 800);
+}
+function prepararFirma(l){
+  var f = firmaActiva(l.id);
+  if($('fi-firma-ciudad')){ $('fi-firma-ciudad').addEventListener('change', function(){ pintarPrecioFirma(l); }); pintarPrecioFirma(l); }
+  if($('fi-firma-crear')) $('fi-firma-crear').addEventListener('click', function(){
+    var b = this, slug = $('fi-firma-ciudad').value;
+    if(!slug){ toast('Elige la ciudad del contrato'); $('fi-firma-ciudad').focus(); return; }
+    if(precioDe(slug, l.oficio) == null){ toast('Esa ciudad no tiene precio en la tabla'); return; }
+    if(f && !confirm('El enlace que ya le mandaste dejará de funcionar y tendrás que enviarle el nuevo. ¿Seguir?')) return;
+    b.disabled = true; b.textContent = 'Preparando el contrato…';
+    fnFirma('preparar', { lead: l.id, slug: slug }).then(function(){
+      toast('Enlace creado: envíaselo por WhatsApp', 4000); return cargar();
+    }).catch(function(e){
+      b.disabled = false; b.textContent = 'Crear enlace para firmar';
+      if(e.message !== 'solo lectura') toast('No se ha creado el enlace: ' + e.message, 5000);
+    });
+  });
+  if($('fi-firma-pdf')) $('fi-firma-pdf').addEventListener('click', function(){
+    if(D.rol === 'lector'){ soloLectura(); return; }
+    if(f && !confirm('El enlace que ya le mandaste dejará de funcionar y tendrás que enviarle el nuevo. ¿Seguir?')) return;
+    elegirArchivo({ tipo:'para_firmar', lead: l.id });
+  });
+  if($('fi-firma-cambiar')) $('fi-firma-cambiar').addEventListener('click', function(){
+    var fo = $('fi-firma-form'); fo.hidden = !fo.hidden; if(!fo.hidden) $('fi-firma-ciudad').focus();
+  });
+  if($('fi-firma-anular')) $('fi-firma-anular').addEventListener('click', function(){
+    if(!confirm('¿Anular el enlace de ' + l.nombre + '? Dejará de funcionar y, si quiere firmar, tendrás que crearle otro.')) return;
+    rpc('captacion_firma_anular', { p_clave: CLAVE, p_id: f.id }).then(function(){ toast('Enlace anulado'); return cargar(); })
+      .catch(function(e){ if(e.message !== 'solo lectura') toast('No se ha anulado: ' + e.message); });
+  });
+  if($('fi-firma-copiar')) $('fi-firma-copiar').addEventListener('click', function(){
+    var inp = $('fi-firma-url'), url = inp.value;
+    (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(function(){ toast('Enlace copiado'); })
+      .catch(function(){ inp.focus(); inp.select(); toast('Mantén pulsado el enlace para copiarlo'); });
+    marcarEnviado(l);
+  });
+  if($('fi-firma-url')) $('fi-firma-url').addEventListener('focus', function(){ this.select(); });
+  if($('fi-firma-wa')) $('fi-firma-wa').addEventListener('click', function(){ marcarEnviado(l); });
+  if($('fi-pruebas')) $('fi-pruebas').addEventListener('click', function(){ verPruebas(firmaHecha(l.id)); });
+}
+var EVENTO_FIRMA = {
+  solicitud_creada:'Enlace creado', enlace_abierto:'Abrió el enlace', documento_descargado:'Se cargó el contrato en su móvil', contrato_leido:'Terminó de leer el contrato',
+  codigo_enviado:'Código enviado a su email', codigo_no_enviado:'No se pudo enviar el código', codigo_incorrecto:'Escribió un código incorrecto', codigo_verificado:'Confirmó su email con el código',
+  firma_enviada:'Firmó el contrato', documento_firmado_guardado:'Contrato firmado guardado', copia_enviada:'Copia enviada a su email', aviso_oficioya:'Aviso enviado a OficioYa', solicitud_anulada:'Enlace anulado'
+};
+var ARCHIVO_FIRMA = { dni_anverso:'DNI (delante)', dni_reverso:'DNI (detrás)', firma:'Firma', poder:'Poder' };
+function fechaSeg(iso){ return iso ? new Date(iso).toLocaleString('es-ES', { timeZone:'Europe/Madrid', day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit' }) : '—'; }
+function verPruebas(fh){
+  if(!fh) return;
+  rpc('captacion_firma_evidencias', { p_clave: CLAVE, p_id: fh.id }).then(function(v){
+    var f = v.firmante || {}, dom = f.domicilio || {}, emp = f.empresa, hab = f.habilitaciones, s = v.sello_tiempo;
+    var fila = function(a, b){ return b ? '<dt>' + a + '</dt><dd>' + b + '</dd>' : ''; };
+    var m = $('modal');
+    m.innerHTML = '<div class="caja-m ancha" role="dialog" aria-modal="true" aria-labelledby="pv-t"><h3 id="pv-t">Pruebas de la firma</h3>'
+      + '<p>Todo esto queda guardado y no se puede modificar. La hoja de firma del PDF lo resume.</p>'
+      + '<dl class="evid">'
+      + fila('Firmante', esc(f.nombre)) + fila('DNI o NIE', esc(f.nif))
+      + (emp ? fila('Empresa', esc(emp.razon_social) + ' · ' + esc(emp.cif) + ' · ' + esc(emp.cargo)) : '')
+      + fila('Email', esc(v.email) + ' · confirmado con código') + fila('Teléfono', esc(f.telefono))
+      + fila('Domicilio', esc([dom.direccion, dom.cp, dom.localidad].filter(Boolean).join(', ')))
+      + (emp ? fila('Domicilio personal', esc(emp.domicilio_personal)) : '')
+      + fila('IBAN', f.iban ? esc(f.iban) + (f.entidad ? ' · ' + esc(f.entidad) : '') : '')
+      + (hab ? fila('Habilitaciones', esc([hab.agua ? 'agua' : '', hab.gas ? 'gas ' + (hab.gas_categoria || '') : '', hab.rite ? 'RITE' : ''].filter(Boolean).join(', ') || 'ninguna')) : '')
+      + fila('Firmado', fechaSeg(v.firmado_at)) + fila('IP', esc(v.ip)) + fila('Navegador', esc(v.user_agent))
+      + fila('Sello de tiempo', s ? esc(s.tsa) + ' · ' + esc(s.fecha || '') : 'no disponible')
+      + fila('Huella del contrato', '<span class="hash">' + esc(v.doc_sha256) + '</span>')
+      + fila('Huella de las pruebas', '<span class="hash">' + esc(v.evidencias_sha256) + '</span>')
+      + fila('Huella del PDF firmado', '<span class="hash">' + esc(v.firmado_sha256) + '</span>')
+      + '</dl>'
+      + '<div class="links" style="margin-bottom:6px">' + (v.archivos || []).map(function(a){ return '<button class="link" data-archivo="' + a.id + '">Ver ' + esc((ARCHIVO_FIRMA[a.tipo] || a.tipo).toLowerCase()) + '</button>'; }).join('')
+      + (fh.documento_firmado_id ? '<button class="link" data-desc-m="' + fh.documento_firmado_id + '">Contrato firmado (PDF)</button>' : '') + '</div>'
+      + '<p class="lbl">Registro</p><ul class="registro">' + (v.eventos || []).map(function(e){
+          return '<li><time>' + fechaSeg(e.created_at) + (e.ip ? ' · IP ' + esc(e.ip) : '') + '</time>' + esc(EVENTO_FIRMA[e.tipo] || e.tipo) + '</li>'; }).join('') + '</ul>'
+      + '<div style="margin-top:14px"><button type="button" class="btn sec full" id="pv-cerrar">Cerrar</button></div></div>';
+    m.hidden = false;
+    var cerrarM = function(){ m.hidden = true; m.innerHTML = ''; };
+    $('pv-cerrar').onclick = cerrarM;
+    try{ $('pv-cerrar').focus({ preventScroll: true }); }catch(x){}
+    m.querySelector('.caja-m').scrollTop = 0;
+    m.onclick = function(e){
+      if(e.target === m){ cerrarM(); return; }
+      var a = e.target.closest('[data-archivo]');
+      if(a) rpc('captacion_firma_archivo', { p_clave: CLAVE, p_id: a.getAttribute('data-archivo') })
+              .then(function(x){ bajarB64(x.base64, x.mime, x.nombre); }).catch(function(err){ toast('No se ha podido abrir: ' + err.message); });
+      var dm = e.target.closest('[data-desc-m]'); if(dm) verDocumento(dm.getAttribute('data-desc-m'));
+    };
+  }).catch(function(e){ toast('No se han podido cargar las pruebas: ' + e.message); });
+}
+
 /* ---------- Ficha del profesional ---------- */
 function plazasDe(l){
   var p = (D.plazas||[]).filter(function(x){ return x.slug === l.ciudad_slug; })[0];
@@ -1474,7 +1836,7 @@ function abrirFicha(id, refrescar){
   fichaId = id;
   var admin = esAdmin(), cerrado = CERRADO.indexOf(l.estado) > -1;
   var ev = D.eventos.filter(function(e){ return e.lead_id===id; });
-  var docs = docsDe(id), plant = plantilla(l.oficio);
+  var docs = docsDe(id);
   var quienTxt = function(a){ return a==='gestor' ? 'Sandra' : a==='admin' ? 'Andrés' : a; };
   var hist = ev.map(function(e){
     var t = e.tipo==='estado' ? 'Estado: ' + esc(NOMBRE_ESTADO[e.estado_de]||e.estado_de) + ' → <b>' + esc(NOMBRE_ESTADO[e.estado_a]||e.estado_a) + '</b>' + (e.texto ? ' (' + esc(e.texto) + ')' : '')
@@ -1485,18 +1847,35 @@ function abrirFicha(id, refrescar){
   }).join('');
   var saludo = 'Hola ' + l.nombre.split(' ')[0] + ', soy Sandra de OficioYa. Te escribo por tu solicitud de plaza de ' + oficioTxt(l.oficio).toLowerCase() + ' en ' + (l.ciudad||'tu ciudad') + '. ¿Cuándo te viene bien que te llame?';
 
+  var fAct = firmaActiva(id), fHecha = firmaHecha(id), fUlt = firmasDe(id)[0] || null;
   var bloqueContrato = '<div class="bloque"><h3>Contrato</h3>';
-  if(!cerrado){
-    bloqueContrato += '<div class="fila">'
-      + (plant ? '<button class="btn sec" data-desc="' + plant.id + '">Descargar contrato</button>' : '<button class="btn sec" disabled>Sin contrato modelo</button>')
-      + '<a class="btn sec" href="' + wa(l, mensajeContrato(l)) + '" target="_blank" rel="noopener" id="fi-wa-contrato">WhatsApp del contrato</a></div>'
-      + '<p class="nota">Descarga el contrato, ábrelo en WhatsApp con el botón y adjúntalo. Después marca "Contrato enviado".</p>';
+  if(fHecha){
+    var fc = fHecha.condiciones;
+    bloqueContrato += '<div class="hecho">Firmado electrónicamente el <b>' + fecha(fHecha.firmado_at, true) + '</b> por <b>' + esc(fHecha.firmante_nombre) + '</b> (' + esc(fHecha.firmante_nif) + ')'
+      + (fHecha.firmante_empresa ? ' en nombre de <b>' + esc(fHecha.firmante_empresa) + '</b>' : '') + '.'
+      + (fc ? '<br>' + esc(fc.oficio_txt) + ' en ' + esc(fc.ciudad) + ' · ' + euros(Number(fc.precio)) + ' + IVA por cliente · activación ' + euros(Number(fc.activacion)) + ' + IVA.' : '')
+      + '</div>' + (admin ? '<button class="link" id="fi-pruebas" style="margin-top:4px">Ver las pruebas de la firma</button>' : '');
+  } else if(!cerrado){
+    if(fAct){
+      var fcond = fAct.condiciones, url = fAct.token ? URL_FIRMA + fAct.token : '';
+      bloqueContrato += '<div class="enlace"><div class="enlace-cab"><b>Enlace para firmar</b>' + chipFirma(fAct) + '</div>'
+        + (url ? '<input class="enlace-url" id="fi-firma-url" readonly value="' + esc(url) + '" aria-label="Enlace para firmar el contrato">'
+             + '<div class="fila"><a class="btn" href="' + wa(l, mensajeContrato(l, url, fcond && fcond.ciudad)) + '" target="_blank" rel="noopener" id="fi-firma-wa">Enviar por WhatsApp</a><button class="btn sec" id="fi-firma-copiar">Copiar enlace</button></div>' : '')
+        + '<p class="nota">' + (fcond ? 'Contrato de ' + esc(fcond.oficio_txt.toLowerCase()) + ' en ' + esc(fcond.ciudad) + ' · ' + euros(Number(fcond.precio)) + ' + IVA por cliente · activación ' + euros(Number(fcond.activacion)) + ' + IVA.' : 'Contrato subido: ' + esc(fAct.doc_nombre) + '.')
+        + '<br>Creado por ' + esc(fAct.creado_por || '—') + ' ' + hace(fAct.created_at) + '. Caduca el ' + fecha(fAct.caduca_at) + '.</p>'
+        + '<div class="links"><button class="link" data-ver="' + fAct.documento_id + '">Ver el contrato</button><button class="link" id="fi-firma-cambiar">Cambiar ciudad o contrato</button><button class="link" id="fi-firma-anular">Anular el enlace</button></div></div>'
+        + '<div id="fi-firma-form" hidden style="margin-top:12px"><p class="aviso-plaza" style="margin:0 0 8px">Si creas otro, el enlace que ya le mandaste deja de funcionar.</p>' + formFirma(l, fcond && fcond.slug) + '</div>';
+    } else {
+      bloqueContrato += (fUlt && fUlt.estado !== 'firmado' ? '<p class="aviso-plaza" style="margin:0 0 10px">' + (fUlt.estado === 'anulado' ? 'El enlace anterior está anulado.' : 'El enlace anterior caducó sin firmar.') + ' Crea uno nuevo y envíaselo.</p>' : '')
+        + '<div id="fi-firma-form">' + formFirma(l, null) + '</div>';
+    }
   }
-  bloqueContrato += (docs.length ? '<ul class="docs">' + docs.map(function(d){ return '<li><span>' + esc(d.nombre_archivo) + '<small>' + kb(d.tamano) + ' · ' + fecha(d.created_at, true) + '</small></span><button class="btn sec" data-desc="' + d.id + '">Ver</button></li>'; }).join('') + '</ul>' : '')
-    + (!cerrado ? '<button class="btn sec full" id="fi-subir" style="margin-top:8px">Subir contrato firmado (PDF o foto)</button>'
+  bloqueContrato += (docs.length ? '<ul class="docs">' + docs.map(function(d){ return '<li><span>' + esc(d.nombre_archivo) + '<small>' + kb(d.tamano) + ' · ' + fecha(d.created_at, true) + '</small></span><button class="btn sec" data-ver="' + d.id + '">Ver</button></li>'; }).join('') + '</ul>' : '')
+    + (!cerrado && admin ? '<details class="papel"' + (docs.length && !fHecha ? ' open' : '') + '><summary>¿Firmó en papel? (solo tú lo ves)</summary>'
+         + '<button class="btn sec full" id="fi-subir" style="margin-top:8px">Subir contrato firmado (PDF o foto)</button>'
          + '<button class="btn ok full" id="fi-completar" style="margin-top:8px"' + (docs.length ? '' : ' disabled') + '>Completado: contrato firmado</button>'
-         + (docs.length ? '' : '<p class="nota">Para marcarlo como completado, sube primero el contrato firmado.</p>') : '')
-    + (cerrado && l.estado==='completado' ? '<p class="aviso-plaza">Contrato firmado. ' + (admin ? 'Confirma cuando cobres la activación de 99 €.' : 'Andrés confirmará el cobro de la activación.') + '</p>' : '')
+         + (docs.length ? '' : '<p class="nota">Para marcarlo como completado, sube primero el contrato firmado.</p>') + '</details>' : '')
+    + (cerrado && l.estado==='completado' ? '<p class="aviso-plaza">Contrato firmado. ' + (admin ? 'Confirma cuando cobres la activación: ' + euros(activacionDe(l)) + ' + IVA (' + euros(conIva(activacionDe(l))) + ').' : 'Andrés confirmará el cobro de la activación.') + '</p>' : '')
     + (admin && l.estado==='completado' ? '<button class="btn ok full" id="fi-cobrado" style="margin-top:8px">Activación cobrada: activar profesional</button>' : '')
     + (l.estado==='pagado' ? '<p class="aviso-plaza">Profesional <b>activo</b>: activación cobrada' + (l.pagado_at ? ' el ' + fecha(l.pagado_at) : '') + '. Toca lanzar su campaña de clientes.</p>' : '')
     + '</div>';
@@ -1550,6 +1929,7 @@ function abrirFicha(id, refrescar){
     });
   });
   Array.prototype.forEach.call($('ficha').querySelectorAll('[data-desc]'), function(b){ b.addEventListener('click', function(){ descargar(b.getAttribute('data-desc')); }); });
+  Array.prototype.forEach.call($('ficha').querySelectorAll('[data-ver]'), function(b){ b.addEventListener('click', function(){ verDocumento(b.getAttribute('data-ver')); }); });
   $('fi-cerrar').addEventListener('click', cerrarFicha);
   if($('fi-sin-proxima')) $('fi-sin-proxima').addEventListener('click', function(){ $('fi-proxima').value = ''; });
   if($('fi-guardar')) $('fi-guardar').addEventListener('click', function(){
@@ -1574,12 +1954,13 @@ function abrirFicha(id, refrescar){
     guardar(l.id, c, 'Anotado. Te lo recuerdo mañana');
   });
   if($('fi-subir')) $('fi-subir').addEventListener('click', function(){ elegirArchivo({ tipo:'contrato_firmado', lead: l.id }); });
+  prepararFirma(l);
   if($('fi-completar')) $('fi-completar').addEventListener('click', function(){
     if(!confirm('¿Confirmas que ' + l.nombre + ' ha firmado el contrato? Se ocupa su plaza en ' + (l.ciudad||'su ciudad') + ' y se te suman ' + COMISION + ' € de comisión.')) return;
     guardar(l.id, { estado:'completado', proxima_llamada:'' }, '¡Completado! +' + COMISION + ' €');
   });
   if($('fi-cobrado')) $('fi-cobrado').addEventListener('click', function(){
-    if(!confirm('¿Has cobrado los 99 € de activación de ' + l.nombre + '?')) return;
+    if(!confirm('¿Has cobrado la activación de ' + l.nombre + ' (' + euros(activacionDe(l)) + ' + IVA, ' + euros(conIva(activacionDe(l))) + ')?')) return;
     guardar(l.id, { estado:'pagado' }, 'Profesional activo');
   });
   if($('fi-alta')) $('fi-alta').addEventListener('click', function(){ abrirAlta(l.id); });
@@ -1589,10 +1970,6 @@ function abrirFicha(id, refrescar){
     rpc('captacion_nueva_clave_pro', { p_clave: CLAVE, p_lead: l.id }).then(function(pass){
       mostrarAcceso(l, { email: al ? al.email : '', password: pass, ciudad: al ? al.zone : (l.ciudad || ''), telefono: al ? al.phone : l.telefono }, true);
     }).catch(function(e){ toast('No se ha cambiado: ' + e.message); abrirFicha(l.id, true); });
-  });
-  if($('fi-wa-contrato')) $('fi-wa-contrato').addEventListener('click', function(){
-    if(['nuevo','contactado','interesado','no_contesta'].indexOf(l.estado) > -1)
-      setTimeout(function(){ if(confirm('¿Le has enviado el contrato? Lo marco como "Contrato enviado".')) guardar(l.id, { estado:'contrato_enviado' }, 'Marcado como contrato enviado'); }, 800);
   });
 
   if(!refrescar){
@@ -1617,8 +1994,9 @@ function abrirAlta(id){
   var l = leadPorId(id); if(!l) return;
   altaAbierta = id; fichaId = id;
   var al = altaDe(l) || {}, fi = al.ficha || {};
-  var slug = al.city_slug || l.ciudad_slug || '';
-  var precio = al.precio_lead != null ? Number(al.precio_lead) : precioDe(slug, l.oficio);
+  var fH = firmaHecha(l.id), fc = fH && fH.condiciones, fd = (fH && fH.firmante) || {};
+  var slug = al.city_slug || (fc && fc.slug) || l.ciudad_slug || '';
+  var precio = al.precio_lead != null ? Number(al.precio_lead) : fc ? Number(fc.precio) : precioDe(slug, l.oficio);
   var opts = '<option value="">Elige la ciudad</option>' + ciudadesPrecio().map(function(p){
     return '<option value="' + esc(p.slug) + '"' + (p.slug === slug ? ' selected' : '') + '>' + esc(p.ciudad) + '</option>'; }).join('');
   var campo = function(id, label, val, extra){ return '<label class="lbl" for="' + id + '">' + label + '</label><input id="' + id + '" value="' + esc(val == null ? '' : val) + '"' + (extra || '') + '>'; };
@@ -1630,15 +2008,16 @@ function abrirAlta(id){
     + '<p class="nota">Rellénalo con la ficha que hiciste en la llamada. Al guardar se crea su cuenta y le aparece a Andrés para pasarle clientes.</p>'
     + '<div class="form-alta">'
     + '<div class="seccion"><h3>Contacto</h3>'
-    + campo('al-nombre', 'Nombre y apellidos', al.name || l.nombre, ' autocomplete="off"')
-    + campo('al-empresa', 'Nombre comercial <small>(opcional)</small>', al.company_name, ' autocomplete="off"')
-    + campo('al-email', 'Email <small>(con él entra en la app y le llegan las facturas)</small>', al.email, ' type="email" inputmode="email" autocomplete="off"')
-    + campo('al-tel', 'Teléfono', al.phone || l.telefono, ' type="tel" inputmode="tel" autocomplete="off"')
+    + (fH && !l.pro_user_id ? '<p class="nota" style="margin-top:4px">Lo que puso al firmar ya está rellenado: revísalo.</p>' : '')
+    + campo('al-nombre', 'Nombre y apellidos', al.name || fd.nombre || l.nombre, ' autocomplete="off"')
+    + campo('al-empresa', 'Nombre comercial <small>(opcional)</small>', al.company_name || fd.empresa, ' autocomplete="off"')
+    + campo('al-email', 'Email <small>(con él entra en la app y le llegan las facturas)</small>', al.email || fd.email, ' type="email" inputmode="email" autocomplete="off"')
+    + campo('al-tel', 'Teléfono', al.phone || fd.telefono || l.telefono, ' type="tel" inputmode="tel" autocomplete="off"')
     + '</div>'
     + '<div class="seccion"><h3>Facturación</h3>'
-    + campo('al-cif', 'NIF o CIF', al.cif, ' autocomplete="off"')
-    + campo('al-dir', 'Dirección fiscal', al.fiscal_address, ' placeholder="Calle, número y piso" autocomplete="off"')
-    + '<div class="fila"><div>' + campo('al-cp', 'Código postal', al.fiscal_zip, ' inputmode="numeric" autocomplete="off"') + '</div><div>' + campo('al-pob', 'Población', al.fiscal_city, ' autocomplete="off"') + '</div></div>'
+    + campo('al-cif', 'NIF o CIF', al.cif || fd.cif || fd.nif, ' autocomplete="off"')
+    + campo('al-dir', 'Dirección fiscal', al.fiscal_address || fd.direccion, ' placeholder="Calle, número y piso" autocomplete="off"')
+    + '<div class="fila"><div>' + campo('al-cp', 'Código postal', al.fiscal_zip || fd.cp, ' inputmode="numeric" autocomplete="off"') + '</div><div>' + campo('al-pob', 'Población', al.fiscal_city || fd.localidad, ' autocomplete="off"') + '</div></div>'
     + '</div>'
     + '<div class="seccion"><h3>Ciudad y precio</h3>'
     + '<label class="lbl" for="al-ciudad">Ciudad donde trabaja</label><select id="al-ciudad">' + opts + '</select>'
@@ -1657,7 +2036,7 @@ function abrirAlta(id){
     + '</div>'
     + (act === 'pagada' || act === 'exento' ? '' : act === 'pendiente'
         ? '<p class="nota" style="margin-top:14px">La factura de alta ya está emitida.</p>'
-        : '<label class="check"><input type="checkbox" id="al-factura" checked> Emitir su factura de alta (' + ACTIVACION + ' € + IVA)</label>')
+        : '<label class="check"><input type="checkbox" id="al-factura" checked> Emitir su factura de alta (' + euros(activacionDe(l)) + ' + IVA)</label>')
     + '<p class="err" id="al-err"></p>'
     + '<div class="fila" style="margin-top:14px"><button class="btn sec" id="al-volver">Volver</button><button class="btn ok" id="al-guardar">' + (l.pro_user_id ? 'Guardar cambios' : 'Dar de alta') + '</button></div>'
     + '</div>';
@@ -1666,7 +2045,8 @@ function abrirAlta(id){
   var avisar = function(){
     var s = $('al-ciudad').value, p = precioCiudad(s), t = precioDe(s, l.oficio), v = aNum($('al-precio').value), txt = [];
     if(p && p.nota && (l.oficio === 'fontanero' || !/^fontaner/i.test(p.nota))) txt.push(p.nota);
-    if(t != null && v >= 0 && Math.abs(v - t) > 0.001) txt.push('El precio de la tabla para ' + p.ciudad + ' es ' + euros(t) + '.');
+    if(fc && v >= 0 && Math.abs(v - Number(fc.precio)) > 0.001) txt.push('En su contrato firmado pone ' + euros(Number(fc.precio)) + ' + IVA por cliente.');
+    else if(!fc && t != null && v >= 0 && Math.abs(v - t) > 0.001) txt.push('El precio de la tabla para ' + p.ciudad + ' es ' + euros(t) + '.');
     $('al-aviso').textContent = txt.join(' ');
   };
   $('al-ciudad').addEventListener('change', function(){
@@ -1703,8 +2083,9 @@ function guardarAlta(l){
   else if(!(d.precio_lead >= 5 && d.precio_lead <= 1000)) err = 'Pon el precio por lead (entre 5 y 1.000 €).';
   $('al-err').textContent = err;
   if(err) return;
-  var t = precioDe(d.ciudad_slug, l.oficio), c = precioCiudad(d.ciudad_slug);
-  if(t != null && Math.abs(d.precio_lead - t) > 0.001 && !confirm('Vas a ponerle ' + euros(d.precio_lead) + ' por lead y en la tabla de ' + c.ciudad + ' pone ' + euros(t) + '. ¿Es lo que firmó?')) return;
+  var t = precioDe(d.ciudad_slug, l.oficio), c = precioCiudad(d.ciudad_slug), fF = firmaHecha(l.id), pF = fF && fF.condiciones ? Number(fF.condiciones.precio) : null;
+  if(pF != null && Math.abs(d.precio_lead - pF) > 0.001 && !confirm('Vas a ponerle ' + euros(d.precio_lead) + ' por lead y en su contrato firmado pone ' + euros(pF) + '. ¿Seguro?')) return;
+  if(pF == null && t != null && Math.abs(d.precio_lead - t) > 0.001 && !confirm('Vas a ponerle ' + euros(d.precio_lead) + ' por lead y en la tabla de ' + c.ciudad + ' pone ' + euros(t) + '. ¿Es lo que firmó?')) return;
   $('al-guardar').disabled = true; $('al-guardar').textContent = 'Guardando…';
   rpc('captacion_alta_profesional', { p_clave: CLAVE, p_lead: l.id, p_datos: d }).then(function(r){
     r.nombre = d.nombre; r.telefono = tel;

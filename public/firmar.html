@@ -1,0 +1,1110 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Firma tu contrato · OficioYa</title>
+<meta name="theme-color" content="#F4F2EE">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700&family=Fredoka:wght@600;700&display=swap">
+<style>
+:root{
+  color-scheme: light;
+  --bg:#F4F2EE; --surface:#FFFFFF; --surface-2:#F1EEE8; --line:rgba(20,20,30,.10); --line-strong:rgba(20,20,30,.24);
+  --ink:#16181D; --ink-soft:#545A66; --ink-faint:#80869A;
+  --naranja:#E8862A; --naranja-texto:#A3540C; --ok:#1B8A4F; --aviso:#C93C22;
+  --cta:#D9781D; --cta-ink:#FFFFFF; --visor:#E4DFD7; --sombra:0 1px 2px rgba(0,0,0,.08);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    color-scheme: dark;
+    --bg:#0B0E14; --surface:#141922; --surface-2:#1B212C; --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.22);
+    --ink:#F2EFE9; --ink-soft:#B4BAC5; --ink-faint:#80879A;
+    --naranja:#F5A33C; --naranja-texto:#F5A33C; --ok:#5DCB8E; --aviso:#F08A5D;
+    --cta:#F5A33C; --cta-ink:#1B1206; --visor:#05070B; --sombra:none;
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg)}
+body{color:var(--ink);font-family:'Barlow',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-size:17px;line-height:1.5;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{font-family:'Fredoka','Barlow',sans-serif;line-height:1.15;font-weight:700}
+a{color:var(--naranja-texto)}
+[hidden]{display:none!important}
+.wrap{max-width:640px;margin:0 auto;padding:0 16px}
+.cab{border-bottom:1px solid var(--line);background:var(--bg)}
+.cab .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:calc(12px + env(safe-area-inset-top,0px));padding-bottom:12px}
+.marca{font-family:'Fredoka',sans-serif;font-weight:700;font-size:23px;letter-spacing:-.01em}
+.marca b{color:var(--naranja)}
+.seguro{display:inline-flex;align-items:center;gap:6px;color:var(--ink-soft);font-size:14px;font-weight:600}
+.seguro svg{width:16px;height:16px}
+main{padding:18px 0 40px}
+body.con-barra{padding-bottom:118px}
+
+/* Progreso */
+.progreso{list-style:none;display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:2px 0 18px}
+.progreso li{font-size:12.5px;font-weight:700;color:var(--ink-faint);text-align:center}
+.progreso li::before{content:'';display:block;height:5px;border-radius:99px;background:var(--line-strong);margin-bottom:6px}
+.progreso li.hecho{color:var(--ink-soft)}
+.progreso li.hecho::before{background:var(--ok)}
+.progreso li.actual{color:var(--naranja-texto)}
+.progreso li.actual::before{background:var(--naranja)}
+
+.titulo{font-size:27px;margin-bottom:6px}
+.sub{color:var(--ink-soft);margin-bottom:16px}
+.tarjeta{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--sombra)}
+.tarjeta + .tarjeta{margin-top:12px}
+.condiciones{display:grid;gap:10px}
+.condiciones .fila-c{display:flex;justify-content:space-between;align-items:baseline;gap:12px;border-bottom:1px solid var(--line);padding-bottom:10px}
+.condiciones .fila-c:last-child{border-bottom:0;padding-bottom:0}
+.condiciones span{color:var(--ink-soft);font-size:15.5px}
+.condiciones b{font-size:18px;text-align:right}
+.condiciones b small{display:block;font-size:13.5px;font-weight:600;color:var(--ink-soft)}
+.ventajas{list-style:none;display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.ventajas li{font-size:13.5px;font-weight:700;padding:4px 10px;border-radius:99px;background:rgba(27,138,79,.11);color:var(--ok)}
+.nota{color:var(--ink-soft);font-size:14.5px}
+.nota-s{color:var(--ink-soft);font-size:13px}
+.seccion-t{font-size:19px;margin:24px 0 8px}
+
+/* Visor del contrato */
+.visor{display:grid;gap:10px;background:var(--visor);border-radius:16px;padding:10px;margin-top:10px}
+.pagina{position:relative;background:#fff;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.18);overflow:hidden}
+.pagina canvas{position:absolute;inset:0;width:100%;height:100%}
+.pagina .num{position:absolute;right:8px;bottom:6px;font-size:11.5px;font-weight:700;color:#8A909C;background:rgba(255,255,255,.85);padding:1px 6px;border-radius:99px}
+.cargando-pag{position:absolute;inset:0;display:grid;place-items:center;color:#8A909C;font-size:14px}
+.acciones-doc{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:10px}
+.link{background:none;border:0;color:var(--naranja-texto);text-decoration:underline;cursor:pointer;font-weight:600;font-size:15px;padding:6px 0;text-align:left}
+.video{width:100%;max-height:70vh;border-radius:14px;background:#000;margin-top:10px}
+
+/* Barra fija */
+.barra{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -8px 24px rgba(0,0,0,.08)}
+.barra .wrap{padding-top:10px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))}
+.barra .info{display:flex;justify-content:space-between;gap:10px;font-size:13.5px;color:var(--ink-soft);margin-bottom:8px;font-weight:600}
+.barra .info b{color:var(--ink)}
+
+/* Botones */
+.btn{appearance:none;border:0;border-radius:13px;min-height:54px;padding:0 18px;font-weight:700;font-size:18px;cursor:pointer;background:var(--cta);color:var(--cta-ink);display:inline-flex;align-items:center;justify-content:center;gap:9px;text-decoration:none;width:100%;text-align:center;line-height:1.2}
+.btn.sec{background:var(--surface);color:var(--ink);border:1.5px solid var(--line-strong);font-size:16.5px;min-height:50px}
+.btn.ok{background:var(--ok);color:#fff}
+.btn:disabled{opacity:.45;cursor:default}
+.btn svg{width:20px;height:20px;flex:none}
+.botones{display:grid;gap:10px;margin-top:18px}
+.dos{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* Formularios */
+label.lbl{display:block;font-weight:700;font-size:15.5px;margin:14px 0 6px}
+label.lbl small{font-weight:500;color:var(--ink-soft)}
+input,select,textarea{width:100%;background:var(--surface);border:1.5px solid var(--line-strong);border-radius:12px;padding:12px 13px;min-height:52px;font-size:17px}
+input:focus,select:focus,textarea:focus,button:focus-visible,a:focus-visible{outline:2.5px solid var(--naranja);outline-offset:1px}
+[tabindex="-1"]:focus{outline:none}
+input[aria-invalid="true"]{border-color:var(--aviso)}
+.mayus{text-transform:uppercase}
+.cp-loc{display:grid;grid-template-columns:120px 1fr;gap:10px}
+.segm{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.segm button{border:1.5px solid var(--line-strong);background:var(--surface);border-radius:12px;min-height:52px;padding:6px 10px;font-weight:700;font-size:15.5px;cursor:pointer;line-height:1.2}
+.segm button[aria-pressed="true"]{border-color:var(--naranja);background:rgba(232,134,42,.13);color:var(--naranja-texto)}
+.caja-extra{border-left:3px solid var(--naranja);padding-left:12px;margin-top:6px}
+.check{display:flex;gap:12px;align-items:flex-start;padding:12px 0;cursor:pointer;font-size:16px;line-height:1.4}
+.check + .check{border-top:1px solid var(--line)}
+.check input{width:24px;height:24px;min-height:24px;flex:none;margin-top:1px;accent-color:var(--naranja)}
+.err{color:var(--aviso);font-weight:600;font-size:15px;margin-top:12px}
+.err:empty{display:none}
+.ayuda{font-size:13.5px;color:var(--ink-soft);margin-top:5px}
+
+/* Código */
+.codigo{font-size:30px;font-weight:700;letter-spacing:.42em;text-align:center;padding-left:.42em;font-variant-numeric:tabular-nums;max-width:280px;margin:0 auto;display:block}
+.email-dest{font-weight:700;overflow-wrap:anywhere}
+
+/* DNI */
+.foto-dni{display:grid;place-items:center;min-height:190px;border:2px dashed var(--line-strong);border-radius:16px;background:var(--surface);text-align:center;padding:16px;color:var(--ink-soft);overflow:hidden}
+.foto-dni svg{width:64px;height:64px;color:var(--ink-faint)}
+.foto-dni img{max-width:100%;max-height:300px;border-radius:10px;display:block}
+.foto-dni.tiene{border-style:solid;border-color:var(--ok);padding:8px}
+.lista-consejos{padding-left:20px;display:grid;gap:4px;font-size:15px;color:var(--ink-soft);margin-top:10px}
+
+/* Firma */
+.pad-caja{position:relative;margin-top:8px}
+.pad{display:block;width:100%;height:210px;background:#FFFFFF;border:2px solid var(--line-strong);border-radius:16px;touch-action:none;cursor:crosshair}
+.pad-linea{position:absolute;left:24px;right:24px;bottom:52px;border-top:1.5px dashed #C9C4BB;pointer-events:none}
+.pad-x{position:absolute;left:14px;bottom:56px;color:#B0AAA0;font-weight:700;font-size:20px;pointer-events:none}
+.pad-texto{position:absolute;inset:0;display:grid;place-items:center;color:#A7A196;font-weight:600;pointer-events:none;font-size:16px}
+.pad-acc{display:flex;justify-content:space-between;align-items:center;margin-top:6px}
+.resumen{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:15px}
+.resumen dt{color:var(--ink-soft)}
+.resumen dd{font-weight:600;word-break:break-word}
+.huella{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;word-break:break-all;color:var(--ink-soft)}
+.aviso-legal{font-size:14px;color:var(--ink-soft);background:var(--surface-2);border-radius:12px;padding:12px 14px;margin-top:14px}
+
+/* Estados */
+.centro{text-align:center;padding:30px 0 10px}
+.icono-grande{width:76px;height:76px;border-radius:50%;display:grid;place-items:center;margin:0 auto 16px}
+.icono-grande svg{width:40px;height:40px}
+.icono-grande.ok{background:rgba(27,138,79,.13);color:var(--ok)}
+.icono-grande.mal{background:rgba(201,60,34,.12);color:var(--aviso)}
+.spinner{width:38px;height:38px;border-radius:50%;border:4px solid var(--line-strong);border-top-color:var(--naranja);animation:gira .9s linear infinite;margin:0 auto 14px}
+@keyframes gira{to{transform:rotate(360deg)}}
+.activacion{background:rgba(232,134,42,.10);border:1.5px solid rgba(232,134,42,.45);border-radius:16px;padding:16px;margin-top:16px;text-align:left}
+.activacion h3{font-size:20px;margin-bottom:4px}
+.velo{position:fixed;inset:0;z-index:50;background:rgba(10,12,16,.55);display:grid;place-items:center;padding:24px}
+.velo .tarjeta{max-width:340px;text-align:center}
+footer{border-top:1px solid var(--line);padding:18px 0 calc(24px + env(safe-area-inset-bottom,0px));color:var(--ink-soft);font-size:13px}
+footer details{margin-top:8px}
+footer summary{cursor:pointer;font-weight:700;color:var(--ink-soft)}
+footer details p{margin-top:8px}
+@media (prefers-reduced-motion: reduce){.spinner{animation-duration:2.5s}}
+</style>
+</head>
+<body>
+<header class="cab">
+  <div class="wrap">
+    <span class="marca">Oficio<b>Ya</b></span>
+    <span class="seguro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10.5" width="16" height="10" rx="2.2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg>Firma electrónica segura</span>
+  </div>
+</header>
+
+<main id="main" class="wrap">
+  <!-- Cargando -->
+  <section id="v-carga" class="centro" aria-live="polite">
+    <div class="spinner" aria-hidden="true"></div>
+    <p>Cargando tu contrato…</p>
+  </section>
+
+  <!-- Error o enlace no válido -->
+  <section id="v-error" class="centro" hidden>
+    <div class="icono-grande mal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 8v5M12 16.5v.5"/><circle cx="12" cy="12" r="9.5"/></svg></div>
+    <h1 class="titulo" id="err-titulo">Este enlace no es válido</h1>
+    <p class="sub" id="err-texto"></p>
+    <div class="botones">
+      <button class="btn sec" id="err-reintentar" hidden>Volver a intentarlo</button>
+      <a class="btn sec" id="err-wa" href="https://wa.me/34656398014" target="_blank" rel="noopener">Escribir a OficioYa por WhatsApp</a>
+    </div>
+  </section>
+
+  <!-- Firmado -->
+  <section id="v-hecho" class="centro" hidden>
+    <div class="icono-grande ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+    <h1 class="titulo" id="hecho-titulo" tabindex="-1">¡Contrato firmado!</h1>
+    <p class="sub" id="hecho-texto"></p>
+    <div class="botones" id="hecho-botones"></div>
+    <div class="activacion" id="hecho-activacion" hidden></div>
+    <p class="nota" style="margin-top:18px">¿Alguna duda? <a href="https://wa.me/34656398014" target="_blank" rel="noopener">Escríbenos por WhatsApp</a>.</p>
+  </section>
+
+  <!-- Pasos -->
+  <section id="v-pasos" hidden>
+    <ol class="progreso" id="progreso" aria-label="Pasos para firmar">
+      <li>Contrato</li><li>Tus datos</li><li>Email</li><li>DNI</li><li>Firma</li>
+    </ol>
+
+    <!-- Paso 1: leer -->
+    <div id="p1" hidden>
+      <h1 class="titulo" tabindex="-1">Tu contrato con OficioYa</h1>
+      <p class="sub" id="p1-sub"></p>
+      <div class="tarjeta" id="p1-condiciones" hidden></div>
+      <div id="p1-video" hidden>
+        <h2 class="seccion-t">Te lo explicamos en un vídeo</h2>
+        <video class="video" id="video" controls playsinline preload="metadata"></video>
+      </div>
+      <h2 class="seccion-t">Léelo con calma</h2>
+      <p class="nota" id="p1-instr">Baja hasta el final para leerlo entero. Puedes ampliarlo con los dedos o abrirlo a pantalla completa.</p>
+      <div class="visor" id="visor" aria-label="Contrato"></div>
+      <div id="p1-sinvisor" class="tarjeta" hidden>
+        <p>Tu móvil no puede mostrar el contrato aquí. Ábrelo, léelo entero y vuelve a esta página para firmarlo.</p>
+        <div class="botones"><button class="btn sec" id="p1-abrir">Abrir el contrato</button></div>
+      </div>
+      <div class="acciones-doc">
+        <button class="link" id="p1-descargar" disabled>Descargar el contrato (PDF)</button>
+        <button class="link" id="p1-completo" disabled>Abrir a pantalla completa</button>
+      </div>
+      <p class="nota-s" id="p1-huella" style="margin-top:6px"></p>
+    </div>
+
+    <!-- Paso 2: datos -->
+    <div id="p2" hidden>
+      <h1 class="titulo" tabindex="-1">Tus datos</h1>
+      <p class="sub">Son los datos del contrato que estaban en blanco. Escríbelos como aparecen en tu DNI.</p>
+      <form id="f-datos" novalidate autocomplete="on">
+        <span class="lbl" style="display:block;font-weight:700;font-size:15.5px;margin:6px 0 6px" id="como-lbl">¿Cómo firmas?</span>
+        <div class="segm" role="group" aria-labelledby="como-lbl">
+          <button type="button" data-como="autonomo" aria-pressed="true">Como autónomo</button>
+          <button type="button" data-como="empresa" aria-pressed="false">En nombre de una empresa</button>
+        </div>
+
+        <label class="lbl" for="d-nombre">Nombre y apellidos</label>
+        <input id="d-nombre" name="name" autocomplete="name" autocapitalize="words" required>
+        <label class="lbl" for="d-nif">DNI o NIE</label>
+        <input id="d-nif" class="mayus" name="nif" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="12345678Z" required>
+        <label class="lbl" for="d-tel">Teléfono y WhatsApp</label>
+        <input id="d-tel" name="tel" type="tel" inputmode="tel" autocomplete="tel" required>
+        <label class="lbl" for="d-email">Email <small>(te llegará un código y tu copia del contrato)</small></label>
+        <input id="d-email" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" required>
+
+        <div id="d-empresa" hidden>
+          <label class="lbl" for="d-razon">Nombre de la empresa <small>(razón social)</small></label>
+          <input id="d-razon" autocomplete="organization" placeholder="Reformas Ejemplo, S.L.">
+          <label class="lbl" for="d-cif">CIF de la empresa</label>
+          <input id="d-cif" class="mayus" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="B12345678">
+          <label class="lbl" for="d-cargo">Tu cargo en la empresa</label>
+          <select id="d-cargo">
+            <option value="">Elige tu cargo</option>
+            <option>Administrador único</option><option>Administrador solidario</option><option>Administrador mancomunado</option>
+            <option>Consejero delegado</option><option>Apoderado</option><option value="otro">Otro</option>
+          </select>
+          <input id="d-cargo-otro" placeholder="Escribe tu cargo" hidden style="margin-top:8px">
+        </div>
+
+        <label class="lbl" for="d-dir" id="d-dir-lbl">Tu domicilio <small>(para notificaciones)</small></label>
+        <input id="d-dir" autocomplete="street-address" placeholder="Calle, número, piso">
+        <div class="cp-loc">
+          <div><label class="lbl" for="d-cp">C. postal</label><input id="d-cp" inputmode="numeric" autocomplete="postal-code" maxlength="5"></div>
+          <div><label class="lbl" for="d-loc">Localidad</label><input id="d-loc" autocomplete="address-level2"></div>
+        </div>
+
+        <div id="d-empresa-2" hidden>
+          <label class="lbl" for="d-dompers">Tu domicilio personal <small>(firmas también como garante de la empresa, cláusula 7.1)</small></label>
+          <input id="d-dompers" autocomplete="off" placeholder="Calle, número, código postal y localidad">
+        </div>
+
+        <div id="d-habil" hidden>
+          <h2 class="seccion-t">Tus habilitaciones</h2>
+          <p class="nota">Marca solo las que tengas. Los clientes de trabajos que pidan una habilitación que no tienes no se cobran (cláusula 10.3).</p>
+          <label class="check"><input type="checkbox" id="h-agua"> Agua y saneamiento</label>
+          <label class="check"><input type="checkbox" id="h-gas"> Gas</label>
+          <div id="h-gas-cat" class="caja-extra" hidden>
+            <label class="lbl" for="h-cat" style="margin-top:4px">Categoría de instalador de gas</label>
+            <select id="h-cat"><option value="">Elige la categoría</option><option>A</option><option>B</option><option>C</option></select>
+          </div>
+          <label class="check"><input type="checkbox" id="h-rite"> Instalaciones térmicas (RITE): calderas, calefacción, ACS</label>
+        </div>
+
+        <h2 class="seccion-t">Domiciliación de las facturas <small style="font-family:Barlow,sans-serif;font-weight:600;font-size:14px;color:var(--ink-soft)">(opcional)</small></h2>
+        <p class="nota">Si pones tu IBAN, autorizas el cargo de tus facturas en tu cuenta (Anexo II del contrato). Si lo dejas en blanco, pagarás por transferencia o Bizum.</p>
+        <label class="lbl" for="d-iban">IBAN</label>
+        <input id="d-iban" class="mayus" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ES00 0000 0000 0000 0000 0000" inputmode="text">
+        <label class="lbl" for="d-banco">Banco <small>(opcional)</small></label>
+        <input id="d-banco" autocomplete="off">
+
+        <p class="err" id="d-err" role="alert"></p>
+        <div class="botones">
+          <button class="btn" type="submit" id="d-seguir">Continuar</button>
+          <button class="btn sec" type="button" data-volver="1">Volver al contrato</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Paso 3: email -->
+    <div id="p3" hidden>
+      <h1 class="titulo" tabindex="-1">Confirma tu email</h1>
+      <p class="sub" id="c-texto"></p>
+      <div class="tarjeta" id="c-ok" hidden>
+        <p><b style="color:var(--ok)">Email confirmado.</b> No hace falta otro código.</p>
+        <div class="botones"><button class="btn" id="c-ok-seguir">Continuar</button></div>
+      </div>
+      <div class="tarjeta" id="c-caja">
+        <label class="lbl" for="c-codigo" style="margin-top:0;text-align:center">Escribe el código</label>
+        <input id="c-codigo" class="codigo" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="6" aria-describedby="c-ayuda">
+        <p class="ayuda" id="c-ayuda" style="text-align:center">Si no lo ves, mira en «Spam» o «Promociones». Caduca en 15 minutos.</p>
+        <p class="err" id="c-err" role="alert" style="text-align:center"></p>
+        <div class="botones">
+          <button class="btn" id="c-verificar">Confirmar</button>
+        </div>
+      </div>
+      <div class="acciones-doc" style="justify-content:space-between">
+        <button class="link" id="c-reenviar">Enviar otro código</button>
+        <button class="link" id="c-cambiar">Cambiar el email</button>
+      </div>
+    </div>
+
+    <!-- Paso 4: DNI -->
+    <div id="p4" hidden>
+      <h1 class="titulo" tabindex="-1">Foto de tu DNI</h1>
+      <p class="sub">Haz una foto de la <b>parte de delante</b> de tu DNI o NIE. Sirve para dejar constancia de quién firma el contrato.</p>
+      <div class="foto-dni" id="dni-vista">
+        <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2"/><circle cx="8.5" cy="11" r="2.3"/><path d="M5.5 16c.6-1.6 1.7-2.4 3-2.4s2.4.8 3 2.4M14 10h4.5M14 13h3"/></svg><p>Aún no has añadido la foto</p></div>
+      </div>
+      <div class="dos" style="margin-top:10px">
+        <button class="btn sec" id="dni-camara"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h1.8l1.4-2h6.6l1.4 2h1.8A2.5 2.5 0 0 1 21 8.5v9a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5z"/><circle cx="12" cy="12.5" r="3.6"/></svg>Hacer la foto</button>
+        <button class="btn sec" id="dni-galeria"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-8 9"/></svg>De la galería</button>
+      </div>
+      <input type="file" id="in-dni-cam" accept="image/*" capture="environment" hidden>
+      <input type="file" id="in-dni-gal" accept="image/*" hidden>
+      <ul class="lista-consejos">
+        <li>Que se lean bien tu nombre, el número y la foto.</li>
+        <li>Sin reflejos ni dedos tapando datos.</li>
+      </ul>
+      <div id="rev-caja" hidden>
+        <h2 class="seccion-t">Parte de atrás</h2>
+        <div class="foto-dni" id="rev-vista"><div><p>Aún no has añadido la foto</p></div></div>
+        <div class="botones"><button class="btn sec" id="rev-btn">Añadir la parte de atrás</button></div>
+        <input type="file" id="in-rev" accept="image/*" hidden>
+      </div>
+      <div id="poder-caja" hidden>
+        <h2 class="seccion-t">Poder de representación <small style="font-family:Barlow,sans-serif;font-weight:600;font-size:14px;color:var(--ink-soft)">(si lo tienes a mano)</small></h2>
+        <p class="nota">Escritura o poder que te permite firmar por la empresa (cláusula 18.3). Si ahora no lo tienes, puedes firmar igualmente: te lo pedirá tu comercial.</p>
+        <p class="nota" id="poder-nombre" style="font-weight:700;margin-top:8px"></p>
+        <div class="botones"><button class="btn sec" id="poder-btn">Añadir el poder (PDF o foto)</button></div>
+        <input type="file" id="in-poder" accept="application/pdf,image/*" hidden>
+      </div>
+      <p class="nota-s" style="margin-top:14px">Solo te pedimos la parte de delante. La foto se guarda con las pruebas de la firma de este contrato y no se usa para nada más.</p>
+      <p class="err" id="dni-err" role="alert"></p>
+      <div class="botones">
+        <button class="btn" id="dni-seguir">Continuar</button>
+        <button class="btn sec" data-volver="2">Volver a tus datos</button>
+      </div>
+    </div>
+
+    <!-- Paso 5: firma -->
+    <div id="p5" hidden>
+      <h1 class="titulo" tabindex="-1">Firma el contrato</h1>
+      <p class="sub">Firma con el dedo dentro del recuadro, como en tu DNI.</p>
+      <div class="pad-caja">
+        <canvas class="pad" id="pad" aria-label="Recuadro para firmar con el dedo" role="img"></canvas>
+        <span class="pad-x" aria-hidden="true">×</span>
+        <span class="pad-linea" aria-hidden="true"></span>
+        <span class="pad-texto" id="pad-texto" aria-hidden="true">Firma aquí</span>
+      </div>
+      <div class="pad-acc"><span class="nota-s">Si no te gusta, bórrala y repítela.</span><button class="link" id="pad-borrar">Borrar la firma</button></div>
+
+      <h2 class="seccion-t">Lo que firmas</h2>
+      <div class="tarjeta"><dl class="resumen" id="resumen"></dl></div>
+
+      <h2 class="seccion-t">Antes de firmar, confirma</h2>
+      <div class="tarjeta" id="declaraciones" style="padding-top:4px;padding-bottom:4px"></div>
+      <p class="aviso-legal">Al pulsar «Firmar el contrato» quedan guardadas como prueba de tu firma: la fecha y la hora, tu dirección IP y tu dispositivo, la confirmación de tu email, la foto de tu documento, tu firma y la huella digital del contrato. Te enviaremos una copia firmada por email.</p>
+      <p class="err" id="f-err" role="alert"></p>
+      <div class="botones">
+        <button class="btn" id="f-firmar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20c3-1 4.5-6 7-6s1 4 3.5 4 2.5-2 5.5-2"/><path d="M15.5 4.5l3 3L10 16l-3.6.6.6-3.6z"/></svg>Firmar el contrato</button>
+        <button class="btn sec" data-volver="4">Volver</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="barra" id="barra" hidden>
+  <div class="wrap">
+    <div class="info"><span id="barra-pag">Página 1</span><span id="barra-falta"></span></div>
+    <button class="btn" id="p1-seguir" disabled>He leído el contrato</button>
+  </div>
+</div>
+
+<div class="velo" id="velo-firmando" hidden>
+  <div class="tarjeta" role="status" aria-live="polite">
+    <div class="spinner" aria-hidden="true"></div>
+    <p style="font-weight:700">Firmando tu contrato…</p>
+    <p class="nota">Tarda unos segundos. No cierres esta página.</p>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <p><b>OficioYa</b> · Andrés Algora Marín · NIF 77860535S · C/ Condes de Bustillo 5, bajo D, 41010 Sevilla · <a href="mailto:admin@algoracompound.com">admin@algoracompound.com</a></p>
+    <details>
+      <summary>Protección de datos</summary>
+      <p><b>Responsable:</b> Andrés Algora Marín (OficioYa), NIF 77860535S, C/ Condes de Bustillo 5, bajo D, 41010 Sevilla. Contacto: admin@algoracompound.com.</p>
+      <p><b>Para qué usamos tus datos:</b> para formalizar este contrato contigo y poder acreditar quién lo firmó, cuándo y cómo. Tratamos los datos que escribes, la foto de tu documento de identidad, tu firma, el email que confirmas y los datos técnicos de la firma (fecha y hora, dirección IP, navegador y dispositivo).</p>
+      <p><b>Base legal:</b> la celebración y ejecución del contrato (art. 6.1.b del RGPD) y nuestro interés legítimo en conservar la prueba de la firma (art. 6.1.f).</p>
+      <p><b>Cuánto tiempo:</b> mientras dure el contrato y, después, durante los plazos en que se puedan reclamar las obligaciones que nacen de él.</p>
+      <p><b>Quién los ve:</b> OficioYa. No se ceden a terceros salvo obligación legal; los proveedores de alojamiento y de envío de emails los tratan solo por cuenta de OficioYa.</p>
+      <p><b>Tus derechos:</b> puedes acceder, rectificar, suprimir, oponerte, limitar el tratamiento y pedir la portabilidad escribiendo a admin@algoracompound.com, y reclamar ante la Agencia Española de Protección de Datos (aepd.es). Más información en la <a href="/privacidad" target="_blank" rel="noopener">política de privacidad</a>.</p>
+    </details>
+  </div>
+</footer>
+
+<script>
+/* Página de firma electrónica de contratos de OficioYa (enlace /firmar.html?t=…) */
+var FN_URL = 'https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/firma-contrato';
+var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE';
+var WHATSAPP = '34656398014';
+/* Vídeo que explica el contrato de cada oficio. Sube el MP4 a public/videos/ y pon aquí su ruta,
+   por ejemplo pintor: '/videos/contrato-pintura.mp4'. Si está vacío, no se muestra. */
+var VIDEOS = { pintor: '', fontanero: '' };
+var PDFJS = ['https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/legacy/build/', 'https://unpkg.com/pdfjs-dist@3.11.174/legacy/build/'];
+
+var $ = function(id){ return document.getElementById(id); };
+var T = '';
+try { T = new URLSearchParams(location.search).get('t') || ''; } catch(e) {}
+if (!T) { var mh = /[#&]t=([A-Za-z0-9_-]+)/.exec(location.hash || ''); if (mh) T = mh[1]; }
+var E = null;              // lo que devuelve «estado»
+var S = {};                // progreso guardado en esta pestaña (sessionStorage)
+var PDF = null;            // bytes del contrato
+var PDF_URL = null;        // blob: del contrato
+var DNI = null, REV = null, PODER = null;  // archivos (solo en memoria)
+var lectura = { vistas: {}, paginas: 0, ms: 0, desde: 0 };
+var LETRAS = 'TRWAGMYFPDXBNJZSQVHLCKE';
+
+/* ---------- Utilidades ---------- */
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]; }); }
+function euros(n){ return Number(n).toLocaleString('es-ES', { minimumFractionDigits: Number(n) % 1 ? 2 : 0, maximumFractionDigits: 2 }) + ' €'; }
+function fechaLarga(iso){
+  try { return new Date(iso).toLocaleString('es-ES', { timeZone:'Europe/Madrid', day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' }); }
+  catch(e){ return new Date(iso).toLocaleString('es-ES'); }
+}
+function limpiarId(s){ return String(s || '').toUpperCase().replace(/[\s.\-_/]/g, ''); }
+function nifValido(n){
+  var m = /^(\d{8})([A-Z])$/.exec(n); if (m) return LETRAS[Number(m[1]) % 23] === m[2];
+  m = /^([XYZ])(\d{7})([A-Z])$/.exec(n); if (m) return LETRAS[Number('XYZ'.indexOf(m[1]) + m[2]) % 23] === m[3];
+  return false;
+}
+function cifValido(c){
+  var m = /^([ABCDEFGHJNPQRSUVW])(\d{7})([0-9A-J])$/.exec(c); if (!m) return false;
+  var suma = 0;
+  for (var i = 0; i < 7; i++) { var n = Number(m[2][i]); if (i % 2 === 0) { var x = n * 2; suma += Math.floor(x / 10) + (x % 10); } else suma += n; }
+  var ctrl = (10 - (suma % 10)) % 10, letra = 'JABCDEFGHI'[ctrl], k = m[3];
+  if ('PQRSNW'.indexOf(m[1]) > -1) return k === letra;
+  if ('ABEH'.indexOf(m[1]) > -1) return k === String(ctrl);
+  return k === String(ctrl) || k === letra;
+}
+function ibanValido(iban){
+  var s = String(iban || '').replace(/\s/g, '').toUpperCase();
+  if (!/^[A-Z]{2}\d{2}[A-Z0-9]{10,30}$/.test(s)) return false;
+  if (s.indexOf('ES') === 0 && s.length !== 24) return false;
+  var r = s.slice(4) + s.slice(0, 4), rem = 0;
+  for (var i = 0; i < r.length; i++) {
+    var ch = r[i], v = ch >= 'A' ? String(ch.charCodeAt(0) - 55) : ch;
+    for (var j = 0; j < v.length; j++) rem = (rem * 10 + Number(v[j])) % 97;
+  }
+  return rem === 1;
+}
+function emailValido(e){ return e.length <= 120 && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e); }
+function soloCifras(t){ var d = String(t || '').replace(/\D/g, ''); if (d.length === 11 && d.indexOf('34') === 0) d = d.slice(2); if (d.length === 13 && d.indexOf('0034') === 0) d = d.slice(4); return d; }
+function b64DeBytes(bytes){ var s = '', k = 0x8000; for (var i = 0; i < bytes.length; i += k) s += String.fromCharCode.apply(null, bytes.subarray(i, i + k)); return btoa(s); }
+function bytesDeB64(b64){ var bin = atob(b64), out = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i); return out; }
+function blobAB64(blob){ return new Promise(function(ok, ko){ var r = new FileReader(); r.onload = function(){ ok(String(r.result).split(',')[1] || ''); }; r.onerror = function(){ ko(r.error); }; r.readAsDataURL(blob); }); }
+function hex(buf){ return Array.prototype.map.call(new Uint8Array(buf), function(b){ return ('0' + b.toString(16)).slice(-2); }).join(''); }
+
+function guardarS(){ try { sessionStorage.setItem('oy_firma_' + T, JSON.stringify(S)); } catch(e) {} }
+function leerS(){ try { return JSON.parse(sessionStorage.getItem('oy_firma_' + T) || '{}') || {}; } catch(e) { return {}; } }
+function borrarS(){ try { sessionStorage.removeItem('oy_firma_' + T); } catch(e) {} }
+
+/* ---------- Servidor ---------- */
+function api(accion, datos, binario){
+  var cuerpo = { accion: accion, t: T };
+  for (var k in (datos || {})) cuerpo[k] = datos[k];
+  return fetch(FN_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY },
+    body: JSON.stringify(cuerpo)
+  }).catch(function(){
+    var e = new Error('No hay conexión. Comprueba tu cobertura o tu wifi y vuelve a intentarlo.'); e.red = true; throw e;
+  }).then(function(r){
+    if (binario && r.ok) return r.arrayBuffer();
+    return r.json().catch(function(){ return {}; }).then(function(j){
+      if (!r.ok) { var e = new Error(j.error || 'Ha habido un problema. Inténtalo de nuevo en un momento.'); e.status = r.status; throw e; }
+      return j;
+    });
+  });
+}
+
+/* ---------- Vistas ---------- */
+function vista(id){
+  ['v-carga', 'v-error', 'v-hecho', 'v-pasos'].forEach(function(v){ $(v).hidden = v !== id; });
+  if (id !== 'v-pasos') { $('barra').hidden = true; document.body.classList.remove('con-barra'); }
+}
+function error(titulo, texto, reintentar){
+  vista('v-error');
+  $('err-titulo').textContent = titulo; $('err-texto').textContent = texto || '';
+  $('err-reintentar').hidden = !reintentar;
+  $('err-wa').href = 'https://wa.me/' + WHATSAPP + '?text=' + encodeURIComponent('Hola, tengo un problema con el enlace para firmar mi contrato de OficioYa: ' + titulo);
+}
+$('err-reintentar').addEventListener('click', function(){ location.reload(); });
+
+function ir(n, desdeHistorial){
+  S.paso = n; guardarS();
+  if (!desdeHistorial) {
+    try {
+      if (history.state && history.state.paso) { if (history.state.paso !== n) history.pushState({ paso: n }, ''); }
+      else history.replaceState({ paso: n }, '');
+    } catch(e) {}
+  }
+  for (var i = 1; i <= 5; i++) $('p' + i).hidden = i !== n;
+  Array.prototype.forEach.call($('progreso').children, function(li, i){
+    li.className = i + 1 < n ? 'hecho' : i + 1 === n ? 'actual' : '';
+    if (i + 1 === n) li.setAttribute('aria-current', 'step'); else li.removeAttribute('aria-current');
+  });
+  $('barra').hidden = n !== 1; document.body.classList.toggle('con-barra', n === 1);
+  window.scrollTo(0, 0);
+  var h = $('p' + n).querySelector('h1'); if (h) { try { h.focus({ preventScroll: true }); } catch(e) { h.focus(); } }
+  if (n === 1) contarLectura(true); else contarLectura(false);
+  if (n === 3) entrarEmail();
+  if (n === 5) entrarFirma();
+}
+window.addEventListener('popstate', function(e){
+  if (e.state && e.state.paso && !$('v-pasos').hidden) ir(e.state.paso, true);
+});
+Array.prototype.forEach.call(document.querySelectorAll('[data-volver]'), function(b){
+  b.addEventListener('click', function(){ ir(Number(b.getAttribute('data-volver'))); });
+});
+
+/* ---------- Arranque ---------- */
+function iniciar(){
+  if (!/^[A-Za-z0-9_-]{32}$/.test(T)) {
+    error('Este enlace no está completo', 'Ábrelo otra vez desde el mensaje de tu comercial de OficioYa. Si sigue sin funcionar, escríbenos.');
+    return;
+  }
+  api('estado').then(function(e){
+    E = e;
+    if (E.estado === 'firmado') { borrarS(); hecho(null); return; }
+    if (E.estado === 'anulado') { borrarS(); error('Este enlace ya no es válido', 'Tu comercial de OficioYa te enviará un enlace nuevo.'); return; }
+    if (E.estado === 'caducado') { borrarS(); error('Este enlace ha caducado', 'Pide un enlace nuevo a tu comercial de OficioYa.'); return; }
+    S = leerS();
+    if (!E.verificado) { S.sesion = null; S.emailVerificado = null; }
+    prepararPasos();
+    vista('v-pasos');
+    var paso = Number(S.paso) || 1;
+    if (!S.leido) paso = 1;
+    else if (paso > 2 && !datosCompletos()) paso = 2;
+    else if (paso > 3 && !S.sesion) paso = 3;
+    else if (paso > 4 && !DNI) paso = 4;   // las fotos no se guardan: si recarga, se repiten
+    ir(paso);
+    cargarContrato();
+  }).catch(function(e){
+    if (e.red) error('Sin conexión', e.message, true);
+    else if (e.status === 404) error('Este enlace no es válido', 'Revisa que lo has abierto entero desde el mensaje de tu comercial, o pídele uno nuevo.');
+    else error('No hemos podido abrir tu contrato', e.message, true);
+  });
+}
+
+function prepararPasos(){
+  var c = E.condiciones, p = E.profesional || {};
+  var oficio = (c && c.oficio_txt) || p.oficio_txt || '';
+  var ciudad = (c && c.ciudad) || p.ciudad || '';
+  $('p1-sub').textContent = (oficio ? 'Plaza de ' + oficio.toLowerCase() + (ciudad ? ' en ' + ciudad : '') + '. ' : '') + 'Léelo entero antes de firmar: firmarlo te llevará unos 5 minutos.';
+  if (c) {
+    $('p1-condiciones').innerHTML = '<div class="condiciones">'
+      + '<div class="fila-c"><span>Precio por cliente</span><b>' + euros(c.precio) + ' + IVA<small>' + euros(c.precio_iva) + ' con IVA</small></b></div>'
+      + '<div class="fila-c"><span>Activación (una sola vez)</span><b>' + euros(c.activacion) + ' + IVA<small>' + euros(c.activacion_iva) + ' con IVA</small></b></div>'
+      + '<div class="fila-c"><span>Ciudad de trabajo</span><b>' + esc(c.ciudad) + '</b></div></div>'
+      + '<ul class="ventajas"><li>Sin cuota mensual</li><li>Cada cliente es solo tuyo</li><li>Pagas después de recibirlos</li></ul>';
+    $('p1-condiciones').hidden = false;
+  }
+  var v = VIDEOS[p.oficio || (c && c.oficio)];
+  if (v) { $('video').src = v; $('p1-video').hidden = false; }
+
+  // Datos: lo que ya sabemos del registro
+  var d = S.datos || {};
+  $('d-nombre').value = d.nombre || p.nombre || '';
+  $('d-tel').value = d.telefono || (p.telefono ? String(p.telefono).replace(/(\d{3})(\d{3})(\d{3})/, '$1 $2 $3') : '');
+  ['nif:d-nif', 'email:d-email', 'direccion:d-dir', 'cp:d-cp', 'localidad:d-loc', 'razon:d-razon', 'cif:d-cif', 'dompers:d-dompers', 'iban:d-iban', 'banco:d-banco', 'cargoOtro:d-cargo-otro'].forEach(function(x){
+    var k = x.split(':'); if (d[k[0]]) $(k[1]).value = d[k[0]];
+  });
+  if (d.cargo) $('d-cargo').value = d.cargo;
+  ponerComo(d.como || 'autonomo');
+  var fon = (p.oficio || (c && c.oficio)) === 'fontanero';
+  $('d-habil').hidden = !fon;
+  if (fon && d.habil) { $('h-agua').checked = !!d.habil.agua; $('h-gas').checked = !!d.habil.gas; $('h-rite').checked = !!d.habil.rite; $('h-cat').value = d.habil.cat || ''; }
+  $('h-gas-cat').hidden = !$('h-gas').checked;
+  $('d-cargo-otro').hidden = $('d-cargo').value !== 'otro';
+  $('rev-caja').hidden = !E.pedir_reverso;
+}
+
+/* ---------- Paso 1: el contrato ---------- */
+function cargarContrato(){
+  api('documento', null, true).then(function(buf){
+    PDF = new Uint8Array(buf);
+    PDF_URL = URL.createObjectURL(new Blob([PDF], { type: 'application/pdf' }));
+    $('p1-descargar').disabled = false; $('p1-completo').disabled = false;
+    if (window.crypto && crypto.subtle) {
+      crypto.subtle.digest('SHA-256', PDF).then(function(h){
+        var x = hex(h);
+        if (E.documento && E.documento.sha256 && x !== E.documento.sha256) {
+          error('El contrato no coincide', 'Por seguridad, recarga la página. Si vuelve a pasar, avisa a tu comercial.', true);
+          return;
+        }
+        $('p1-huella').innerHTML = 'Huella digital del contrato (SHA-256): <span class="huella">' + x + '</span>';
+      }).catch(function(){});
+    }
+    return pintarPdf(PDF);
+  }).catch(function(e){
+    if (e && e.message && !e.pdfjs) {
+      $('visor').innerHTML = '<p class="nota" style="padding:14px">' + esc(e.message) + ' <button class="link" id="p1-recargar">Volver a cargar</button></p>';
+      var b = $('p1-recargar'); if (b) b.addEventListener('click', cargarContrato);
+    }
+  });
+}
+function cargarScript(src){
+  return new Promise(function(ok, ko){
+    var s = document.createElement('script'); s.src = src; s.async = true;
+    s.onload = function(){ ok(); }; s.onerror = function(){ s.remove(); ko(new Error('no carga ' + src)); };
+    document.head.appendChild(s);
+  });
+}
+function cargarPdfjs(i){
+  i = i || 0;
+  if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+  if (i >= PDFJS.length) return Promise.reject(new Error('sin visor'));
+  return cargarScript(PDFJS[i] + 'pdf.min.js').then(function(){
+    if (!window.pdfjsLib) throw new Error('sin visor');
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS[i] + 'pdf.worker.min.js';
+    return window.pdfjsLib;
+  }).catch(function(){ return cargarPdfjs(i + 1); });
+}
+function sinVisor(){
+  $('visor').hidden = true; $('p1-sinvisor').hidden = false; $('p1-instr').hidden = true;
+  $('barra-pag').textContent = 'Abre el contrato y léelo entero';
+  $('barra-falta').textContent = '';
+}
+function pintarPdf(bytes){
+  $('visor').innerHTML = '<p class="nota" style="padding:14px">Preparando el contrato…</p>';
+  return cargarPdfjs().then(function(lib){
+    return lib.getDocument({ data: bytes.slice(0), isEvalSupported: false }).promise;
+  }).then(function(doc){
+    var n = doc.numPages, visor = $('visor');
+    lectura.paginas = n;
+    visor.innerHTML = '';
+    var hayIO = 'IntersectionObserver' in window;
+    // Uno pinta las páginas antes de que lleguen a la pantalla; el otro anota las que de verdad se han visto
+    var obs = hayIO ? new IntersectionObserver(function(ents){
+      ents.forEach(function(en){ if (en.isIntersecting) pintarPagina(doc, en.target, Number(en.target.getAttribute('data-p'))); });
+    }, { rootMargin: '700px 0px' }) : null;
+    var obsVista = hayIO ? new IntersectionObserver(function(ents){
+      ents.forEach(function(en){
+        if (en.isIntersecting && (en.intersectionRatio >= 0.3 || en.intersectionRect.height >= window.innerHeight * 0.5)) marcarVista(Number(en.target.getAttribute('data-p')));
+      });
+    }, { threshold: [0.3, 0.6] }) : null;
+    var cadena = Promise.resolve();
+    for (var i = 1; i <= n; i++) (function(i){
+      var div = document.createElement('div');
+      div.className = 'pagina'; div.setAttribute('data-p', i); div.style.paddingTop = '141.4%';
+      div.innerHTML = '<span class="cargando-pag">Página ' + i + '</span><span class="num">' + i + ' / ' + n + '</span>';
+      visor.appendChild(div);
+      cadena = cadena.then(function(){ return doc.getPage(i).then(function(pg){ var vp = pg.getViewport({ scale: 1 }); div.style.paddingTop = (vp.height / vp.width * 100) + '%'; }); });
+      if (obs) { obs.observe(div); obsVista.observe(div); }
+    })(i);
+    if (!obs) { for (var j = 1; j <= n; j++) { pintarPagina(doc, visor.children[j - 1], j); marcarVista(j); } }
+    actualizarBarra();
+    return cadena;
+  }).catch(function(e){ console.warn('visor', e); sinVisor(); var x = new Error('visor'); x.pdfjs = true; throw x; });
+}
+var pintadas = {};
+function pintarPagina(doc, div, i){
+  if (pintadas[i]) return; pintadas[i] = true;
+  doc.getPage(i).then(function(pg){
+    var dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+    var ancho = div.clientWidth || 360;
+    var vp1 = pg.getViewport({ scale: 1 });
+    var esc2 = Math.max(1, ancho * dpr / vp1.width);
+    var vp = pg.getViewport({ scale: esc2 });
+    var cv = document.createElement('canvas');
+    cv.width = Math.floor(vp.width); cv.height = Math.floor(vp.height);
+    cv.setAttribute('aria-label', 'Página ' + i + ' del contrato');
+    return pg.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise.then(function(){
+      var c = div.querySelector('.cargando-pag'); if (c) c.remove();
+      div.insertBefore(cv, div.firstChild);
+    });
+  }).catch(function(){ pintadas[i] = false; });
+}
+function marcarVista(i){
+  if (lectura.vistas[i]) return;
+  lectura.vistas[i] = 1;
+  actualizarBarra();
+}
+function nVistas(){ return Object.keys(lectura.vistas).length; }
+function actualizarBarra(){
+  var n = lectura.paginas, v = nVistas(), ultima = !!lectura.vistas[n];
+  if (!n) return;
+  var ultimaVista = 0; for (var k in lectura.vistas) ultimaVista = Math.max(ultimaVista, Number(k));
+  $('barra-pag').innerHTML = 'Página <b>' + Math.max(1, ultimaVista) + '</b> de ' + n;
+  $('barra-falta').textContent = ultima || S.leido ? 'Has llegado al final' : 'Baja hasta el final para seguir';
+  $('p1-seguir').disabled = !(ultima || S.leido);
+}
+function contarLectura(activo){
+  var ahora = Date.now();
+  if (lectura.desde) { lectura.ms += ahora - lectura.desde; lectura.desde = 0; }
+  if (activo && !document.hidden) lectura.desde = ahora;
+}
+document.addEventListener('visibilitychange', function(){ contarLectura(S.paso === 1 && !$('v-pasos').hidden); });
+function abrirPdf(){
+  if (!PDF_URL) return;
+  var w = window.open(PDF_URL, '_blank');
+  if (!w) descargarPdf();
+  if (!lectura.paginas || $('visor').hidden) { S.abrioPdf = true; $('p1-seguir').disabled = false; $('barra-falta').textContent = ''; }
+}
+$('p1-abrir').addEventListener('click', abrirPdf);
+$('p1-completo').addEventListener('click', abrirPdf);
+function descargarPdf(){
+  if (!PDF_URL) return;
+  var a = document.createElement('a'); a.href = PDF_URL;
+  a.download = (E && E.documento && E.documento.nombre) || 'Contrato OficioYa.pdf';
+  document.body.appendChild(a); a.click(); setTimeout(function(){ a.remove(); }, 1000);
+}
+$('p1-descargar').addEventListener('click', descargarPdf);
+$('p1-seguir').addEventListener('click', function(){
+  contarLectura(false);
+  var seg = Math.round(lectura.ms / 1000) + (S.segundos || 0);
+  S.segundos = seg; S.leido = true;
+  if (!S.leidoEnviado) {
+    S.leidoEnviado = true;
+    api('leido', { paginas_vistas: lectura.paginas ? nVistas() : null, paginas: lectura.paginas || null, segundos: seg }).catch(function(){ S.leidoEnviado = false; });
+  }
+  lectura.ms = 0;
+  ir(2);
+});
+
+/* ---------- Paso 2: datos ---------- */
+function ponerComo(c){
+  S.datos = S.datos || {}; S.datos.como = c;
+  Array.prototype.forEach.call(document.querySelectorAll('[data-como]'), function(b){ b.setAttribute('aria-pressed', b.getAttribute('data-como') === c); });
+  var emp = c === 'empresa';
+  $('d-empresa').hidden = !emp; $('d-empresa-2').hidden = !emp; $('poder-caja').hidden = !emp;
+  $('d-dir-lbl').innerHTML = emp ? 'Domicilio de la empresa <small>(para notificaciones)</small>' : 'Tu domicilio <small>(para notificaciones)</small>';
+  document.querySelector('label[for="d-nombre"]').innerHTML = emp ? 'Tu nombre y apellidos <small>(de quien firma)</small>' : 'Nombre y apellidos';
+  document.querySelector('label[for="d-nif"]').textContent = emp ? 'Tu DNI o NIE' : 'DNI o NIE';
+}
+Array.prototype.forEach.call(document.querySelectorAll('[data-como]'), function(b){
+  b.addEventListener('click', function(){ ponerComo(b.getAttribute('data-como')); guardarS(); });
+});
+$('f-datos').addEventListener('input', function(e){ $('d-err').textContent = ''; if (e.target.removeAttribute) e.target.removeAttribute('aria-invalid'); });
+$('f-datos').addEventListener('change', function(){ $('d-err').textContent = ''; });
+$('d-cargo').addEventListener('change', function(){ $('d-cargo-otro').hidden = this.value !== 'otro'; if (this.value === 'otro') $('d-cargo-otro').focus(); });
+$('h-gas').addEventListener('change', function(){ $('h-gas-cat').hidden = !this.checked; });
+$('d-iban').addEventListener('blur', function(){ var s = this.value.replace(/\s/g, '').toUpperCase(); if (s) this.value = s.replace(/(.{4})/g, '$1 ').trim(); });
+$('d-nif').addEventListener('blur', function(){ this.value = limpiarId(this.value); });
+$('d-cif').addEventListener('blur', function(){ this.value = limpiarId(this.value); });
+
+function leerDatos(){
+  var v = function(id){ return $(id).value.trim(); };
+  var cargo = $('d-cargo').value === 'otro' ? v('d-cargo-otro') : $('d-cargo').value;
+  return {
+    como: S.datos && S.datos.como === 'empresa' ? 'empresa' : 'autonomo',
+    nombre: v('d-nombre').replace(/\s+/g, ' '), nif: limpiarId(v('d-nif')), telefono: v('d-tel'), email: v('d-email').toLowerCase(),
+    direccion: v('d-dir'), cp: v('d-cp'), localidad: v('d-loc'),
+    razon: v('d-razon'), cif: limpiarId(v('d-cif')), cargo: $('d-cargo').value, cargoOtro: v('d-cargo-otro'), cargoTxt: cargo, dompers: v('d-dompers'),
+    iban: v('d-iban').replace(/\s/g, '').toUpperCase(), banco: v('d-banco'),
+    habil: { agua: $('h-agua').checked, gas: $('h-gas').checked, rite: $('h-rite').checked, cat: $('h-cat').value }
+  };
+}
+function validarDatos(d){
+  var fon = !$('d-habil').hidden;
+  if (d.nombre.split(' ').filter(function(p){ return p.length > 1; }).length < 2) return ['d-nombre', 'Escribe tu nombre y tus apellidos.'];
+  if (!nifValido(d.nif)) return ['d-nif', 'Revisa tu DNI o NIE: el número y la letra no cuadran.'];
+  if (!/^\d{9,15}$/.test(soloCifras(d.telefono))) return ['d-tel', 'Revisa el teléfono.'];
+  if (!emailValido(d.email)) return ['d-email', 'Revisa el email: no parece correcto.'];
+  if (d.como === 'empresa') {
+    if (d.razon.length < 2) return ['d-razon', 'Escribe el nombre de la empresa.'];
+    if (!cifValido(d.cif)) return ['d-cif', 'Revisa el CIF de la empresa.'];
+    if (d.cargoTxt.length < 2) return [d.cargo === 'otro' ? 'd-cargo-otro' : 'd-cargo', 'Indica tu cargo en la empresa.'];
+  }
+  if (d.direccion.length < 5) return ['d-dir', 'Escribe el domicilio: calle y número.'];
+  if (!/^\d{5}$/.test(d.cp)) return ['d-cp', 'Revisa el código postal (5 cifras).'];
+  if (d.localidad.length < 2) return ['d-loc', 'Escribe la localidad.'];
+  if (d.como === 'empresa' && d.dompers.length < 5) return ['d-dompers', 'Escribe tu domicilio personal.'];
+  if (fon && d.habil.gas && !d.habil.cat) return ['h-cat', 'Elige tu categoría de instalador de gas.'];
+  if (d.iban && !ibanValido(d.iban)) return ['d-iban', 'Revisa el IBAN: no es correcto. Si no lo tienes a mano, déjalo en blanco.'];
+  return null;
+}
+function datosCompletos(){ var d = S.datos; return !!(d && d.nombre && d.nif && d.email && d.cp && nifValido(d.nif)); }
+$('f-datos').addEventListener('submit', function(ev){
+  ev.preventDefault();
+  Array.prototype.forEach.call(this.querySelectorAll('[aria-invalid]'), function(x){ x.removeAttribute('aria-invalid'); });
+  var d = leerDatos(), mal = validarDatos(d);
+  if (mal) { $('d-err').textContent = mal[1]; $(mal[0]).setAttribute('aria-invalid', 'true'); $(mal[0]).focus(); return; }
+  $('d-err').textContent = '';
+  var antes = S.datos && S.datos.email;
+  S.datos = d;
+  if (antes && antes !== d.email) { S.sesion = null; S.emailVerificado = null; S.codigoA = null; }
+  guardarS();
+  ir(S.sesion && S.emailVerificado === d.email ? 4 : 3);
+});
+
+/* ---------- Paso 3: código por email ---------- */
+var esperaReenvio = 0, relojReenvio = null;
+function textoCodigo(antes, email, despues){ $('c-texto').innerHTML = antes + ' <span class="email-dest">' + esc(email) + '</span>' + (despues || '.'); }
+function entrarEmail(){
+  var email = S.datos && S.datos.email;
+  if (!email) { ir(2); return; }
+  $('c-err').textContent = ''; $('c-codigo').value = '';
+  var ok = !!(S.sesion && S.emailVerificado === email);
+  $('c-caja').hidden = ok; $('c-ok').hidden = !ok; $('c-reenviar').hidden = ok;
+  if (ok) { textoCodigo('Ya has confirmado', email, ' con el código que te enviamos.'); return; }
+  if (S.codigoA === email && S.codigoAt && Date.now() - S.codigoAt < 14 * 60000) {
+    textoCodigo('Te hemos enviado un código de 6 cifras a', email);
+    setTimeout(function(){ $('c-codigo').focus(); }, 50); return;
+  }
+  enviarCodigo();
+}
+$('c-ok-seguir').addEventListener('click', function(){ ir(4); });
+function enviarCodigo(){
+  var email = S.datos.email;
+  textoCodigo('Enviando un código a', email, '…');
+  $('c-reenviar').disabled = true; $('c-err').textContent = '';
+  return api('enviar_codigo', { email: email }).then(function(){
+    S.codigoA = email; S.codigoAt = Date.now(); guardarS();
+    textoCodigo('Te hemos enviado un código de 6 cifras a', email);
+    esperar(30);
+    setTimeout(function(){ $('c-codigo').focus(); }, 50);
+  }).catch(function(e){
+    textoCodigo('Vamos a enviarte un código a', email);
+    $('c-err').textContent = e.message;
+    if (e.status === 429) esperar(30); else $('c-reenviar').disabled = false;
+  });
+}
+function esperar(s){
+  esperaReenvio = s; clearInterval(relojReenvio);
+  var pinta = function(){
+    if (esperaReenvio <= 0) { clearInterval(relojReenvio); $('c-reenviar').disabled = false; $('c-reenviar').textContent = 'Enviar otro código'; return; }
+    $('c-reenviar').disabled = true; $('c-reenviar').textContent = 'Enviar otro código (' + esperaReenvio + ' s)'; esperaReenvio--;
+  };
+  pinta(); relojReenvio = setInterval(pinta, 1000);
+}
+$('c-reenviar').addEventListener('click', function(){ if (!this.disabled) enviarCodigo(); });
+$('c-cambiar').addEventListener('click', function(){ ir(2); setTimeout(function(){ $('d-email').focus(); $('d-email').select(); }, 60); });
+$('c-codigo').addEventListener('input', function(){
+  var v = this.value.replace(/\D/g, '').slice(0, 6);
+  if (v !== this.value) this.value = v;
+  $('c-err').textContent = '';
+  if (v.length === 6) verificar();
+});
+$('c-verificar').addEventListener('click', verificar);
+var verificando = false;
+function verificar(){
+  var codigo = $('c-codigo').value.replace(/\D/g, '');
+  if (codigo.length !== 6) { $('c-err').textContent = 'El código tiene 6 cifras.'; $('c-codigo').focus(); return; }
+  if (verificando) return; verificando = true;
+  $('c-verificar').disabled = true; $('c-verificar').textContent = 'Comprobando…';
+  api('verificar_codigo', { codigo: codigo }).then(function(r){
+    S.sesion = r.sesion; S.emailVerificado = S.datos.email; guardarS();
+    ir(4);
+  }).catch(function(e){
+    $('c-err').textContent = e.message; $('c-codigo').select();
+  }).then(function(){ verificando = false; $('c-verificar').disabled = false; $('c-verificar').textContent = 'Confirmar'; });
+}
+
+/* ---------- Paso 4: documento de identidad ---------- */
+function comprimirFoto(file, max){
+  return new Promise(function(ok, ko){
+    var url = URL.createObjectURL(file), img = new Image();
+    img.onload = function(){
+      var w = img.naturalWidth, h = img.naturalHeight;
+      if (Math.max(w, h) < 500) { URL.revokeObjectURL(url); ko(new Error('La foto es muy pequeña: hazla más de cerca y con buena luz.')); return; }
+      var k = Math.min(1, max / Math.max(w, h)), c = document.createElement('canvas');
+      c.width = Math.round(w * k); c.height = Math.round(h * k);
+      var ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height); ctx.drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      c.toBlob(function(b){
+        if (!b) { ko(new Error('No hemos podido preparar la foto. Prueba otra vez.')); return; }
+        blobAB64(b).then(function(b64){ ok({ b64: b64, tam: b.size, url: URL.createObjectURL(b), tipo: 'image/jpeg' }); }, ko);
+      }, 'image/jpeg', 0.88);
+    };
+    img.onerror = function(){ URL.revokeObjectURL(url); ko(new Error('No hemos podido abrir esa foto. Hazla con la cámara o elige una en JPG.')); };
+    img.src = url;
+  });
+}
+function ponerFoto(cual, file){
+  if (!file) return;
+  $('dni-err').textContent = '';
+  var vistaEl = cual === 'rev' ? $('rev-vista') : $('dni-vista');
+  vistaEl.innerHTML = '<div><div class="spinner" aria-hidden="true"></div><p>Preparando la foto…</p></div>';
+  comprimirFoto(file, 1800).then(function(f){
+    if (f.tam < 15000) throw new Error('La foto no se ve bien: repítela con más luz y más de cerca.');
+    if (cual === 'rev') REV = f; else DNI = f;
+    vistaEl.classList.add('tiene');
+    vistaEl.innerHTML = '<img src="' + f.url + '" alt="Foto de tu documento de identidad">';
+    if (cual !== 'rev') { $('dni-camara').lastChild.textContent = 'Repetir la foto'; }
+  }).catch(function(e){
+    if (cual === 'rev') REV = null; else DNI = null;
+    vistaEl.classList.remove('tiene');
+    vistaEl.innerHTML = '<div><p>Aún no has añadido la foto</p></div>';
+    $('dni-err').textContent = e.message;
+  });
+}
+$('dni-camara').addEventListener('click', function(){ $('in-dni-cam').value = ''; $('in-dni-cam').click(); });
+$('dni-galeria').addEventListener('click', function(){ $('in-dni-gal').value = ''; $('in-dni-gal').click(); });
+$('in-dni-cam').addEventListener('change', function(){ ponerFoto('dni', this.files && this.files[0]); });
+$('in-dni-gal').addEventListener('change', function(){ ponerFoto('dni', this.files && this.files[0]); });
+$('rev-btn').addEventListener('click', function(){ $('in-rev').value = ''; $('in-rev').click(); });
+$('in-rev').addEventListener('change', function(){ ponerFoto('rev', this.files && this.files[0]); });
+$('poder-btn').addEventListener('click', function(){ $('in-poder').value = ''; $('in-poder').click(); });
+$('in-poder').addEventListener('change', function(){
+  var f = this.files && this.files[0]; if (!f) return;
+  $('dni-err').textContent = '';
+  var esPdf = f.type === 'application/pdf' || /\.pdf$/i.test(f.name);
+  var listo = function(p){ PODER = p; $('poder-nombre').textContent = 'Añadido: ' + f.name; $('poder-btn').textContent = 'Cambiar el poder'; };
+  if (esPdf) {
+    if (f.size > 4 * 1048576) { $('dni-err').textContent = 'El PDF del poder pesa más de 4 MB. Envíaselo a tu comercial por WhatsApp.'; return; }
+    blobAB64(f).then(function(b64){ listo({ b64: b64, tipo: 'application/pdf' }); });
+  } else {
+    comprimirFoto(f, 2200).then(listo).catch(function(e){ $('dni-err').textContent = e.message; });
+  }
+});
+$('dni-seguir').addEventListener('click', function(){
+  if (!DNI) { $('dni-err').textContent = 'Añade la foto de la parte de delante de tu DNI o NIE.'; $('dni-camara').focus(); return; }
+  if (E.pedir_reverso && !REV) { $('dni-err').textContent = 'Añade también la foto de la parte de atrás.'; return; }
+  ir(5);
+});
+
+/* ---------- Paso 5: firma ---------- */
+var pad = { cv: null, ctx: null, trazos: [], actual: null, w: 0, h: 0 };
+function padPreparar(){
+  var cv = $('pad'), r = cv.getBoundingClientRect();
+  if (!r.width) return;
+  var dpr = Math.min(window.devicePixelRatio || 1, 3);
+  pad.cv = cv; pad.w = r.width; pad.h = r.height;
+  cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr);
+  pad.ctx = cv.getContext('2d'); pad.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  padRedibujar();
+}
+function estilo(ctx, k){ ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#10131A'; ctx.fillStyle = '#10131A'; ctx.lineWidth = 2.7 * (k || 1); }
+function padRedibujar(){
+  var ctx = pad.ctx; if (!ctx) return;
+  ctx.clearRect(0, 0, pad.w, pad.h); estilo(ctx);
+  pad.trazos.forEach(function(t){ dibujarTrazo(ctx, t, pad.w, pad.h, 0, 0); });
+  $('pad-texto').hidden = pad.trazos.length > 0;
+}
+function dibujarTrazo(ctx, t, w, h, dx, dy){
+  if (t.length === 1) { ctx.beginPath(); ctx.arc(t[0][0] * w - dx, t[0][1] * h - dy, ctx.lineWidth / 2, 0, Math.PI * 2); ctx.fill(); return; }
+  ctx.beginPath(); ctx.moveTo(t[0][0] * w - dx, t[0][1] * h - dy);
+  for (var i = 1; i < t.length - 1; i++) {
+    var mx = (t[i][0] + t[i + 1][0]) / 2 * w - dx, my = (t[i][1] + t[i + 1][1]) / 2 * h - dy;
+    ctx.quadraticCurveTo(t[i][0] * w - dx, t[i][1] * h - dy, mx, my);
+  }
+  var u = t[t.length - 1]; ctx.lineTo(u[0] * w - dx, u[1] * h - dy); ctx.stroke();
+}
+function punto(e){ var r = pad.cv.getBoundingClientRect(); return [Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), Math.min(1, Math.max(0, (e.clientY - r.top) / r.height))]; }
+$('pad').addEventListener('pointerdown', function(e){
+  if (!pad.ctx) padPreparar();
+  e.preventDefault();
+  try { this.setPointerCapture(e.pointerId); } catch(x) {}
+  pad.actual = [punto(e)]; pad.trazos.push(pad.actual);
+  $('pad-texto').hidden = true; $('f-err').textContent = '';
+});
+$('pad').addEventListener('pointermove', function(e){
+  if (!pad.actual) return;
+  e.preventDefault();
+  var evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+  if (!evs.length) evs = [e];
+  var ctx = pad.ctx; estilo(ctx);
+  evs.forEach(function(ev){
+    var p = punto(ev), a = pad.actual[pad.actual.length - 1];
+    if (Math.abs(p[0] - a[0]) * pad.w + Math.abs(p[1] - a[1]) * pad.h < 0.8) return;
+    pad.actual.push(p);
+    ctx.beginPath(); ctx.moveTo(a[0] * pad.w, a[1] * pad.h); ctx.lineTo(p[0] * pad.w, p[1] * pad.h); ctx.stroke();
+  });
+});
+function padFin(){ if (pad.actual) { pad.actual = null; padRedibujar(); } }
+$('pad').addEventListener('pointerup', padFin);
+$('pad').addEventListener('pointercancel', padFin);
+$('pad').addEventListener('lostpointercapture', padFin);
+$('pad-borrar').addEventListener('click', function(){ pad.trazos = []; pad.actual = null; padRedibujar(); });
+window.addEventListener('resize', function(){ if (S.paso === 5) { clearTimeout(padPreparar._t); padPreparar._t = setTimeout(padPreparar, 120); } });
+function medidaFirma(){
+  var minx = 1e9, miny = 1e9, maxx = -1e9, maxy = -1e9, largo = 0;
+  pad.trazos.forEach(function(t){
+    t.forEach(function(p, i){
+      var x = p[0] * pad.w, y = p[1] * pad.h;
+      minx = Math.min(minx, x); maxx = Math.max(maxx, x); miny = Math.min(miny, y); maxy = Math.max(maxy, y);
+      if (i) largo += Math.hypot(x - t[i - 1][0] * pad.w, y - t[i - 1][1] * pad.h);
+    });
+  });
+  return { minx: minx, miny: miny, ancho: maxx - minx, alto: maxy - miny, largo: largo };
+}
+function firmaPng(){
+  var m = medidaFirma(), mg = 14;
+  var w = m.ancho + mg * 2, h = Math.max(m.alto, 20) + mg * 2;
+  var k = Math.min(3, 1200 / w);
+  var c = document.createElement('canvas'); c.width = Math.round(w * k); c.height = Math.round(h * k);
+  var ctx = c.getContext('2d'); ctx.setTransform(k, 0, 0, k, 0, 0); estilo(ctx);
+  pad.trazos.forEach(function(t){ dibujarTrazo(ctx, t, pad.w, pad.h, m.minx - mg, m.miny - (h - m.alto) / 2 + 0); });
+  return c.toDataURL('image/png').split(',')[1];
+}
+function entrarFirma(){
+  setTimeout(padPreparar, 30);
+  var d = S.datos || {}, c = E.condiciones, doc = E.documento || {};
+  var filas = [
+    ['Contrato', esc(c ? 'Cesión de leads · ' + c.oficio_txt + ' en ' + c.ciudad : (doc.nombre || 'Contrato con OficioYa'))],
+    c ? ['Condiciones', euros(c.precio) + ' + IVA por cliente · activación ' + euros(c.activacion) + ' + IVA'] : null,
+    ['Firmas', esc(d.nombre) + ' · ' + esc(d.nif) + (d.como === 'empresa' ? '<br>en nombre de ' + esc(d.razon) + ' (' + esc(d.cif) + '), como ' + esc(String(d.cargoTxt || '').toLowerCase()) : '')],
+    ['Email', esc(S.emailVerificado || d.email) + ' · confirmado'],
+    ['Huella', '<span class="huella">' + esc(doc.sha256 || '') + '</span>']
+  ].filter(Boolean);
+  $('resumen').innerHTML = filas.map(function(f){ return '<dt>' + f[0] + '</dt><dd>' + f[1] + '</dd>'; }).join('');
+  var marcadas = S.marcadas || {};
+  $('declaraciones').innerHTML = (E.declaraciones || []).map(function(x){
+    return '<label class="check"><input type="checkbox" data-dec="' + esc(x.id) + '"' + (marcadas[x.id] ? ' checked' : '') + '> <span>' + esc(x.texto)
+      + (x.id === 'destacadas' ? ' <small class="nota-s" style="display:block;margin-top:2px">Son las que el contrato enumera al final, justo antes de las firmas.</small>' : '') + '</span></label>';
+  }).join('');
+  Array.prototype.forEach.call($('declaraciones').querySelectorAll('input'), function(i){
+    i.addEventListener('change', function(){ S.marcadas = S.marcadas || {}; S.marcadas[i.getAttribute('data-dec')] = i.checked; guardarS(); $('f-err').textContent = ''; });
+  });
+}
+var firmando = false;
+$('f-firmar').addEventListener('click', function(){
+  if (firmando) return;
+  var err = $('f-err'), m = medidaFirma();
+  if (!pad.trazos.length) { err.textContent = 'Firma con el dedo dentro del recuadro.'; $('pad').scrollIntoView({ block: 'center' }); return; }
+  if (m.largo < 90 || (m.ancho < 45 && m.alto < 45)) { err.textContent = 'Tu firma es muy pequeña: bórrala y fírmala más grande, ocupando el recuadro.'; $('pad').scrollIntoView({ block: 'center' }); return; }
+  var acept = {}, falta = false;
+  Array.prototype.forEach.call($('declaraciones').querySelectorAll('input'), function(i){ acept[i.getAttribute('data-dec')] = i.checked; if (!i.checked) falta = true; });
+  if (falta) { err.textContent = 'Marca las ' + (E.declaraciones || []).length + ' casillas para poder firmar.'; return; }
+  if (!DNI) { ir(4); $('dni-err').textContent = 'Vuelve a añadir la foto de tu documento.'; return; }
+  if (!S.sesion) { ir(3); return; }
+  var d = S.datos, fon = !$('d-habil').hidden;
+  var firmante = {
+    nombre: d.nombre, nif: d.nif, email: S.emailVerificado || d.email, telefono: soloCifras(d.telefono),
+    domicilio: { direccion: d.direccion, cp: d.cp, localidad: d.localidad }
+  };
+  if (d.como === 'empresa') firmante.empresa = { razon_social: d.razon, cif: d.cif, cargo: d.cargoTxt, domicilio_personal: d.dompers };
+  if (d.iban) { firmante.iban = d.iban; firmante.entidad = d.banco || ''; }
+  if (fon) firmante.habilitaciones = { agua: d.habil.agua, gas: d.habil.gas, gas_categoria: d.habil.gas ? d.habil.cat : null, rite: d.habil.rite };
+  var cuerpo = {
+    sesion: S.sesion, doc_sha256: E.documento && E.documento.sha256, firmante: firmante, aceptaciones: acept,
+    dni_anverso: DNI.b64, firma_png: firmaPng(),
+    dispositivo: { idioma: navigator.language || '', zona: (function(){ try { return Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch(x) { return ''; } })(), pantalla: screen.width + 'x' + screen.height + ' @' + (window.devicePixelRatio || 1) },
+    lectura: { paginas_vistas: lectura.paginas ? nVistas() : null, paginas: lectura.paginas || null, segundos: S.segundos || null }
+  };
+  if (REV) cuerpo.dni_reverso = REV.b64;
+  if (PODER) cuerpo.poder = PODER.b64;
+  firmando = true; err.textContent = '';
+  $('f-firmar').disabled = true; $('velo-firmando').hidden = false;
+  api('firmar', cuerpo).then(function(r){
+    $('velo-firmando').hidden = true;
+    borrarS();
+    hecho(r);
+  }).catch(function(e){
+    $('velo-firmando').hidden = true; firmando = false; $('f-firmar').disabled = false;
+    if (e.status === 401) { S.sesion = null; S.emailVerificado = null; S.codigoA = null; guardarS(); ir(3); $('c-err').textContent = 'Por seguridad, confirma otra vez tu email con un código nuevo.'; return; }
+    if (e.status === 409 && /firmado/.test(e.message)) { borrarS(); hecho(null); return; }
+    if (e.status === 409) { error('El contrato ha cambiado', 'Tu comercial lo ha actualizado. Recarga la página para ver el nuevo.', true); return; }
+    if (e.status === 410) { error('Este enlace ya no es válido', e.message); return; }
+    err.textContent = e.message;
+  });
+});
+
+/* ---------- Firmado ---------- */
+function hecho(r){
+  vista('v-hecho');
+  var c = E && E.condiciones, f = E && E.firmado;
+  var fechaF = (r && r.firmado_at) || (f && f.fecha);
+  var email = (r && r.email) || (f && f.email);
+  $('hecho-titulo').textContent = r ? '¡Contrato firmado!' : 'Este contrato ya está firmado';
+  $('hecho-texto').innerHTML = (fechaF ? 'Firmado el ' + esc(fechaLarga(fechaF)) + ' (hora de Madrid)' + (f && f.nombre && !r ? ' por ' + esc(f.nombre) : '') + '. ' : '')
+    + (r && r.email_enviado === false
+        ? 'No hemos podido enviarte el email: descarga tu copia aquí abajo y avisa a tu comercial.'
+        : 'Te hemos enviado tu copia firmada por email' + (email ? ' a <b>' + esc(email) + '</b>' : '') + '.');
+  var bot = '';
+  if (r && r.pdf) {
+    try {
+      var url = URL.createObjectURL(new Blob([bytesDeB64(r.pdf)], { type: 'application/pdf' }));
+      bot += '<a class="btn sec" href="' + url + '" download="' + esc(r.pdf_nombre || 'Contrato firmado OficioYa.pdf') + '">Descargar mi copia firmada (PDF)</a>';
+    } catch(x) {}
+  }
+  $('hecho-botones').innerHTML = bot;
+  var pago = (r && r.pago_activacion) || (E && E.pago_activacion);
+  if (pago && c) {
+    $('hecho-activacion').innerHTML = '<h3>Último paso: la activación</h3>'
+      + '<p>' + euros(c.activacion) + ' + IVA (<b>' + euros(c.activacion_iva) + '</b> en total), en los 5 días siguientes a la firma. Con ella reservamos tu plaza en ' + esc(c.ciudad) + ' y ponemos en marcha tus anuncios.</p>'
+      + '<div class="botones"><a class="btn" href="' + esc(pago) + '" target="_blank" rel="noopener">Pagar la activación con tarjeta o Bizum</a></div>'
+      + '<p class="nota-s" style="margin-top:10px">También puedes pagarla por transferencia a la cuenta del contrato (ING · ES45 1465 0100 9117 4426 4278, titular Andrés Algora Marín) y mandar el justificante por WhatsApp al 656 39 80 14.</p>';
+    $('hecho-activacion').hidden = false;
+  } else $('hecho-activacion').hidden = true;
+  window.scrollTo(0, 0);
+  try { $('hecho-titulo').focus({ preventScroll: true }); } catch(x) {}
+}
+
+iniciar();
+</script>
+</body>
+</html>
