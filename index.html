@@ -3,6 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- ── PORTADA NUEVA: sin sesión, "/" lleva a /inicio (la app sigue en /?app=1) ── -->
+    <script>
+      (function () {
+        try {
+          if (location.pathname !== "/" || location.search || location.hash) return;
+          var ls = window.localStorage;
+          if (ls.getItem("oy_user") || ls.getItem("oy_pending_pro") || ls.getItem("oy_pending_elite") || ls.getItem("oy_google_pro")) return;
+          location.replace("/inicio");
+        } catch (e) {}
+      })();
+    </script>
 
     <!-- ── TEMA Y PWA ─────────────────────────────────────────── -->
     <meta name="theme-color" content="#FFB800" />
