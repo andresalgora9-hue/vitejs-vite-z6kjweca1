@@ -9,7 +9,7 @@
         try {
           if (location.pathname !== "/" || location.search || location.hash) return;
           var ls = window.localStorage;
-          if (ls.getItem("oy_user") || ls.getItem("oy_pending_pro") || ls.getItem("oy_pending_elite") || ls.getItem("oy_google_pro")) return;
+          if (ls.getItem("oy_user")) return;
           location.replace("/inicio");
         } catch (e) {}
       })();
