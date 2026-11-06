@@ -3402,7 +3402,7 @@ return <GCard key={w.id} onClick={async()=>{
   }
 
 // ─── ALTA DE PROFESIONALES (sin planes): solo por WhatsApp o email ───
-const ALTA_PRO_WA="https://wa.me/34656398014?text="+encodeURIComponent("Hola, soy profesional y quiero darme de alta en OficioYa.\nNombre: \nOficio: \nCiudad: ");
+const ALTA_PRO_WA="https://wa.me/34610272887?text="+encodeURIComponent("Hola, soy profesional y quiero darme de alta en OficioYa.\nNombre: \nOficio: \nCiudad: ");
 const ALTA_PRO_MAIL="mailto:admin@algoracompound.com?subject="+encodeURIComponent("Alta de profesional en OficioYa")+"&body="+encodeURIComponent("Hola, soy profesional y quiero darme de alta en OficioYa.\n\nNombre: \nOficio: \nCiudad: \nTeléfono: \n");
 function AltaProContacto({onBack}:{onBack?:()=>void}){
   const btn:any={display:"flex",alignItems:"center",justifyContent:"center",gap:8,width:"100%",padding:"13px 16px",borderRadius:12,fontFamily:"'DM Sans',sans-serif",fontWeight:800,fontSize:14,textDecoration:"none",boxSizing:"border-box",cursor:"pointer"};
@@ -3417,7 +3417,7 @@ function AltaProContacto({onBack}:{onBack?:()=>void}){
       <p style={{fontSize:12,color:C.muted,lineHeight:1.6,marginBottom:18}}>Solo para profesionales dados de alta como autónomos.</p>
       <a href={ALTA_PRO_WA} target="_blank" rel="noopener noreferrer" style={{...btn,background:"#25D366",color:"#fff",border:"none",marginBottom:10}}>💬 Escribir por WhatsApp</a>
       <a href={ALTA_PRO_MAIL} style={{...btn,background:"#1E2536",color:"#E8EDF5",border:"1px solid #2D3A52"}}>✉️ Enviar un email</a>
-      <p style={{fontSize:11,color:C.muted,textAlign:"center",marginTop:12}}>WhatsApp 656 39 80 14 · admin@algoracompound.com</p>
+      <p style={{fontSize:11,color:C.muted,textAlign:"center",marginTop:12}}>WhatsApp 610 27 28 87 · admin@algoracompound.com</p>
     </GCard>
   );
 }
