@@ -322,7 +322,7 @@
   try {
     (function () {
       var ruta = location.pathname || "";
-      if (!/pint|gotele|alisar|moho|humedad|fachada/i.test(ruta) || /(admin|captacion|panel)/i.test(ruta)) return;
+      if (!/pint|gotele|alisar|moho|humedad/i.test(ruta) || /fachada|local|baratos|carpinter|admin|captacion|panel/i.test(ruta)) return;
       var TEST = "fondo_hero_v1", CLAVE = "oy_ab_" + TEST, v = "";
       try { v = (new URLSearchParams(location.search).get("ab") || "").toUpperCase(); } catch (e) {}
       if (v === "A" || v === "B" || v === "C") {
