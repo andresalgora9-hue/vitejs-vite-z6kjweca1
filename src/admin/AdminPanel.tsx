@@ -1,6 +1,6 @@
 // ============================================================
 // OficioYa · ADMIN nuevo (modelo pago por lead)
-// Resumen · Análisis · Leads · Facturas · Profesionales · Captación · Mensajes · Marketing · Ajustes · CRM antiguo
+// Resumen · Análisis · Leads · Facturas · Impuestos · Archivos · Profesionales · Captación · Mensajes · Marketing · Ajustes · CRM antiguo
 // ============================================================
 import React, { useState, useEffect, useCallback } from "react";
 import { db } from "../supabase";
@@ -16,8 +16,10 @@ import Ajustes from "./apAjustes";
 import Analisis from "./apAnalisis";
 import EquipoIA from "./apEquipoIA";
 import Chats from "./apChats";
+import Archivos from "./apArchivos";
+import Impuestos from "./apImpuestos";
 
-type Seccion = "resumen" | "analisis" | "equipo" | "chats" | "leads" | "facturas" | "profesionales" | "captacion" | "mensajes" | "marketing" | "ajustes" | "antiguo";
+type Seccion = "resumen" | "analisis" | "equipo" | "chats" | "leads" | "facturas" | "impuestos" | "archivos" | "profesionales" | "captacion" | "mensajes" | "marketing" | "ajustes" | "antiguo";
 
 const NAV: { id: Seccion; label: string; icono: string }[] = [
   { id: "resumen", label: "Resumen", icono: "M4 13h4v7H4zM10 8h4v12h-4zM16 4h4v16h-4z" },
@@ -26,6 +28,8 @@ const NAV: { id: Seccion; label: string; icono: string }[] = [
   { id: "equipo", label: "Equipo IA", icono: "M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM17 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM3 20c.5-3 3-5 6-5s5.5 2 6 5M15 15.4c.6-.3 1.3-.4 2-.4 3 0 5.5 2 6 5" },
   { id: "leads", label: "Leads", icono: "M4 6h16M4 12h16M4 18h10" },
   { id: "facturas", label: "Facturas", icono: "M6.5 3.5h8l4 4v13h-12zM14.5 3.5v4h4M9.5 12h6M9.5 15.5h6" },
+  { id: "impuestos", label: "Impuestos", icono: "M6 3.5h12v17l-3-1.6-3 1.6-3-1.6-3 1.6zM9.5 14.5l5-5M9.6 9.6h.01M14.4 14.4h.01" },
+  { id: "archivos", label: "Archivos", icono: "M3.5 7a2 2 0 0 1 2-2h4.2l2 2.3h6.8a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z" },
   { id: "profesionales", label: "Profesionales", icono: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4.5 20c.7-3.7 3.7-5.8 7.5-5.8s6.8 2.1 7.5 5.8" },
   { id: "captacion", label: "Captación", icono: "M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM3 20c.6-3.5 3.4-5.6 7-5.6 1.3 0 2.5.3 3.5.8M18 14v6M15 17h6" },
   { id: "mensajes", label: "Mensajes", icono: "M20.5 12.2c0 3.9-3.8 7-8.5 7a10 10 0 0 1-2.6-.34L4.2 20.5l1.5-3.7A6.7 6.7 0 0 1 3.5 12.2c0-3.9 3.8-7 8.5-7s8.5 3.1 8.5 7z" },
@@ -38,7 +42,7 @@ const NAV: { id: Seccion; label: string; icono: string }[] = [
 const GRUPOS: { t: string; ids: Seccion[] }[] = [
   { t: "Negocio", ids: ["resumen", "marketing", "analisis"] },
   { t: "Clientes y profesionales", ids: ["leads", "profesionales", "captacion", "chats", "mensajes"] },
-  { t: "Dinero", ids: ["facturas"] },
+  { t: "Dinero y papeles", ids: ["facturas", "impuestos", "archivos"] },
   { t: "Equipo", ids: ["equipo"] },
   { t: "Sistema", ids: ["ajustes", "antiguo"] },
 ];
@@ -161,6 +165,8 @@ export default function AdminPanel({ onLogout, nombre }: { onLogout: () => void;
       case "chats": return <Chats {...props} />;
       case "leads": return <Leads {...props} />;
       case "facturas": return <Facturas {...props} />;
+      case "impuestos": return <Impuestos {...props} />;
+      case "archivos": return <Archivos {...props} />;
       case "profesionales": return <Profesionales {...props} />;
       case "mensajes": return <Mensajes {...props} />;
       case "marketing": return <Marketing {...props} />;
