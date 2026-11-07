@@ -1,9 +1,11 @@
 // ============================================================
 // OficioYa · Panel PROFESIONAL — menú «Pagar» de las facturas
 // Transferencia (IBAN) o Bizum, cada dato con su botón de copiar,
-// y envío del justificante por WhatsApp.
+// y «Ya he pagado»: envía el justificante por WhatsApp y marca la factura
+// como avisada (oy_factura_aviso_pago) para que no se cobre también en la tarjeta.
 // ============================================================
 import React, { useEffect, useRef, useState } from "react";
+import { db } from "../supabase";
 import { OY_IBAN, OY_TITULAR, OY_BIZUM } from "../shared/crm";
 import { C, F, Boton, FacturaRow, eur, fecha } from "./proComun";
 
@@ -37,14 +39,18 @@ async function copiarTexto(t: string): Promise<boolean> {
 // Importe para pegar en la app del banco: 992,20 (sin el símbolo €)
 const importe = (n: number) => eur(n).replace(/\s*€$/, "");
 
-export default function PagarFactura({ facturas, nombre, onClose }: {
+export default function PagarFactura({ facturas, nombre, userId, conTarjeta, onAvisado, onClose }: {
   facturas: FacturaRow[];   // vacío = solo datos de pago
   nombre?: string;
+  userId?: string;          // para avisar de que ya está pagada
+  conTarjeta?: boolean;     // tiene tarjeta guardada (pago automático)
+  onAvisado?: () => void;
   onClose: () => void;
 }) {
   const [metodo, setMetodo] = useState<Metodo>("transferencia");
   const [copiado, setCopiado] = useState<string | null>(null);
   const [fallo, setFallo] = useState(false);
+  const [avisado, setAvisado] = useState(false);
   const cerrar = useRef(onClose);
   cerrar.current = onClose;
 
@@ -88,6 +94,14 @@ export default function PagarFactura({ facturas, nombre, onClose }: {
       + (metodo === "bizum" ? "Bizum" : "transferencia") + ". Te mando el justificante."
     : saludo + "Te mando el justificante de pago de mi factura.";
   const enlaceWa = "https://wa.me/" + WHATSAPP_OY + "?text=" + encodeURIComponent(textoWa);
+
+  // «Ya he pagado»: el enlace abre WhatsApp en otra ventana y a la vez se avisa a OficioYa
+  const avisar = () => {
+    if (!facturas.length || !userId || avisado) return;
+    setAvisado(true);
+    db.rpc("oy_factura_aviso_pago", { p_pro: userId, p_facturas: facturas.map((f) => f.id), p_metodo: metodo })
+      .then(({ error }) => { if (error) setAvisado(false); else onAvisado?.(); });
+  };
 
   const dato = (id: string, etiqueta: string, valor: string, copia?: string, nota?: string) => (
     <div style={{ padding: "10px 12px", background: C.bg, border: "1px solid " + C.border, borderRadius: 9, marginTop: 8 }}>
@@ -182,12 +196,26 @@ export default function PagarFactura({ facturas, nombre, onClose }: {
 
         {/* Justificante */}
         <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid " + C.border }}>
-          <div style={{ fontSize: 12.5, color: C.mutedL }}>
-            Cuando pagues, mándanos el justificante el mismo día por WhatsApp o a {EMAIL_OY}.
+          <div style={{ fontSize: 12.5, color: C.mutedL, lineHeight: 1.45 }}>
+            {facturas.length
+              ? "Cuando pagues, pulsa aquí y mándanos el justificante por WhatsApp (o a " + EMAIL_OY + ")"
+                + (conTarjeta ? ": así no se intentará cobrar también en tu tarjeta." : ".")
+              : "Cuando pagues, mándanos el justificante el mismo día por WhatsApp o a " + EMAIL_OY + "."}
           </div>
           <div style={{ display: "flex", marginTop: 10 }}>
-            <Boton href={enlaceWa} color={C.green}>Enviar justificante por WhatsApp</Boton>
+            <a href={enlaceWa} target="_blank" rel="noreferrer" onClick={avisar} style={{
+              flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+              padding: "11px 12px", borderRadius: 9, textDecoration: "none", boxSizing: "border-box",
+              background: C.green, color: "#000", fontFamily: F, fontSize: 13, fontWeight: 800, cursor: "pointer",
+            }}>
+              {!facturas.length ? "Enviar justificante por WhatsApp" : avisado ? "✓ Avisado · abrir WhatsApp otra vez" : "Ya he pagado · enviar justificante"}
+            </a>
           </div>
+          {avisado && (
+            <div style={{ fontSize: 12.5, color: C.green, marginTop: 8, lineHeight: 1.45 }}>
+              Gracias. Lo comprobamos y te marcamos {facturas.length === 1 ? "la factura" : "las facturas"} como {facturas.length === 1 ? "pagada" : "pagadas"}.
+            </div>
+          )}
         </div>
       </div>
     </div>
