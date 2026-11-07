@@ -18,9 +18,33 @@ export function estadoFactura(f: Factura) {
   return { t: dias === 0 ? "Vence hoy" : "Vence en " + dias + " d", c: C.orange };
 }
 
+// Cobro con tarjeta (Stripe): los campos llegan con select("*")
+type FacturaCobro = Factura & {
+  cobro_estado?: string | null; cobro_error?: string | null; cobro_intentos?: number | null;
+  metodo_pago?: string | null; stripe_pi_id?: string | null;
+};
+export function cobroFactura(f: Factura): { t: string; c: string; detalle?: string } | null {
+  const x = f as FacturaCobro;
+  const n = Number(x.cobro_intentos || 0);
+  const intentos = n > 1 ? " · " + n + " intentos" : "";
+  if (f.status === "pagada") return x.metodo_pago === "tarjeta" ? { t: "💳 Con tarjeta", c: C.green } : null;
+  if (f.status !== "pendiente") return null;
+  switch (x.cobro_estado) {
+    case "cobrando": return { t: "Cobrándose", c: C.orange };
+    case "procesando": return { t: "Cobro en proceso", c: C.orange, detalle: "El banco lo está tramitando" };
+    case "rechazada": return { t: "Cobro fallido", c: C.red, detalle: (x.cobro_error || "rechazado por el banco") + intentos };
+    case "error": return { t: "Error al cobrar", c: C.red, detalle: (x.cobro_error || "error de Stripe") + intentos + " · se reintenta solo" };
+    case "aviso_pago": return { t: "Dice que ha pagado", c: C.blue, detalle: (x.cobro_error || "Avisó desde la app") + ". Si lo ves en el banco, márcala pagada." };
+    case "sin_tarjeta": return { t: "Sin tarjeta", c: C.muted, detalle: "No tiene tarjeta guardada: paga por transferencia o Bizum" };
+    default: return null;
+  }
+}
+
 export function GestionFactura({ f, d, onClose, onHecho }: { f: Factura; d: SeccionProps["d"]; onClose: () => void; onHecho: (m: string) => void }) {
   const [ocupado, setOcupado] = useState(false);
   const e = estadoFactura(f);
+  const cb = cobroFactura(f);
+  const pi = (f as FacturaCobro).stripe_pi_id;
   const pro = d.proPorId[f.pro_id];
 
   const estado = async (nuevo: "pagada" | "pendiente" | "anulada") => {
@@ -50,13 +74,16 @@ export function GestionFactura({ f, d, onClose, onHecho }: { f: Factura; d: Secc
     <Modal titulo={"Factura " + f.number} onClose={onClose}>
       <div style={{ display: "flex", gap: 6, marginBottom: 12, flexWrap: "wrap" }}>
         <Pill texto={e.t} color={e.c} />
+        {cb && <Pill texto={cb.t} color={cb.c} />}
         <Pill texto={f.tipo === "activacion" ? "Alta de profesional" : f.n_leads + " leads"} color={C.mutedL} />
       </div>
       {fila("Profesional", pro?.name || f.cliente_nombre)}
       {fila("Facturado a", <>{f.cliente_nombre}<br /><span style={{ color: C.mutedL }}>{f.cliente_nif || "Sin NIF"} · {f.cliente_direccion || "Sin dirección"}</span></>)}
       {fila("Emitida", fecha(f.issued_at))}
       {fila("Vence", fecha(f.due_at))}
-      {f.paid_at && fila("Pagada", fecha(f.paid_at))}
+      {f.paid_at && fila("Pagada", fecha(f.paid_at) + ((f as FacturaCobro).metodo_pago === "tarjeta" ? " · con tarjeta" : ""))}
+      {cb && f.status === "pendiente" && fila("Cobro con tarjeta", <><span style={{ color: cb.c, fontWeight: 700 }}>{cb.t}</span>{cb.detalle && <><br /><span style={{ color: C.mutedL }}>{cb.detalle}</span></>}</>)}
+      {pi && fila("Pago en Stripe", <a href={"https://dashboard.stripe.com/payments/" + pi} target="_blank" rel="noreferrer" style={{ color: C.accent, fontWeight: 700 }}>Ver en Stripe ↗</a>)}
       {fila("Base", eur(f.base, 2))}
       {fila("IVA " + num(f.iva_pct) + "%", eur(f.iva, 2))}
       {fila("Total", <b>{eur(f.total, 2)}</b>)}
@@ -177,11 +204,15 @@ export default function Facturas({ d, recargar, aviso }: SeccionProps) {
             cols={[{ k: "num", l: "Nº" }, { k: "pro", l: "Profesional" }, { k: "tipo", l: "Concepto" }, { k: "emit", l: "Emitida" }, { k: "vence", l: "Vence" }, { k: "base", l: "Base", align: "right" }, { k: "total", l: "Total", align: "right" }, { k: "estado", l: "Estado" }]}
             filas={lista.map((f) => {
               const e = estadoFactura(f);
+              const cb = cobroFactura(f);
               return {
                 num: <b>{f.number}</b>, pro: d.proPorId[f.pro_id]?.name || f.cliente_nombre,
                 tipo: f.tipo === "activacion" ? "Alta" : f.n_leads + " leads",
                 emit: fecha(f.issued_at), vence: fecha(f.due_at), base: eur(f.base, 2), total: <b>{eur(f.total, 2)}</b>,
-                estado: <Pill texto={e.t} color={e.c} />,
+                estado: <span style={{ display: "inline-flex", gap: 4, flexWrap: "wrap" }}>
+                  <Pill texto={e.t} color={e.c} />
+                  {cb && (f as FacturaCobro).cobro_estado !== "sin_tarjeta" && <Pill texto={cb.t} color={cb.c} />}
+                </span>,
               };
             })}
             onFila={(i) => setAbierta(lista[i])}
