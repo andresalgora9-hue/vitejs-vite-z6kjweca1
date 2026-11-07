@@ -35,6 +35,16 @@ function FichaPro({ p, d, onClose, onHecho }: { p: Pro; d: SeccionProps["d"]; on
   // Contrato firmado subido por Sandra en captación (usa la clave del CRM de captación guardada en este dispositivo)
   const claveCapt = (() => { try { return localStorage.getItem("oy_captacion_clave"); } catch { return null; } })();
   const [contratos, setContratos] = useState<any[] | null>(null);
+  // Cobro automático con tarjeta (enlace para guardarla, tarjeta, cobros fallidos y cuenta atrás)
+  const [cobro, setCobro] = useState<any>(null);
+  const [copiado, setCopiado] = useState(false);
+  useEffect(() => {
+    db.rpc("oy_cobro_estado_pro", { p_pro: p.id }).then(({ data, error }: any) => { if (!error) setCobro(data || null); });
+  }, [p.id]);
+  const copiarEnlace = async () => {
+    try { await navigator.clipboard.writeText(cobro.enlace); setCopiado(true); setTimeout(() => setCopiado(false), 2000); }
+    catch { prompt("Copia el enlace:", cobro.enlace); }
+  };
   useEffect(() => {
     if (!p.captacion_lead_id || !claveCapt) return;
     db.rpc("captacion_contrato_pro", { p_clave: claveCapt, p_pro: p.id }).then(({ data, error }: any) => { if (!error) setContratos(data || []); });
@@ -115,6 +125,26 @@ function FichaPro({ p, d, onClose, onHecho }: { p: Pro; d: SeccionProps["d"]; on
         </>
       )}
 
+      <Titulo>Cobro con tarjeta</Titulo>
+      {!cobro ? <div style={{ fontSize: 13, color: C.muted }}>Cargando…</div> : (
+        <>
+          {fila("Tarjeta", cobro.tarjeta
+            ? <span style={{ color: C.green }}>{(cobro.tarjeta.marca || "Tarjeta").replace(/^./, (c: string) => c.toUpperCase())} •••• {cobro.tarjeta.ultimos4}</span>
+            : <span style={{ color: C.orange }}>Sin guardar: sus facturas se pagan a mano</span>)}
+          {cobro.fallidas?.length > 0 && fila("Cobro fallido", <span style={{ color: C.red }}>{cobro.fallidas.map((f: any) => f.number + " (" + (f.error || "rechazado") + ")").join(", ")}</span>)}
+          {cobro.impago?.activo && fila("Cuenta atrás", <span style={{ color: cobro.impago.bloqueado ? C.red : C.orange }}>
+            {cobro.impago.bloqueado ? "Ya no recibe leads hasta que pague" : cobro.impago.usados + " de " + cobro.impago.limite + " leads antes de cortarle"}</span>)}
+          <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
+            <Btn small outline onClick={copiarEnlace}>{copiado ? "✓ Enlace copiado" : "Copiar enlace de la tarjeta"}</Btn>
+            {digitos(p.whatsapp || p.phone).length >= 9 && (
+              <Btn small outline color={C.green} href={waLink(p.whatsapp || p.phone) + "?text=" + encodeURIComponent(
+                "Hola " + ((p.name || "").split(" ")[0] || "") + ", para que tus facturas de OficioYa se paguen solas, guarda aquí tu tarjeta (tardas un minuto): "
+                + cobro.enlace + " . Si tienes alguna factura pendiente, se cobra al guardarla.")}>Enviar enlace por WhatsApp</Btn>
+            )}
+          </div>
+        </>
+      )}
+
       <Titulo>Reparto de leads</Titulo>
       {reparto.map((r) => (
         <div key={r.trade_key + r.city_slug} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "8px 0", fontSize: 13 }}>
@@ -179,6 +209,12 @@ export default function Profesionales({ d, recargar, aviso, irA }: SeccionProps)
   const [filtro, setFiltro] = useState<"activos" | "altas" | "todos">("activos");
   const [busca, setBusca] = useState("");
   const [ficha, setFicha] = useState<string | null>(null);
+  const [cobros, setCobros] = useState<Record<string, any>>({});
+  useEffect(() => {
+    const clave = (() => { try { return localStorage.getItem("oy_captacion_clave"); } catch { return null; } })();
+    if (!clave) return;
+    db.rpc("oy_cobro_resumen", { p_admin: clave }).then(({ data, error }: any) => { if (!error && data) setCobros(data); });
+  }, [d]);
   const mes = mesHoy();
   const ahora = Date.now();
 
@@ -192,6 +228,10 @@ export default function Profesionales({ d, recargar, aviso, irA }: SeccionProps)
   const vencP = d.facturas.filter((f) => f.status === "pendiente" && ts(f.due_at) < ahora);
   const sinPushP = Array.from(activos).filter((id) => !d.conPush.has(id));
   const problemasP: string[] = [];
+  // Prioridad: cobros con tarjeta fallidos y cuentas atrás por impago
+  const cobroMal = Object.entries(cobros).filter(([, c]: any) => c.fallidas > 0 || c.impago?.activo);
+  if (cobroMal.length) problemasP.push("⚠️ Cobro fallido o cuenta atrás por impago: " + cobroMal.map(([id, c]: any) => (d.proPorId[id]?.name || "—")
+    + (c.impago?.bloqueado ? " (ya no recibe leads)" : c.impago?.activo ? " (le quedan " + Math.max(0, Number(c.impago.limite || 0) - Number(c.impago.usados || 0)) + " leads)" : "")).join(", "));
   if (sinLlamarP.length) problemasP.push(sinLlamarP.length + " leads sin llamar (" + Array.from(new Set(sinLlamarP.map((l) => d.proPorId[l.pro_id]?.name || "—"))).join(", ") + ")");
   if (vencP.length) problemasP.push(vencP.length + " facturas vencidas (" + Array.from(new Set(vencP.map((f) => d.proPorId[f.pro_id]?.name || "—"))).join(", ") + ")");
   if (pendAlta.length) problemasP.push(pendAlta.length + " altas sin cobrar");
@@ -230,7 +270,7 @@ export default function Profesionales({ d, recargar, aviso, irA }: SeccionProps)
   return (
     <div>
       <Cabecera titulo="Profesionales" sub={"Desde el " + fecha(INICIO_ALTAS) + " cada registro nuevo paga " + eur(d.config.activacion_eur || 99) + " + IVA de alta"} />
-      <Respuesta pregunta="¿Los profesionales están al día?" tono={vencP.length || sinLlamarP.length ? "regular" : problemasP.length ? "regular" : "bien"}
+      <Respuesta pregunta="¿Los profesionales están al día?" tono={cobroMal.length ? "mal" : vencP.length || sinLlamarP.length ? "regular" : problemasP.length ? "regular" : "bien"}
         texto={problemasP.length ? <>{activos.size} profesionales reciben leads; hay {problemasP.length} cosa{problemasP.length > 1 ? "s" : ""} que revisar.</> : <>Sí: {activos.size} profesionales reciben leads y todos están al día.</>}
         detalle={problemasP.length ? problemasP.join(" · ") + "." : undefined} />
       <Grid min={170}>
@@ -248,11 +288,19 @@ export default function Profesionales({ d, recargar, aviso, irA }: SeccionProps)
       {filtro === "altas" && <AltasPendientes d={d} recargar={recargar} aviso={aviso} irA={irA} onVerFicha={setFicha} />}
 
       <Tabla
-        cols={[{ k: "nombre", l: "Profesional" }, { k: "oficio", l: "Oficio" }, { k: "reparto", l: "Leads" }, { k: "precio", l: "€/lead", align: "right" }, { k: "alta", l: "Alta" }, { k: "mes", l: "Este mes", align: "right" }, { k: "sin", l: "Sin llamar", align: "right" }, { k: "cierre", l: "Cierre", align: "right" }, { k: "resp", l: "Respuesta", align: "right" }, { k: "fact", l: "Sin facturar", align: "right" }, { k: "venc", l: "Vencido", align: "right" }, { k: "push", l: "Avisos" }, { k: "fiscal", l: "Datos fiscales" }, { k: "reg", l: "Registro" }]}
+        cols={[{ k: "nombre", l: "Profesional" }, { k: "oficio", l: "Oficio" }, { k: "reparto", l: "Leads" }, { k: "cobro", l: "Cobro" }, { k: "precio", l: "€/lead", align: "right" }, { k: "alta", l: "Alta" }, { k: "mes", l: "Este mes", align: "right" }, { k: "sin", l: "Sin llamar", align: "right" }, { k: "cierre", l: "Cierre", align: "right" }, { k: "resp", l: "Respuesta", align: "right" }, { k: "fact", l: "Sin facturar", align: "right" }, { k: "venc", l: "Vencido", align: "right" }, { k: "push", l: "Avisos" }, { k: "fiscal", l: "Datos fiscales" }, { k: "reg", l: "Registro" }]}
         filas={filas.map((x) => ({
           nombre: <span><b>{x.p.name}</b>{x.p.company_name ? <span style={{ color: C.mutedL }}> · {x.p.company_name}</span> : null}</span>,
           oficio: oficioDe(x.p.trade),
           reparto: activos.has(x.p.id) ? <Pill texto="Recibe" color={C.green} /> : <span style={{ color: C.muted }}>—</span>,
+          cobro: (() => {
+            const c = cobros[x.p.id];
+            if (c?.impago?.bloqueado) return <Pill texto="Cortado por impago" color={C.red} />;
+            if (c?.fallidas > 0) return <Pill texto="Cobro fallido" color={C.red} />;
+            if (c?.impago?.activo) return <Pill texto={"Le quedan " + Math.max(0, Number(c.impago.limite || 0) - Number(c.impago.usados || 0)) + " leads"} color={C.orange} />;
+            if (c?.tarjeta) return <span style={{ color: C.green }}>Tarjeta •••• {c.tarjeta.ultimos4}</span>;
+            return <span style={{ color: C.muted }}>Sin tarjeta</span>;
+          })(),
           precio: x.p.precio_lead != null ? eur(Number(x.p.precio_lead)) : <span>{eur(precioLeadDe(d, x.p.trade, x.p.city_slug || "sevilla", null))} <span style={{ color: C.muted, fontSize: 11 }}>ciudad</span></span>,
           alta: x.p.activacion_estado ? <Pill texto={ALTA[x.p.activacion_estado]?.t || x.p.activacion_estado} color={ALTA[x.p.activacion_estado]?.c || C.muted} />
             : esNuevo(x.p) ? <Pill texto="Sin emitir" color={C.orange} /> : <span style={{ color: C.muted }}>—</span>,
