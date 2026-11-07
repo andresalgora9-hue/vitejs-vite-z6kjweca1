@@ -480,6 +480,10 @@
       "destination": "/api/pro?slug=:slug"
     },
     {
+      "source": "/tarjeta/:t",
+      "destination": "https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/cobros?t=:t"
+    },
+    {
       "source": "/elite-gratis",
       "destination": "/index.html"
     },
