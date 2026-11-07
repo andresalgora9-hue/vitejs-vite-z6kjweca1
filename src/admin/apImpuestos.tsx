@@ -11,7 +11,7 @@ import { C, F, Btn, Pill, Cabecera, Modal, Campo, Sel, Respuesta, Grid, Kpi, Tit
 import {
   claveAdmin, FiscalDatos, FiscalConfig, Linea, Apunte, FormApunte, construirLineas, calcular303, calcular130, calcular111,
   calcular349, calcular347, csvLibro, descargarTexto, plazoTrimestre, periodoPorDefecto, diasHasta, fechaLarga, hoyMadrid,
-  nombreCategoria, r2, aNumero, GOOGLE, META, minoracion130,
+  nombreCategoria, r2, aNumero, GOOGLE, META, minoracion130, mesAlta, mesLargo,
 } from "./apFiscal";
 import { Subida } from "./apArchivos";
 
@@ -29,26 +29,29 @@ const casilla303 = (tipo: number) => (tipo === 4 ? "01 · 03" : tipo === 10 ? "0
 
 type Fila = { c?: string; l: React.ReactNode; base?: number | null; iva?: number | null; total?: boolean; titulo?: boolean; color?: string };
 function TablaCasillas({ filas, colBase = "Base", colIva = "IVA" }: { filas: Fila[]; colBase?: string; colIva?: string }) {
+  const conBase = colBase !== "";
+  const cols = conBase ? 3 : 2;
+  const celda = "8px 8px";
   return (
     <div style={{ overflowX: "auto" }}>
-      <table style={{ width: "100%", borderCollapse: "collapse", fontFamily: F, fontSize: 13, minWidth: 420 }}>
+      <table style={{ width: "100%", borderCollapse: "collapse", fontFamily: F, fontSize: 13, minWidth: conBase ? 300 : 260 }}>
         <thead>
           <tr>
             <th style={th}>Concepto</th>
-            <th style={{ ...th, textAlign: "right" }}>{colBase}</th>
+            {conBase && <th style={{ ...th, textAlign: "right" }}>{colBase}</th>}
             <th style={{ ...th, textAlign: "right" }}>{colIva}</th>
           </tr>
         </thead>
         <tbody>
           {filas.map((f, i) => f.titulo ? (
-            <tr key={i}><td colSpan={3} style={{ padding: "12px 10px 4px", fontSize: 11, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: C.mutedL }}>{f.l}</td></tr>
+            <tr key={i}><td colSpan={cols} style={{ padding: "12px 8px 4px", fontSize: 11, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: C.mutedL }}>{f.l}</td></tr>
           ) : (
             <tr key={i} style={{ borderTop: "1px solid " + C.border + (f.total ? "" : "66") }}>
-              <td style={{ padding: "8px 10px", color: f.total ? C.text : C.mutedL, fontWeight: f.total ? 800 : 500 }}>
-                {f.c && <span style={{ display: "inline-block", minWidth: 58, fontSize: 11, color: C.muted, fontWeight: 700 }}>[{f.c}]</span>}{f.l}
+              <td style={{ padding: celda, color: f.total ? C.text : C.mutedL, fontWeight: f.total ? 800 : 500 }}>
+                {f.c && <span style={{ display: "inline-block", minWidth: 50, fontSize: 11, color: C.muted, fontWeight: 700 }}>[{f.c}]</span>}{f.l}
               </td>
-              <td style={{ padding: "8px 10px", textAlign: "right", color: C.mutedL, whiteSpace: "nowrap" }}>{f.base == null ? "" : eur(f.base, 2)}</td>
-              <td style={{ padding: "8px 10px", textAlign: "right", color: f.color || (f.total ? C.text : C.text), fontWeight: f.total ? 800 : 600, whiteSpace: "nowrap" }}>{f.iva == null ? "" : eur(f.iva, 2)}</td>
+              {conBase && <td style={{ padding: celda, textAlign: "right", color: C.mutedL, whiteSpace: "nowrap" }}>{f.base == null ? "" : eur(f.base, 2)}</td>}
+              <td style={{ padding: celda, textAlign: "right", color: f.color || C.text, fontWeight: f.total ? 800 : 600, whiteSpace: "nowrap" }}>{f.iva == null ? "" : eur(f.iva, 2)}</td>
             </tr>
           ))}
         </tbody>
@@ -62,7 +65,7 @@ const th: React.CSSProperties = { textAlign: "left", padding: "8px 10px", color:
 function Ajustes({ cfg, anio, onClose, onGuardado }: { cfg: FiscalConfig; anio: number; onClose: () => void; onGuardado: (m: string) => void }) {
   const [roi, setRoi] = useState<string>(cfg.roi || "nose");
   const [ss, setSs] = useState(cfg.autonomos_mensual != null ? String(cfg.autonomos_mensual).replace(".", ",") : "");
-  const [ssDesde, setSsDesde] = useState(cfg.autonomos_desde || `${anio}-01`);
+  const [alta, setAlta] = useState(mesAlta(cfg) || cfg.autonomos_desde || "");
   const [rend, setRend] = useState(cfg.rendimiento_anterior != null ? String(cfg.rendimiento_anterior).replace(".", ",") : "0");
   const [dificil, setDificil] = useState(String(cfg.dificil_pct ?? 5));
   const [compensar, setCompensar] = useState(String(cfg.iva_compensar_inicio?.[anio] ?? 0).replace(".", ","));
@@ -77,11 +80,13 @@ function Ajustes({ cfg, anio, onClose, onGuardado }: { cfg: FiscalConfig; anio: 
     const nDif = aNumero(dificil);
     const nComp = aNumero(compensar);
     if ([nSs ?? 0, nRend, nDif, nComp].some((n) => Number.isNaN(n))) { setErr("Revisa los números"); return; }
+    if (alta && !/^\d{4}-\d{2}$/.test(alta)) { setErr("Revisa el mes del alta"); return; }
     setOcupado(true);
     const valores: [string, any][] = [
       ["roi", roi],
       ["autonomos_mensual", nSs],
-      ["autonomos_desde", nSs ? ssDesde : null],
+      ["alta", alta || null],
+      ["autonomos_desde", alta || null],
       ["rendimiento_anterior", nRend],
       ["dificil_pct", nDif],
       ["iva_compensar_inicio", { ...(cfg.iva_compensar_inicio || {}), [anio]: r2(nComp) }],
@@ -102,12 +107,12 @@ function Ajustes({ cfg, anio, onClose, onGuardado }: { cfg: FiscalConfig; anio: 
         <Sel value={roi} onChange={setRoi} options={[{ v: "si", l: "Sí: Google y Meta me facturan sin IVA" }, { v: "no", l: "No: Google y Meta me cobran IVA" }, { v: "nose", l: "No lo sé" }]} style={{ width: "100%", marginBottom: 12 }} /></div>
       {nota("Cambia cómo cuenta el gasto de anuncios sin factura subida. Si no lo sabes, se calcula como si estuvieras en el ROI (sin IVA que descontar), que es lo prudente.")}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 12px" }}>
-        <Campo label="Autónomos (Seguridad Social) al mes €" value={ss} onChange={setSs} inputMode="decimal" placeholder="Ej.: 87,61" />
-        <Campo label="Desde el mes" type="month" value={ssDesde} onChange={setSsDesde} />
+        <Campo label="Alta de autónomo (mes)" type="month" value={alta} onChange={setAlta} />
+        <Campo label="Autónomos (Seguridad Social) al mes €" value={ss} onChange={setSs} inputMode="decimal" placeholder="Ej.: 88" />
       </div>
-      {nota("Se suma sola como gasto cada mes (sin IVA). Si subes el recibo de un mes, manda el recibo.")}
+      {nota("Lo de antes del alta se ve en el libro, pero no entra en los modelos. Los autónomos se suman solos cada mes desde el alta (sin IVA); si subes el recibo de un mes, cuenta el recibo.")}
       <Campo label="Rendimiento neto del año pasado €" value={rend} onChange={setRend} inputMode="decimal" />
-      {nota(<>Para la deducción del 130 de hasta 100 € por trimestre (hoy: {eur(minoracion130(aNumero(rend)))}). Si empezaste este año, déjalo en 0.</>)}
+      {nota(<>Para la deducción del 130 de hasta 100 € por trimestre (ahora: {eur(minoracion130(aNumero(rend)))}). Si te diste de alta este año, déjalo en 0.</>)}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 12px" }}>
         <Campo label="Gastos de difícil justificación %" value={dificil} onChange={setDificil} inputMode="decimal" />
         <Campo label={`IVA a compensar al empezar ${anio} €`} value={compensar} onChange={setCompensar} inputMode="decimal" />
@@ -151,10 +156,13 @@ export default function Impuestos({ d, aviso, irA }: SeccionProps) {
   useEffect(() => { cargar(); }, [cargar]);
 
   const cfg: FiscalConfig = datos?.config || {};
+  const alta = mesAlta(cfg);
   const lineas = useMemo(() => (datos ? construirLineas(datos) : []), [datos]);
-  const r303 = useMemo(() => calcular303(lineas, Number(cfg.iva_compensar_inicio?.[anio]) || 0), [lineas, cfg, anio]);
-  const r130 = useMemo(() => calcular130(lineas, cfg), [lineas, cfg]);
+  const cuentan = useMemo(() => lineas.filter((l) => !l.fuera), [lineas]); // lo de antes del alta no entra en los modelos
+  const r303 = useMemo(() => calcular303(cuentan, Number(cfg.iva_compensar_inicio?.[anio]) || 0), [cuentan, cfg, anio]);
+  const r130 = useMemo(() => calcular130(cuentan, cfg), [cuentan, cfg]);
   const delPeriodo = useMemo(() => (q ? lineas.filter((l) => l.q === q) : lineas), [lineas, q]);
+  const cuentaPeriodo = useMemo(() => delPeriodo.filter((l) => !l.fuera), [delPeriodo]);
 
   if (error) {
     const sinClave = /clave de admin/i.test(error);
@@ -170,29 +178,72 @@ export default function Impuestos({ d, aviso, irA }: SeccionProps) {
   if (!datos) return <div style={{ color: C.mutedL, padding: 30 }}>Cargando impuestos…</div>;
 
   // ── cifras del periodo ──
-  const ing = delPeriodo.filter((l) => l.tipo === "ingreso");
-  const gas = delPeriodo.filter((l) => l.tipo === "gasto");
   const sumBase = (ls: Linea[]) => r2(ls.reduce((s, l) => s + l.base, 0));
+  const ing = cuentaPeriodo.filter((l) => l.tipo === "ingreso");
+  const gas = cuentaPeriodo.filter((l) => l.tipo === "gasto");
   const gastosDed = r2(gas.reduce((s, l) => s + (l.inversion ? 0 : l.base * (l.deducible ?? 100) / 100), 0));
   const ingresos = sumBase(ing);
   const iva = q ? r303[q - 1].final : r2(r303.reduce((s, r) => s + r.resultado, 0));
   const irpf = q ? r130[q - 1].resultado : r2(r130.reduce((s, r) => s + Math.max(0, r.resultado), 0));
-  const ret111 = calcular111(delPeriodo);
-  const ue349 = calcular349(delPeriodo);
-  const t347 = calcular347(lineas);
+  const ret111 = calcular111(cuentaPeriodo);
+  const ue349 = calcular349(cuentaPeriodo);
+  const t347 = calcular347(cuentan);
   const pagar = r2(Math.max(0, iva) + Math.max(0, irpf) + ret111.retenciones);
-  const estimados = delPeriodo.filter((l) => l.estimado);
+  const estimados = cuentaPeriodo.filter((l) => l.estimado);
   const plazo = q ? plazoTrimestre(anio, q) : null;
   const hoy = hoyMadrid();
   const finTrim = q ? new Date(Date.UTC(anio, q * 3, 0)).toISOString().slice(0, 10) : `${anio}-12-31`;
   const cerrado = hoy > finTrim;
   const quedan = plazo ? diasHasta(plazo.hasta) : 0;
+  // Trimestre entero antes del alta: no hay modelos que presentar
+  const antesAlta = !!(q && alta && finTrim.slice(0, 7) < alta);
+  // Antes del alta en este periodo (se ve en el libro, no cuenta)
+  const fuera = delPeriodo.filter((l) => l.fuera);
+  const fueraIng = sumBase(fuera.filter((l) => l.tipo === "ingreso"));
+  const fueraGas = sumBase(fuera.filter((l) => l.tipo === "gasto"));
+  const textoFuera = alta && fuera.length ? [fueraIng ? eur(fueraIng, 2) + " de ingresos" : "", fueraGas ? eur(fueraGas, 2) + " de gastos" : ""].filter(Boolean).join(" y ") : "";
+  // ¿Modelos del trimestre presentados? (lo marca Andrés)
+  const presentados = cfg.presentados || {};
+  const clavePres = `${anio}-${q}`;
+  const presentado = q ? presentados[clavePres] || null : null;
+  const vencido = !!(q && cerrado && !antesAlta && quedan < 0 && !presentado && cuentaPeriodo.length > 0);
+  const marcarPresentado = async (on: boolean, trimestre: number = q) => {
+    const k = `${anio}-${trimestre}`;
+    const nuevo: Record<string, string> = { ...presentados };
+    if (on) nuevo[k] = hoy; else delete nuevo[k];
+    const { error } = await db.rpc("fiscal_config_guardar", { p_admin: claveAdmin(), p_clave: "presentados", p_valor: nuevo });
+    if (error) { aviso("Error: " + error.message); return; }
+    aviso(on ? `Modelos del ${trimestre}T ${anio} marcados como presentados` : "Marca de presentado quitada");
+    cargar();
+  };
+  // Trimestres del año con el plazo pasado y sin marcar (para la vista del año)
+  const vencidosAnio = [1, 2, 3, 4].filter((n) => {
+    const fin = new Date(Date.UTC(anio, n * 3, 0)).toISOString().slice(0, 10);
+    if (alta && fin.slice(0, 7) < alta) return false;
+    if (presentados[`${anio}-${n}`] || hoy <= fin) return false;
+    if (!cuentan.some((l) => l.q === n)) return false;
+    return diasHasta(plazoTrimestre(anio, n).hasta) < 0;
+  });
 
   // ── lo que falta para que salga exacto ──
   const pendientes: { k: string; t: React.ReactNode; acc?: React.ReactNode; grave?: boolean }[] = [];
+  if (vencido && plazo) pendientes.push({
+    k: "vencido", grave: true,
+    t: <>Los modelos del {q}T ({["303", "130", ue349.length ? "349" : "", ret111.retenciones ? "111" : ""].filter(Boolean).join(", ")}) vencían el {fechaLarga(plazo.hasta)} y no están marcados como presentados.</>,
+    acc: <Btn small onClick={() => marcarPresentado(true)}>Ya los presenté</Btn>,
+  });
+  if (!q) vencidosAnio.forEach((n) => pendientes.push({
+    k: "vencido" + n, grave: true,
+    t: <>Los modelos del {n}T vencían el {fechaLarga(plazoTrimestre(anio, n).hasta)} y no están marcados como presentados.</>,
+    acc: <span style={{ display: "inline-flex", gap: 6 }}><Btn small outline onClick={() => setQ(n)}>Ver {n}T</Btn><Btn small onClick={() => marcarPresentado(true, n)}>Ya los presenté</Btn></span>,
+  }));
+  if (!alta) pendientes.push({ k: "alta", t: "Dime en qué mes te diste de alta de autónomo: lo de antes no entra en los modelos.", acc: <Btn small outline onClick={() => setAjustes(true)}>Ajustes</Btn> });
+  if (textoFuera) pendientes.push({
+    k: "fuera", t: <>Antes de tu alta ({mesLargo(alta!)}) hay {textoFuera}{q ? " en este trimestre" : ""}. Se ven en el libro, pero no entran en los modelos: pregúntale a tu gestoría si hay que declarar algo de eso.</>,
+  });
   if (!cfg.roi || cfg.roi === "nose") pendientes.push({ k: "roi", t: "Dime si estás dado de alta en el ROI: cambia cómo cuentan Google y Meta.", acc: <Btn small outline onClick={() => setAjustes(true)}>Ajustes</Btn> });
   if (cfg.autonomos_mensual == null) pendientes.push({ k: "ss", t: "Falta lo que pagas de autónomos al mes (es gasto deducible).", acc: <Btn small outline onClick={() => setAjustes(true)}>Ajustes</Btn> });
-  delPeriodo.filter((l) => l.fuente === "publicidad").forEach((l) => pendientes.push({
+  cuentaPeriodo.filter((l) => l.fuente === "publicidad").forEach((l) => pendientes.push({
     k: l.key,
     t: <>Factura de {l.plataforma === "google" ? "Google Ads" : "Meta"} de {mesNombre(l.mes!).toLowerCase()}: hay {eur(l.base, 2)} de gasto de campañas sin factura subida{l.aviso?.includes("curso") ? " (mes en curso)" : ""}.</>,
     acc: <Btn small onClick={() => setSubir({
@@ -206,7 +257,7 @@ export default function Impuestos({ d, aviso, irA }: SeccionProps) {
     })}>Subir factura</Btn>,
   }));
   const comMeses: Record<string, { n: number; total: number }> = {};
-  delPeriodo.filter((l) => l.fuente === "comision").forEach((l) => { comMeses[l.mes!] = comMeses[l.mes!] || { n: 0, total: 0 }; comMeses[l.mes!].n++; comMeses[l.mes!].total += l.total; });
+  cuentaPeriodo.filter((l) => l.fuente === "comision").forEach((l) => { comMeses[l.mes!] = comMeses[l.mes!] || { n: 0, total: 0 }; comMeses[l.mes!].n++; comMeses[l.mes!].total += l.total; });
   Object.entries(comMeses).forEach(([mes, x]) => pendientes.push({
     k: "com" + mes, t: <>Comisiones de {mesNombre(mes).toLowerCase()}: {x.n} cobro{x.n > 1 ? "s" : ""} ({eur(x.total, 2)}) sin las facturas subidas; cuentan con el IVA {cfg.comisiones_iva_incluido === false ? "aparte" : "dentro"}.</>,
     acc: <Btn small outline onClick={() => irA("archivos")}>Subirlas en Archivos</Btn>,
@@ -215,11 +266,11 @@ export default function Impuestos({ d, aviso, irA }: SeccionProps) {
     k: "arch" + p.id, grave: true, t: <>«{p.nombre}» está en Archivos sin datos fiscales: no cuenta.</>,
     acc: <Btn small color={C.orange} onClick={() => setForm({ inicial: { tipo: p.tipo === "factura_emitida" ? "ingreso" : "gasto", fecha: p.fecha_doc || hoy, archivo_id: p.id }, archivoNombre: p.nombre })}>Poner datos</Btn>,
   }));
-  delPeriodo.filter((l) => l.fuente === "factura" && !l.nif).forEach((l) => pendientes.push({
+  cuentaPeriodo.filter((l) => l.fuente === "factura" && !l.nif).forEach((l) => pendientes.push({
     k: "nif" + l.key, grave: true, t: <>La factura {l.numero} ({l.tercero || "sin nombre"}) no tiene el NIF del cliente: una factura sin NIF no es completa.</>,
     acc: <Btn small outline onClick={() => irA("facturas")}>Ver en Facturas</Btn>,
   }));
-  delPeriodo.filter((l) => l.fuente === "apunte" && l.aviso).forEach((l) => pendientes.push({
+  cuentaPeriodo.filter((l) => l.fuente === "apunte" && l.aviso).forEach((l) => pendientes.push({
     k: "av" + l.key, t: <>{l.tercero || "Gasto"} del {fechaCorta(l.fecha)}: {l.aviso}.</>,
     acc: l.apunte && <Btn small outline onClick={() => setForm({ inicial: l.apunte! })}>Corregir</Btn>,
   }));
@@ -229,10 +280,12 @@ export default function Impuestos({ d, aviso, irA }: SeccionProps) {
   const textoQ = pagar > 0
     ? <>Unos {eur(pagar)}: IVA {eur(Math.max(0, iva))} + IRPF {eur(Math.max(0, irpf))}{ret111.retenciones ? <> + retenciones {eur(ret111.retenciones)}</> : null}.</>
     : <>Nada a pagar por ahora{iva < 0 ? <>: el IVA sale {eur(-iva, 2)} a tu favor</> : null}.</>;
-  const textoPlazo = q && plazo ? (cerrado
-    ? (quedan >= 0 ? ` Se presenta hasta el ${fechaLarga(plazo.hasta)} (quedan ${quedan} día${quedan === 1 ? "" : "s"}).` : ` El plazo acabó el ${fechaLarga(plazo.hasta)}.`)
+  const textoPlazo = q && plazo ? (presentado
+    ? ` Presentado (lo marcaste el ${fechaLarga(presentado)}).`
+    : cerrado
+    ? (quedan >= 0 ? ` Se presenta hasta el ${fechaLarga(plazo.hasta)} (quedan ${quedan} día${quedan === 1 ? "" : "s"}).` : ` El plazo acabó el ${fechaLarga(plazo.hasta)} y no está marcado como presentado.`)
     : ` El trimestre sigue abierto hasta el ${fechaLarga(finTrim)}; se presenta del ${fechaLarga(plazo.desde)} al ${fechaLarga(plazo.hasta)}.`) : "";
-  const tono = pendientes.some((p) => p.grave) ? "mal" : estimados.length || pendientes.length ? "regular" : "bien";
+  const tono = antesAlta ? (textoFuera ? "regular" : "bien") : pendientes.some((p) => p.grave) ? "mal" : estimados.length || pendientes.length ? "regular" : "bien";
 
   // ── piezas ──
   const r = q ? r303[q - 1] : null;
@@ -293,7 +346,7 @@ export default function Impuestos({ d, aviso, irA }: SeccionProps) {
   };
 
   const plazos: { t: string; hasta: string }[] = [];
-  if (q && plazo) {
+  if (q && plazo && !antesAlta) {
     plazos.push({ t: `303 (IVA) y 130 (IRPF) del ${q}T`, hasta: plazo.hasta });
     if (ret111.retenciones) plazos.push({ t: `111 (retenciones) del ${q}T`, hasta: plazo.hasta111 });
     if (ue349.length) plazos.push({ t: `349 (operaciones con la UE) del ${q}T`, hasta: plazo.hasta });
@@ -336,16 +389,23 @@ export default function Impuestos({ d, aviso, irA }: SeccionProps) {
         <Btn small outline color={C.mutedL} onClick={() => descargarTexto(`Libro_ingresos_gastos_${anio}_${q ? q + "T" : "anual"}.csv`, csvLibro(delPeriodo))}>Descargar para la gestoría (CSV)</Btn>
       </div>
 
-      <Respuesta pregunta={pregunta} tono={tono as any}
-        texto={q ? <>{textoQ}{textoPlazo}</> : <>Ingresos {eur(ingresos)} · gastos {eur(gastosDed)} · beneficio {eur(ingresos - gastosDed)}.</>}
-        detalle={<>
-          {estimados.length ? <>Hay {estimados.length} apunte{estimados.length > 1 ? "s" : ""} estimado{estimados.length > 1 ? "s" : ""} (gasto de campañas o cobros sin la factura subida). </> : null}
-          {pendientes.length ? <>Abajo tienes lo que falta para que salga exacto. </> : <>Todo lo del periodo tiene su factura. </>}
-          Es un cálculo para preparar los modelos: revísalo con tu gestoría antes de presentar.
-        </>} />
+      {antesAlta ? (
+        <Respuesta pregunta={pregunta} tono={tono as any}
+          texto={<>Nada: este trimestre es de antes de tu alta de autónomo ({mesLargo(alta!)}), así que no hay 303 ni 130 que presentar.</>}
+          detalle={textoFuera ? <>Hay {textoFuera} apuntados antes del alta: se ven en el libro, pero no entran en los modelos. Pregúntale a tu gestoría si hay que declarar algo de eso.</> : <>Si el alta no es esa, cámbiala en Ajustes.</>} />
+      ) : (
+        <Respuesta pregunta={pregunta} tono={tono as any}
+          texto={q ? <>{textoQ}{textoPlazo}</> : <>Ingresos {eur(ingresos)} · gastos {eur(gastosDed)} · beneficio {eur(ingresos - gastosDed)}.</>}
+          detalle={<>
+            {vencido ? <>Si no los presentaste, coméntalo con tu gestoría cuanto antes: presentarlos tarde por tu cuenta, antes de que Hacienda lo pida, se penaliza menos. Si ya están presentados, márcalo en Plazos. </> : null}
+            {estimados.length ? <>Hay {estimados.length} apunte{estimados.length > 1 ? "s" : ""} estimado{estimados.length > 1 ? "s" : ""} (gasto de campañas o cobros sin la factura subida). </> : null}
+            {pendientes.length ? <>Abajo tienes lo que falta para que salga exacto. </> : <>Todo lo del periodo tiene su factura. </>}
+            Es un cálculo para preparar los modelos: revísalo con tu gestoría antes de presentar.
+          </>} />
+      )}
 
       <Grid min={165}>
-        <Kpi label="Ingresos (sin IVA)" valor={eur(ingresos)} sub={ing.length + " facturas"} />
+        <Kpi label="Ingresos (sin IVA)" valor={eur(ingresos)} sub={ing.length + (ing.every((l) => l.fuente === "factura" || l.fuente === "apunte") ? (ing.length === 1 ? " factura" : " facturas") : " apuntes")} />
         <Kpi label="Gastos deducibles" valor={eur(gastosDed)} sub={gas.length + " apuntes"} />
         <Kpi label="Beneficio" valor={eur(ingresos - gastosDed)} color={ingresos - gastosDed >= 0 ? C.green : C.red} sub="Ingresos − gastos" />
         <Kpi label={q ? "IVA (303)" : "IVA del año"} valor={eur(iva)} color={iva > 0 ? C.orange : C.green} sub={iva > 0 ? "A ingresar" : iva < 0 ? "A tu favor" : "Cero"} />
@@ -358,13 +418,22 @@ export default function Impuestos({ d, aviso, irA }: SeccionProps) {
           <div style={{ fontSize: 12, fontWeight: 800, color: C.mutedL, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 8 }}>Plazos</div>
           {plazos.map((p, i) => {
             const dd = diasHasta(p.hasta);
+            const trimestral = p.t.includes(`del ${q}T`); // la marca de presentado es de los modelos del trimestre
             return (
               <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: "2px 10px", padding: "7px 0", borderTop: i ? "1px solid " + C.border + "66" : undefined, fontSize: 13.5, flexWrap: "wrap" }}>
                 <span style={{ color: C.text }}>{p.t}</span>
-                <span style={{ color: dd < 0 ? C.muted : dd <= 15 ? C.orange : C.mutedL }}>hasta el {fechaLarga(p.hasta)}{dd >= 0 ? ` · ${dd} días` : " · pasado"}</span>
+                {presentado && trimestral
+                  ? <span style={{ color: C.green, fontWeight: 700 }}>✓ Presentado</span>
+                  : <span style={{ color: dd < 0 ? C.red : dd <= 15 ? C.orange : C.mutedL }}>hasta el {fechaLarga(p.hasta)}{dd >= 0 ? ` · ${dd} días` : " · pasado"}</span>}
               </div>
             );
           })}
+          {cerrado && (
+            <label style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, padding: "9px 10px", borderRadius: 9, background: (presentado ? C.green : C.border) + "22", cursor: "pointer", fontSize: 13, color: C.text, fontWeight: 700 }}>
+              <input type="checkbox" checked={!!presentado} onChange={(e) => marcarPresentado(e.target.checked)} />
+              {presentado ? `Modelos del ${q}T presentados (marcado el ${fechaLarga(presentado)})` : `Ya presenté los modelos del ${q}T`}
+            </label>
+          )}
           <div style={{ fontSize: 11.5, color: C.muted, marginTop: 6 }}>Si domicilias el pago, el plazo acaba 5 días antes. Si el último día es festivo, pasa al siguiente día hábil.</div>
         </Card>
       )}
@@ -384,7 +453,7 @@ export default function Impuestos({ d, aviso, irA }: SeccionProps) {
         </>
       )}
 
-      {q ? (
+      {q && antesAlta ? null : q ? (
         <div style={{ display: "grid", gridTemplateColumns: movil ? "1fr" : "1fr 1fr", gap: 12 }}>
           <Card style={{ marginBottom: 0 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
@@ -412,8 +481,12 @@ export default function Impuestos({ d, aviso, irA }: SeccionProps) {
               <thead><tr>{["Trimestre", "Ingresos", "Gastos", "IVA (303)", "IRPF (130)", "Plazo"].map((h, i) => <th key={h} style={{ ...th, textAlign: i ? "right" : "left" }}>{h}</th>)}</tr></thead>
               <tbody>
                 {[1, 2, 3, 4].map((n) => {
-                  const ls = lineas.filter((l) => l.q === n);
+                  const ls = cuentan.filter((l) => l.q === n);
                   const pl = plazoTrimestre(anio, n);
+                  const fin = new Date(Date.UTC(anio, n * 3, 0)).toISOString().slice(0, 10);
+                  const antes = !!(alta && fin.slice(0, 7) < alta);
+                  const pres = presentados[`${anio}-${n}`];
+                  const pasado = !pres && !antes && hoy > fin && diasHasta(pl.hasta) < 0;
                   return (
                     <tr key={n} onClick={() => setQ(n)} style={{ borderTop: "1px solid " + C.border + "66", cursor: "pointer" }}>
                       <td style={{ padding: "8px 10px", color: C.text, fontWeight: 800 }}>{n}T</td>
@@ -421,7 +494,9 @@ export default function Impuestos({ d, aviso, irA }: SeccionProps) {
                       <td style={{ padding: "8px 10px", textAlign: "right", color: C.text }}>{eur(r2(ls.filter((l) => l.tipo === "gasto").reduce((s, l) => s + l.base * (l.deducible ?? 100) / 100, 0)), 2)}</td>
                       <td style={{ padding: "8px 10px", textAlign: "right", color: r303[n - 1].final > 0 ? C.orange : C.green, fontWeight: 700 }}>{eur(r303[n - 1].final, 2)}</td>
                       <td style={{ padding: "8px 10px", textAlign: "right", color: r130[n - 1].resultado > 0 ? C.orange : C.green, fontWeight: 700 }}>{eur(Math.max(0, r130[n - 1].resultado), 2)}</td>
-                      <td style={{ padding: "8px 10px", textAlign: "right", color: C.mutedL }}>{fechaLarga(pl.hasta)}</td>
+                      <td style={{ padding: "8px 10px", textAlign: "right", color: pres ? C.green : pasado ? C.red : C.mutedL, fontWeight: pres || pasado ? 700 : 400 }}>
+                        {antes ? "Antes del alta" : pres ? "✓ Presentado" : fechaLarga(pl.hasta) + (pasado ? " · sin marcar" : "")}
+                      </td>
                     </tr>
                   );
                 })}
@@ -430,6 +505,7 @@ export default function Impuestos({ d, aviso, irA }: SeccionProps) {
           </div>
           <div style={{ fontSize: 13, color: C.mutedL, marginTop: 10, lineHeight: 1.55 }}>
             Rendimiento neto del año (para la Renta): <b style={{ color: C.text }}>{eur(r130[3].neto, 2)}</b> · IVA devengado {eur(r2(r303.reduce((s, x) => s + x.devengado, 0)), 2)} · deducible {eur(r2(r303.reduce((s, x) => s + x.deducible, 0)), 2)}.
+            {alta && alta.slice(0, 4) === String(anio) ? <> Cuenta desde tu alta ({mesLargo(alta)}).</> : null}
           </div>
         </Card>
       )}
@@ -488,7 +564,7 @@ export default function Impuestos({ d, aviso, irA }: SeccionProps) {
           <button key={t} onClick={() => { setLibro(t); setVerTodo(false); }} style={{
             padding: "6px 11px", borderRadius: 8, border: "1px solid " + (libro === t ? C.accent : C.border), cursor: "pointer", fontFamily: F,
             background: libro === t ? C.accent + "18" : C.card, color: libro === t ? C.accent : C.mutedL, fontWeight: 800, fontSize: 12,
-          }}>{t === "gasto" ? `Gastos (${gas.length})` : `Ingresos (${ing.length})`}</button>
+          }}>{t === "gasto" ? `Gastos (${delPeriodo.filter((l) => l.tipo === "gasto").length})` : `Ingresos (${delPeriodo.filter((l) => l.tipo === "ingreso").length})`}</button>
         ))}
       </div>}>Libro {libro === "gasto" ? "de gastos" : "de ingresos"} · {q ? q + "T " + anio : anio}</Titulo>
       <div style={{ overflowX: "auto", border: "1px solid " + C.border, borderRadius: 12, background: C.card, marginBottom: 12 }}>
@@ -499,7 +575,7 @@ export default function Impuestos({ d, aviso, irA }: SeccionProps) {
             {verFilas.map((l) => {
               const fu = fuenteDe(l);
               return (
-                <tr key={l.key} onClick={() => abrirLinea(l)} style={{ borderTop: "1px solid " + C.border + "88", cursor: "pointer" }}
+                <tr key={l.key} onClick={() => abrirLinea(l)} style={{ borderTop: "1px solid " + C.border + "88", cursor: "pointer", opacity: l.fuera ? 0.55 : 1 }}
                   onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = C.cardHi; }} onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}>
                   <td style={td}>{fechaCorta(l.fecha)}</td>
                   <td style={{ ...td, color: C.mutedL }}>{l.numero || "—"}</td>
@@ -508,7 +584,7 @@ export default function Impuestos({ d, aviso, irA }: SeccionProps) {
                   <td style={{ ...td, textAlign: "right" }}>{eur(l.base, 2)}</td>
                   <td style={{ ...td, textAlign: "right", color: l.regimen === "general" ? C.text : C.muted }} title={l.regimen !== "general" ? "Sin IVA en la factura" : undefined}>{l.regimen === "general" ? eur(l.iva, 2) : l.regimen === "intracomunitario" || l.regimen === "isp_extranjero" ? "ISP" : "—"}</td>
                   <td style={{ ...td, textAlign: "right", fontWeight: 700 }}>{eur(l.total, 2)}</td>
-                  <td style={td}><Pill texto={fu.t} color={fu.c} /></td>
+                  <td style={td}>{l.fuera ? <Pill texto="Antes del alta" color={C.muted} /> : <Pill texto={fu.t} color={fu.c} />}</td>
                 </tr>
               );
             })}
@@ -517,7 +593,7 @@ export default function Impuestos({ d, aviso, irA }: SeccionProps) {
       </div>
       {filasLibro.length > 40 && !verTodo && <Btn small outline onClick={() => setVerTodo(true)}>Ver los {filasLibro.length}</Btn>}
       <div style={{ fontSize: 12, color: C.muted, marginTop: 8, lineHeight: 1.55 }}>
-        Cuenta la fecha de la factura, no la del cobro. «ISP»: factura sin IVA de una empresa de fuera (el IVA se suma y se resta en el 303). Pulsa una fila para corregirla o para apuntar su factura real.
+        Cuenta la fecha de la factura, no la del cobro. «ISP»: factura sin IVA de una empresa de fuera (el IVA se suma y se resta en el 303). «Antes del alta»: se ve, pero no entra en los modelos. Pulsa una fila para corregirla o para apuntar su factura real.
       </div>
 
       {form && (

@@ -43,7 +43,8 @@ const FISCALES = ["factura_emitida", "factura_recibida", "ticket"];
 
 const RAIZ_ORDEN = ["Profesionales", "Contratos", "Facturas recibidas", "Facturas emitidas", "Impuestos", "Banco y pagos", "Legal y administración", "Otros"];
 const PAPELERA = "__papelera";
-const esSistema = (r: string) => ["Profesionales", "Contratos", "Contratos/Modelos"].includes(r) || /^Profesionales\/[^/]+(\/(Facturas|Contratos))?$/.test(r);
+const esSistema = (r: string) => ["Profesionales", "Contratos", "Contratos/Modelos"].includes(r) || /^Profesionales\/[^/]+(\/(Facturas|Contratos))?$/.test(r)
+  || /^Facturas emitidas\/\d{4}$/.test(r);
 
 // ── UTILIDADES ──────────────────────────────────────────────
 // Misma regla que archivos_nombre_pro en la base de datos
@@ -603,18 +604,23 @@ export default function Archivos({ d, aviso, irA }: SeccionProps) {
     ...(datos?.sistema || []).map((s) => ({ key: s.id, nombre: s.nombre, carpeta: s.carpeta, fecha: s.fecha, tamano: s.tamano ?? null, mime: s.mime, tipo: s.tipo, sis: s })),
   ], [vivos, datos]);
 
+  // Las facturas del panel también se ven juntas en «Facturas emitidas/<año>» (para la gestoría)
+  const atajos: Elem[] = useMemo(() => (datos?.sistema || []).filter((s) => s.fuente === "factura" && /^\d{4}/.test(s.fecha || ""))
+    .map((s) => ({ key: "e:" + s.id, nombre: s.nombre, carpeta: "Facturas emitidas/" + s.fecha.slice(0, 4), fecha: s.fecha, tamano: s.tamano ?? null, mime: s.mime, tipo: s.tipo, sis: s })), [datos]);
+
   const carpetas = useMemo(() => {
     const s = new Set<string>();
     const add = (r: string) => { if (!r) return; const p = r.split("/"); for (let i = 1; i <= p.length; i++) s.add(p.slice(0, i).join("/")); };
     (datos?.carpetas || []).forEach(add);
     elems.forEach((e) => add(e.carpeta));
+    atajos.forEach((e) => add(e.carpeta));
     return Array.from(s);
-  }, [datos, elems]);
+  }, [datos, elems, atajos]);
   const cuenta = useMemo(() => {
     const m: Record<string, number> = {};
-    elems.forEach((e) => { const p = e.carpeta.split("/"); for (let i = 1; i <= p.length; i++) { const k = p.slice(0, i).join("/"); m[k] = (m[k] || 0) + 1; } });
+    [...elems, ...atajos].forEach((e) => { const p = e.carpeta.split("/"); for (let i = 1; i <= p.length; i++) { const k = p.slice(0, i).join("/"); m[k] = (m[k] || 0) + 1; } });
     return m;
-  }, [elems]);
+  }, [elems, atajos]);
   const ordenar = (a: string, b: string) => {
     const ia = RAIZ_ORDEN.indexOf(a), ib = RAIZ_ORDEN.indexOf(b);
     if (!a.includes("/") && !b.includes("/") && (ia >= 0 || ib >= 0)) return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
@@ -631,8 +637,8 @@ export default function Archivos({ d, aviso, irA }: SeccionProps) {
     if (termino) return elems.filter((e) => sinTildes(e.nombre + " " + e.carpeta + " " + (e.real?.notas || "") + " " + (e.sis?.cliente || "")).includes(termino))
       .sort((a, b) => b.fecha.localeCompare(a.fecha));
     if (enPapeleraVista) return enPapelera.map((a) => ({ key: a.id, nombre: a.nombre, carpeta: a.carpeta, fecha: a.fecha_doc || a.created_at.slice(0, 10), tamano: a.tamano, mime: a.mime || "", tipo: a.tipo, real: a }));
-    return elems.filter((e) => e.carpeta === ruta).sort((a, b) => b.fecha.localeCompare(a.fecha) || a.nombre.localeCompare(b.nombre, "es"));
-  }, [termino, elems, enPapeleraVista, enPapelera, ruta]);
+    return [...elems, ...atajos].filter((e) => e.carpeta === ruta).sort((a, b) => b.fecha.localeCompare(a.fecha) || a.nombre.localeCompare(b.nombre, "es"));
+  }, [termino, elems, atajos, enPapeleraVista, enPapelera, ruta]);
   const subcarpetas = termino || enPapeleraVista ? [] : hijas(ruta);
 
   // Miniaturas de lo que se ve
@@ -807,7 +813,7 @@ export default function Archivos({ d, aviso, irA }: SeccionProps) {
         texto={sinDatos.length
           ? <>Hay {sinDatos.length} factura{sinDatos.length > 1 ? "s" : ""} subida{sinDatos.length > 1 ? "s" : ""} sin datos fiscales: no cuenta{sinDatos.length > 1 ? "n" : ""} en Impuestos hasta que los pongas.</>
           : <>Sí: {elems.length} documentos en carpetas, {nPros} profesional{nPros === 1 ? "" : "es"} con su carpeta.</>}
-        detalle={<>Las facturas emitidas ({datos.sistema.filter((s) => s.fuente === "factura").length}) y los contratos firmados ({datos.sistema.filter((s) => s.fuente === "contrato" && !s.plantilla).length}) se archivan solos en la carpeta de cada profesional. Para subir algo, arrástralo aquí o pulsa «Subir»; desde el móvil puedes hacer la foto.
+        detalle={<>Las facturas emitidas ({datos.sistema.filter((s) => s.fuente === "factura").length}) y los contratos firmados ({datos.sistema.filter((s) => s.fuente === "contrato" && !s.plantilla).length}) se archivan solos en la carpeta de cada profesional; las facturas, también juntas por año en «Facturas emitidas». Para subir algo, arrástralo aquí o pulsa «Subir»; desde el móvil puedes hacer la foto.
           {sinDatos.length > 0 && <> <a onClick={() => setAbierto({ key: sinDatos[0].id, nombre: sinDatos[0].nombre, carpeta: sinDatos[0].carpeta, fecha: sinDatos[0].fecha_doc || sinDatos[0].created_at.slice(0, 10), tamano: sinDatos[0].tamano, mime: sinDatos[0].mime || "", tipo: sinDatos[0].tipo, real: sinDatos[0] })} style={{ color: C.accent, cursor: "pointer", fontWeight: 700 }}>Poner los datos de la primera →</a></>}
         </>} />
 

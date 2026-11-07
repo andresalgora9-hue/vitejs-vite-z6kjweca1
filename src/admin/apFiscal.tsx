@@ -49,6 +49,8 @@ export interface FiscalConfig {
   roi?: "si" | "no" | "nose";
   autonomos_mensual?: number;
   autonomos_desde?: string;
+  alta?: string | null; // mes del alta de autónomo (AAAA-MM): lo anterior no entra en los modelos
+  presentados?: Record<string, string>; // "2026-3" → fecha en que se marcó presentado el 303/130 de ese trimestre
   rendimiento_anterior?: number | null;
   dificil_pct?: number;
   iva_compensar_inicio?: Record<string, number>;
@@ -188,6 +190,7 @@ export interface Linea {
   fuente: "factura" | "apunte" | "comision" | "publicidad" | "autonomos";
   estimado: boolean;
   aviso?: string;
+  fuera?: boolean; // antes del alta de autónomo: se ve en el libro pero no cuenta en los modelos
   plataforma?: string | null;
   mes?: string;
   apunte?: Apunte;
@@ -255,10 +258,11 @@ export function construirLineas(d: FiscalDatos): Linea[] {
       aviso: p.mes === mesHoy ? "Mes en curso: gasto de las campañas hasta hoy" : "Gasto real de las campañas; falta subir la factura",
     });
   }
-  // 5) Seguridad Social (autónomos), cada mes desde el indicado
+  // 5) Seguridad Social (autónomos), cada mes desde el alta
   const ss = Number(cfg.autonomos_mensual) || 0;
+  const alta = /^\d{4}-\d{2}$/.test(String(cfg.alta || "")) ? String(cfg.alta) : null;
   if (ss > 0) {
-    const desde = cfg.autonomos_desde || `${d.anio}-01`;
+    const desde = [cfg.autonomos_desde, alta].filter(Boolean).sort().pop() || `${d.anio}-01`;
     const conApunte = new Set((d.apuntes || []).filter((a) => a.tipo === "gasto" && a.categoria === "autonomos").map((a) => a.periodo || mesDe(a.fecha)));
     for (let m = 1; m <= 12; m++) {
       const mes = `${d.anio}-${String(m).padStart(2, "0")}`;
@@ -271,8 +275,20 @@ export function construirLineas(d: FiscalDatos): Linea[] {
       });
     }
   }
+  // 6) Lo de antes del alta se queda en el libro, pero fuera de los modelos
+  if (alta) for (const l of L) {
+    if (l.fecha.slice(0, 7) < alta) {
+      l.fuera = true;
+      l.aviso = "Antes de tu alta de autónomo: no entra en los modelos";
+    }
+  }
   return L.sort((a, b) => a.fecha.localeCompare(b.fecha) || a.key.localeCompare(b.key));
 }
+
+// Mes del alta (AAAA-MM) o null, y «septiembre de 2026»
+export const mesAlta = (cfg: FiscalConfig) => (/^\d{4}-\d{2}$/.test(String(cfg.alta || "")) ? String(cfg.alta) : null);
+export const mesLargo = (mes: string) =>
+  new Date(mes + "-15T12:00:00Z").toLocaleDateString("es-ES", { month: "long", year: "numeric", timeZone: "UTC" });
 
 // ── IVA · MODELO 303 ────────────────────────────────────────
 export interface Res303 {
@@ -440,13 +456,13 @@ export function calcular347(lineas: Linea[]) {
 // ── CSV para la gestoría ────────────────────────────────────
 export function csvLibro(lineas: Linea[]) {
   const fuente: Record<string, string> = { factura: "Factura del panel", apunte: "Factura subida / a mano", comision: "Cobro de comisión (sin factura subida)", publicidad: "Gasto de campañas (sin factura subida)", autonomos: "Seguridad Social (ajuste)" };
-  const cab = ["Tipo", "Fecha", "Trimestre", "Nº factura", "Cliente o proveedor", "NIF", "País", "Concepto", "Categoría", "Base", "% IVA", "IVA", "Régimen IVA", "% Retención", "Retención", "Total", "% Deducible", "Origen", "Estimado", "Aviso"];
+  const cab = ["Tipo", "Fecha", "Trimestre", "Nº factura", "Cliente o proveedor", "NIF", "País", "Concepto", "Categoría", "Base", "% IVA", "IVA", "Régimen IVA", "% Retención", "Retención", "Total", "% Deducible", "Origen", "Estimado", "Entra en los modelos", "Aviso"];
   const n = (x: number) => fmtNum(x).replace(/\./g, "");
   const esc = (s: unknown) => { const t = String(s ?? ""); return /[;"\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
   const filas = lineas.map((l) => [
     l.tipo === "ingreso" ? "Ingreso" : "Gasto", l.fecha, l.q + "T", l.numero || "", l.tercero || "", l.nif || "", l.pais, l.concepto,
     nombreCategoria(l.tipo, l.categoria), n(l.base), n(l.ivaTipo), n(l.iva), nombreRegimen(l.regimen), n(l.irpfTipo), n(l.irpf), n(l.total),
-    n(l.deducible), fuente[l.fuente] || l.fuente, l.estimado ? "Sí" : "No", l.aviso || "",
+    n(l.deducible), fuente[l.fuente] || l.fuente, l.estimado ? "Sí" : "No", l.fuera ? "No (antes del alta)" : "Sí", l.aviso || "",
   ].map(esc).join(";"));
   return "﻿" + [cab.join(";"), ...filas].join("\r\n");
 }
