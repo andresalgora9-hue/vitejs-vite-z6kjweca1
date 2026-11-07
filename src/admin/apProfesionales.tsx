@@ -231,7 +231,7 @@ export default function Profesionales({ d, recargar, aviso, irA }: SeccionProps)
   // Prioridad: cobros con tarjeta fallidos y cuentas atrás por impago
   const cobroMal = Object.entries(cobros).filter(([, c]: any) => c.fallidas > 0 || c.impago?.activo);
   if (cobroMal.length) problemasP.push("⚠️ Cobro fallido o cuenta atrás por impago: " + cobroMal.map(([id, c]: any) => (d.proPorId[id]?.name || "—")
-    + (c.impago?.bloqueado ? " (ya no recibe leads)" : c.impago?.activo ? " (le quedan " + Math.max(0, Number(c.impago.limite || 0) - Number(c.impago.usados || 0)) + " leads)" : "")).join(", "));
+    + (c.impago?.bloqueado ? " (ya no recibe leads)" : c.impago?.activo ? ((n) => n === 1 ? " (le queda 1 lead)" : " (le quedan " + n + " leads)")(Math.max(0, Number(c.impago.limite || 0) - Number(c.impago.usados || 0))) : "")).join(", "));
   if (sinLlamarP.length) problemasP.push(sinLlamarP.length + " leads sin llamar (" + Array.from(new Set(sinLlamarP.map((l) => d.proPorId[l.pro_id]?.name || "—"))).join(", ") + ")");
   if (vencP.length) problemasP.push(vencP.length + " facturas vencidas (" + Array.from(new Set(vencP.map((f) => d.proPorId[f.pro_id]?.name || "—"))).join(", ") + ")");
   if (pendAlta.length) problemasP.push(pendAlta.length + " altas sin cobrar");
@@ -297,7 +297,7 @@ export default function Profesionales({ d, recargar, aviso, irA }: SeccionProps)
             const c = cobros[x.p.id];
             if (c?.impago?.bloqueado) return <Pill texto="Cortado por impago" color={C.red} />;
             if (c?.fallidas > 0) return <Pill texto="Cobro fallido" color={C.red} />;
-            if (c?.impago?.activo) return <Pill texto={"Le quedan " + Math.max(0, Number(c.impago.limite || 0) - Number(c.impago.usados || 0)) + " leads"} color={C.orange} />;
+            if (c?.impago?.activo) return <Pill texto={((n) => n === 1 ? "Le queda 1 lead" : "Le quedan " + n + " leads")(Math.max(0, Number(c.impago.limite || 0) - Number(c.impago.usados || 0)))} color={C.orange} />;
             if (c?.tarjeta) return <span style={{ color: C.green }}>Tarjeta •••• {c.tarjeta.ultimos4}</span>;
             return <span style={{ color: C.muted }}>Sin tarjeta</span>;
           })(),
