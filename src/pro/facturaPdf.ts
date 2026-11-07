@@ -1,7 +1,7 @@
 // ============================================================
 // OficioYa · Factura de leads en PDF (se genera en el móvil del profesional)
 // ============================================================
-import { OY_IBAN, OY_TITULAR } from "../shared/crm";
+import { OY_IBAN, OY_TITULAR, OY_BIZUM } from "../shared/crm";
 import { OY_EMISOR, FacturaRow, CANAL_LABEL, Canal } from "./proComun";
 
 const JSPDF_URL = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
@@ -129,18 +129,37 @@ export function dibujarFactura(JsPDF: any, f: FacturaRow, leads: LeadFactura[]) 
   doc.setFont("helvetica", "bold"); doc.setFontSize(13);
   doc.text("TOTAL", xEt, y); doc.text(num(f.total), xVal, y, { align: "right" });
 
-  // Forma de pago
+  // Forma de pago (pagada: cuándo y cómo; pendiente: transferencia o Bizum)
   y += 16;
-  doc.setFillColor(253, 244, 234); doc.setDrawColor(...naranja); doc.setLineWidth(0.4);
-  doc.roundedRect(M, y, W, 31, 2, 2, "FD");
-  doc.setFont("helvetica", "bold"); doc.setFontSize(10.5); doc.setTextColor(...negro);
-  doc.text("Forma de pago: transferencia bancaria", M + 5, y + 7);
-  doc.setFont("helvetica", "normal"); doc.setFontSize(10);
-  doc.text("IBAN: " + OY_IBAN, M + 5, y + 13);
-  doc.text("Titular: " + OY_TITULAR, M + 5, y + 18.5);
-  doc.text("Concepto de la transferencia: " + f.number, M + 5, y + 24);
-  doc.setFont("helvetica", "bold");
-  doc.text("Pagar antes del " + dia(f.due_at) + " (5 días desde la emisión)", 210 - M - 5, y + 7, { align: "right" });
+  const metodo = (f as FacturaRow & { metodo_pago?: string | null }).metodo_pago;
+  const comoSePago: Record<string, string> = {
+    tarjeta: "tarjeta (cobro automático)", transferencia: "transferencia bancaria", bizum: "Bizum",
+  };
+  if (f.status === "pagada") {
+    const linea2 = metodo && comoSePago[metodo] ? "Forma de pago: " + comoSePago[metodo] : "";
+    doc.setFillColor(232, 248, 240); doc.setDrawColor(0, 160, 100); doc.setLineWidth(0.4);
+    doc.roundedRect(M, y, W, linea2 ? 19 : 12, 2, 2, "FD");
+    doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.setTextColor(...negro);
+    doc.text("FACTURA PAGADA" + (f.paid_at ? " el " + dia(f.paid_at) : ""), M + 5, y + 7.5);
+    if (linea2) {
+      doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+      doc.text(linea2, M + 5, y + 14);
+    }
+  } else {
+    doc.setFillColor(253, 244, 234); doc.setDrawColor(...naranja); doc.setLineWidth(0.4);
+    doc.roundedRect(M, y, W, 36, 2, 2, "FD");
+    doc.setFont("helvetica", "bold"); doc.setFontSize(10.5); doc.setTextColor(...negro);
+    doc.text("Forma de pago: transferencia bancaria o Bizum", M + 5, y + 7);
+    doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+    doc.text("IBAN: " + OY_IBAN, M + 5, y + 13);
+    doc.text("Titular: " + OY_TITULAR, M + 5, y + 18.5);
+    doc.text("Bizum: " + OY_BIZUM, M + 5, y + 24);
+    doc.text("Concepto: " + f.number, M + 5, y + 29.5);
+    doc.setFont("helvetica", "bold");
+    doc.text("Pagar antes del " + dia(f.due_at), 210 - M - 5, y + 7, { align: "right" });
+    doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(...gris);
+    doc.text("(5 días desde la emisión)", 210 - M - 5, y + 12, { align: "right" });
+  }
 
   // Pie
   doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(...gris);
