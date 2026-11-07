@@ -1,13 +1,72 @@
-/* OficioYa - Global styles */
-.leaflet-container {
-  width: 100%;
-  height: 100%;
-  z-index: 1;
+/* OficioYa — estilos globales de la app.
+   Mismas variables y piezas que la portada nueva (public/inicio/index.html). */
+:root{
+  --bg:#0F1117;--ink:#F2F5FA;--ink2:#B4BCCB;--ink3:#96A0B3;--soft:#C9D1DF;
+  --gold:#FFD700;--gold2:#FFD200;--orange:#FF8C00;--warn:#FFC94D;--green:#00D68F;--mint:#7DF0C4;--water:#9ADBFF;
+  --glass:rgba(255,255,255,.055);--line:rgba(255,255,255,.11);
+  --btn:linear-gradient(135deg,#FFFFFF 0%,#F0E6C0 45%,#FFD700 100%);
+  --grad:linear-gradient(135deg,#FFD700,#FF8C00);
+  --spring:cubic-bezier(.34,1.56,.64,1);
+  --blur:blur(22px) saturate(160%);
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
-@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+html,body{background:var(--bg)}
+body{
+  color:#E8EDF5;
+  font-family:'DM Sans',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  background:
+    radial-gradient(1100px 700px at 88% -12%,rgba(255,184,0,.14),rgba(255,184,0,0) 62%),
+    linear-gradient(180deg,#11131A 0%,#0D0F15 55%,#0A0B10 100%) fixed;
+  background-color:var(--bg);
+}
+#root{background:transparent!important}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+button{-webkit-tap-highlight-color:transparent}
 
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #1E1E30; border-radius: 99px; }
+/* Campos: alto, radio y foco dorado de /inicio (.inp) */
+input,textarea,select{caret-color:var(--gold)}
+input:not([type=checkbox]):not([type=radio]):not([type=range]):focus,
+textarea:focus,select:focus{
+  border-color:rgba(255,200,0,.7)!important;
+  box-shadow:0 0 0 3px rgba(255,200,0,.15)!important;
+  outline:none;
+}
+input::placeholder,textarea::placeholder{color:#7F889A!important}
+select option{background:#1A1C24;color:#E8EDF5}
+
+/* Cristal (/inicio .glass y .dark) */
+.oy-glass{
+  background:var(--glass);border:1px solid var(--line);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 40px 80px -40px rgba(0,0,0,.9);
+  /* sin desenfoque: en listas largas frena el scroll en móviles y sobre fondo liso no se nota */
+}
+.oy-dark{
+  background:rgba(14,16,23,.72);border:1px solid rgba(255,255,255,.13);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 40px 90px -36px rgba(0,0,0,.95),0 12px 28px -16px rgba(0,0,0,.7);
+  -webkit-backdrop-filter:blur(26px) saturate(150%);backdrop-filter:blur(26px) saturate(150%);
+}
+
+/* Botón principal (/inicio .btn) */
+.oy-btn{transition:transform .15s ease,box-shadow .2s ease,opacity .2s}
+.oy-btn:not([disabled]):hover{transform:translateY(-1px)}
+.oy-btn:not([disabled]):active{transform:scale(.98)}
+
+/* Opciones tipo chip (/inicio .chip) */
+.oy-chip{transition:all .35s var(--spring)}
+.oy-chip:hover{border-color:rgba(255,200,0,.45)!important}
+
+.leaflet-container{width:100%;height:100%;z-index:1}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes oyMorph{from{border-radius:10px;transform:rotate(0)}to{border-radius:50%;transform:rotate(180deg)}}
+@keyframes oyDot{0%{box-shadow:0 0 0 0 rgba(0,214,143,.45)}70%{box-shadow:0 0 0 9px rgba(0,214,143,0)}100%{box-shadow:0 0 0 0 rgba(0,214,143,0)}}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#2A2D36;border-radius:99px}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
