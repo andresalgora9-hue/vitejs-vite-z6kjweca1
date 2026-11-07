@@ -66,7 +66,7 @@ export default function AdminPanel({ onLogout, nombre }: { onLogout: () => void;
 
   const cargar = useCallback(async () => {
     const [pros, leads, facts, sols, rout, gastos, precios, cfg, subs, pciudad] = await Promise.all([
-      db.from("users").select("id,name,email,phone,whatsapp,trade,zone,company_name,cif,fiscal_address,fiscal_zip,fiscal_city,billing_email,joined_at,created_at,activacion_estado,activacion_invoice_id,deleted,banned,plan,precio_lead,city_slug,captacion_lead_id,ficha_captacion").eq("type", "profesional"),
+      db.from("users").select("id,name,email,phone,whatsapp,trade,zone,company_name,cif,fiscal_address,fiscal_zip,fiscal_city,billing_email,joined_at,created_at,activacion_estado,activacion_invoice_id,deleted,banned,plan,precio_lead,city_slug,captacion_lead_id,ficha_captacion,alta_estado").eq("type", "profesional"),
       db.from("pro_leads").select("*").order("created_at", { ascending: false }).limit(5000),
       db.from("lead_invoices").select("*").order("issued_at", { ascending: false }).limit(5000),
       db.from("budget_requests").select("id,created_at,client_id,client_name,oficio,zona,description,status,city_slug,landing,gclid,canal,pro_solicitado").order("created_at", { ascending: false }).limit(5000),
@@ -140,7 +140,7 @@ export default function AdminPanel({ onLogout, nombre }: { onLogout: () => void;
   const usados = new Set((d?.leads || []).map((l) => l.budget_request_id).filter(Boolean));
   const sinAsignar = d ? d.solicitudes.filter((s) => ts(s.created_at) >= ts(INICIO_PAGO_POR_LEAD) && !usados.has(s.id) && s.status !== "descartado" && s.status !== "cancelled").length : 0;
   const vencidas = d ? d.facturas.filter((f) => f.status === "pendiente" && ts(f.due_at) < Date.now()).length : 0;
-  const altas = d ? d.pros.filter((p) => ts(p.joined_at || p.created_at) >= ts(INICIO_ALTAS) && !["pagada", "exento"].includes(p.activacion_estado || "")).length : 0;
+  const altas = d ? d.pros.filter((p) => (ts(p.joined_at || p.created_at) >= ts(INICIO_ALTAS) && !["pagada", "exento"].includes(p.activacion_estado || "")) || (p as any).alta_estado === "pendiente").length : 0;
   const globo: Partial<Record<Seccion, number>> = { leads: sinAsignar, facturas: vencidas, profesionales: altas, captacion: captAtascados };
 
   const contenido = () => {
