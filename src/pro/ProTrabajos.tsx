@@ -14,9 +14,9 @@ import {
 } from "../shared/crm";
 
 const C = {
-  bg: "#0F1117", surface: "#161B27", card: "#1E2536", border: "#2D3A52",
+  bg: "#0F1117", surface: "#15171E", card: "#1A1C24", border: "#2A2D36",
   accent: "#FFD700", orange: "#FF8C00", red: "#FF4455", green: "#00D68F",
-  blue: "#3B82F6", text: "#E8EDF5", muted: "#5A6A8A", mutedL: "#8899BB",
+  blue: "#3B82F6", text: "#E8EDF5", muted: "#8A93A6", mutedL: "#B4BCCB",
 };
 const F = "'DM Sans',sans-serif";
 
