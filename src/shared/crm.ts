@@ -7,6 +7,7 @@
 // ── DATOS DE COBRO (cámbialos aquí si cambia el banco) ──
 export const OY_IBAN = "ES45 1465 0100 9117 4426 4278";
 export const OY_TITULAR = "Andrés Algora";
+export const OY_BIZUM = "656 398 014";
 
 // ── LOS 13 ESTADOS ──
 export type Stage =
