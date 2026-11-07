@@ -4,7 +4,8 @@
 // ============================================================
 import React, { useState, useEffect, useCallback } from "react";
 import { db } from "../supabase";
-import { OY_IBAN, OY_TITULAR } from "../shared/crm";
+import PagarFactura from "./PagarFactura";
+import ProTarjeta from "./ProTarjeta";
 import {
   C, F, Card, Boton, Etiqueta, Titulo, FacturaRow, UMBRAL_FACTURA, IVA_PCT,
   eur, fecha,
@@ -66,10 +67,7 @@ export default function ProFacturas({ user, onIrAPerfil, onToast }: {
     setDescargando(null);
   };
 
-  const copiarIban = async () => {
-    try { await navigator.clipboard.writeText(OY_IBAN.replace(/\s/g, "")); onToast?.("IBAN copiado"); }
-    catch { onToast?.(OY_IBAN); }
-  };
+  const [pagando, setPagando] = useState<FacturaRow[] | null>(null);
 
   const pct = Math.min(100, Math.round((pendiente / UMBRAL_FACTURA) * 100));
   const porPagar = facturas.filter((f) => f.status === "pendiente");
@@ -112,17 +110,20 @@ export default function ProFacturas({ user, onIrAPerfil, onToast }: {
         </div>
       </Card>
 
+      {/* Pago automático con tarjeta */}
+      <ProTarjeta userId={user.id} onToast={onToast} />
+
       {/* Cómo pagar */}
       <Card accent={porPagar.length ? C.orange + "88" : undefined}>
-        <div style={{ fontSize: 13.5, color: C.text, fontWeight: 800 }}>Cómo pagar</div>
-        <div style={{ fontSize: 12.5, color: C.mutedL, marginTop: 4 }}>Transferencia bancaria en los 5 días siguientes a la emisión. Pon el número de factura como concepto.</div>
-        <div style={{ marginTop: 10, padding: "10px 12px", background: C.bg, border: "1px solid " + C.border, borderRadius: 9 }}>
-          <div style={{ fontSize: 11, color: C.mutedL, fontWeight: 700 }}>IBAN</div>
-          <div style={{ fontSize: 15, color: C.text, fontWeight: 800, letterSpacing: "0.02em", marginTop: 2, wordBreak: "break-all" }}>{OY_IBAN}</div>
-          <div style={{ fontSize: 12, color: C.mutedL, marginTop: 4 }}>Titular: {OY_TITULAR}</div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
+          <div style={{ fontSize: 13.5, color: C.text, fontWeight: 800 }}>Cómo pagar</div>
+          {porPagar.length > 0 && (
+            <div style={{ fontSize: 13, color: C.orange, fontWeight: 800 }}>{eur(porPagar.reduce((s, f) => s + Number(f.total || 0), 0))} por pagar</div>
+          )}
         </div>
+        <div style={{ fontSize: 12.5, color: C.mutedL, marginTop: 4 }}>Por transferencia o Bizum, en los 5 días siguientes a la emisión. Pon el número de factura como concepto.</div>
         <div style={{ display: "flex", marginTop: 10 }}>
-          <Boton small outline color={C.accent} onClick={copiarIban}>Copiar IBAN</Boton>
+          <Boton color={C.accent} onClick={() => setPagando(porPagar)}>{porPagar.length ? "Pagar" : "Ver datos de pago"}</Boton>
         </div>
       </Card>
 
@@ -156,16 +157,21 @@ export default function ProFacturas({ user, onIrAPerfil, onToast }: {
               <div style={{ fontSize: 12.5, color: e.color, fontWeight: 700, marginTop: 8 }}>Pagar antes del {fecha(f.due_at)}</div>
             )}
             {f.status === "pagada" && f.paid_at && (
-              <div style={{ fontSize: 12.5, color: C.green, fontWeight: 700, marginTop: 8 }}>Pagada el {fecha(f.paid_at)}</div>
+              <div style={{ fontSize: 12.5, color: C.green, fontWeight: 700, marginTop: 8 }}>Pagada el {fecha(f.paid_at)}{(f as any).metodo_pago === "tarjeta" ? " con tarjeta" : ""}</div>
             )}
-            <div style={{ display: "flex", marginTop: 10 }}>
-              <Boton onClick={() => descargar(f)} disabled={descargando === f.id} color={C.accent}>
-                {descargando === f.id ? "Preparando PDF..." : "Descargar factura (PDF)"}
+            <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+              {f.status === "pendiente" && (
+                <Boton onClick={() => setPagando([f])} color={C.accent}>Pagar</Boton>
+              )}
+              <Boton onClick={() => descargar(f)} disabled={descargando === f.id} color={C.accent} outline={f.status === "pendiente"}>
+                {descargando === f.id ? "Preparando PDF..." : f.status === "pendiente" ? "Descargar PDF" : "Descargar factura (PDF)"}
               </Boton>
             </div>
           </Card>
         );
       })}
+
+      {pagando && <PagarFactura facturas={pagando} nombre={user.name} onClose={() => setPagando(null)} />}
     </div>
   );
 }
