@@ -8,6 +8,7 @@ import {
   SeccionProps, Pro, INICIO_ALTAS, ESTADO_INFO, CANAL_LABEL,
   ts, mesDe, mesHoy, fecha, fechaHora, eur, num, pct, duracion, oficioDe, waLink, digitos, precioLeadDe } from "./apUi";
 import { GestionFactura, estadoFactura } from "./apFacturas";
+import AltasPendientes from "./apAltas";
 
 const ALTA: Record<string, { t: string; c: string }> = {
   pagada: { t: "Alta pagada", c: C.green },
@@ -174,7 +175,7 @@ function FichaPro({ p, d, onClose, onHecho }: { p: Pro; d: SeccionProps["d"]; on
   );
 }
 
-export default function Profesionales({ d, recargar, aviso }: SeccionProps) {
+export default function Profesionales({ d, recargar, aviso, irA }: SeccionProps) {
   const [filtro, setFiltro] = useState<"activos" | "altas" | "todos">("activos");
   const [busca, setBusca] = useState("");
   const [ficha, setFicha] = useState<string | null>(null);
@@ -184,6 +185,7 @@ export default function Profesionales({ d, recargar, aviso }: SeccionProps) {
   const activos = new Set(d.routing.filter((r) => r.active).map((r) => r.pro_id));
   const esNuevo = (p: Pro) => ts(p.joined_at || p.created_at) >= ts(INICIO_ALTAS);
   const pendAlta = d.pros.filter((p) => esNuevo(p) && !["pagada", "exento"].includes(p.activacion_estado || ""));
+  const porConfirmar = d.pros.filter((p) => (p as any).alta_estado === "pendiente").length;
 
   // Respuesta de arriba: ¿los profesionales están al día?
   const sinLlamarP = d.leads.filter((l) => !l.anulado && l.estado === "nuevo" && ahora - ts(l.created_at) > 2 * 3600000);
@@ -193,6 +195,7 @@ export default function Profesionales({ d, recargar, aviso }: SeccionProps) {
   if (sinLlamarP.length) problemasP.push(sinLlamarP.length + " leads sin llamar (" + Array.from(new Set(sinLlamarP.map((l) => d.proPorId[l.pro_id]?.name || "—"))).join(", ") + ")");
   if (vencP.length) problemasP.push(vencP.length + " facturas vencidas (" + Array.from(new Set(vencP.map((f) => d.proPorId[f.pro_id]?.name || "—"))).join(", ") + ")");
   if (pendAlta.length) problemasP.push(pendAlta.length + " altas sin cobrar");
+  if (porConfirmar) problemasP.push(porConfirmar + (porConfirmar === 1 ? " alta pagada" : " altas pagadas") + " por confirmar (en Altas)");
   if (sinPushP.length) problemasP.push(sinPushP.length + " reciben leads sin tener los avisos activados (" + sinPushP.map((id) => d.proPorId[id]?.name || "—").join(", ") + ")");
 
   const filas = useMemo(() => {
@@ -238,9 +241,11 @@ export default function Profesionales({ d, recargar, aviso }: SeccionProps) {
       </Grid>
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 14 }}>
-        {tab("activos", "Con leads")}{tab("altas", "Altas", pendAlta.length)}{tab("todos", "Todos (" + d.pros.length + ")")}
+        {tab("activos", "Con leads")}{tab("altas", "Altas", pendAlta.length + porConfirmar)}{tab("todos", "Todos (" + d.pros.length + ")")}
         <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar nombre, oficio, teléfono..." style={{ background: C.card, border: "1px solid " + C.border, borderRadius: 8, color: C.text, padding: "8px 10px", fontFamily: F, fontSize: 13, minWidth: 220 }} />
       </div>
+
+      {filtro === "altas" && <AltasPendientes d={d} recargar={recargar} aviso={aviso} irA={irA} onVerFicha={setFicha} />}
 
       <Tabla
         cols={[{ k: "nombre", l: "Profesional" }, { k: "oficio", l: "Oficio" }, { k: "reparto", l: "Leads" }, { k: "precio", l: "€/lead", align: "right" }, { k: "alta", l: "Alta" }, { k: "mes", l: "Este mes", align: "right" }, { k: "sin", l: "Sin llamar", align: "right" }, { k: "cierre", l: "Cierre", align: "right" }, { k: "resp", l: "Respuesta", align: "right" }, { k: "fact", l: "Sin facturar", align: "right" }, { k: "venc", l: "Vencido", align: "right" }, { k: "push", l: "Avisos" }, { k: "fiscal", l: "Datos fiscales" }, { k: "reg", l: "Registro" }]}
