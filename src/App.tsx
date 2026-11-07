@@ -4248,7 +4248,7 @@ function ProDeleteAccountButton({user,onLogout}:{user:UserRow;onLogout:()=>void}
 function ProDashboard({user,onLogout,onUpdate,deepLinkChatWith}:{user:UserRow;onLogout:()=>void;onUpdate:(u:UserRow)=>void;deepLinkChatWith?:string|null}){
   const [showOnboarding,setShowOnboarding]=useState(()=>!localStorage.getItem("oy_onboarded_"+user.id));
   const handleCloseOnboarding=()=>{localStorage.setItem("oy_onboarded_"+user.id,"1");setShowOnboarding(false);};
-  const [tab,setTab]=useState<"inicio"|"chats"|"trabajos"|"facturas"|"perfil"|"planes">(()=>{try{return new URLSearchParams(window.location.search).get("tarjeta")?"facturas":"inicio";}catch{return "inicio";}});
+  const [tab,setTab]=useState<"inicio"|"chats"|"trabajos"|"facturas"|"perfil"|"planes">(()=>{try{const q=new URLSearchParams(window.location.search);return q.get("tarjeta")||q.get("ir")==="facturas"?"facturas":"inicio";}catch{return "inicio";}});
   const [toast,setToast]=useState<string|null>(null);
   const [saving,setSaving]=useState(false);
   const [bio,setBio]=useState(user.bio||"");
