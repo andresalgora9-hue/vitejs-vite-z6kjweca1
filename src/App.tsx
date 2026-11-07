@@ -631,8 +631,8 @@ function InstallBanner(){
 }
 function LegalFooter(){
   return(
-    <div style={{padding:"24px 20px",borderTop:"1px solid #2A2D36",textAlign:"center" as const,background:"#0A0B10",marginTop:40}}>
-      <p style={{fontSize:12,color:"#7F889A",marginBottom:10}}>© {new Date().getFullYear()} oficioya. Todos los derechos reservados.</p>
+    <div style={{padding:"24px 20px",borderTop:"1px solid rgba(255,255,255,0.08)",textAlign:"center" as const,background:"transparent",marginTop:40}}>
+      <p style={{fontSize:12,color:"#7F889A",marginBottom:10}}>© {new Date().getFullYear()} OficioYa. Todos los derechos reservados.</p>
       <div style={{display:"flex",justifyContent:"center",gap:16,flexWrap:"wrap" as const}}>
                 {[["Condiciones de Uso","/terminos"],["Política de Privacidad","/privacidad"],["Política de Cookies","/cookies"]].map(([l,h])=>(
           <a key={l} href={h} style={{color:"#7F889A",fontSize:11,textDecoration:"none"}}>{l}</a>
@@ -2395,7 +2395,10 @@ function DeleteAccountButton({user,onLogout}:{user:UserRow;onLogout:()=>void}){
 function ClientHome({user,onLogout,onUpdate,deepLinkChatWith,onLogin}:{user:UserRow|null;onLogout:()=>void;onUpdate:(u:UserRow)=>void;deepLinkChatWith?:string|null;onLogin:(u:UserRow)=>void}){
   const [showOnboarding,setShowOnboarding]=useState(()=>!!user&&!localStorage.getItem("oy_onboarded_"+user.id));
   const handleCloseOnboarding=()=>{if(user)localStorage.setItem("oy_onboarded_"+user.id,"1");setShowOnboarding(false);};
-  const [tab,setTab]=useState<"buscar"|"ranking"|"chats"|"solicitudes"|"perfil">("buscar");
+  // «Entrar» desde la portada (/inicio) llega como /?app=1&entrar=1
+  const [vieneDeEntrar]=useState(()=>{try{return new URLSearchParams(window.location.search).get("entrar")==="1";}catch{return false;}});
+  const [esHandoffLanding]=useState(()=>{try{return new URLSearchParams(window.location.search).get("quick")==="1";}catch{return false;}});
+  const [tab,setTab]=useState<"buscar"|"ranking"|"chats"|"solicitudes"|"perfil">(()=>vieneDeEntrar&&user?"solicitudes":"buscar");
   const [autoOpenSolicitud,setAutoOpenSolicitud]=useState(false);
   const [zonas,setZonas]=useState<string[]>([]);
   const [oficio,setOficio]=useState("Todos");
@@ -2407,7 +2410,7 @@ function ClientHome({user,onLogout,onUpdate,deepLinkChatWith,onLogin}:{user:User
   
   const [selectedWorker,setSelectedWorker]=useState<UserRow|null>(null);
   const [chatWorker,setChatWorker]=useState<UserRow|null>(null);
-  const [authModal,setAuthModal]=useState<null|{mode:"login"|"pick"}>(null);
+  const [authModal,setAuthModal]=useState<null|{mode:"login"|"pick"}>(()=>vieneDeEntrar&&!user?{mode:"login"}:null);
   const [showQuickRequest,setShowQuickRequest]=useState(false);
   const [proSolicitado,setProSolicitado]=useState<UserRow|null>(null);
   const [quickSent,setQuickSent]=useState(false);
@@ -2447,6 +2450,16 @@ function ClientHome({user,onLogout,onUpdate,deepLinkChatWith,onLogin}:{user:User
     try{ return new URLSearchParams(window.location.search).get("oficio")||""; }catch(e){ return ""; }
   });
   const [qrErr,setQrErr]=useState("");
+  // Ciudades con profesional asignado (lead_routing), en el orden de cities, igual que /inicio
+  const [ciudadesActivas,setCiudadesActivas]=useState<string[]>([]);
+  useEffect(()=>{(async()=>{try{
+    const {data:rutas}=await db.from("lead_routing").select("city_slug").eq("active",true).not("pro_id","is",null);
+    const slugs=Array.from(new Set((rutas||[]).map((x:any)=>x.city_slug).filter(Boolean)));
+    if(!slugs.length)return;
+    const {data:cs}=await db.from("cities").select("name,slug,launched_at").in("slug",slugs).order("launched_at",{ascending:true,nullsFirst:false});
+    const nombres=(cs||[]).map((c:any)=>c.name).filter(Boolean);
+    if(nombres.length)setCiudadesActivas(nombres);
+  }catch(e){}})();},[]);
     const enviarDesdeHero=async()=>{
     const desc=qrDesc.trim();
     const tel=qrPhone.trim();
@@ -2555,6 +2568,23 @@ function ClientHome({user,onLogout,onUpdate,deepLinkChatWith,onLogin}:{user:User
     pendingActionRef.current=action;
     setAuthModal({mode});
   },[user]);
+  useEffect(()=>{
+    if(!vieneDeEntrar)return;
+    if(!user)pendingActionRef.current=()=>setTab("solicitudes");
+    try{window.history.replaceState({},"",window.location.pathname);}catch(e){}
+  },[]);
+  // Sin sesión, la portada es /inicio: la pestaña «buscar» antigua ya no se enseña
+  const irAInicio=!user&&tab==="buscar"&&!authModal&&!esHandoffLanding&&!quickBooting&&!showQuickRequest&&!quickSent;
+  useEffect(()=>{
+    if(!irAInicio)return;
+    try{
+      const p=new URLSearchParams(window.location.search);
+      const q=new URLSearchParams();
+      ["gclid","gbraid","wbraid","fbclid","utm_source","utm_medium","utm_campaign","utm_content","utm_term"].forEach(k=>{const v=p.get(k);if(v)q.set(k,v);});
+      const qs=q.toString();
+      window.location.replace("/inicio"+(qs?"?"+qs:""));
+    }catch(e){}
+  },[irAInicio]);
   const handleAuthSuccess=(u:UserRow)=>{
     onLogin(u);
     setAuthModal(null);
@@ -2784,8 +2814,9 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
     }
   };
 
+  if(irAInicio)return <div style={{minHeight:"100dvh"}} />;
   return(
-    <div data-scroll style={{minHeight:"100dvh",background:C.bg,backgroundImage:"radial-gradient(ellipse at 15% 0%,#1a0a3a22,transparent 50%),radial-gradient(ellipse at 85% 100%,#0a1a3a22,transparent 50%)",paddingBottom:72,overflowY:"auto",height:"100dvh"}}>
+    <div data-scroll style={{minHeight:"100dvh",background:C.bg,backgroundImage:"radial-gradient(1100px 700px at 88% -12%,rgba(255,184,0,0.14),rgba(255,184,0,0) 62%)",paddingBottom:"calc(96px + env(safe-area-inset-bottom))",overflowY:"auto",height:"100dvh"}}>
 <ScrollToTop />
             {quickBooting&&(()=>{
         const PLURAL:Record<string,string>={"Fontanero":"fontaneros","Electricista":"electricistas","Carpintero":"carpinteros","Pintor":"pintores","Albañil":"albañiles","Cerrajero":"cerrajeros","Reformas Integrales":"profesionales"};
@@ -2939,7 +2970,7 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
               <div style={{marginBottom:14}}>
                 <p style={{fontSize:11,color:"#A9B1C2",fontWeight:800,letterSpacing:"0.12em",textTransform:"uppercase" as const,marginBottom:10}}>1 · ¿Qué necesitas?</p>
                 <div style={{display:"flex",gap:8,flexWrap:"wrap" as const}}>
-                  {["Fontanero","Electricista","Pintor","Cerrajero","Climatización","Reformas Integrales","Manitas a Domicilio","Servicio Doméstico / Limpieza","Otro"].map(t=>(
+                  {["Fontanero","Pintor"].map(t=>(
                     <button key={t} className="oy-chip" aria-pressed={qrOficio===t} onClick={()=>setQrOficio(t)} style={{minHeight:44,padding:"0 15px",borderRadius:999,border:"1px solid "+(qrOficio===t?"rgba(255,200,0,0.65)":"rgba(255,255,255,0.14)"),background:qrOficio===t?"rgba(255,200,0,0.16)":"rgba(255,255,255,0.05)",color:qrOficio===t?"#FFE38A":"#C9D1DF",cursor:"pointer",fontSize:14,fontFamily:"'DM Sans',sans-serif",fontWeight:qrOficio===t?800:600,whiteSpace:"nowrap" as const}}>{t}</button>
                   ))}
                 </div>
@@ -2951,7 +2982,7 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
                 <p style={{fontSize:11,color:"#A9B1C2",fontWeight:800,letterSpacing:"0.12em",textTransform:"uppercase" as const,marginBottom:10}}>2 · ¿Dónde?</p>
                 <select value={ciudadSel} onChange={e=>{setCiudadSel(e.target.value);try{localStorage.setItem("oy_ciudad",e.target.value);}catch{}}} style={{width:"100%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.16)",borderRadius:14,padding:"0 16px",height:50,color:ciudadSel?"#F2F5FA":"#96A0B3",fontFamily:"'DM Sans',sans-serif",fontSize:16,outline:"none",boxSizing:"border-box" as const}}>
                   <option value="" style={{background:C.card}}>Elige tu ciudad</option>
-                  {ZONAS.map(z=><option key={z} value={z} style={{background:C.card}}>{z}</option>)}
+                  {(ciudadesActivas.length?ciudadesActivas:ZONAS).map(z=><option key={z} value={z} style={{background:C.card}}>{z}</option>)}
                 </select>
               </div>
 
@@ -3775,7 +3806,7 @@ const makeSideCard=(slot:number)=>{
   Continuar con Google
 </button>
             {!showForgot?(
-  <button onClick={()=>setShowForgot(true)} style={{background:"none",border:"none",color:"#7B5EA7",cursor:"pointer",fontSize:12,marginTop:4,textDecoration:"underline",fontFamily:"'DM Sans',sans-serif"}}>
+  <button onClick={()=>setShowForgot(true)} style={{background:"none",border:"none",color:"#C9D1DF",cursor:"pointer",fontSize:12,marginTop:4,textDecoration:"underline",fontFamily:"'DM Sans',sans-serif"}}>
     ¿Olvidaste tu contraseña?
   </button>
 ):(
