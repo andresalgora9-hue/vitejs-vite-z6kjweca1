@@ -205,6 +205,13 @@ export function useInstalable() {
   const [ok, setOk] = useState(!!promptGuardado);
   const [instalada, setInstalada] = useState(appInstalada());
   useEffect(() => {
+    // Chrome en Android puede decir si la app ya está instalada en el móvil (manifest: related_applications)
+    const nav: any = navigator;
+    if (!instalada && typeof nav.getInstalledRelatedApps === "function") {
+      nav.getInstalledRelatedApps().then((apps: any[]) => { if (apps && apps.length) { lsSet("oy_cliente_app_instalada", "1"); setInstalada(true); } }).catch(() => {});
+    }
+  }, []);
+  useEffect(() => {
     const a = () => setOk(true); const b = () => setInstalada(true);
     window.addEventListener("cy-instalable", a); window.addEventListener("cy-instalada", b);
     return () => { window.removeEventListener("cy-instalable", a); window.removeEventListener("cy-instalada", b); };
@@ -226,19 +233,17 @@ export function useDescargar(abrirInstrucciones: () => void) {
   const descargar = async () => { if (instalable) await instalar(); else abrirInstrucciones(); };
   return { instalada, directo: instalable, descargar };
 }
-export function BannerDescargar({ onDescargar, onOcultar }: { onDescargar: () => void; onOcultar: () => void }) {
+// Fila discreta al final de Inicio (solo si no la tiene instalada)
+export function FilaDescargar({ onDescargar }: { onDescargar: () => void }) {
   return (
-    <div className="cy-glass cy-card cy-card-oro cy-entra" data-banner-app style={{ position: "relative" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 12, paddingRight: 18 }}>
-        <img src="/icon-192.png" alt="" width={46} height={46} style={{ borderRadius: 13, flex: "0 0 46px", boxShadow: "0 12px 26px -14px rgba(255,160,0,.8)" }} />
-        <div style={{ minWidth: 0 }}>
-          <p className="cy-h3" style={{ fontSize: 15.5 }}>Descarga la app de OficioYa</p>
-          <p className="cy-mini" style={{ marginTop: 2, color: "var(--soft)" }}>Te avisamos al momento cuando el profesional te responda.</p>
-        </div>
+    <button className="cy-glass cy-card" onClick={onDescargar} style={{ display: "flex", alignItems: "center", gap: 12, width: "100%", textAlign: "left", color: "var(--ink)" }}>
+      <img src="/icon-192.png" alt="" width={40} height={40} style={{ borderRadius: 12, flex: "0 0 40px" }} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p className="cy-h3" style={{ fontSize: 15 }}>Descarga la app</p>
+        <p className="cy-mini">Te avisamos al momento cuando el profesional te responda.</p>
       </div>
-      <button className="cy-btn cy-btn-sm" style={{ marginTop: 12, minHeight: 46, borderRadius: 14, fontSize: 15 }} onClick={onDescargar}><Icono n="movil" s={18} w={2.2} />Descargar la app</button>
-      <button aria-label="Ocultar" onClick={onOcultar} style={{ position: "absolute", top: 10, right: 10, width: 28, height: 28, borderRadius: "50%", background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.16)", color: "var(--ink3)", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}><Icono n="x" s={13} w={2.4} /></button>
-    </div>
+      <span className="cy-pill oro" style={{ flex: "0 0 auto" }}><Icono n="movil" s={13} w={2.2} />Descargar</span>
+    </button>
   );
 }
 export function InstruccionesInstalar({ compacto = false, faltaAcceso = false, onAcceso }: { compacto?: boolean; faltaAcceso?: boolean; onAcceso?: () => void }) {

@@ -558,8 +558,5 @@ select.cy-inp option{background:#1A1C24;color:#F2F5FA}
 .cy-guia-barra i.on{background:var(--grad)}
 @media (prefers-reduced-motion:reduce){.cy-guia-hueco{animation:none;transition:none}.cy-guia-card,.cy-guia-velo{animation:none}}
 .cy-toast{pointer-events:none}
-.cy-appbtn{display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 12px;border-radius:13px;background:rgba(255,200,0,.12);border:1px solid rgba(255,200,0,.5);color:#FFE38A;font-size:13.5px;font-weight:800;white-space:nowrap}
-.cy-appbtn-c{display:none}
-@media (max-width:389px){.cy-appbtn-l{display:none}.cy-appbtn-c{display:inline}.cy-appbtn{padding:0 10px}}
 .cy-guia-on .cy-toast{top:calc(14px + env(safe-area-inset-top));bottom:auto}
 `;

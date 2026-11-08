@@ -126,8 +126,6 @@ export default function ClienteArea({ user, onUpdate, onLogout, deepLinkProId }:
   const [instalarAbierto, setInstalarAbierto] = useState(false);
   // «Descargar la app»: en Android sale directamente el aviso de instalar; en iPhone, cómo hacerlo
   const { instalada, descargar } = useDescargar(() => setInstalarAbierto(true));
-  const claveBanner = "oy_banner_app_" + user.id;
-  const [bannerApp, setBannerApp] = useState(() => Date.now() - Number(lsGet(claveBanner) || 0) > 7 * 864e5);
   const pedirAvisos = useCallback(async () => {
     const r = await activarAvisos(user.id);
     if (r === "ok") { setAvisosOn(true); aviso("Avisos activados"); }
@@ -178,7 +176,6 @@ export default function ClienteArea({ user, onUpdate, onLogout, deepLinkProId }:
               <span className="cy-logo-tx">Oficio<b>Ya</b></span>
             </button>
             <div className="cy-cab-r">
-              {!instalada && <button className="cy-appbtn" onClick={descargar} aria-label="Descargar la app"><Icono n="movil" s={17} w={2.2} /><span className="cy-appbtn-l">Descargar</span><span className="cy-appbtn-c">App</span></button>}
               <button className="cy-icbtn" data-guia="chat" onClick={() => setChat(true)} aria-label={"Mensajes con OficioYa" + (sinLeer ? ", " + sinLeer + " sin leer" : "")}>
                 <Icono n="chat" s={19} />
                 {sinLeer > 0 && <span className="cy-badge">{sinLeer > 9 ? "9+" : sinLeer}</span>}
@@ -196,7 +193,7 @@ export default function ClienteArea({ user, onUpdate, onLogout, deepLinkProId }:
             <ClienteInicio user={user} sols={sols} presus={presus} pros={pros} pasos={pasos} mostrarPasos={!pasosOcultos}
               onNueva={(p) => setHojaSol(p || {})} onApuntar={() => setHojaPre({})} onIr={setTab}
               onVerPros={() => setHojaPros(true)} onVerPro={setProVer} onChat={() => setChat(true)} onInstalar={descargar}
-              bannerApp={!instalada && bannerApp} onOcultarApp={() => { setBannerApp(false); lsSet(claveBanner, String(Date.now())); }}
+              appInstalada={instalada}
               onAvisos={pedirAvisos} onAcceso={irAcceso} onOcultarPasos={() => { setPasosOcultos(true); lsSet("oy_pasos_ocultos_" + user.id, "1"); }} />
           )}
           {tab === "solicitudes" && (

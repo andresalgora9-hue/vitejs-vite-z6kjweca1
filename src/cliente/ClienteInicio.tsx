@@ -6,18 +6,18 @@ import type { Cliente, Solicitud, Presupuesto, ProPublico } from "./clienteComun
 import { Icono, Esqueleto, primerNombre, eur, enlaceWa, WA_OY, TZ } from "./clienteComun";
 import { estadoSolicitud } from "./datos";
 import { TarjetaSolicitud, type PrefillSolicitud } from "./ClienteSolicitudes";
-import { PrimerosPasos, TarjetaPro, BannerDescargar, type EstadoPasos } from "./ClienteExtras";
+import { PrimerosPasos, TarjetaPro, FilaDescargar, type EstadoPasos } from "./ClienteExtras";
 
 function saludo() {
   const h = Number(new Date().toLocaleString("es-ES", { timeZone: TZ, hour: "2-digit", hour12: false }));
   return h >= 6 && h < 13 ? "Buenos días" : h >= 13 && h < 21 ? "Buenas tardes" : "Buenas noches";
 }
 
-export default function ClienteInicio({ user, sols, presus, pros, pasos, mostrarPasos, onNueva, onApuntar, onIr, onVerPros, onVerPro, onChat, onInstalar, onAvisos, onAcceso, onOcultarPasos, bannerApp = false, onOcultarApp }: {
+export default function ClienteInicio({ user, sols, presus, pros, pasos, mostrarPasos, onNueva, onApuntar, onIr, onVerPros, onVerPro, onChat, onInstalar, onAvisos, onAcceso, onOcultarPasos, appInstalada = false }: {
   user: Cliente; sols: Solicitud[] | null; presus: Presupuesto[] | null; pros: ProPublico[] | null; pasos: EstadoPasos; mostrarPasos: boolean;
   onNueva: (p?: PrefillSolicitud) => void; onApuntar: () => void; onIr: (t: "solicitudes" | "presupuestos" | "calcular" | "perfil") => void;
   onVerPros: () => void; onVerPro: (p: ProPublico) => void; onChat: () => void; onInstalar: () => void; onAvisos: () => void; onAcceso: () => void; onOcultarPasos: () => void;
-  bannerApp?: boolean; onOcultarApp?: () => void;
+  appInstalada?: boolean;
 }) {
   const nom = primerNombre(user.name);
   const activa = (sols || []).find((s) => !estadoSolicitud(s).fin) || null;
@@ -29,8 +29,6 @@ export default function ClienteInicio({ user, sols, presus, pros, pasos, mostrar
       <p className="cy-eyebrow">{saludo()}</p>
       <h1 className="cy-h1" style={{ marginTop: 6 }}>{nom ? <>Hola, <span>{nom}</span></> : <>Tu casa, <span>en orden</span></>}</h1>
       <p className="cy-sub" style={{ marginTop: 8, marginBottom: 18 }}>Tus solicitudes, tus presupuestos y lo que cuesta cada cosa, en un solo sitio.</p>
-
-      {bannerApp && <BannerDescargar onDescargar={onInstalar} onOcultar={() => onOcultarApp?.()} />}
 
       {mostrarPasos && <PrimerosPasos e={pasos} onPedir={() => onNueva()} onAcceso={onAcceso} onAvisos={onAvisos} onInstalar={onInstalar} onOcultar={onOcultarPasos} />}
 
@@ -115,6 +113,8 @@ export default function ClienteInicio({ user, sols, presus, pros, pasos, mostrar
           <a className="cy-btn-g" href={enlaceWa(WA_OY, "Hola, soy cliente de OficioYa y tengo una duda.")} target="_blank" rel="noopener noreferrer"><Icono n="wa" s={18} />WhatsApp</a>
         </div>
       </div>
+
+      {!appInstalada && <FilaDescargar onDescargar={onInstalar} />}
     </div>
   );
 }
