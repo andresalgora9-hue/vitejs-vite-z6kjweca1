@@ -12,6 +12,14 @@
   "use strict";
   if (window.OYContacto) return;
 
+  // Área del cliente: si la cuenta se acaba de crear, el cliente entra directo en su área (ver /oy-sesion.js)
+  if (!window.OYSesion && !document.querySelector('script[src*="oy-sesion.js"]')) {
+    var sesionJs = document.createElement("script");
+    sesionJs.src = "/oy-sesion.js?v=1";
+    sesionJs.async = true;
+    document.head.appendChild(sesionJs);
+  }
+
   var S = document.currentScript || document.querySelector('script[src*="oy-contacto.js"]');
   var DS = (S && S.dataset) || {};
   var OFICIO = DS.oficio || "Sin oficio";

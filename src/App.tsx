@@ -15,6 +15,7 @@ import ProFacturas from "./pro/ProFacturas";
 import ProNegocio from "./pro/ProNegocio";
 import ProInstalarApp from "./pro/ProInstalarApp";
 import ProAvisoInicio from "./pro/ProAvisoInicio";
+import ClienteArea from "./cliente/ClienteArea";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI";
 const SUPABASE_FUNCTIONS_URL = "https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1";
 const SUPABASE_HEADERS = {
@@ -2392,7 +2393,7 @@ function DeleteAccountButton({user,onLogout}:{user:UserRow;onLogout:()=>void}){
 // Busca: "function ClientHome({user,onLogout}:" y reemplaza todo
 // ════════════════════════════════════════════════════════════════
 
-function ClientHome({user,onLogout,onUpdate,deepLinkChatWith,onLogin}:{user:UserRow|null;onLogout:()=>void;onUpdate:(u:UserRow)=>void;deepLinkChatWith?:string|null;onLogin:(u:UserRow)=>void}){
+function ClientHome({user,onLogout,onUpdate,deepLinkChatWith,onLogin,onHandoffDone}:{user:UserRow|null;onLogout:()=>void;onUpdate:(u:UserRow)=>void;deepLinkChatWith?:string|null;onLogin:(u:UserRow)=>void;onHandoffDone?:()=>void}){
   const [showOnboarding,setShowOnboarding]=useState(()=>!!user&&!localStorage.getItem("oy_onboarded_"+user.id));
   const handleCloseOnboarding=()=>{if(user)localStorage.setItem("oy_onboarded_"+user.id,"1");setShowOnboarding(false);};
   // «Entrar» desde la portada (/inicio) llega como /?app=1&entrar=1
@@ -2482,7 +2483,7 @@ function ClientHome({user,onLogout,onUpdate,deepLinkChatWith,onLogin}:{user:User
         const res=await fetch(SUPABASE_FUNCTIONS_URL+"/auth-handler",{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({action:"register",name:nombre,email:emailSint,password:pw,type:"cliente",phone:digits,trial_end:""})});
         const data=await res.json();
         let cid="";let cname=nombre;
-        if(data.success){cid=data.user.id;cname=data.user.name||nombre;try{localStorage.setItem("oy_user",JSON.stringify(data.user));}catch{}onLogin(data.user);}
+        if(data.success){cid=data.user.id;cname=data.user.name||nombre;try{localStorage.setItem("oy_user",JSON.stringify(data.user));localStorage.setItem("oy_clave_temp",JSON.stringify({id:data.user.id,c:pw}));localStorage.setItem("oy_bienvenida",JSON.stringify({id:data.user.id,t:Date.now(),oficio:qrOficio,zona:ciudadSel}));}catch{}onLogin(data.user);}
         else{
           const{data:ex}=await db.from("users").select("id,name").eq("email",emailSint).maybeSingle();
           if(!ex){setQrErr(data.error||"No hemos podido enviar tu solicitud");setQrSending(false);return;}
@@ -2519,6 +2520,8 @@ function ClientHome({user,onLogout,onUpdate,deepLinkChatWith,onLogin}:{user:User
           gtagEvent("generate_lead",{content_name:"quick_request_recurrente",oficio:oficioReq});
           fbqEvent("Lead",{content_name:"quick_request_recurrente",content_category:oficioReq});
           setQuickSent(true);setQrSending(false);setQuickBooting(false);setShowQuickRequest(false);
+          if(user&&ex.id===user.id){try{localStorage.setItem("oy_bienvenida",JSON.stringify({id:user.id,t:Date.now(),oficio:oficioReq,zona:ciudadReq}));}catch{}}
+          onHandoffDone?.();
           return;
         }
         setQrErr(data.error||"Error al crear cuenta");setQrSending(false);setQuickBooting(false);return;
@@ -2534,11 +2537,14 @@ function ClientHome({user,onLogout,onUpdate,deepLinkChatWith,onLogin}:{user:User
       gtagEvent("generate_lead",{content_name:"quick_request",oficio:oficioReq});
       fbqEvent("Lead",{content_name:"quick_request",content_category:oficioReq});
       localStorage.setItem("oy_user",JSON.stringify(u));
+      // Área del cliente: clave aleatoria para que luego ponga su correo y contraseña sin pedirle la actual, y bienvenida guiada
+      try{localStorage.setItem("oy_clave_temp",JSON.stringify({id:u.id,c:pw}));localStorage.setItem("oy_bienvenida",JSON.stringify({id:u.id,t:Date.now(),oficio:oficioReq,zona:ciudadReq}));}catch{}
       onLogin(u);
       setQuickSent(true);
       setQrSending(false);setQuickBooting(false);
       setShowQuickRequest(false);
       setTab("solicitudes");
+      onHandoffDone?.();
     }catch(e:any){setQrErr(e.message||"Error");setQrSending(false);setQuickBooting(false);}
   };
   useEffect(()=>{
@@ -5188,6 +5194,8 @@ export default function App(){
     const m=path.match(/^\/pro\/(.+)$/);
     return m?m[1]:null;
   });
+  // Paso desde una landing (?quick=1): lo procesa ClientHome aunque ya haya sesión de cliente; al terminar se abre el área
+  const [handoff,setHandoff]=useState<boolean>(()=>{try{return new URLSearchParams(window.location.search).get("quick")==="1";}catch{return false;}});
   const [deepLinkChatWith,setDeepLinkChatWith]=useState<string|null>(()=>{
     const params=new URLSearchParams(window.location.search);
     return params.get("with");
@@ -5314,7 +5322,8 @@ if(!_lastVisit){
    if("Notification" in window){
   if(Notification.permission==="granted"){
     subscribeToPush(u.id);
-  } else if(Notification.permission==="default"){
+  } else if(Notification.permission==="default"&&u.type!=="cliente"){
+    // Al cliente se le piden los avisos dentro de su área, con explicación (bienvenida y «Primeros pasos»)
     Notification.requestPermission().then(perm=>{
       if(perm==="granted") subscribeToPush(u.id);
     }).catch(()=>{});
@@ -5404,6 +5413,7 @@ if(!_lastVisit){
     {user&&user.type==="admin"&&<AdminPanel onLogout={logout} nombre={user.name} />}
     {user&&(user as any).type==="gestor"&&<AdminPanel onLogout={logout} nombre={(user as any).name} />}
     {user&&user.type==="profesional"&&<ProDashboard user={user} onLogout={logout} onUpdate={update} deepLinkChatWith={deepLinkChatWith} />}
-{(!user||user.type==="cliente")&&<ClientHome user={user} onLogout={logout} onUpdate={update} deepLinkChatWith={deepLinkChatWith} onLogin={login} />}
+{user&&user.type==="cliente"&&!handoff&&<ClienteArea user={user} onLogout={logout} onUpdate={update} deepLinkProId={deepLinkChatWith} />}
+{(!user||(user.type==="cliente"&&handoff))&&<ClientHome user={user} onLogout={logout} onUpdate={update} deepLinkChatWith={deepLinkChatWith} onLogin={login} onHandoffDone={()=>setHandoff(false)} />}
 </Sentry.ErrorBoundary>);
 }
