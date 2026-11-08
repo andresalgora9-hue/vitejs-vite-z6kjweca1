@@ -191,6 +191,7 @@ export interface Linea {
   estimado: boolean;
   aviso?: string;
   fuera?: boolean; // antes del alta de autónomo: se ve en el libro pero no cuenta en los modelos
+  sinNifIva?: boolean; // gasto con IVA sin NIF del proveedor: el gasto cuenta, su IVA no se descuenta
   plataforma?: string | null;
   mes?: string;
   apunte?: Apunte;
@@ -222,7 +223,8 @@ export function construirLineas(d: FiscalDatos): Linea[] {
       ivaTipo: +a.iva_tipo, iva: +a.iva_importe, regimen: a.iva_regimen, irpfTipo: +a.irpf_tipo, irpf: +a.irpf_importe,
       total: +a.total, deducible: +a.deducible_pct, inversion: !!a.inversion, amortAnios: a.amort_anios != null ? +a.amort_anios : null,
       fuente: "apunte", estimado: false, plataforma: a.plataforma, apunte: a,
-      aviso: a.tipo === "gasto" && a.iva_regimen === "general" && +a.iva_importe > 0 && !a.tercero_nif ? "Sin NIF del proveedor: sin NIF no se puede deducir el IVA" : undefined,
+      sinNifIva: a.tipo === "gasto" && a.iva_regimen === "general" && +a.iva_importe > 0 && !a.tercero_nif,
+      aviso: a.tipo === "gasto" && a.iva_regimen === "general" && +a.iva_importe > 0 && !a.tercero_nif ? "Sin NIF del proveedor: su IVA no se descuenta hasta que lo pongas" : undefined,
     });
   }
   // 3) Comisiones cobradas (modelo de comisión): cuentan en los meses sin facturas de comisión subidas
@@ -340,7 +342,7 @@ export function calcular303(lineas: Linea[], compensarInicio = 0): Res303[] {
         r.ispBase += l.base; r.ispIva += cuotaAuto;
         if (l.inversion) { r.invBase += l.base * ded; r.invIva += cuotaAuto * ded; }
         else { r.corrBase += l.base * ded; r.corrIva += cuotaAuto * ded; }
-      } else if (l.regimen === "general" && l.iva) {
+      } else if (l.regimen === "general" && l.iva && !l.sinNifIva) {
         if (l.inversion) { r.invBase += l.base * ded; r.invIva += l.iva * ded; }
         else { r.corrBase += l.base * ded; r.corrIva += l.iva * ded; }
       }
@@ -632,7 +634,9 @@ export function FormApunte({ inicial, roi, archivoNombre, onClose, onGuardado, o
         <div style={{ background: C.card, border: "1px solid " + C.border, borderRadius: 9, padding: "10px 12px", fontSize: 12.5, color: C.mutedL, lineHeight: 1.55, marginBottom: 12 }}>
           Cuenta en el <b style={{ color: C.text }}>{q}T {a.fecha.slice(0, 4)}</b>
           {a.tipo === "gasto" ? <>
-            {a.iva_regimen === "general" && nIva > 0 && <> · IVA que te descuentas: <b style={{ color: C.green }}>{eur(nIva * ded, 2)}</b></>}
+            {a.iva_regimen === "general" && nIva > 0 && (a.tercero_nif
+              ? <> · IVA que te descuentas: <b style={{ color: C.green }}>{eur(nIva * ded, 2)}</b></>
+              : <> · <b style={{ color: C.orange }}>Pon el NIF del proveedor</b>: sin él no te descuentas los {eur(nIva * ded, 2)} de IVA</>)}
             {(a.iva_regimen === "intracomunitario" || a.iva_regimen === "isp_extranjero") && <> · IVA: suma y resta {eur(ivaCalc, 2)} (sale a 0)</>}
             {" "}· Gasto para el IRPF: <b style={{ color: C.text }}>{a.inversion ? eur(nBase * ded / (a.amort_anios || 4), 2) + " al año" : eur(nBase * ded, 2)}</b>
           </> : <>

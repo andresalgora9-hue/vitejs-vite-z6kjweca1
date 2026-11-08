@@ -66,6 +66,8 @@ export const tamanoTxt = (b: number | null | undefined) => {
   return (n / 1024 / 1024).toLocaleString("es-ES", { maximumFractionDigits: 1 }) + " MB";
 };
 const fechaCorta = (ymd: string) => (ymd ? ymd.slice(8, 10) + "/" + ymd.slice(5, 7) + "/" + ymd.slice(2, 4) : "—");
+// Día (AAAA-MM-DD) de una fecha ISO en hora de Madrid: lo subido a las 00:30 es de ese día, no del anterior
+const diaMadrid = (iso: string) => { try { return new Date(iso).toLocaleDateString("en-CA", { timeZone: "Europe/Madrid" }); } catch { return (iso || "").slice(0, 10); } };
 export const tipoPorCarpeta = (r: string) => {
   if (/(^|\/)Contratos(\/|$)/.test(r)) return "contrato";
   if (/^Facturas recibidas/.test(r)) return "factura_recibida";
@@ -207,7 +209,7 @@ export function Subida({ carpetas, carpetaInicial, tipoInicial, archivosIniciale
   archivosIniciales?: File[];
   pros: Pro[];
   onClose: () => void;
-  onHecho: (ids: string[], tipo: string, mensaje: string) => void;
+  onHecho: (ids: string[], tipo: string, mensaje: string, carpeta?: string) => void;
 }) {
   const [lista, setLista] = useState<{ f: File; url: string | null }[]>(() =>
     (archivosIniciales || []).map((f) => ({ f, url: f.type.startsWith("image/") ? URL.createObjectURL(f) : null })));
@@ -302,7 +304,7 @@ export function Subida({ carpetas, carpetaInicial, tipoInicial, archivosIniciale
         }
       }
       setSubiendo(false);
-      onHecho(ids, tipo, ids.length === 1 ? "Archivo guardado" : ids.length + " archivos guardados");
+      onHecho(ids, tipo, (ids.length === 1 ? "Archivo guardado" : ids.length + " archivos guardados") + (meta.carpeta ? " en " + meta.carpeta.split("/").join(" › ") : ""), meta.carpeta);
     } catch (e: any) {
       setSubiendo(false);
       setErr((e?.message || "No se ha podido subir") + (ids.length ? ` (se guardaron ${ids.length} antes del fallo)` : ""));
@@ -528,7 +530,7 @@ function VistaArchivo({ el, carpetas, pros, movil, onClose, onCambio, aviso }: {
         {cambiado && <div style={{ marginBottom: 12 }}><Btn onClick={guardar} disabled={ocupado} full>{ocupado ? "Guardando…" : "Guardar cambios"}</Btn></div>}
         {fiscal}
         <div style={{ fontSize: 12, color: C.muted, marginBottom: 12 }}>
-          {tamanoTxt(r.tamano)} · subido el {fechaCorta(r.created_at.slice(0, 10))}{r.origen === "claude" ? " por Claude" : ""}
+          {tamanoTxt(r.tamano)} · subido el {fechaCorta(diaMadrid(r.created_at))}{r.origen === "claude" ? " por Claude" : ""}
         </div>
       </> : s && <>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
@@ -600,7 +602,7 @@ export default function Archivos({ d, aviso, irA }: SeccionProps) {
   const vivos = useMemo(() => (datos?.archivos || []).filter((a) => !a.papelera_at), [datos]);
   const enPapelera = useMemo(() => (datos?.archivos || []).filter((a) => a.papelera_at), [datos]);
   const elems: Elem[] = useMemo(() => [
-    ...vivos.map((a) => ({ key: a.id, nombre: a.nombre, carpeta: a.carpeta, fecha: a.fecha_doc || a.created_at.slice(0, 10), tamano: a.tamano, mime: a.mime || "", tipo: a.tipo, real: a })),
+    ...vivos.map((a) => ({ key: a.id, nombre: a.nombre, carpeta: a.carpeta, fecha: a.fecha_doc || diaMadrid(a.created_at), tamano: a.tamano, mime: a.mime || "", tipo: a.tipo, real: a })),
     ...(datos?.sistema || []).map((s) => ({ key: s.id, nombre: s.nombre, carpeta: s.carpeta, fecha: s.fecha, tamano: s.tamano ?? null, mime: s.mime, tipo: s.tipo, sis: s })),
   ], [vivos, datos]);
 
@@ -631,12 +633,12 @@ export default function Archivos({ d, aviso, irA }: SeccionProps) {
   };
   const hijas = useCallback((r: string) => carpetas.filter((c) => padre(c) === r).sort(ordenar), [carpetas]); // eslint-disable-line
 
-  const enPapeleraVista = ruta === PAPELERA;
   const termino = sinTildes(busca.trim());
+  const enPapeleraVista = ruta === PAPELERA && !termino;
   const visibles: Elem[] = useMemo(() => {
     if (termino) return elems.filter((e) => sinTildes(e.nombre + " " + e.carpeta + " " + (e.real?.notas || "") + " " + (e.sis?.cliente || "")).includes(termino))
       .sort((a, b) => b.fecha.localeCompare(a.fecha));
-    if (enPapeleraVista) return enPapelera.map((a) => ({ key: a.id, nombre: a.nombre, carpeta: a.carpeta, fecha: a.fecha_doc || a.created_at.slice(0, 10), tamano: a.tamano, mime: a.mime || "", tipo: a.tipo, real: a }));
+    if (enPapeleraVista) return enPapelera.map((a) => ({ key: a.id, nombre: a.nombre, carpeta: a.carpeta, fecha: a.fecha_doc || diaMadrid(a.created_at), tamano: a.tamano, mime: a.mime || "", tipo: a.tipo, real: a }));
     return [...elems, ...atajos].filter((e) => e.carpeta === ruta).sort((a, b) => b.fecha.localeCompare(a.fecha) || a.nombre.localeCompare(b.nombre, "es"));
   }, [termino, elems, atajos, enPapeleraVista, enPapelera, ruta]);
   const subcarpetas = termino || enPapeleraVista ? [] : hijas(ruta);
@@ -654,7 +656,7 @@ export default function Archivos({ d, aviso, irA }: SeccionProps) {
   useEffect(() => { if (datos && ruta && ruta !== PAPELERA && !carpetas.includes(ruta)) setRuta(""); }, [datos, carpetas, ruta]);
 
   const recargar = (m?: string) => { if (m) aviso(m); cargar(); };
-  const carpetaParaSubir = enPapeleraVista ? "" : ruta;
+  const carpetaParaSubir = ruta === PAPELERA ? "" : ruta;
 
   const crearCarpeta = async (nombre: string) => {
     const r = limpiarRuta((carpetaParaSubir ? carpetaParaSubir + "/" : "") + nombre.replace(/\//g, "-"));
@@ -814,7 +816,7 @@ export default function Archivos({ d, aviso, irA }: SeccionProps) {
           ? <>Hay {sinDatos.length} factura{sinDatos.length > 1 ? "s" : ""} subida{sinDatos.length > 1 ? "s" : ""} sin datos fiscales: no cuenta{sinDatos.length > 1 ? "n" : ""} en Impuestos hasta que los pongas.</>
           : <>Sí: {elems.length} documentos en carpetas, {nPros} profesional{nPros === 1 ? "" : "es"} con su carpeta.</>}
         detalle={<>Las facturas emitidas ({datos.sistema.filter((s) => s.fuente === "factura").length}) y los contratos firmados ({datos.sistema.filter((s) => s.fuente === "contrato" && !s.plantilla).length}) se archivan solos en la carpeta de cada profesional; las facturas, también juntas por año en «Facturas emitidas». Para subir algo, arrástralo aquí o pulsa «Subir»; desde el móvil puedes hacer la foto.
-          {sinDatos.length > 0 && <> <a onClick={() => setAbierto({ key: sinDatos[0].id, nombre: sinDatos[0].nombre, carpeta: sinDatos[0].carpeta, fecha: sinDatos[0].fecha_doc || sinDatos[0].created_at.slice(0, 10), tamano: sinDatos[0].tamano, mime: sinDatos[0].mime || "", tipo: sinDatos[0].tipo, real: sinDatos[0] })} style={{ color: C.accent, cursor: "pointer", fontWeight: 700 }}>Poner los datos de la primera →</a></>}
+          {sinDatos.length > 0 && <> <a onClick={() => setAbierto({ key: sinDatos[0].id, nombre: sinDatos[0].nombre, carpeta: sinDatos[0].carpeta, fecha: sinDatos[0].fecha_doc || diaMadrid(sinDatos[0].created_at), tamano: sinDatos[0].tamano, mime: sinDatos[0].mime || "", tipo: sinDatos[0].tipo, real: sinDatos[0] })} style={{ color: C.accent, cursor: "pointer", fontWeight: 700 }}>Poner los datos de la primera →</a></>}
         </>} />
 
       <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
@@ -910,8 +912,9 @@ export default function Archivos({ d, aviso, irA }: SeccionProps) {
       {subida && (
         <Subida carpetas={carpetas} carpetaInicial={subida.carpeta} archivosIniciales={subida.files} pros={d.pros}
           onClose={() => setSubida(null)}
-          onHecho={async (ids, tipo, m) => {
+          onHecho={async (ids, tipo, m, dest) => {
             setSubida(null); aviso(m); await cargar();
+            if (dest !== undefined && dest !== ruta) { setBusca(""); setRuta(dest); } // que se vea dónde ha quedado
             if (ids.length === 1 && FISCALES.includes(tipo)) setFiscalNuevo({ id: ids[0], nombre: "", tipo });
           }} />
       )}
