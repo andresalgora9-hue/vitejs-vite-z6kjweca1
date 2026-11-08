@@ -157,10 +157,13 @@ export function plazoTrimestre(anio: number, q: number) {
   return { desde: `${anio}-${mes}-01`, hasta: habil(`${anio}-${mes}-20`), hasta111: habil(`${anio}-${mes}-20`) };
 }
 export function periodoPorDefecto(): { anio: number; q: number } {
-  const [y, m, d] = hoyMadrid().split("-").map(Number);
-  if (m === 1 && d <= 30) return { anio: y - 1, q: 4 };
-  if ((m === 4 || m === 7 || m === 10) && d <= 20) return { anio: y, q: (m - 1) / 3 };
-  return { anio: y, q: Math.floor((m - 1) / 3) + 1 };
+  const hoy = hoyMadrid();
+  const [y, m] = hoy.split("-").map(Number);
+  const actual = Math.floor((m - 1) / 3) + 1;
+  // Mientras siga abierto el plazo del trimestre anterior (contando fines de semana y festivos), se abre ese: es el que toca presentar.
+  const anterior = actual === 1 ? { anio: y - 1, q: 4 } : { anio: y, q: actual - 1 };
+  if (hoy <= plazoTrimestre(anterior.anio, anterior.q).hasta) return anterior;
+  return { anio: y, q: actual };
 }
 export const diasHasta = (ymd: string) =>
   Math.round((new Date(ymd + "T12:00:00Z").getTime() - new Date(hoyMadrid() + "T12:00:00Z").getTime()) / 86400000);
