@@ -13,7 +13,8 @@ import ClienteSolicitudes, { NuevaSolicitudHoja, type PrefillSolicitud } from ".
 import ClientePresupuestos, { PresupuestoHoja } from "./ClientePresupuestos";
 import ClienteCalculadora from "./ClienteCalculadora";
 import ClientePerfil from "./ClientePerfil";
-import { ProfesionalesHoja, ProfesionalHoja, ChatHoja, InstalarHoja, Bienvenida, AvisoAccesoHoja, useInstalable, type DatosBienvenida } from "./ClienteExtras";
+import { ProfesionalesHoja, ProfesionalHoja, ChatHoja, InstalarHoja, AvisoAccesoHoja, useInstalable, type DatosBienvenida } from "./ClienteExtras";
+import ClienteGuia from "./ClienteGuia";
 
 type Tab = "inicio" | "solicitudes" | "presupuestos" | "calcular" | "perfil";
 const TABS: { id: Tab; t: string; ic: string }[] = [
@@ -85,23 +86,30 @@ export default function ClienteArea({ user, onUpdate, onLogout, deepLinkProId }:
     } catch { /* nada */ }
   }, []);
 
-  // ── Bienvenida guiada (al llegar desde una landing o el registro rápido) ──
+  // ── Guía paso a paso: sola al llegar desde una landing (o el registro rápido) y la primera vez en este móvil ──
   const provisional = esEmailProvisional(user.email);
   const faltaAcceso = necesitaAcceso(user);
   const bienv = lsJSON<any>("oy_bienvenida", null);
   const bienvMia = bienv && bienv.id === user.id ? bienv : null;
-  const [guia, setGuia] = useState<number | null>(() =>
-    params.get("bienvenida") === "1" || (bienvMia && !bienvMia.vista && Date.now() - (bienvMia.t || 0) < 3 * 864e5) ? 0 : null);
-  const [guiaPendiente, setGuiaPendiente] = useState<number | null>(null);
+  const desdeLanding = params.get("bienvenida") === "1" || !!(bienvMia && !bienvMia.vista && Date.now() - (bienvMia.t || 0) < 3 * 864e5);
+  const claveGuia = "oy_guia_" + user.id;
+  const [guia, setGuia] = useState<null | { recien: boolean }>(() =>
+    vieneDePush || deepLinkProId ? null : desdeLanding ? { recien: true } : lsGet(claveGuia) ? null : { recien: false });
   useEffect(() => {
-    if (guia !== null && bienvMia && !bienvMia.vista) lsSet("oy_bienvenida", JSON.stringify({ ...bienvMia, vista: true }));
+    if (guia && bienvMia && !bienvMia.vista) lsSet("oy_bienvenida", JSON.stringify({ ...bienvMia, vista: true }));
   }, [guia]);
+  const cerrarGuia = useCallback((terminada: boolean) => {
+    setGuia(null);
+    lsSet(claveGuia, terminada ? "fin" : "saltada");
+    if (terminada) aviso("¡Todo listo! Si necesitas algo, escríbenos.");
+  }, [claveGuia, aviso]);
+  const irInicio = useCallback(() => setTabEstado("inicio"), []);
 
   // ── Aviso «protege tu cuenta» (como mucho una vez al día) ──
   const [avisoAcceso, setAvisoAcceso] = useState(false);
   const [foco, setFoco] = useState(vieneDePush ? 1 : 0);
   useEffect(() => {
-    if (!faltaAcceso || user.acceso_pendiente || guia !== null || vieneDePush) return;
+    if (!faltaAcceso || user.acceso_pendiente || guia || vieneDePush) return;
     const k = "oy_aviso_acceso_" + user.id;
     if (Date.now() - Number(lsGet(k) || 0) < 20 * 3600 * 1000) return;
     const t = setTimeout(() => { setAvisoAcceso(true); lsSet(k, String(Date.now())); }, 1800);
@@ -110,8 +118,8 @@ export default function ClienteArea({ user, onUpdate, onLogout, deepLinkProId }:
   const irAcceso = useCallback(() => { setGuia(null); setAvisoAcceso(false); setTab("perfil"); setFoco((f) => f + 1); }, [setTab]);
   const accesoCreado = useCallback((tipo: "clave" | "enlace") => {
     if (tipo === "clave") aviso("¡Listo! Ya puedes entrar con tu correo y tu contraseña");
-    if (guiaPendiente !== null) { setTimeout(() => setGuia(guiaPendiente), 700); setGuiaPendiente(null); }
-  }, [aviso, guiaPendiente]);
+    else aviso("Te hemos enviado un enlace a tu correo para elegir la contraseña");
+  }, [aviso]);
 
   // ── Avisos (push) e instalación ──
   const [avisosOn, setAvisosOn] = useState(avisosActivos());
@@ -156,7 +164,7 @@ export default function ClienteArea({ user, onUpdate, onLogout, deepLinkProId }:
   const avatarNombre = esNombreProvisional(user.name) ? "?" : user.name;
 
   return (
-    <div className="cy" ref={scrollRef} data-scroll style={{ height: "100dvh", overflowY: "auto", WebkitOverflowScrolling: "touch", overscrollBehaviorY: "contain" } as React.CSSProperties}>
+    <div className={"cy" + (guia ? " cy-guia-on" : "")} ref={scrollRef} data-scroll style={{ height: "100dvh", overflowY: "auto", WebkitOverflowScrolling: "touch", overscrollBehaviorY: "contain" } as React.CSSProperties}>
       <EstilosCliente />
       <div className="cy-fondo" />
       <div className="cy-app">
@@ -167,7 +175,7 @@ export default function ClienteArea({ user, onUpdate, onLogout, deepLinkProId }:
               <span className="cy-logo-tx">Oficio<b>Ya</b></span>
             </button>
             <div className="cy-cab-r">
-              <button className="cy-icbtn" onClick={() => setChat(true)} aria-label={"Mensajes con OficioYa" + (sinLeer ? ", " + sinLeer + " sin leer" : "")}>
+              <button className="cy-icbtn" data-guia="chat" onClick={() => setChat(true)} aria-label={"Mensajes con OficioYa" + (sinLeer ? ", " + sinLeer + " sin leer" : "")}>
                 <Icono n="chat" s={19} />
                 {sinLeer > 0 && <span className="cy-badge">{sinLeer > 9 ? "9+" : sinLeer}</span>}
               </button>
@@ -196,14 +204,15 @@ export default function ClienteArea({ user, onUpdate, onLogout, deepLinkProId }:
           {tab === "calcular" && <ClienteCalculadora onPedir={(p) => setHojaSol(p)} onGuardar={(p) => setHojaPre(p)} />}
           {tab === "perfil" && (
             <ClientePerfil user={user} onUpdate={onUpdate} onLogout={onLogout} foco={foco} onAccesoCreado={accesoCreado}
-              onAvisos={pedirAvisos} avisosOn={avisosOn} onInstalar={() => setInstalarAbierto(true)} onChat={() => setChat(true)} aviso={aviso} />
+              onAvisos={pedirAvisos} avisosOn={avisosOn} onInstalar={() => setInstalarAbierto(true)} onChat={() => setChat(true)}
+              onGuia={() => { setTab("inicio"); setGuia({ recien: false }); }} aviso={aviso} />
           )}
         </main>
       </div>
 
       <nav className="cy-tabs" aria-label="Secciones">
         {TABS.map((t) => (
-          <button key={t.id} className="cy-tab" aria-current={tab === t.id ? "page" : undefined} onClick={() => setTab(t.id)}>
+          <button key={t.id} className="cy-tab" data-guia={"tab-" + t.id} aria-current={tab === t.id ? "page" : undefined} onClick={() => setTab(t.id)}>
             <Icono n={t.ic} s={21} w={tab === t.id ? 2.4 : 1.9} />
             <span>{t.t}</span>
             {t.id === "perfil" && faltaAcceso && tab !== "perfil" && <span className="cy-badge" style={{ minWidth: 10, width: 10, height: 10, padding: 0, border: "2px solid #11131A" }} />}
@@ -225,10 +234,10 @@ export default function ClienteArea({ user, onUpdate, onLogout, deepLinkProId }:
       {chat && <ChatHoja user={user} onClose={() => setChat(false)} onLeidos={alLeer} />}
       {instalarAbierto && <InstalarHoja onClose={() => setInstalarAbierto(false)} faltaAcceso={faltaAcceso} onAcceso={() => { setInstalarAbierto(false); irAcceso(); }} />}
       {avisoAcceso && <AvisoAccesoHoja user={user} onClose={() => setAvisoAcceso(false)} onIr={irAcceso} />}
-      {guia !== null && (
-        <Bienvenida paso={guia} user={user} sol={solReciente} datos={bienvMia as DatosBienvenida | null} provisional={faltaAcceso} avisosOn={avisosOn}
-          onPaso={setGuia} onCerrar={() => setGuia(null)} onIrAcceso={(v) => { setGuiaPendiente(v); irAcceso(); }}
-          onIrSolicitudes={() => setTab("solicitudes")} onAvisos={pedirAvisos} />
+      {guia && (
+        <ClienteGuia user={user} sol={solReciente} datos={bienvMia as DatosBienvenida | null} recienLlegado={guia.recien}
+          faltaAcceso={faltaAcceso} avisosOn={avisosOn} onUpdate={onUpdate} onAccesoCreado={accesoCreado} onAvisos={pedirAvisos}
+          onIrInicio={irInicio} onIrAcceso={irAcceso} onCerrar={cerrarGuia} />
       )}
       {toast && <div className="cy-toast" role="status">{toast}</div>}
     </div>

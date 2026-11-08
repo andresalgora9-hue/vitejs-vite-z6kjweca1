@@ -25,7 +25,7 @@ async function guardarUsuario(id: string, cambios: Record<string, any>) {
   }
   return error;
 }
-export function TarjetaAcceso({ user, onUpdate, onHecho, foco }: { user: Cliente; onUpdate: (u: Cliente) => void; onHecho: (tipo: "clave" | "enlace") => void; foco: number }) {
+export function TarjetaAcceso({ user, onUpdate, onHecho, foco, compacta = false }: { user: Cliente; onUpdate: (u: Cliente) => void; onHecho: (tipo: "clave" | "enlace") => void; foco: number; compacta?: boolean }) {
   const temp = claveTemporal(user.id);
   const emailReal = !esEmailProvisional(user.email);
   const pideNombre = esNombreProvisional(user.name);
@@ -119,9 +119,10 @@ export function TarjetaAcceso({ user, onUpdate, onHecho, foco }: { user: Cliente
 
   const icono = (n: string) => <span style={{ width: 42, height: 42, flex: "0 0 42px", borderRadius: 13, display: "flex", alignItems: "center", justifyContent: "center", background: "var(--grad)", color: "#1A1200", boxShadow: "0 10px 22px -12px rgba(255,160,0,.8)" }}><Icono n={n} s={20} w={2.2} /></span>;
 
+  const claseCaja = compacta ? undefined : "cy-card cy-card-oro" + (resaltar ? " cy-foco" : "");
   if (modo === "pendiente" && !otroCorreo) {
     return (
-      <div id="cy-acceso" ref={caja} className={"cy-card cy-card-oro" + (resaltar ? " cy-foco" : "")}>
+      <div id={compacta ? undefined : "cy-acceso"} ref={caja} className={claseCaja}>
         <div style={{ display: "flex", gap: 12 }}>
           {icono("correo")}
           <div style={{ minWidth: 0 }}>
@@ -140,19 +141,22 @@ export function TarjetaAcceso({ user, onUpdate, onHecho, foco }: { user: Cliente
   }
 
   return (
-    <div id="cy-acceso" ref={caja} className={"cy-card cy-card-oro" + (resaltar ? " cy-foco" : "")}>
-      <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-        {icono("candado")}
-        <div style={{ minWidth: 0 }}>
-          <p className="cy-h3">{pideCorreo ? "Crea tu acceso" : "Elige tu contraseña"}</p>
-          <p className="cy-mini" style={{ marginTop: 3, color: "var(--soft)", overflowWrap: "anywhere" }}>
-            {pideCorreo
-              ? "Pon tu correo" + (temp ? " y una contraseña" : "") + " para entrar desde cualquier móvil y no perder tu solicitud ni tus presupuestos."
-              : "Para entrar con tu correo " + user.email + " desde cualquier móvil."}
-          </p>
+    <div id={compacta ? undefined : "cy-acceso"} ref={caja} className={claseCaja}>
+      {!compacta && (
+        <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+          {icono("candado")}
+          <div style={{ minWidth: 0 }}>
+            <p className="cy-h3">{pideCorreo ? "Crea tu acceso" : "Elige tu contraseña"}</p>
+            <p className="cy-mini" style={{ marginTop: 3, color: "var(--soft)", overflowWrap: "anywhere" }}>
+              {pideCorreo
+                ? "Pon tu correo" + (temp ? " y una contraseña" : "") + " para entrar desde cualquier móvil y no perder tu solicitud ni tus presupuestos."
+                : "Para entrar con tu correo " + user.email + " desde cualquier móvil."}
+            </p>
+          </div>
         </div>
-      </div>
-      <div style={{ marginTop: 14 }}>
+      )}
+      {compacta && !pideCorreo && <p className="cy-mini" style={{ marginBottom: 10, color: "var(--soft)", overflowWrap: "anywhere" }}>Tu correo: <b>{user.email}</b></p>}
+      <div style={{ marginTop: compacta ? 0 : 14 }}>
         {pideNombre && (
           <label className="cy-fld"><span>Tu nombre</span>
             <input className="cy-inp" value={nombre} onChange={(e) => setNombre(e.target.value)} autoComplete="name" placeholder="Nombre y apellido" maxLength={60} />
@@ -223,9 +227,9 @@ function CambiarClave({ userId }: { userId: string }) {
 }
 
 // ── Pestaña Perfil ──────────────────────────────────────────
-export default function ClientePerfil({ user, onUpdate, onLogout, foco, onAccesoCreado, onAvisos, avisosOn, onInstalar, onChat, aviso }: {
+export default function ClientePerfil({ user, onUpdate, onLogout, foco, onAccesoCreado, onAvisos, avisosOn, onInstalar, onChat, onGuia, aviso }: {
   user: Cliente; onUpdate: (u: Cliente) => void; onLogout: () => void; foco: number; onAccesoCreado: (tipo: "clave" | "enlace") => void;
-  onAvisos: () => void; avisosOn: boolean; onInstalar: () => void; onChat: () => void; aviso: (m: string) => void;
+  onAvisos: () => void; avisosOn: boolean; onInstalar: () => void; onChat: () => void; onGuia?: () => void; aviso: (m: string) => void;
 }) {
   const provisional = esEmailProvisional(user.email);
   const falta = necesitaAcceso(user);
@@ -357,6 +361,13 @@ export default function ClientePerfil({ user, onUpdate, onLogout, foco, onAcceso
 
       <p className="cy-lbl">Ayuda</p>
       <div className="cy-glass cy-lista">
+        {onGuia && (
+          <button className="cy-item" onClick={onGuia}>
+            <span className="ic"><Icono n="info" s={18} /></span>
+            <span style={{ flex: 1 }}>Ver la guía otra vez<small>Cómo funciona tu área, paso a paso</small></span>
+            <Icono n="cheveron" s={18} c="#96A0B3" />
+          </button>
+        )}
         <button className="cy-item" onClick={onChat}>
           <span className="ic"><Icono n="chat" s={18} /></span>
           <span style={{ flex: 1 }}>Habla con OficioYa<small>Te responde una persona del equipo</small></span>

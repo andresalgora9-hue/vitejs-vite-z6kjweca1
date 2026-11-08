@@ -33,16 +33,16 @@ export default function ClienteInicio({ user, sols, presus, pros, pasos, mostrar
 
       {sols === null && <Esqueleto alto={190} />}
       {activa && (
-        <>
+        <div data-guia="solicitud" data-guia-tipo="activa">
           <div className="cy-sec" style={{ marginTop: 6 }}>
             <p className="cy-h2">Tu solicitud</p>
             <button className="cy-link" onClick={() => onIr("solicitudes")}>Ver todas <Icono n="cheveron" s={15} /></button>
           </div>
           <TarjetaSolicitud s={activa} compacta onVer={() => onIr("solicitudes")} />
-        </>
+        </div>
       )}
       {sols && !activa && (
-        <div className="cy-glass cy-card cy-card-oro cy-entra">
+        <div className="cy-glass cy-card cy-card-oro cy-entra" data-guia="solicitud" data-guia-tipo="pedir">
           <p className="cy-h2">¿Qué necesitas arreglar?</p>
           <p className="cy-mini" style={{ marginTop: 4, marginBottom: 14, color: "var(--soft)" }}>Te asignamos un profesional comprobado de tu zona. Gratis y sin compromiso.</p>
           <div className="cy-tiles">

@@ -539,4 +539,20 @@ select.cy-inp option{background:#1A1C24;color:#F2F5FA}
 .cy-carril>*{scroll-snap-align:start;flex:0 0 auto}
 .cy-clamp2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .cy-clamp3{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+
+/* Guía paso a paso (tutorial al entrar) */
+.cy-guia{position:fixed;inset:0;z-index:3500}
+.cy-guia-velo{position:absolute;inset:0;background:rgba(5,6,10,.8);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);animation:cyFade .25s ease}
+.cy-guia-centro{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:16px}
+.cy-guia-caja{max-width:440px;border-radius:28px !important;border-bottom:1px solid rgba(255,255,255,.12) !important;max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px)}
+.cy-guia-hueco{position:fixed;pointer-events:none;box-shadow:0 0 0 200vmax rgba(5,6,10,.8),0 0 0 2px #FFD700,0 0 22px 4px rgba(255,200,0,.5);transition:top .35s ease,left .35s ease,width .35s ease,height .35s ease;animation:cyGuiaLatido 1.8s ease-in-out infinite}
+@keyframes cyGuiaLatido{0%,100%{box-shadow:0 0 0 200vmax rgba(5,6,10,.8),0 0 0 2px #FFD700,0 0 16px 2px rgba(255,200,0,.4)}50%{box-shadow:0 0 0 200vmax rgba(5,6,10,.8),0 0 0 3px #FFD700,0 0 32px 8px rgba(255,200,0,.65)}}
+.cy-guia-card{position:fixed;padding:16px 18px;border-radius:24px;background:#151821;border:1px solid rgba(255,200,0,.45);box-shadow:0 30px 70px -20px rgba(0,0,0,.95);animation:cyEntra .3s ease both}
+.cy-guia-flecha{position:absolute;width:16px;height:16px;background:#151821;border-left:1px solid rgba(255,200,0,.45);border-top:1px solid rgba(255,200,0,.45);transform:rotate(45deg)}
+.cy-guia-barra{display:flex;gap:4px}
+.cy-guia-barra i{flex:1;height:4px;border-radius:99px;background:rgba(255,255,255,.14);transition:background .3s}
+.cy-guia-barra i.on{background:var(--grad)}
+@media (prefers-reduced-motion:reduce){.cy-guia-hueco{animation:none;transition:none}.cy-guia-card,.cy-guia-velo{animation:none}}
+.cy-toast{pointer-events:none}
+.cy-guia-on .cy-toast{top:calc(14px + env(safe-area-inset-top));bottom:auto}
 `;
