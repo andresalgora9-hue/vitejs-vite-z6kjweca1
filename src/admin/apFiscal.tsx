@@ -230,12 +230,20 @@ export function construirLineas(d: FiscalDatos): Linea[] {
       aviso: a.tipo === "gasto" && a.iva_regimen === "general" && +a.iva_importe > 0 && !a.tercero_nif ? "Sin NIF del proveedor: su IVA no se descuenta hasta que lo pongas" : undefined,
     });
   }
-  // 3) Comisiones cobradas (modelo de comisión): cuentan en los meses sin facturas de comisión subidas
-  const mesesComision = new Set((d.apuntes || []).filter((a) => a.tipo === "ingreso" && a.categoria === "comisiones").map((a) => a.periodo || mesDe(a.fecha)));
+  // 3) Comisiones cobradas (modelo de comisión): cuentan mientras no esté subida la factura de comisión
+  //    de ese mes y de ese profesional (por NIF si los dos lo tienen; si no, por el nombre)
+  const facturasComision = (d.apuntes || []).filter((a) => a.tipo === "ingreso" && a.categoria === "comisiones");
+  const limpio = (s?: string | null) => (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const tieneFactura = (c: ComisionFiscal) => facturasComision.some((a) => {
+    if ((a.periodo || mesDe(a.fecha)) !== mesDe(c.fecha)) return false;
+    if (a.tercero_nif && c.nif) return limpio(a.tercero_nif) === limpio(c.nif);
+    const n1 = limpio(a.tercero_nombre), n2 = limpio(c.pro);
+    return !n1 || !n2 || n1.includes(n2) || n2.includes(n1);
+  });
   const ivaIncluido = cfg.comisiones_iva_incluido !== false;
   for (const c of d.comisiones || []) {
     const mes = mesDe(c.fecha);
-    if (mesesComision.has(mes)) continue;
+    if (tieneFactura(c)) continue;
     const imp = +c.importe;
     const base = ivaIncluido ? r2(imp / 1.21) : r2(imp);
     const iva = ivaIncluido ? r2(imp - base) : r2(imp * 0.21);
@@ -629,7 +637,7 @@ export function FormApunte({ inicial, roi, archivoNombre, onClose, onGuardado, o
         <Campo label="Mes que pagas" type="month" value={a.periodo || (a.fecha ? a.fecha.slice(0, 7) : "")} onChange={(v: string) => set({ periodo: v || null })} ayuda="Sustituye al importe fijo de ese mes en Ajustes" />
       )}
       {a.tipo === "ingreso" && a.categoria === "comisiones" && (
-        <Campo label="Mes de las comisiones" type="month" value={a.periodo || (a.fecha ? a.fecha.slice(0, 7) : "")} onChange={(v: string) => set({ periodo: v || null })} ayuda="Las facturas de comisión de ese mes sustituyen a los cobros apuntados" />
+        <Campo label="Mes de las comisiones" type="month" value={a.periodo || (a.fecha ? a.fecha.slice(0, 7) : "")} onChange={(v: string) => set({ periodo: v || null })} ayuda="Sustituye a los cobros de comisión de ese mes de este profesional" />
       )}
       <Campo label="Notas" value={a.notas || ""} onChange={(v: string) => set({ notas: v })} multilinea placeholder="Opcional" />
 
