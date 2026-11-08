@@ -13,7 +13,7 @@ import ClienteSolicitudes, { NuevaSolicitudHoja, type PrefillSolicitud } from ".
 import ClientePresupuestos, { PresupuestoHoja } from "./ClientePresupuestos";
 import ClienteCalculadora from "./ClienteCalculadora";
 import ClientePerfil from "./ClientePerfil";
-import { ProfesionalesHoja, ProfesionalHoja, ChatHoja, InstalarHoja, AvisoAccesoHoja, useInstalable, type DatosBienvenida } from "./ClienteExtras";
+import { ProfesionalesHoja, ProfesionalHoja, ChatHoja, InstalarHoja, AvisoAccesoHoja, useDescargar, type DatosBienvenida } from "./ClienteExtras";
 import ClienteGuia from "./ClienteGuia";
 
 type Tab = "inicio" | "solicitudes" | "presupuestos" | "calcular" | "perfil";
@@ -123,7 +123,9 @@ export default function ClienteArea({ user, onUpdate, onLogout, deepLinkProId }:
 
   // ── Avisos (push) e instalación ──
   const [avisosOn, setAvisosOn] = useState(avisosActivos());
-  const { instalada } = useInstalable();
+  const [instalarAbierto, setInstalarAbierto] = useState(false);
+  // «Descargar la app»: en Android sale directamente el aviso de instalar; en iPhone, cómo hacerlo
+  const { instalada, descargar } = useDescargar(() => setInstalarAbierto(true));
   const pedirAvisos = useCallback(async () => {
     const r = await activarAvisos(user.id);
     if (r === "ok") { setAvisosOn(true); aviso("Avisos activados"); }
@@ -131,7 +133,6 @@ export default function ClienteArea({ user, onUpdate, onLogout, deepLinkProId }:
     else if (r === "no_soportado") aviso(esIOS() ? "En iPhone, instala primero la app para poder activar los avisos" : "Este navegador no permite avisos");
     else aviso("No se han podido activar los avisos. Inténtalo de nuevo.");
   }, [user.id, aviso]);
-  const [instalarAbierto, setInstalarAbierto] = useState(false);
   const [pasosOcultos, setPasosOcultos] = useState(lsGet("oy_pasos_ocultos_" + user.id) === "1");
   const pasos = { pedido: (sols || []).length > 0, acceso: !faltaAcceso, avisos: avisosOn, instalada };
 
@@ -191,7 +192,8 @@ export default function ClienteArea({ user, onUpdate, onLogout, deepLinkProId }:
           {tab === "inicio" && (
             <ClienteInicio user={user} sols={sols} presus={presus} pros={pros} pasos={pasos} mostrarPasos={!pasosOcultos}
               onNueva={(p) => setHojaSol(p || {})} onApuntar={() => setHojaPre({})} onIr={setTab}
-              onVerPros={() => setHojaPros(true)} onVerPro={setProVer} onChat={() => setChat(true)} onInstalar={() => setInstalarAbierto(true)}
+              onVerPros={() => setHojaPros(true)} onVerPro={setProVer} onChat={() => setChat(true)} onInstalar={descargar}
+              appInstalada={instalada}
               onAvisos={pedirAvisos} onAcceso={irAcceso} onOcultarPasos={() => { setPasosOcultos(true); lsSet("oy_pasos_ocultos_" + user.id, "1"); }} />
           )}
           {tab === "solicitudes" && (
@@ -204,7 +206,7 @@ export default function ClienteArea({ user, onUpdate, onLogout, deepLinkProId }:
           {tab === "calcular" && <ClienteCalculadora onPedir={(p) => setHojaSol(p)} onGuardar={(p) => setHojaPre(p)} />}
           {tab === "perfil" && (
             <ClientePerfil user={user} onUpdate={onUpdate} onLogout={onLogout} foco={foco} onAccesoCreado={accesoCreado}
-              onAvisos={pedirAvisos} avisosOn={avisosOn} onInstalar={() => setInstalarAbierto(true)} onChat={() => setChat(true)}
+              onAvisos={pedirAvisos} avisosOn={avisosOn} onInstalar={descargar} onChat={() => setChat(true)}
               onGuia={() => { setTab("inicio"); setGuia({ recien: false }); }} aviso={aviso} />
           )}
         </main>

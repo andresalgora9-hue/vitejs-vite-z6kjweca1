@@ -110,8 +110,12 @@ export function parseImporte(t: string): number {
   return parseFloat(s);
 }
 export const esIOS = () => typeof navigator !== "undefined" && (/iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && (navigator as any).maxTouchPoints > 1));
-export const appInstalada = () =>
-  typeof window !== "undefined" && (window.matchMedia("(display-mode: standalone)").matches || (navigator as any).standalone === true || lsGet("oy_cliente_app_instalada") === "1");
+export const appInstalada = () => {
+  if (typeof window === "undefined") return false;
+  // Dentro de la app de Android (Google Play) la página se abre con referrer android-app://
+  if (/^android-app:\/\//.test(document.referrer || "")) lsSet("oy_cliente_app_instalada", "1");
+  return window.matchMedia("(display-mode: standalone)").matches || (navigator as any).standalone === true || lsGet("oy_cliente_app_instalada") === "1";
+};
 export const avisosActivos = () => typeof Notification !== "undefined" && Notification.permission === "granted";
 export const avisosPosibles = () => typeof window !== "undefined" && "Notification" in window && "serviceWorker" in navigator && "PushManager" in window;
 

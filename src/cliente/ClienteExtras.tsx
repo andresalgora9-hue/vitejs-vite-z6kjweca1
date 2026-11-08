@@ -205,6 +205,13 @@ export function useInstalable() {
   const [ok, setOk] = useState(!!promptGuardado);
   const [instalada, setInstalada] = useState(appInstalada());
   useEffect(() => {
+    // Chrome en Android puede decir si la app ya está instalada en el móvil (manifest: related_applications)
+    const nav: any = navigator;
+    if (!instalada && typeof nav.getInstalledRelatedApps === "function") {
+      nav.getInstalledRelatedApps().then((apps: any[]) => { if (apps && apps.length) { lsSet("oy_cliente_app_instalada", "1"); setInstalada(true); } }).catch(() => {});
+    }
+  }, []);
+  useEffect(() => {
     const a = () => setOk(true); const b = () => setInstalada(true);
     window.addEventListener("cy-instalable", a); window.addEventListener("cy-instalada", b);
     return () => { window.removeEventListener("cy-instalable", a); window.removeEventListener("cy-instalada", b); };
@@ -218,6 +225,26 @@ export function useInstalable() {
     return false;
   };
   return { instalable: ok, instalada, instalar };
+}
+// Descargar la app: donde el navegador lo permite (Chrome y Samsung en Android, Edge, Chrome en el ordenador)
+// sale directamente el aviso de instalar; en iPhone y dentro de Instagram/Facebook se explica cómo.
+export function useDescargar(abrirInstrucciones: () => void) {
+  const { instalable, instalada, instalar } = useInstalable();
+  const descargar = async () => { if (instalable) await instalar(); else abrirInstrucciones(); };
+  return { instalada, directo: instalable, descargar };
+}
+// Fila discreta al final de Inicio (solo si no la tiene instalada)
+export function FilaDescargar({ onDescargar }: { onDescargar: () => void }) {
+  return (
+    <button className="cy-glass cy-card" onClick={onDescargar} style={{ display: "flex", alignItems: "center", gap: 12, width: "100%", textAlign: "left", color: "var(--ink)" }}>
+      <img src="/icon-192.png" alt="" width={40} height={40} style={{ borderRadius: 12, flex: "0 0 40px" }} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p className="cy-h3" style={{ fontSize: 15 }}>Descarga la app</p>
+        <p className="cy-mini">Te avisamos al momento cuando el profesional te responda.</p>
+      </div>
+      <span className="cy-pill oro" style={{ flex: "0 0 auto" }}><Icono n="movil" s={13} w={2.2} />Descargar</span>
+    </button>
+  );
 }
 export function InstruccionesInstalar({ compacto = false, faltaAcceso = false, onAcceso }: { compacto?: boolean; faltaAcceso?: boolean; onAcceso?: () => void }) {
   const { instalable, instalada, instalar } = useInstalable();
@@ -233,9 +260,9 @@ export function InstruccionesInstalar({ compacto = false, faltaAcceso = false, o
   );
   const copiar = async () => { try { await navigator.clipboard.writeText(location.origin + "/?app=1"); setCopiado(true); setTimeout(() => setCopiado(false), 2500); } catch { /* nada */ } };
   if (instalada) return <p className="cy-sub"><Icono n="check" s={16} w={2.8} c="#7DF0C4" style={{ verticalAlign: "-3px", marginRight: 6 }} />Ya tienes OficioYa en este móvil. Ábrela desde su icono.</p>;
-  if (instalable) return <button className="cy-btn" style={{ marginTop: compacto ? 0 : 6 }} onClick={instalar}><Icono n="movil" s={18} />Instalar OficioYa</button>;
+  if (instalable) return <button className="cy-btn" style={{ marginTop: compacto ? 0 : 6 }} onClick={instalar}><Icono n="movil" s={18} />Descargar la app</button>;
   const IcoComp = <Icono n="compartir" s={16} c="#0A84FF" style={{ verticalAlign: "-3px", margin: "0 2px" }} />;
-  if (plat === "ios_safari") return (<div><Paso n={1}>Pulsa <b>Compartir</b> {IcoComp} en la barra de Safari.</Paso><Paso n={2}>Baja y toca <b>«Añadir a pantalla de inicio»</b>.</Paso><Paso n={3}>Pulsa <b>«Añadir»</b>.</Paso></div>);
+  if (plat === "ios_safari") return (<div><p className="cy-mini" style={{ color: "var(--soft)" }}>En iPhone se añade desde Safari en 3 toques (Apple no deja descargarla con un solo botón):</p><Paso n={1}>Pulsa <b>Compartir</b> {IcoComp} en la barra de Safari.</Paso><Paso n={2}>Baja y toca <b>«Añadir a pantalla de inicio»</b>.</Paso><Paso n={3}>Pulsa <b>«Añadir»</b>.</Paso></div>);
   if (plat === "ios_otro") return (<div><Paso n={1}>Copia el enlace con el botón.</Paso><Paso n={2}>Ábrelo en <b>Safari</b> y entra con tu correo y tu contraseña.</Paso><Paso n={3}>Pulsa <b>Compartir</b> {IcoComp} → <b>«Añadir a pantalla de inicio»</b>.</Paso><button className="cy-btn-s cy-full" style={{ marginTop: 12 }} onClick={copiar}><Icono n={copiado ? "check" : "copiar"} s={17} />{copiado ? "Enlace copiado" : "Copiar enlace"}</button></div>);
   if (plat === "android_app") return (<div><Paso n={1}>Pulsa los <b>tres puntos ⋮</b> de arriba.</Paso><Paso n={2}>Elige <b>«Abrir en Chrome»</b>.</Paso><Paso n={3}>Te saldrá el botón para instalarla.</Paso><button className="cy-btn-s cy-full" style={{ marginTop: 12 }} onClick={copiar}><Icono n={copiado ? "check" : "copiar"} s={17} />{copiado ? "Enlace copiado" : "Copiar enlace"}</button></div>);
   if (plat === "android") return (<div><Paso n={1}>Pulsa los <b>tres puntos ⋮</b> arriba a la derecha.</Paso><Paso n={2}>Toca <b>«Instalar aplicación»</b> o <b>«Añadir a pantalla de inicio»</b>.</Paso><Paso n={3}>Confirma con <b>«Instalar»</b>.</Paso></div>);
@@ -246,8 +273,8 @@ export function InstalarHoja({ onClose, faltaAcceso, onAcceso }: { onClose: () =
     <Hoja onClose={onClose}>
       <div style={{ textAlign: "center", paddingTop: 4 }}>
         <img src="/icon-192.png" alt="" width={72} height={72} style={{ borderRadius: 20, margin: "0 auto", boxShadow: "0 18px 40px -16px rgba(255,160,0,.7)" }} />
-        <p className="cy-h2" style={{ fontSize: 22, marginTop: 14 }}>Instala OficioYa</p>
-        <p className="cy-sub" style={{ marginTop: 6 }}>Tenla en tu pantalla de inicio y te avisamos al momento cuando el profesional te responda. Gratis y ocupa menos de 1 MB.</p>
+        <p className="cy-h2" style={{ fontSize: 22, marginTop: 14 }}>Descarga la app</p>
+        <p className="cy-sub" style={{ marginTop: 6 }}>Tenla en tu móvil y te avisamos al momento cuando el profesional te responda. Gratis y ocupa menos de 1 MB.</p>
       </div>
       <div style={{ marginTop: 14 }}><InstruccionesInstalar faltaAcceso={faltaAcceso} onAcceso={onAcceso} /></div>
     </Hoja>
@@ -279,7 +306,7 @@ export function PrimerosPasos({ e, onPedir, onAcceso, onAvisos, onInstalar, onOc
     { k: "pedido", t: "Pide tu presupuesto", d: "Te asignamos un profesional de tu zona", cta: "Pedir", fn: onPedir, mostrar: true },
     { k: "acceso", t: "Crea tu acceso", d: "Correo y contraseña para no perder tu área", cta: "Crear", fn: onAcceso, mostrar: true },
     { k: "avisos", t: "Activa los avisos", d: "Te avisamos cuando te respondan", cta: "Activar", fn: onAvisos, mostrar: avisosPosibles() },
-    { k: "instalada", t: "Instala la app", d: "OficioYa en tu pantalla de inicio", cta: "Cómo", fn: onInstalar, mostrar: true },
+    { k: "instalada", t: "Descarga la app", d: "Te avisamos al momento en el móvil", cta: "Descargar", fn: onInstalar, mostrar: true },
   ];
   const visibles = items.filter((i) => i.mostrar);
   const hechos = visibles.filter((i) => e[i.k]).length;

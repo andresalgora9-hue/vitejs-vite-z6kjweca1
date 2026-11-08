@@ -11,6 +11,7 @@
   "lang": "es",
   "scope": "/",
   "prefer_related_applications": false,
+  "related_applications": [{ "platform": "webapp", "url": "https://www.aficioya.com/manifest.json" }],
   "categories": ["business", "utilities"],
   "icons": [
     {

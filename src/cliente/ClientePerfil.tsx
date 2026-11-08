@@ -354,7 +354,7 @@ export default function ClientePerfil({ user, onUpdate, onLogout, foco, onAcceso
         )}
         <button className="cy-item" onClick={onInstalar}>
           <span className="ic"><Icono n="movil" s={18} /></span>
-          <span style={{ flex: 1 }}>Instalar OficioYa<small>{appInstalada() ? "Ya la tienes en este móvil" : "Tenla a mano en tu pantalla de inicio"}</small></span>
+          <span style={{ flex: 1 }}>Descargar la app<small>{appInstalada() ? "Ya la tienes en este móvil" : "Te avisamos al momento cuando el profesional responda"}</small></span>
           <Icono n="cheveron" s={18} c="#96A0B3" />
         </button>
       </div>
