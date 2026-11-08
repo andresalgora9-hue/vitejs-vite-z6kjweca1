@@ -7,7 +7,12 @@
 --  2) Las que vencen mañana y hay que pagar a mano (sin tarjeta guardada o con el cobro fallido): aviso de «vence mañana».
 --  No se avisa de las que el profesional dice que ya pagó (aviso_pago) ni de las que se están cobrando en la tarjeta,
 --  ni a profesionales de prueba o borrados. La cuenta atrás se quita sola al pagarse (lead_invoices_quitar_bloqueo).
+--  Excepciones: lead_invoices.prorroga_hasta (p. ej., Cándido OY2026-0002 hasta el miércoles 11/11/2026): hasta esa
+--  fecha no se le recuerda la factura ni empieza la cuenta atrás; si después sigue sin pagar, todo vuelve a ir solo.
 -- ============================================================
+alter table public.lead_invoices add column if not exists prorroga_hasta timestamptz;
+comment on column public.lead_invoices.prorroga_hasta is 'Excepción acordada con el profesional: hasta esta fecha no se le recuerda la factura ni empieza la cuenta atrás por impago.';
+
 create or replace function public.oy_recordatorio_facturas()
 returns integer language plpgsql security definer set search_path to 'public' as $function$
 declare
@@ -32,6 +37,7 @@ begin
        and coalesce(i.cobro_estado, '') not in ('aviso_pago', 'cobrando', 'procesando')
        and not coalesce(u.es_prueba, false) and not coalesce(u.deleted, false)
        and (i.due_at < now() or i.number = any(lista))
+       and (i.prorroga_hasta is null or i.prorroga_hasta < now())  -- excepción acordada (prórroga)
      order by i.pro_id, i.issued_at
   loop
     v_nuevo := false;
@@ -82,6 +88,7 @@ begin
        and coalesce(i.tipo, 'leads') = 'leads'
        and (i.due_at at time zone 'Europe/Madrid')::date = v_manana
        and not (i.number = any(lista))
+       and (i.prorroga_hasta is null or i.prorroga_hasta < now())
        and not coalesce(u.es_prueba, false) and not coalesce(u.deleted, false)
        and coalesce(i.cobro_estado, '') not in ('aviso_pago', 'cobrando', 'procesando')
        and (coalesce(i.cobro_estado, '') in ('rechazada', 'error')
