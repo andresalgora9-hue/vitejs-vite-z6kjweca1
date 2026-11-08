@@ -5,9 +5,11 @@
    «sesion»: se guarda en este navegador y:
      - formulario (pintura, portada…): tras enseñar el «Listo», abre su área
        con la bienvenida guiada (crear acceso, cómo va, instalar la app).
-     - llamada o WhatsApp: no se interrumpe nada; se ofrece «Ver mi solicitud».
+     - llamada o WhatsApp: no se interrumpe nada; se ofrece «Ver mi solicitud» y,
+       al volver a la página después de llamar o escribir, se abre su área.
    Nunca pisa otra sesión abierta en este navegador (profesional, admin u otro
-   cliente). Si el cliente toca algo o sale de la página, no se le redirige.
+   cliente). Si el cliente toca algo de la página mientras se abre, no se le
+   redirige y se queda el enlace.
    No toca el formulario ni la medición (los eventos de Google y Meta ya se han
    enviado cuando esto actúa).
    ============================================================ */
@@ -70,28 +72,38 @@
 
   function despues(cuerpo) {
     var listaEspera = /sin profesionales de OficioYa/i.test(cuerpo.descripcion || "");
-    if (cuerpo.canal === "formulario" && !listaEspera) {
-      // Si toca cualquier cosa (llamar, WhatsApp…) o sale de la página, no se le redirige: se queda el enlace
-      var relojes = [];
-      var cancelar = function (e) {
-        if (e && e.target && e.target.closest && e.target.closest(".oys")) return;
-        relojes.forEach(clearTimeout); relojes = [];
-        quitar();
-        pastilla();
-      };
-      var quitar = function () {
-        document.removeEventListener("click", cancelar, true);
-        window.removeEventListener("pagehide", cancelar);
-        document.removeEventListener("visibilitychange", alOcultar);
-      };
-      var alOcultar = function () { if (document.visibilityState === "hidden") cancelar(); };
+    // 08/11/2026: entra solo en su área (con la guía paso a paso):
+    //  - formulario: 2,8 s después del «Listo»;
+    //  - llamada o WhatsApp: al volver a la página después de llamar o escribir.
+    // Si toca algo de la página mientras tanto, no se le redirige y se queda el enlace «Ver mi solicitud».
+    var relojes = [];
+    var fuera = false;
+    var limpiar = function () { relojes.forEach(clearTimeout); relojes = []; };
+    var quitar = function () {
+      document.removeEventListener("click", cancelar, true);
+      document.removeEventListener("visibilitychange", alCambiar);
+    };
+    var irAlArea = function (espera) {
+      limpiar();
+      aviso('<i></i><span><b>Abriendo tu área de cliente…</b><small>Ahí verás cómo va tu solicitud</small></span>', true);
+      relojes.push(setTimeout(function () { quitar(); location.href = DESTINO; }, espera));
+    };
+    var cancelar = function (e) {
+      if (e && e.target && e.target.closest && e.target.closest(".oys")) return;
+      if (!relojes.length) return;
+      limpiar();
+      pastilla();
+    };
+    var alCambiar = function () {
+      if (document.visibilityState === "hidden") { fuera = true; limpiar(); }
+      else if (fuera) { fuera = false; irAlArea(1600); }
+    };
+    if (!listaEspera) {
       document.addEventListener("click", cancelar, true);
-      window.addEventListener("pagehide", cancelar);
-      document.addEventListener("visibilitychange", alOcultar);
-      relojes.push(setTimeout(function () {
-        aviso('<i></i><span><b>Abriendo tu área de cliente…</b><small>Ahí verás cómo va tu solicitud</small></span>', true);
-      }, 900));
-      relojes.push(setTimeout(function () { quitar(); location.href = DESTINO; }, ESPERA_MS));
+      document.addEventListener("visibilitychange", alCambiar);
+    }
+    if (cuerpo.canal === "formulario" && !listaEspera) {
+      relojes.push(setTimeout(function () { irAlArea(ESPERA_MS - 900); }, 900));
     } else {
       // Llamada, WhatsApp o lista de espera: sin interrumpir, se ofrece entrar.
       // Si está abierta la ventana de «Ya tenemos tus datos», el enlace va dentro (sin tapar el botón de llamar).
@@ -107,10 +119,10 @@
             ok.appendChild(a);
           }
           var reloj = setInterval(function () {
-            if (!document.querySelector(".oyc-fondo")) { clearInterval(reloj); pastilla(); }
+            if (!document.querySelector(".oyc-fondo")) { clearInterval(reloj); if (!relojes.length) pastilla(); }
           }, 800);
           setTimeout(function () { clearInterval(reloj); }, 10 * 60 * 1000);
-        } else {
+        } else if (!relojes.length) {
           pastilla();
         }
       }, 1200);
