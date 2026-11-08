@@ -1845,7 +1845,7 @@ function abrirFicha(id, refrescar){
           : esc(e.texto);
     return '<li><time>' + fecha(e.created_at, true) + ' · ' + esc(quienTxt(e.autor)) + '</time>' + t + '</li>';
   }).join('');
-  var saludo = 'Hola ' + l.nombre.split(' ')[0] + ', soy Sandra de OficioYa. Te escribo por tu solicitud de plaza de ' + oficioTxt(l.oficio).toLowerCase() + ' en ' + (l.ciudad||'tu ciudad') + '. ¿Cuándo te viene bien que te llame?';
+  var saludo = 'Hola ' + l.nombre.split(' ')[0] + ', soy ' + miNombre() + ', de OficioYa. Le escribo porque pidió información en nuestra campaña para ' + oficioTxt(l.oficio) + ' en ' + (l.ciudad||'su ciudad') + '.\n\nTenemos plazas limitadas por zona y enviamos cada solicitud de presupuesto a un solo profesional.\n\nLe cuento cómo funciona en una llamada de 15 minutos. ¿Le viene mejor hoy o mañana?\nDígame un par de horarios para ver disponibilidad y agendamos.';
 
   var fAct = firmaActiva(id), fHecha = firmaHecha(id), fUlt = firmasDe(id)[0] || null;
   var bloqueContrato = '<div class="bloque"><h3>Contrato</h3>';
