@@ -2,3 +2,7 @@ User-agent: *
 Allow: /
 Disallow: /src/
 Sitemap: https://www.aficioya.com/sitemap.xml
+Sitemap: https://www.aficioya.com/sitemap-guias.xml
+Sitemap: https://www.aficioya.com/sitemap-barrios.xml
+Sitemap: https://www.aficioya.com/sitemap-reformas.xml
+Sitemap: https://www.aficioya.com/sitemap-guias-ciudades.xml
