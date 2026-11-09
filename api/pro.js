@@ -7,7 +7,7 @@ const LOGO_URL = "https://aficioya.com/logo.png";
 const SLOGAN = "Profesionales de confianza. Trabajos bien hechos.";
 
 const SUPABASE_URL = "https://rjwojxwrsbvwwshwwpvq.supabase.co";
-const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE";
+const ANON_KEY = "sb_publishable_ReA-g1IhCfbhwMfkei7naw_BgtOs9nv";
 
 const slugify = (s) => (s || "")
   .toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
