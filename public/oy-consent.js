@@ -319,10 +319,11 @@
      /oy-ab-fondo.js monta el fondo, marca visitas y leads, y lo deshace si la
      página no es una landing de pintura con calculadora.
      Reparto 1/3 por visitante (localStorage); forzar con ?ab=a, ?ab=b o ?ab=c. */
+  /* 09/11/2026: Córdoba fuera del test (ahí va solo la cabecera de siempre). */
   try {
     (function () {
       var ruta = location.pathname || "";
-      if (!/pint|gotele|alisar|moho|humedad/i.test(ruta) || /fachada|local|baratos|carpinter|admin|captacion|panel/i.test(ruta)) return;
+      if (!/pint|gotele|alisar|moho|humedad/i.test(ruta) || /fachada|local|baratos|carpinter|admin|captacion|panel|cordoba/i.test(ruta)) return;
       var TEST = "fondo_hero_v1", CLAVE = "oy_ab_" + TEST, v = "";
       try { v = (new URLSearchParams(location.search).get("ab") || "").toUpperCase(); } catch (e) {}
       if (v === "A" || v === "B" || v === "C") {
