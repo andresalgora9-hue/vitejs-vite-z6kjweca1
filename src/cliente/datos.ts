@@ -21,7 +21,7 @@ export async function cargarSolicitudes(clienteId: string): Promise<Solicitud[]>
   const proIds = Array.from(new Set((leads || []).map((l: any) => l.pro_id).filter(Boolean)));
   const pros: Record<string, any> = {};
   if (proIds.length) {
-    const { data: us } = await db.from("users").select("id,name,company_name,avatar_url,trade,phone,whatsapp").in("id", proIds);
+    const { data: us } = await db.from("pros_publicos").select("id,name,company_name,avatar_url,trade,phone,whatsapp").in("id", proIds);
     (us || []).forEach((u: any) => { pros[u.id] = u; });
   }
   return lista.map((b) => {
@@ -132,14 +132,13 @@ export const claveOficio = (oficio: string) => (oficio || "").toLowerCase().star
 export async function cargarProfesionales(): Promise<ProPublico[]> {
   const { data, error } = await db.rpc("oy_cliente_profesionales");
   if (!error && Array.isArray(data)) return data as ProPublico[];
-  const { data: us } = await db.from("users")
-    .select("id,name,company_name,trade,zone,city_slug,avatar_url,bio,specialties,experience_years,email,es_prueba,login_as,available,deleted,banned")
+  const { data: us } = await db.from("pros_publicos")
+    .select("id,name,company_name,trade,zone,city_slug,avatar_url,bio,specialties,experience_years,es_prueba,login_as,available,deleted,banned")
     .eq("type", "profesional");
   const { data: rutas } = await db.from("lead_routing").select("pro_id").eq("active", true);
   const conContrato = new Set((rutas || []).map((r: any) => r.pro_id));
   return ((us || []) as any[])
-    .filter((u) => !u.deleted && !u.banned && !u.es_prueba && !u.login_as && u.available !== false && (u.trade || "").trim() && (u.name || "").trim()
-      && /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(u.email || "") && !/\.\./.test(u.email || "") && !/algora/i.test(u.email || ""))
+    .filter((u) => !u.deleted && !u.banned && !u.es_prueba && !u.login_as && u.available !== false && (u.trade || "").trim() && (u.name || "").trim())
     .map((u) => {
       const ps = String(u.name).trim().split(/\s+/);
       const nombre = ps[0].charAt(0).toUpperCase() + ps[0].slice(1).toLowerCase() + (ps[1] ? " " + ps[1].charAt(0).toUpperCase() + "." : "");
