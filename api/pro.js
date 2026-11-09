@@ -78,7 +78,7 @@ export default async function handler(req, res) {
     if (!slug) { res.status(404).send(html404()); return; }
 
     const headers = { apikey: ANON_KEY, Authorization: "Bearer " + ANON_KEY };
-    const r = await fetch(SUPABASE_URL + "/rest/v1/users?type=eq.profesional&select=id,name,trade,zone,service_zones,bio,rating,reviews,jobs,verified,avatar_url,response_time,schedule,experience_years,specialties,free_quote,plan,available,joined_at", { headers });
+    const r = await fetch(SUPABASE_URL + "/rest/v1/pros_publicos?type=eq.profesional&select=id,name,trade,zone,service_zones,bio,rating,reviews,jobs,verified,avatar_url,response_time,schedule,experience_years,specialties,free_quote,plan,available,joined_at", { headers });
     const pros = await r.json();
     const pro = Array.isArray(pros) ? pros.find(p => slugify(p.name + "-" + (p.trade || "")) === slug) : null;
     if (!pro) { res.status(404).send(html404()); return; }
