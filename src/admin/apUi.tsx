@@ -25,6 +25,7 @@ export interface Pro {
   joined_at: string | null; created_at: string | null; activacion_estado: string | null; activacion_invoice_id: string | null;
   deleted: boolean | null; banned: boolean | null; plan: string | null;
   precio_lead?: number | null; city_slug?: string | null; captacion_lead_id?: string | null; ficha_captacion?: any;
+  ficha_aceptada_at?: string | null;
 }
 export interface Lead {
   id: string; created_at: string; pro_id: string; trade: string; city_slug: string; canal: "formulario" | "whatsapp" | "llamada";

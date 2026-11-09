@@ -11,10 +11,15 @@ import { GestionFactura, estadoFactura } from "./apFacturas";
 import AltasPendientes from "./apAltas";
 
 const ALTA: Record<string, { t: string; c: string }> = {
-  pagada: { t: "Alta pagada", c: C.green },
+  pagada: { t: "💳 Alta pagada", c: C.green },
   pendiente: { t: "Alta pendiente", c: C.orange },
   exento: { t: "Exento de alta", c: C.blue },
 };
+
+// Ficha «Tu zona y tus trabajos»: la rellena el profesional en su app (los que pagan por lead) y acepta qué leads son válidos
+const fichaDe = (p: Pro): { t: string; c: string } | null =>
+  p.ficha_aceptada_at ? { t: "📋 Ficha rellenada", c: C.green }
+    : Number(p.precio_lead || 0) > 0 ? { t: "📋 Ficha sin rellenar", c: C.orange } : null;
 
 function FichaPro({ p, d, onClose, onHecho }: { p: Pro; d: SeccionProps["d"]; onClose: () => void; onHecho: (m: string, cerrar?: boolean) => void }) {
   const claves = d.precios.filter((x) => x.trade_key !== "_default").map((x) => x.trade_key);
@@ -79,6 +84,7 @@ function FichaPro({ p, d, onClose, onHecho }: { p: Pro; d: SeccionProps["d"]; on
         <Pill texto={oficioDe(p.trade)} color={C.accent} />
         {reparto.length ? <Pill texto="Recibe leads" color={C.green} /> : <Pill texto="Sin reparto" color={C.muted} />}
         {alta && <Pill texto={alta.t} color={alta.c} />}
+        {fichaDe(p) && <Pill texto={fichaDe(p)!.t} color={fichaDe(p)!.c} />}
         {p.captacion_lead_id && <Pill texto="Alta hecha por Sandra" color={C.blue} />}
         {d.conPush.has(p.id) ? <Pill texto="Avisos activados" color={C.green} /> : <Pill texto="Sin avisos" color={C.orange} />}
       </div>
@@ -99,9 +105,10 @@ function FichaPro({ p, d, onClose, onHecho }: { p: Pro; d: SeccionProps["d"]; on
 
       {p.captacion_lead_id && (
         <>
-          <Titulo>Ficha de Sandra</Titulo>
+          <Titulo>{ficha?.hecha_por === "profesional" ? "Su ficha (rellenada por él en la app)" : "Ficha de captación"}</Titulo>
           {ficha ? (
             <>
+              {p.ficha_aceptada_at && fila("Confirmada por él", <span style={{ color: C.green }}>{fechaHora(p.ficha_aceptada_at)} · aceptó qué leads son válidos</span>)}
               {fila("Horario", ficha.horario)}
               {fila("Urgencias 24 h", ficha.urgencias_24h ? "Sí" : "No")}
               {fila("Fines de semana y festivos", ficha.fines_semana ? "Sí" : "No")}
@@ -222,6 +229,7 @@ export default function Profesionales({ d, recargar, aviso, irA }: SeccionProps)
   const esNuevo = (p: Pro) => ts(p.joined_at || p.created_at) >= ts(INICIO_ALTAS);
   const pendAlta = d.pros.filter((p) => esNuevo(p) && !["pagada", "exento"].includes(p.activacion_estado || ""));
   const porConfirmar = d.pros.filter((p) => (p as any).alta_estado === "pendiente").length;
+  const sinFicha = d.pros.filter((p) => Number(p.precio_lead || 0) > 0 && !p.ficha_aceptada_at);
 
   // Respuesta de arriba: ¿los profesionales están al día?
   const sinLlamarP = d.leads.filter((l) => !l.anulado && l.estado === "nuevo" && ahora - ts(l.created_at) > 2 * 3600000);
@@ -236,6 +244,7 @@ export default function Profesionales({ d, recargar, aviso, irA }: SeccionProps)
   if (vencP.length) problemasP.push(vencP.length + " facturas vencidas (" + Array.from(new Set(vencP.map((f) => d.proPorId[f.pro_id]?.name || "—"))).join(", ") + ")");
   if (pendAlta.length) problemasP.push(pendAlta.length + " altas sin cobrar");
   if (porConfirmar) problemasP.push(porConfirmar + (porConfirmar === 1 ? " alta pagada" : " altas pagadas") + " por confirmar (en Altas)");
+  if (sinFicha.length) problemasP.push(sinFicha.length + (sinFicha.length === 1 ? " ficha sin rellenar (" : " fichas sin rellenar (") + sinFicha.map((p) => p.name).join(", ") + ")");
   if (sinPushP.length) problemasP.push(sinPushP.length + " reciben leads sin tener los avisos activados (" + sinPushP.map((id) => d.proPorId[id]?.name || "—").join(", ") + ")");
 
   const filas = useMemo(() => {
@@ -288,7 +297,7 @@ export default function Profesionales({ d, recargar, aviso, irA }: SeccionProps)
       {filtro === "altas" && <AltasPendientes d={d} recargar={recargar} aviso={aviso} irA={irA} onVerFicha={setFicha} />}
 
       <Tabla
-        cols={[{ k: "nombre", l: "Profesional" }, { k: "oficio", l: "Oficio" }, { k: "reparto", l: "Leads" }, { k: "cobro", l: "Cobro" }, { k: "precio", l: "€/lead", align: "right" }, { k: "alta", l: "Alta" }, { k: "mes", l: "Este mes", align: "right" }, { k: "sin", l: "Sin llamar", align: "right" }, { k: "cierre", l: "Cierre", align: "right" }, { k: "resp", l: "Respuesta", align: "right" }, { k: "fact", l: "Sin facturar", align: "right" }, { k: "venc", l: "Vencido", align: "right" }, { k: "push", l: "Avisos" }, { k: "fiscal", l: "Datos fiscales" }, { k: "reg", l: "Registro" }]}
+        cols={[{ k: "nombre", l: "Profesional" }, { k: "oficio", l: "Oficio" }, { k: "reparto", l: "Leads" }, { k: "cobro", l: "Cobro" }, { k: "precio", l: "€/lead", align: "right" }, { k: "alta", l: "Alta" }, { k: "ficha", l: "Ficha" }, { k: "mes", l: "Este mes", align: "right" }, { k: "sin", l: "Sin llamar", align: "right" }, { k: "cierre", l: "Cierre", align: "right" }, { k: "resp", l: "Respuesta", align: "right" }, { k: "fact", l: "Sin facturar", align: "right" }, { k: "venc", l: "Vencido", align: "right" }, { k: "push", l: "Avisos" }, { k: "fiscal", l: "Datos fiscales" }, { k: "reg", l: "Registro" }]}
         filas={filas.map((x) => ({
           nombre: <span><b>{x.p.name}</b>{x.p.company_name ? <span style={{ color: C.mutedL }}> · {x.p.company_name}</span> : null}</span>,
           oficio: oficioDe(x.p.trade),
@@ -304,6 +313,7 @@ export default function Profesionales({ d, recargar, aviso, irA }: SeccionProps)
           precio: x.p.precio_lead != null ? eur(Number(x.p.precio_lead)) : <span>{eur(precioLeadDe(d, x.p.trade, x.p.city_slug || "sevilla", null))} <span style={{ color: C.muted, fontSize: 11 }}>ciudad</span></span>,
           alta: x.p.activacion_estado ? <Pill texto={ALTA[x.p.activacion_estado]?.t || x.p.activacion_estado} color={ALTA[x.p.activacion_estado]?.c || C.muted} />
             : esNuevo(x.p) ? <Pill texto="Sin emitir" color={C.orange} /> : <span style={{ color: C.muted }}>—</span>,
+          ficha: fichaDe(x.p) ? <Pill texto={fichaDe(x.p)!.t} color={fichaDe(x.p)!.c} /> : <span style={{ color: C.muted }}>—</span>,
           mes: num(x.lm), sin: x.sinLlamar ? <span style={{ color: C.orange, fontWeight: 800 }}>{x.sinLlamar}</span> : "0",
           cierre: x.total ? x.cierre : "—", resp: duracion(x.resp), fact: x.sinFact ? eur(x.sinFact) : "—",
           venc: x.vencido ? <span style={{ color: C.red, fontWeight: 800 }}>{eur(x.vencido, 2)}</span> : "—",
