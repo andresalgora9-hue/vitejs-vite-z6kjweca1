@@ -50,7 +50,6 @@ export default function ProFicha({ userId, oculto = false, abrir = false, onCerr
   const [zonas, setZonas] = useState("");
   const [marcados, setMarcados] = useState<string[]>([]);
   const [otros, setOtros] = useState("");
-  const [noHace, setNoHace] = useState("");
   const [horario, setHorario] = useState("");
   const [finde, setFinde] = useState(false);
   const [urg, setUrg] = useState(false);
@@ -71,7 +70,6 @@ export default function ProFicha({ userId, oculto = false, abrir = false, onCerr
       setZonas(f.zonas || d.ciudad || "");
       setMarcados(Array.isArray(f.servicios_lista) ? f.servicios_lista.filter((s: string) => lista.includes(s)) : []);
       setOtros(delPro ? f.servicios_otros || "" : lista.length ? "" : f.servicios || "");
-      setNoHace(f.no_hace || "");
       setHorario(f.horario || "");
       setFinde(!!f.fines_semana);
       setUrg(!!f.urgencias_24h);
@@ -104,7 +102,7 @@ export default function ProFicha({ userId, oculto = false, abrir = false, onCerr
     const { error: e } = await db.rpc("oy_ficha_guardar", {
       p_pro: userId,
       p_ficha: {
-        zonas, servicios: marcados, otros, no_hace: noHace, horario, fines_semana: finde, urgencias_24h: urg,
+        zonas, servicios: marcados, otros, horario, fines_semana: finde, urgencias_24h: urg,
         capacidad_semana: String(n), acepta: true, ua: typeof navigator !== "undefined" ? navigator.userAgent : "",
       },
     });
@@ -142,7 +140,7 @@ export default function ProFicha({ userId, oculto = false, abrir = false, onCerr
               {cambiar ? "Cambia tu ficha" : "Tu zona y tus trabajos" + (datos.nombre ? ", " + datos.nombre : "")}
             </h2>
             <p style={{ margin: 0, fontSize: 14.5, lineHeight: 1.55, color: C.mutedL }}>
-              Con esto preparamos tus campañas{datos.ciudad ? " en " + datos.ciudad : ""}: solo te buscaremos clientes donde trabajas y de lo que haces. Es un minuto.
+              Con esto preparamos tus campañas{datos.ciudad ? " en " + datos.ciudad : ""}: te buscaremos clientes en tus zonas y para los trabajos que haces. Es un minuto.
             </p>
 
             <label style={etiqueta} htmlFor="oy-ficha-zonas">¿En qué pueblos o zonas trabajas?</label>
@@ -166,9 +164,6 @@ export default function ProFicha({ userId, oculto = false, abrir = false, onCerr
             )}
             <input value={otros} onChange={(e) => setOtros(e.target.value)} placeholder={lista.length ? "Otros trabajos que haces (opcional)" : "Ej.: los trabajos que haces, separados por comas"}
               style={{ ...campo, marginTop: lista.length ? 10 : 0 }} />
-
-            <label style={etiqueta} htmlFor="oy-ficha-nohace">¿Algún trabajo que NO quieras recibir? <span style={{ color: C.muted, fontWeight: 600 }}>(opcional)</span></label>
-            <input id="oy-ficha-nohace" value={noHace} onChange={(e) => setNoHace(e.target.value)} placeholder="Ej.: trabajos pequeños de menos de 300 €" style={campo} />
 
             <span style={etiqueta}>Disponibilidad</span>
             <Interruptor activo={finde} onChange={setFinde} texto="Trabajo fines de semana y festivos" />

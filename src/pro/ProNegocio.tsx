@@ -200,7 +200,6 @@ export default function ProNegocio({ user, onUpdate, onToast }: {
               <div style={{ fontSize: 13.5, color: C.text, lineHeight: 1.6 }}>
                 <div><span style={{ color: C.mutedL }}>Zonas:</span> {fichaInfo.ficha?.zonas || "—"}</div>
                 <div><span style={{ color: C.mutedL }}>Trabajos:</span> {fichaInfo.ficha?.servicios || "—"}</div>
-                {fichaInfo.ficha?.no_hace && <div><span style={{ color: C.mutedL }}>No quieres recibir:</span> {fichaInfo.ficha.no_hace}</div>}
                 <div><span style={{ color: C.mutedL }}>Clientes nuevos por semana:</span> {fichaInfo.ficha?.capacidad_semana ?? "—"}</div>
                 <div style={{ fontSize: 12, color: C.muted, marginTop: 6 }}>Confirmada el {fecha(fichaInfo.aceptada_at)}</div>
               </div>
