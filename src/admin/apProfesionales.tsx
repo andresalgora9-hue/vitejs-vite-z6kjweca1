@@ -105,15 +105,19 @@ function FichaPro({ p, d, onClose, onHecho }: { p: Pro; d: SeccionProps["d"]; on
 
       {p.captacion_lead_id && (
         <>
-          <Titulo>{p.ficha_aceptada_at ? "Su ficha (rellenada por él en la app)" : ficha?.origen === "ficha_pdf" ? "Su ficha (pasada de su PDF; falta que la acepte en la app)" : "Ficha de captación"}</Titulo>
+          <Titulo>{p.ficha_aceptada_at ? (ficha?.origen === "ficha_papel_firmada" ? "Su ficha (firmada en papel)" : "Su ficha (rellenada por él en la app)") : ficha?.origen === "ficha_pdf" ? "Su ficha (pasada de su PDF; falta que la acepte en la app)" : "Ficha de captación"}</Titulo>
           {ficha ? (
             <>
-              {p.ficha_aceptada_at && fila("Confirmada por él", <span style={{ color: C.green }}>{fechaHora(p.ficha_aceptada_at)} · aceptó qué leads son válidos</span>)}
+              {p.ficha_aceptada_at && (ficha?.origen === "ficha_papel_firmada"
+                ? fila("Firmada en papel", <span style={{ color: C.green }}>{fecha(p.ficha_aceptada_at)} · copia en Archivos (Documentos)</span>)
+                : fila("Confirmada por él", <span style={{ color: C.green }}>{fechaHora(p.ficha_aceptada_at)} · aceptó qué leads son válidos</span>))}
               {fila("Horario", ficha.horario)}
               {fila("Urgencias 24 h", ficha.urgencias_24h ? "Sí" : "No")}
               {fila("Fines de semana y festivos", ficha.fines_semana ? "Sí" : "No")}
               {fila("Zonas que cubre", ficha.zonas)}
+              {ficha.zonas_no && fila("No quiere ir a", ficha.zonas_no)}
               {fila("Servicios", ficha.servicios)}
+              {ficha.mas_interesa && fila("Lo que más le interesa", ficha.mas_interesa)}
               {fila("No quiere recibir", ficha.no_hace)}
               {fila("Clientes nuevos por semana", ficha.capacidad_semana != null ? String(ficha.capacidad_semana) : null)}
               {fila("Notas", ficha.notas)}
