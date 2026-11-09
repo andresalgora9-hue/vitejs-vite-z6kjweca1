@@ -17,7 +17,7 @@
   if (window.OYGuia) return;
   var G = window.OY_GUIA || {};
   var RPC = "https://rjwojxwrsbvwwshwwpvq.supabase.co/rest/v1/rpc/oy_lead_contacto";
-  var KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE";
+  var KEY = "sb_publishable_ReA-g1IhCfbhwMfkei7naw_BgtOs9nv";
   var CAT = "guia_" + (G.slug || "sin_slug");
   var LLAMADA = G.modo === "llamada";
   var USTED = !!G.usted;
