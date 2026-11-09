@@ -9,6 +9,7 @@ import {
   ts, mesDe, mesHoy, fecha, fechaHora, eur, num, pct, duracion, oficioDe, waLink, digitos, precioLeadDe } from "./apUi";
 import { GestionFactura, estadoFactura } from "./apFacturas";
 import AltasPendientes from "./apAltas";
+import { RescindirContrato, BajaInfo } from "./apBaja";
 
 const ALTA: Record<string, { t: string; c: string }> = {
   pagada: { t: "💳 Alta pagada", c: C.green },
@@ -43,6 +44,7 @@ function FichaPro({ p, d, onClose, onHecho }: { p: Pro; d: SeccionProps["d"]; on
   // Cobro automático con tarjeta (enlace para guardarla, tarjeta, cobros fallidos y cuenta atrás)
   const [cobro, setCobro] = useState<any>(null);
   const [copiado, setCopiado] = useState(false);
+  const [rescindir, setRescindir] = useState(false);
   useEffect(() => {
     db.rpc("oy_cobro_estado_pro", { p_pro: p.id }).then(({ data, error }: any) => { if (!error) setCobro(data || null); });
   }, [p.id]);
@@ -82,6 +84,7 @@ function FichaPro({ p, d, onClose, onHecho }: { p: Pro; d: SeccionProps["d"]; on
     <Modal titulo={p.name} onClose={onClose} ancho={640}>
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
         <Pill texto={oficioDe(p.trade)} color={C.accent} />
+        {p.baja_at && <Pill texto="Dado de baja" color={C.red} />}
         {reparto.length ? <Pill texto="Recibe leads" color={C.green} /> : <Pill texto="Sin reparto" color={C.muted} />}
         {alta && <Pill texto={alta.t} color={alta.c} />}
         {fichaDe(p) && <Pill texto={fichaDe(p)!.t} color={fichaDe(p)!.c} />}
@@ -96,12 +99,16 @@ function FichaPro({ p, d, onClose, onHecho }: { p: Pro; d: SeccionProps["d"]; on
       {fila("Teléfono", p.phone || p.whatsapp)}
       {fila("Email", p.billing_email || p.email)}
       {fila("Registro", fecha(p.joined_at || p.created_at))}
-      {digitos(p.phone || p.whatsapp).length >= 9 && (
-        <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-          <Btn small color={C.green} href={"tel:" + digitos(p.phone || p.whatsapp)}>Llamar</Btn>
-          <Btn small outline color={C.green} href={waLink(p.whatsapp || p.phone)}>WhatsApp</Btn>
-        </div>
-      )}
+      <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
+        {digitos(p.phone || p.whatsapp).length >= 9 && (
+          <>
+            <Btn small color={C.green} href={"tel:" + digitos(p.phone || p.whatsapp)}>Llamar</Btn>
+            <Btn small outline color={C.green} href={waLink(p.whatsapp || p.phone)}>WhatsApp</Btn>
+          </>
+        )}
+        {!p.baja_at && <span style={{ marginLeft: "auto" }}><Btn small outline color={C.red} onClick={() => setRescindir(true)}>Rescindir contrato</Btn></span>}
+      </div>
+      {p.baja_at && <BajaInfo p={p} onHecho={(m) => onHecho(m)} />}
 
       {p.captacion_lead_id && (
         <>
@@ -143,7 +150,7 @@ function FichaPro({ p, d, onClose, onHecho }: { p: Pro; d: SeccionProps["d"]; on
             ? <span style={{ color: C.green }}>{(cobro.tarjeta.marca || "Tarjeta").replace(/^./, (c: string) => c.toUpperCase())} •••• {cobro.tarjeta.ultimos4}</span>
             : <span style={{ color: C.orange }}>Sin guardar: sus facturas se pagan a mano</span>)}
           {cobro.fallidas?.length > 0 && fila("Cobro fallido", <span style={{ color: C.red }}>{cobro.fallidas.map((f: any) => f.number + " (" + (f.error || "rechazado") + ")").join(", ")}</span>)}
-          {cobro.impago?.activo && fila("Cuenta atrás", <span style={{ color: cobro.impago.bloqueado ? C.red : C.orange }}>
+          {cobro.impago?.activo && !p.baja_at && fila("Cuenta atrás", <span style={{ color: cobro.impago.bloqueado ? C.red : C.orange }}>
             {cobro.impago.bloqueado ? "Ya no recibe leads hasta que pague" : cobro.impago.usados + " de " + cobro.impago.limite + " leads antes de cortarle"}</span>)}
           <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
             <Btn small outline onClick={copiarEnlace}>{copiado ? "✓ Enlace copiado" : "Copiar enlace de la tarjeta"}</Btn>
@@ -163,6 +170,7 @@ function FichaPro({ p, d, onClose, onHecho }: { p: Pro; d: SeccionProps["d"]; on
           <Btn small outline color={C.red} disabled={ocupado} onClick={() => rpc("oy_quitar_routing", { p_admin: claveCapt, p_trade_key: r.trade_key, p_city: r.city_slug }, "Reparto quitado")}>Quitar</Btn>
         </div>
       ))}
+      {p.baja_at ? <div style={{ fontSize: 13, color: C.muted }}>Dado de baja: no se le dan leads. Si vuelve, deshaz la baja y dáselos aquí.</div> : <>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginTop: 6 }}>
         <Sel value={clave} onChange={setClave} options={claves.map((k) => ({ v: k, l: oficioDe(k) + " (" + eur(precioPro ?? precioLeadDe(d, k, ciudad, null)) + "/lead)" }))} />
         <input value={ciudad} onChange={(e) => setCiudad(e.target.value.toLowerCase())} style={{ width: 110, background: C.bg, border: "1px solid " + C.border, borderRadius: 8, color: C.text, padding: "8px 10px", fontFamily: F, fontSize: 13 }} />
@@ -173,6 +181,7 @@ function FichaPro({ p, d, onClose, onHecho }: { p: Pro; d: SeccionProps["d"]; on
         }}>Darle estos leads</Btn>
       </div>
       <div style={{ fontSize: 12, color: C.muted, marginTop: 6 }}>Solo un profesional por oficio y ciudad. Los leads nuevos le llegan solos{precioPro != null ? ", a " + eur(precioPro) + " + IVA cada uno (su precio de contrato)" : ""}.</div>
+      </>}
 
       <Titulo>Alta ({eur(d.config.activacion_eur || 99)} + IVA)</Titulo>
       <div style={{ fontSize: 13, color: C.mutedL, marginBottom: 10 }}>
@@ -212,12 +221,13 @@ function FichaPro({ p, d, onClose, onHecho }: { p: Pro; d: SeccionProps["d"]; on
       {facturas.length === 0 && <div style={{ fontSize: 13, color: C.muted }}>Sin facturas todavía.</div>}
 
       {factura && <GestionFactura f={factura} d={d} onClose={() => setFactura(null)} onHecho={(m) => { setFactura(null); onHecho(m); }} />}
+      {rescindir && <RescindirContrato p={p} onClose={() => setRescindir(false)} onHecho={(m) => { setRescindir(false); onHecho(m); }} />}
     </Modal>
   );
 }
 
 export default function Profesionales({ d, recargar, aviso, irA }: SeccionProps) {
-  const [filtro, setFiltro] = useState<"activos" | "altas" | "todos">("activos");
+  const [filtro, setFiltro] = useState<"activos" | "inactivos" | "altas" | "todos">("activos");
   const [busca, setBusca] = useState("");
   const [ficha, setFicha] = useState<string | null>(null);
   const [cobros, setCobros] = useState<Record<string, any>>({});
@@ -233,7 +243,12 @@ export default function Profesionales({ d, recargar, aviso, irA }: SeccionProps)
   const esNuevo = (p: Pro) => ts(p.joined_at || p.created_at) >= ts(INICIO_ALTAS);
   const pendAlta = d.pros.filter((p) => esNuevo(p) && !["pagada", "exento"].includes(p.activacion_estado || ""));
   const porConfirmar = d.pros.filter((p) => (p as any).alta_estado === "pendiente").length;
-  const sinFicha = d.pros.filter((p) => Number(p.precio_lead || 0) > 0 && !p.ficha_aceptada_at);
+  const sinFicha = d.pros.filter((p) => Number(p.precio_lead || 0) > 0 && !p.ficha_aceptada_at && !p.baja_at);
+  // Activos: reciben leads y no están dados de baja. Inactivos: dados de baja, o ya trabajaron con leads y ahora no reciben.
+  const esActivo = (p: Pro) => activos.has(p.id) && !p.baja_at;
+  const esInactivo = (p: Pro) => !!p.baja_at || (!activos.has(p.id) && (d.leads.some((l) => l.pro_id === p.id) || d.facturas.some((f) => f.pro_id === p.id && f.tipo !== "activacion")));
+  const nActivos = d.pros.filter(esActivo).length;
+  const nInactivos = d.pros.filter(esInactivo).length;
 
   // Respuesta de arriba: ¿los profesionales están al día?
   const sinLlamarP = d.leads.filter((l) => !l.anulado && l.estado === "nuevo" && ahora - ts(l.created_at) > 2 * 3600000);
@@ -241,7 +256,7 @@ export default function Profesionales({ d, recargar, aviso, irA }: SeccionProps)
   const sinPushP = Array.from(activos).filter((id) => !d.conPush.has(id));
   const problemasP: string[] = [];
   // Prioridad: cobros con tarjeta fallidos y cuentas atrás por impago
-  const cobroMal = Object.entries(cobros).filter(([, c]: any) => c.fallidas > 0 || c.impago?.activo);
+  const cobroMal = Object.entries(cobros).filter(([id, c]: any) => !d.proPorId[id]?.baja_at && (c.fallidas > 0 || c.impago?.activo));
   if (cobroMal.length) problemasP.push("⚠️ Cobro fallido o cuenta atrás por impago: " + cobroMal.map(([id, c]: any) => (d.proPorId[id]?.name || "—")
     + (c.impago?.bloqueado ? " (ya no recibe leads)" : c.impago?.activo ? ((n) => n === 1 ? " (le queda 1 lead)" : " (le quedan " + n + " leads)")(Math.max(0, Number(c.impago.limite || 0) - Number(c.impago.usados || 0))) : "")).join(", "));
   if (sinLlamarP.length) problemasP.push(sinLlamarP.length + " leads sin llamar (" + Array.from(new Set(sinLlamarP.map((l) => d.proPorId[l.pro_id]?.name || "—"))).join(", ") + ")");
@@ -253,7 +268,8 @@ export default function Profesionales({ d, recargar, aviso, irA }: SeccionProps)
 
   const filas = useMemo(() => {
     let lista = d.pros;
-    if (filtro === "activos") lista = lista.filter((p) => activos.has(p.id) || d.leads.some((l) => l.pro_id === p.id));
+    if (filtro === "activos") lista = lista.filter(esActivo);
+    if (filtro === "inactivos") lista = lista.filter(esInactivo);
     if (filtro === "altas") lista = lista.filter((p) => esNuevo(p) || p.activacion_estado);
     if (busca.trim()) lista = lista.filter((p) => [p.name, p.company_name, p.trade, p.phone, p.email].join(" ").toLowerCase().includes(busca.toLowerCase()));
     return lista.map((p) => {
@@ -273,11 +289,11 @@ export default function Profesionales({ d, recargar, aviso, irA }: SeccionProps)
   }, [d, filtro, busca, mes]);
 
   const pro = ficha ? d.proPorId[ficha] : null;
-  const tab = (id: typeof filtro, txt: string, n?: number) => (
+  const tab = (id: typeof filtro, txt: string, n?: number, cuenta?: number) => (
     <button onClick={() => setFiltro(id)} style={{
       padding: "8px 14px", borderRadius: 8, border: "1px solid " + (filtro === id ? C.accent : C.border), cursor: "pointer", fontFamily: F,
       background: filtro === id ? C.accent + "18" : C.card, color: filtro === id ? C.accent : C.mutedL, fontWeight: 800, fontSize: 13,
-    }}>{txt}{n ? <span style={{ marginLeft: 6, background: C.orange, color: "#000", borderRadius: 99, padding: "1px 7px", fontSize: 11 }}>{n}</span> : null}</button>
+    }}>{txt}{cuenta != null ? <span style={{ marginLeft: 6, color: filtro === id ? C.accent : C.muted }}>{cuenta}</span> : null}{n ? <span style={{ marginLeft: 6, background: C.orange, color: "#000", borderRadius: 99, padding: "1px 7px", fontSize: 11 }}>{n}</span> : null}</button>
   );
 
   return (
@@ -294,7 +310,7 @@ export default function Profesionales({ d, recargar, aviso, irA }: SeccionProps)
       </Grid>
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 14 }}>
-        {tab("activos", "Con leads")}{tab("altas", "Altas", pendAlta.length + porConfirmar)}{tab("todos", "Todos (" + d.pros.length + ")")}
+        {tab("activos", "Activos", 0, nActivos)}{tab("inactivos", "Inactivos", 0, nInactivos)}{tab("altas", "Altas", pendAlta.length + porConfirmar)}{tab("todos", "Todos", 0, d.pros.length)}
         <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar nombre, oficio, teléfono..." style={{ background: C.card, border: "1px solid " + C.border, borderRadius: 8, color: C.text, padding: "8px 10px", fontFamily: F, fontSize: 13, minWidth: 220 }} />
       </div>
 
@@ -305,9 +321,11 @@ export default function Profesionales({ d, recargar, aviso, irA }: SeccionProps)
         filas={filas.map((x) => ({
           nombre: <span><b>{x.p.name}</b>{x.p.company_name ? <span style={{ color: C.mutedL }}> · {x.p.company_name}</span> : null}</span>,
           oficio: oficioDe(x.p.trade),
-          reparto: activos.has(x.p.id) ? <Pill texto="Recibe" color={C.green} /> : <span style={{ color: C.muted }}>—</span>,
+          reparto: x.p.baja_at ? <Pill texto={activos.has(x.p.id) ? "Baja el " + fecha(x.p.baja_at) : "De baja"} color={C.red} />
+            : activos.has(x.p.id) ? <Pill texto="Recibe" color={C.green} /> : <span style={{ color: C.muted }}>—</span>,
           cobro: (() => {
             const c = cobros[x.p.id];
+            if (x.p.baja_at) return x.vencido ? <Pill texto="Debe facturas" color={C.red} /> : <span style={{ color: C.muted }}>De baja</span>;
             if (c?.impago?.bloqueado) return <Pill texto="Cortado por impago" color={C.red} />;
             if (c?.fallidas > 0) return <Pill texto="Cobro fallido" color={C.red} />;
             if (c?.impago?.activo) return <Pill texto={((n) => n === 1 ? "Le queda 1 lead" : "Le quedan " + n + " leads")(Math.max(0, Number(c.impago.limite || 0) - Number(c.impago.usados || 0)))} color={C.orange} />;
@@ -326,7 +344,7 @@ export default function Profesionales({ d, recargar, aviso, irA }: SeccionProps)
           reg: fecha(x.p.joined_at || x.p.created_at),
         }))}
         onFila={(i) => setFicha(filas[i].p.id)}
-        vacio="No hay profesionales con este filtro"
+        vacio={filtro === "activos" ? "Ningún profesional recibe leads ahora mismo" : filtro === "inactivos" ? "No hay profesionales inactivos" : "No hay profesionales con este filtro"}
       />
 
       {pro && <FichaPro p={pro} d={d} onClose={() => setFicha(null)} onHecho={(m) => { aviso(m); recargar(); }} />}
