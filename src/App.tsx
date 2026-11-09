@@ -15,6 +15,7 @@ import ProFacturas from "./pro/ProFacturas";
 import ProNegocio from "./pro/ProNegocio";
 import ProInstalarApp from "./pro/ProInstalarApp";
 import ProAvisoInicio from "./pro/ProAvisoInicio";
+import ProFicha from "./pro/ProFicha";
 import ClienteArea from "./cliente/ClienteArea";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI";
 const SUPABASE_FUNCTIONS_URL = "https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1";
@@ -4254,6 +4255,7 @@ function ProDeleteAccountButton({user,onLogout}:{user:UserRow;onLogout:()=>void}
 function ProDashboard({user,onLogout,onUpdate,deepLinkChatWith}:{user:UserRow;onLogout:()=>void;onUpdate:(u:UserRow)=>void;deepLinkChatWith?:string|null}){
   const [showOnboarding,setShowOnboarding]=useState(()=>!localStorage.getItem("oy_onboarded_"+user.id));
   const handleCloseOnboarding=()=>{localStorage.setItem("oy_onboarded_"+user.id,"1");setShowOnboarding(false);};
+  const [fichaAbierta,setFichaAbierta]=useState(false);
   const [tab,setTab]=useState<"inicio"|"chats"|"trabajos"|"facturas"|"perfil"|"planes">(()=>{try{const q=new URLSearchParams(window.location.search);return q.get("tarjeta")||q.get("ir")==="facturas"?"facturas":"inicio";}catch{return "inicio";}});
   const [toast,setToast]=useState<string|null>(null);
   const [saving,setSaving]=useState(false);
@@ -4832,7 +4834,8 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
 
       <div style={{maxWidth:900,margin:"0 auto",padding:"0 16px"}}>
 
-        <ProAvisoInicio userId={user.id} oculto={showOnboarding} onIrALeads={()=>setTab("trabajos")} />
+        <ProFicha userId={user.id} oculto={showOnboarding} onAbierta={setFichaAbierta} />
+        <ProAvisoInicio userId={user.id} oculto={showOnboarding||fichaAbierta} onIrALeads={()=>setTab("trabajos")} />
 
         {tab==="inicio"&&(
           <ProInicio user={{id:user.id,name:user.name,trade:user.trade,zone:user.zone}} onIrALeads={()=>setTab("trabajos")} onToast={showToast} />
