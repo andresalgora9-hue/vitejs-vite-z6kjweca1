@@ -940,6 +940,38 @@
       "destination": "/quitar-moho-paredes-sevilla.html"
     },
     {
+      "source": "/pintores-cordoba",
+      "destination": "/pintores-cordoba.html"
+    },
+    {
+      "source": "/empresa-pintores-cordoba",
+      "destination": "/empresa-pintores-cordoba.html"
+    },
+    {
+      "source": "/precio-pintar-piso-cordoba",
+      "destination": "/precio-pintar-piso-cordoba.html"
+    },
+    {
+      "source": "/pintar-habitacion-cordoba",
+      "destination": "/pintar-habitacion-cordoba.html"
+    },
+    {
+      "source": "/quitar-gotele-cordoba",
+      "destination": "/quitar-gotele-cordoba.html"
+    },
+    {
+      "source": "/alisar-paredes-cordoba",
+      "destination": "/alisar-paredes-cordoba.html"
+    },
+    {
+      "source": "/pintura-antihumedad-cordoba",
+      "destination": "/pintura-antihumedad-cordoba.html"
+    },
+    {
+      "source": "/pintar-fachada-cordoba",
+      "destination": "/pintar-fachada-cordoba.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
