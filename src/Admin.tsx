@@ -23,7 +23,7 @@ const ADMIN_ID = "00000000-0000-0000-0000-000000000002";
 const BOT_ID   = "00000000-0000-0000-0000-000000000001";
 const SUPABASE_URL = "https://rjwojxwrsbvwwshwwpvq.supabase.co";
 // ✅ CLAVE CORRECTA (iat:1745420534)
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI";
+const SUPABASE_KEY = "sb_publishable_ReA-g1IhCfbhwMfkei7naw_BgtOs9nv";
 const SB_HEADERS = {"Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":`Bearer ${SUPABASE_KEY}`};
 
 type Section = "crm"|"monitor"|"profesionales"|"clientes"|"trabajos"|"mensajes"|"disputas"|"finanzas"|"flujo";

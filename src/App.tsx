@@ -17,7 +17,7 @@ import ProInstalarApp from "./pro/ProInstalarApp";
 import ProAvisoInicio from "./pro/ProAvisoInicio";
 import ProFicha from "./pro/ProFicha";
 import ClienteArea from "./cliente/ClienteArea";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI";
+const SUPABASE_ANON_KEY = "sb_publishable_ReA-g1IhCfbhwMfkei7naw_BgtOs9nv";
 const SUPABASE_FUNCTIONS_URL = "https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1";
 const SUPABASE_HEADERS = {
   "Content-Type": "application/json",
@@ -883,7 +883,7 @@ function AnticipoCard({m,isMe,currentUser,toUser,showToast}:any){
               try{
                 const res=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/super-handler",{
                   method:"POST",
-                  headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTcxMzgsImV4cCI6MjA5Mzk5MzEzOH0.tO2eE-d7diaqV5nS0NUIAJnyn69xnpHYSJZa4DGQWfE"},
+                  headers:{"Content-Type":"application/json","apikey":"sb_publishable_ReA-g1IhCfbhwMfkei7naw_BgtOs9nv","Authorization":"Bearer sb_publishable_ReA-g1IhCfbhwMfkei7naw_BgtOs9nv"},
                   body:JSON.stringify({client_id:currentUser.id,pro_id:m.from_id,pro_name:toUser.name,client_name:currentUser.name,amount:parseInt(amount),session_user_id:currentUser.id}),
                 });
                const data=await res.json();
@@ -1183,8 +1183,8 @@ if(toUser.id==="00000000-0000-0000-0000-000000000002"){
             method:"POST",
             headers:{
               "Content-Type":"application/json",
-              "apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI",
-              "Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI",
+              "apikey":"sb_publishable_ReA-g1IhCfbhwMfkei7naw_BgtOs9nv",
+              "Authorization":"Bearer sb_publishable_ReA-g1IhCfbhwMfkei7naw_BgtOs9nv",
             },
             body:JSON.stringify({client_id:currentUser.id,pro_id:toUser.id,pro_name:toUser.name,client_name:currentUser.name,amount:15,session_user_id:currentUser.id}),
           });
@@ -1201,8 +1201,8 @@ if(toUser.id==="00000000-0000-0000-0000-000000000002"){
             method:"POST",
             headers:{
               "Content-Type":"application/json",
-              "apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI",
-              "Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI",
+              "apikey":"sb_publishable_ReA-g1IhCfbhwMfkei7naw_BgtOs9nv",
+              "Authorization":"Bearer sb_publishable_ReA-g1IhCfbhwMfkei7naw_BgtOs9nv",
             },
             body:JSON.stringify({client_id:currentUser.id,pro_id:toUser.id,pro_name:toUser.name,client_name:currentUser.name,amount:50,session_user_id:currentUser.id}),
           });
@@ -2337,7 +2337,7 @@ function DeleteAccountButton({user,onLogout}:{user:UserRow;onLogout:()=>void}){
       // Enviar email via Edge Function
       const deleteRes=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/send-delete-email",{
         method:"POST",
-        headers:{"Content-Type":"application/json","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNjMxODcsImV4cCI6MjA2MDczOTE4N30.ywFWMDSEQ4W5BNaEGxBMPBqZ4GW-jGkIjHqMbSiXvUo"},
+        headers:{"Content-Type":"application/json","Authorization":"Bearer sb_publishable_ReA-g1IhCfbhwMfkei7naw_BgtOs9nv"},
         body:JSON.stringify({email:user.email,name:user.name,token}),
       });
       if(!deleteRes.ok){setErr("Error al enviar el email. Inténtalo de nuevo.");setLoading(false);return;}
@@ -2657,8 +2657,8 @@ const activarNotificacionesCliente = async()=>{
 
   const loadWorkers=useCallback(async()=>{
     setLoading(true);
-    const {data}=await db.from("pros_publicos").select("id,name,trade,zone,service_zones,rating,reviews,jobs,verified,available,plan,bio,price,phone,whatsapp,trial_end,joined_at,type,photos,specialties,experience_years,free_quote,schedule,response_time,company_name,avatar_url").eq("type","profesional");
-    // Sin planes de pago: orden por valoraciones
+    const {data}=await db.from("pros_publicos").select("id,name,trade,zone,service_zones,rating,reviews,jobs,verified,available,plan,bio,price,phone,whatsapp,trial_end,joined_at,type,photos,specialties,experience_years,free_quote,schedule,response_time,company_name,avatar_url").eq("type","profesional").eq("es_prueba",false).eq("deleted",false).eq("banned",false);
+    // Sin planes de pago: orden por valoraciones (sin perfiles de prueba, borrados ni bloqueados)
     const sorted=(data||[]).sort((a:UserRow,b:UserRow)=>(b.rating||0)-(a.rating||0)||(b.reviews||0)-(a.reviews||0));
     setWorkers(sorted);setLoading(false);
   },[]);
@@ -3796,7 +3796,7 @@ const makeSideCard=(slot:number)=>{
       const info=await fetch("https://www.googleapis.com/oauth2/v3/userinfo",{headers:{Authorization:"Bearer "+t.access_token}}).then(r=>r.json());
       const res=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/auth-handler",{
         method:"POST",
-        headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.YBGfaKyMGRrH7dh7tqmTTlPP8IQ-oNSxdtV8GCtObHs","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.YBGfaKyMGRrH7dh7tqmTTlPP8IQ-oNSxdtV8GCtObHs"},
+        headers:{"Content-Type":"application/json","apikey":"sb_publishable_ReA-g1IhCfbhwMfkei7naw_BgtOs9nv","Authorization":"Bearer sb_publishable_ReA-g1IhCfbhwMfkei7naw_BgtOs9nv"},
         // Seguridad: se manda el token de Google para que el servidor compruebe de verdad la cuenta
         body:JSON.stringify({action:"google_auth",email:info.email,name:info.name,avatar_url:info.picture,type:"cliente",access_token:t.access_token})
       });
@@ -3881,7 +3881,7 @@ const makeSideCard=(slot:number)=>{
       const info=await fetch("https://www.googleapis.com/oauth2/v3/userinfo",{headers:{Authorization:"Bearer "+t.access_token}}).then(r=>r.json());
       const res=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/auth-handler",{
         method:"POST",
-        headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.YBGfaKyMGRrH7dh7tqmTTlPP8IQ-oNSxdtV8GCtObHs","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.YBGfaKyMGRrH7dh7tqmTTlPP8IQ-oNSxdtV8GCtObHs"},
+        headers:{"Content-Type":"application/json","apikey":"sb_publishable_ReA-g1IhCfbhwMfkei7naw_BgtOs9nv","Authorization":"Bearer sb_publishable_ReA-g1IhCfbhwMfkei7naw_BgtOs9nv"},
         body:JSON.stringify({action:"google_auth",email:info.email,name:info.name,avatar_url:info.picture,type:"cliente",access_token:t.access_token})
       });
       const data=await res.json();
@@ -5292,7 +5292,7 @@ export default function App(){
       const payload=JSON.parse(atob(response.credential.split(".")[1]));
       const res=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/auth-handler",{
         method:"POST",
-        headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.YBGfaKyMGRrH7dh7tqmTTlPP8IQ-oNSxdtV8GCtObHs","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.YBGfaKyMGRrH7dh7tqmTTlPP8IQ-oNSxdtV8GCtObHs"},
+        headers:{"Content-Type":"application/json","apikey":"sb_publishable_ReA-g1IhCfbhwMfkei7naw_BgtOs9nv","Authorization":"Bearer sb_publishable_ReA-g1IhCfbhwMfkei7naw_BgtOs9nv"},
         // Seguridad: se manda el token de Google para que el servidor compruebe de verdad la cuenta
         body:JSON.stringify({action:"google_auth",email:payload.email,name:payload.name,avatar_url:payload.picture,type:"cliente",credential:response.credential})
       });
