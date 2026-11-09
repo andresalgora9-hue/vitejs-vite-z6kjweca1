@@ -63,8 +63,9 @@ export function TarjetaAcceso({ user, onUpdate, onHecho, foco, compacta = false 
     if (temp && clave.length < 6) { setErr("La contraseña debe tener al menos 6 caracteres."); return; }
     setGuardando(true);
     if (pideCorreo) {
-      const { data: ex } = await db.from("users").select("id").eq("email", email).maybeSingle();
-      if (ex && ex.id !== user.id) { setErr("Ese correo ya tiene una cuenta en OficioYa. Si es tuya, cierra sesión y entra con él."); setGuardando(false); return; }
+      // Seguridad: la base de datos dice si el correo está libre (el navegador ya no puede leer otras cuentas)
+      const { data: libre } = await db.rpc("oy_email_libre", { p_email: email });
+      if (libre === false) { setErr("Ese correo ya tiene una cuenta en OficioYa. Si es tuya, cierra sesión y entra con él."); setGuardando(false); return; }
     }
     const cambios: Record<string, any> = {};
     if (pideCorreo) cambios.email = email;
