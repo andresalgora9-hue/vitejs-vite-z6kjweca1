@@ -5,7 +5,7 @@ import EliteLanding from "./EliteLanding";
 import Terminos from "./Terminos";
 import Privacidad from "./Privacidad";
 import Cancelacion from "./Cancelacion"; import Cookies from "./Cookies";
-import { db, STORAGE_URL, ADMIN_USER } from "./supabase";
+import { db, STORAGE_URL, ADMIN_USER, cerrarSesion } from "./supabase";
 import type { UserRow, MessageRow, JobRow, CertRow, Plan, PhotoRow } from "./supabase";
 import { MapaZonas, MapaProModal } from './MapaZonas';
 import { PRICE_MAP } from "./constants";
@@ -1819,7 +1819,6 @@ const WorkerCardIdealista=React.memo(({w,onSelect,onChat}:{w:UserRow;onSelect:()
               <div style={{display:"flex",gap:5,alignItems:"center",marginBottom:2,flexWrap:"wrap"}}>
                 <p style={{fontWeight:800,fontSize:16,color:C.text,lineHeight:1.2}}>{w.name}</p>
                 {w.verified&&<span style={{fontSize:10,color:C.green,fontWeight:700}}>✓</span>}
-                {(w.plan==="elite"||w.plan==="pro")&&<Badge plan={w.plan} />}
               </div>
               <p style={{fontSize:13,color:"#C9D1DF",fontWeight:600,marginBottom:4}}>{OFICIO_ICONS[w.trade||""]||"🔧"} {w.trade}</p>
               <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
@@ -1926,7 +1925,6 @@ useEffect(()=>{
           <div style={{display:"flex",gap:7,alignItems:"center",flexWrap:"wrap",marginBottom:3}}>
             <p style={{fontWeight:800,fontSize:19,color:C.text}}>{worker.name}</p>
             {worker.verified&&<span style={{fontSize:10,color:C.green,border:"1px solid "+C.green+"44",padding:"1px 6px",borderRadius:99}}>✓ Verificado</span>}
-            {(worker.plan==="elite"||worker.plan==="pro")&&<Badge plan={worker.plan} />}
           </div>
           <p style={{color:col,fontWeight:600,fontSize:13,marginBottom:3}}>{OFICIO_ICONS[worker.trade||""]||"🔧"} {worker.trade} · {worker.zone}</p>
           <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
@@ -2060,7 +2058,8 @@ useEffect(()=>{
 
 // ─── RANKING ───
 function RankingSection({workers,onSelect}:{workers:UserRow[];onSelect:(w:UserRow)=>void}){
-  const top=workers.filter(w=>w.plan==="pro"||w.plan==="elite").sort((a,b)=>b.rating-a.rating||b.reviews-a.reviews).slice(0,20);
+  // Sin planes de pago: el ranking es por valoraciones reales
+  const top=workers.filter(w=>(w.reviews||0)>0).sort((a,b)=>b.rating-a.rating||b.reviews-a.reviews).slice(0,20);
   return(
     <div style={{padding:"22px 0 16px"}}>
       <h2 style={{fontWeight:800,fontSize:22,color:C.text,marginBottom:4}}>🏆 Ranking Profesionales</h2>
@@ -2430,10 +2429,11 @@ function ClientHome({user,onLogout,onUpdate,deepLinkChatWith,onLogin,onHandoffDo
     const v=raw.trim().toLowerCase();
     if(!v||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v))return"Introduce un email válido";
     if(v.endsWith("@aficioya-lead.com"))return"Ese no es tu email real";
-    const{data:existing}=await db.from("users").select("id").eq("email",v).maybeSingle();
-    if(existing&&existing.id!==user!.id)return"Ese email ya está en uso por otra cuenta";
+    // Seguridad: la base de datos dice si el email está libre (el navegador ya no puede leer otras cuentas)
+    const{data:libre}=await db.rpc("oy_email_libre",{p_email:v});
+    if(libre===false)return"Ese email ya está en uso por otra cuenta";
     const{error}=await db.from("users").update({email:v}).eq("id",user!.id);
-    if(error)return"No se pudo guardar, inténtalo de nuevo";
+    if(error)return /duplicate|unique/i.test(error.message||"")?"Ese email ya está en uso por otra cuenta":"No se pudo guardar, inténtalo de nuevo";
     const updated={...user!,email:v};
     localStorage.setItem("oy_user",JSON.stringify(updated));
     onUpdate(updated);
@@ -2484,14 +2484,16 @@ function ClientHome({user,onLogout,onUpdate,deepLinkChatWith,onLogin,onHandoffDo
         const res=await fetch(SUPABASE_FUNCTIONS_URL+"/auth-handler",{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({action:"register",name:nombre,email:emailSint,password:pw,type:"cliente",phone:digits,trial_end:""})});
         const data=await res.json();
         let cid="";let cname=nombre;
-        if(data.success){cid=data.user.id;cname=data.user.name||nombre;try{localStorage.setItem("oy_user",JSON.stringify(data.user));localStorage.setItem("oy_clave_temp",JSON.stringify({id:data.user.id,c:pw}));localStorage.setItem("oy_bienvenida",JSON.stringify({id:data.user.id,t:Date.now(),oficio:qrOficio,zona:ciudadSel}));}catch{}onLogin(data.user);}
-        else{
-          const{data:ex}=await db.from("users").select("id,name").eq("email",emailSint).maybeSingle();
-          if(!ex){setQrErr(data.error||"No hemos podido enviar tu solicitud");setQrSending(false);return;}
-          cid=ex.id;cname=ex.name||nombre;
+        if(data.success){
+          cid=data.user.id;cname=data.user.name||nombre;try{localStorage.setItem("oy_user",JSON.stringify(data.user));localStorage.setItem("oy_clave_temp",JSON.stringify({id:data.user.id,c:pw}));localStorage.setItem("oy_bienvenida",JSON.stringify({id:data.user.id,t:Date.now(),oficio:qrOficio,zona:ciudadSel}));}catch{}onLogin(data.user);
+          const{data:req}=await db.from("budget_requests").insert({...base,client_id:cid,client_name:cname}).select().single();
+          if(req)avisar(req.id,cname,emailSint);
+        }else{
+          // Ya tenía cuenta con ese teléfono: la solicitud la crea la base de datos (sin leer la tabla de usuarios)
+          const{data:r}=await db.rpc("oy_solicitud_por_email",{p:{email:emailSint,nombre,oficio:qrOficio,zona:ciudadSel,descripcion:desc,city_slug:base.city_slug,landing:"app"}});
+          if(!(r as any)?.ok){setQrErr(data.error||"No hemos podido enviar tu solicitud");setQrSending(false);return;}
+          avisar((r as any).id,cname,emailSint);
         }
-        const{data:req}=await db.from("budget_requests").insert({...base,client_id:cid,client_name:cname}).select().single();
-        if(req)avisar(req.id,cname,emailSint);
       }
       gtagEvent("generate_lead",{content_name:"hero_request",oficio:qrOficio});
       fbqEvent("Lead",{content_name:"hero_request",content_category:qrOficio});
@@ -2514,14 +2516,15 @@ function ClientHome({user,onLogout,onUpdate,deepLinkChatWith,onLogin,onHandoffDo
       const data=await res.json();
       if(!data.success){
                if(data.error?.includes("Ya existe")){
-          const{data:ex}=await db.from("users").select("id,name").eq("email",email.toLowerCase().trim()).maybeSingle();
-          if(!ex){setQrErr("Ya tienes cuenta con ese email. Inicia sesión arriba.");setQrSending(false);setQuickBooting(false);return;}
-          const{data:req2}=await db.from("budget_requests").insert({client_id:ex.id,client_name:ex.name||name.trim(),oficio:oficioReq,zona:ciudadReq,description:desc.trim(),max_budget:null,status:"open",notified_pros:[],city_slug:(override?.ciudad||"sevilla").toLowerCase(),landing:override?.landing||"app",utm_source:override?.utm_source||null,utm_campaign:override?.utm_campaign||null,utm_content:override?.utm_content||null,gclid:override?.gclid||null,pro_solicitado:proSolicitado?.id||null}).select().single();
-          if(req2){fetch(`${SUPABASE_FUNCTIONS_URL}/notify-admin`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({type:"sin_profesional",cliente:ex.name||name.trim(),oficio:oficioReq,zona:ciudadReq,descripcion:desc,telefono:phone,email:email,request_id:req2.id})}).catch(()=>{});}
+          const em=email.toLowerCase().trim();
+          // Ya tenía cuenta con ese email: la solicitud la crea la base de datos (sin leer la tabla de usuarios)
+          const{data:r}=await db.rpc("oy_solicitud_por_email",{p:{email:em,nombre:name.trim(),oficio:oficioReq,zona:ciudadReq,descripcion:desc.trim(),city_slug:(override?.ciudad||"sevilla").toLowerCase(),landing:override?.landing||"app",utm_source:override?.utm_source||null,utm_campaign:override?.utm_campaign||null,utm_content:override?.utm_content||null,gclid:override?.gclid||null,pro_solicitado:proSolicitado?.id||null}});
+          if(!(r as any)?.ok){setQrErr("Ya tienes cuenta con ese email. Inicia sesión arriba.");setQrSending(false);setQuickBooting(false);return;}
+          fetch(`${SUPABASE_FUNCTIONS_URL}/notify-admin`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({type:"sin_profesional",cliente:name.trim(),oficio:oficioReq,zona:ciudadReq,descripcion:desc,telefono:phone,email:email,request_id:(r as any).id})}).catch(()=>{});
           gtagEvent("generate_lead",{content_name:"quick_request_recurrente",oficio:oficioReq});
           fbqEvent("Lead",{content_name:"quick_request_recurrente",content_category:oficioReq});
           setQuickSent(true);setQrSending(false);setQuickBooting(false);setShowQuickRequest(false);
-          if(user&&ex.id===user.id){try{localStorage.setItem("oy_bienvenida",JSON.stringify({id:user.id,t:Date.now(),oficio:oficioReq,zona:ciudadReq}));}catch{}}
+          if(user&&(user.email||"").toLowerCase()===em){try{localStorage.setItem("oy_bienvenida",JSON.stringify({id:user.id,t:Date.now(),oficio:oficioReq,zona:ciudadReq}));}catch{}}
           onHandoffDone?.();
           return;
         }
@@ -2530,6 +2533,8 @@ function ClientHome({user,onLogout,onUpdate,deepLinkChatWith,onLogin,onHandoffDo
       const u=data.user;
       setQuickStep(1);
       const norm=(s:string)=>s?.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim()||"";
+      // Seguridad: la cuenta nueva se guarda antes de crear la solicitud (la solicitud va con su sesión)
+      localStorage.setItem("oy_user",JSON.stringify(u));
       const{data:req}=await db.from("budget_requests").insert({client_id:u.id,client_name:name.trim(),oficio:oficioReq,zona:ciudadReq,description:desc.trim(),max_budget:null,status:"open",notified_pros:[],city_slug:(override?.ciudad||"sevilla").toLowerCase(),landing:override?.landing||"app",utm_source:override?.utm_source||null,utm_campaign:override?.utm_campaign||null,utm_content:override?.utm_content||null,gclid:override?.gclid||null,pro_solicitado:proSolicitado?.id||null}).select().single();
             setQuickStep(2);
             if(req){
@@ -2601,7 +2606,7 @@ function ClientHome({user,onLogout,onUpdate,deepLinkChatWith,onLogin,onHandoffDo
   };
   useEffect(()=>{
     if(!deepLinkChatWith)return;
-    db.from("users").select("id,name,trade,zone,rating,reviews,jobs,verified,available,plan,bio,price,phone,whatsapp,type,photos,specialties,experience_years,free_quote,schedule,response_time,company_name,joined_at,trial_end").eq("id",deepLinkChatWith).single().then(({data})=>{
+    db.from("pros_publicos").select("id,name,trade,zone,rating,reviews,jobs,verified,available,plan,bio,price,phone,whatsapp,type,photos,specialties,experience_years,free_quote,schedule,response_time,company_name,joined_at,trial_end").eq("id",deepLinkChatWith).single().then(({data})=>{
       if(data&&(data as any).type==="profesional")solicitarA(data as UserRow);
     });
   },[deepLinkChatWith]);
@@ -2648,18 +2653,13 @@ const activarNotificacionesCliente = async()=>{
     if(oficio!=="Todos"&&w.trade!==oficio)return false;
     if(search){const s=search.toLowerCase();const tradeMatch=OFICIOS.some(o=>o.toLowerCase().includes(s));if(tradeMatch){if(!(w.trade||"").toLowerCase().includes(s))return false;}else{if(!w.name.toLowerCase().includes(s)&&!(w.trade||"").toLowerCase().includes(s)&&!(w.bio||"").toLowerCase().includes(s))return false;}}
     return true;
-  }).sort((a,b)=>{
-    const order:Record<Plan,number>={elite:3,pro:2,basico:1,gratis:0};
-    return order[b.plan as Plan]-order[a.plan as Plan]||b.rating-a.rating;
-  });
+  }).sort((a,b)=>(b.rating||0)-(a.rating||0)||(b.reviews||0)-(a.reviews||0));
 
   const loadWorkers=useCallback(async()=>{
     setLoading(true);
-    const {data}=await db.from("users").select("id,name,trade,zone,service_zones,rating,reviews,jobs,verified,available,plan,bio,price,phone,whatsapp,trial_end,joined_at,type,photos,specialties,experience_years,free_quote,schedule,response_time,company_name,avatar_url").eq("type","profesional");
-    const sorted=(data||[]).sort((a:UserRow,b:UserRow)=>{
-      const order:Record<Plan,number>={elite:3,pro:2,basico:1,gratis:0};
-      return order[b.plan as Plan]-order[a.plan as Plan]||b.rating-a.rating;
-    });
+    const {data}=await db.from("pros_publicos").select("id,name,trade,zone,service_zones,rating,reviews,jobs,verified,available,plan,bio,price,phone,whatsapp,trial_end,joined_at,type,photos,specialties,experience_years,free_quote,schedule,response_time,company_name,avatar_url").eq("type","profesional");
+    // Sin planes de pago: orden por valoraciones
+    const sorted=(data||[]).sort((a:UserRow,b:UserRow)=>(b.rating||0)-(a.rating||0)||(b.reviews||0)-(a.reviews||0));
     setWorkers(sorted);setLoading(false);
   },[]);
 
@@ -2684,7 +2684,7 @@ if(isAdmin){
   loadChats();
   setUnreadChats(c=>c+1);
 }else{
-db.from("users").select("name").eq("id",m.from_id).single().then(({data}:any)=>{
+db.from("pros_publicos").select("name").eq("id",m.from_id).single().then(({data}:any)=>{
   const senderName=data?.name||"Profesional";
   setInAppNotif({msg:m.text.substring(0,60)+(m.text.length>60?"...":""),from:senderName,fromId:m.from_id,isAdmin:false});
   setUnreadByWorker(p=>({...p,[m.from_id]:(p[m.from_id]||0)+1}));
@@ -2708,7 +2708,7 @@ db.from("users").select("name").eq("id",m.from_id).single().then(({data}:any)=>{
     .filter((id:string)=>id!=="00000000-0000-0000-0000-000000000001");
   if(!ids.length){setChatPartners([]);return;}
 const adminUser=ADMIN_USER;
-const {data:ws}=await db.from("users").select("id,name,trade,zone,rating,reviews,jobs,verified,available,plan,bio,price,phone,whatsapp,type,photos,specialties,experience_years,free_quote,schedule,response_time,company_name,joined_at,trial_end").in("id",ids);
+const {data:ws}=await db.from("pros_publicos").select("id,name,trade,zone,rating,reviews,jobs,verified,available,plan,bio,price,phone,whatsapp,type,photos,specialties,experience_years,free_quote,schedule,response_time,company_name,joined_at,trial_end").in("id",ids);
 if(!ws)return;
 const wsFiltered=ws.filter((u:any)=>u.id!=="00000000-0000-0000-0000-000000000002");
 const allWs=ids.includes("00000000-0000-0000-0000-000000000002")?[adminUser]:[]; // los clientes solo hablan con OficioYa
@@ -2800,7 +2800,7 @@ setUnreadChats(Object.values(counts).reduce((a:number,b:number)=>a+b,0));
       }).select().single().catch(()=>({data:null}));
 
       // Notificar via mensaje a todos los pros del oficio disponibles
-      const {data:pros}=await db.from("users")
+      const {data:pros}=await db.from("pros_publicos")
         .select("id")
         .eq("type","profesional")
         .eq("trade",oficio)
@@ -3196,7 +3196,6 @@ return <GCard key={w.id} onClick={async()=>{
                 <p style={{fontWeight:800,fontSize:18,color:C.text}}>{user.name}</p>
                 <p style={{fontSize:13,color:C.muted}}>{user.email}</p>
                 {user.phone&&<p style={{fontSize:12,color:C.muted}}>{user.phone}</p>}
-                <div style={{marginTop:5}}><Badge plan={user.plan} /></div>
               </div>
             </div>
           </GCard>
@@ -3615,8 +3614,8 @@ const handleForgot=async()=>{
       const result=await res.json();
       setLoading(false);
       if(!result.success){setErr(result.error||"Error creando cuenta.");return;}
-      if(phone){await db.from("users").update({phone:phone.trim(),whatsapp:phone.trim()}).eq("id",result.user.id);}
       localStorage.setItem("oy_user",JSON.stringify(result.user));
+      if(phone){await db.from("users").update({phone:phone.trim(),whatsapp:phone.trim()}).eq("id",result.user.id);}
         fbAdvancedMatch(email.toLowerCase().trim(),phone?phone.trim():"");
         fbqEvent("CompleteRegistration",{content_name:"cliente"});
         gtagEvent("sign_up",{method:"email",user_type:"cliente"});
@@ -3670,10 +3669,11 @@ fetch(`${SUPABASE_FUNCTIONS_URL}/notify-admin`,{method:"POST",headers:SUPABASE_H
       const result=await res.json();
       setLoading(false);
       if(!result.success){setErr(result.error||"Error creando cuenta.");return;}
-      await db.from("users").update({trade,zone,price:30,whatsapp:phone.trim(),free_quote:true,service_zones:[zone],schedule:"Lunes a Viernes",response_time:"24h",experience_years:0,specialties:[]}).eq("id",result.user.id);
       const data={...result.user,trade,zone};
-      setPendingProFormData(null);
+      // Seguridad: la cuenta nueva se guarda antes de completar su ficha (la ficha se guarda con su sesión)
       localStorage.setItem("oy_user",JSON.stringify(data));
+      await db.from("users").update({trade,zone,price:30,whatsapp:phone.trim(),free_quote:true,service_zones:[zone],schedule:"Lunes a Viernes",response_time:"24h",experience_years:0,specialties:[]}).eq("id",result.user.id);
+      setPendingProFormData(null);
         fetch(`${SUPABASE_FUNCTIONS_URL}/clever-api`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({type:"bienvenida_pro",to:email.toLowerCase().trim(),name:name.trim()})});
         fetch(`${SUPABASE_FUNCTIONS_URL}/notify-admin`,{method:"POST",headers:SUPABASE_HEADERS,body:JSON.stringify({type:"nuevo_pro",nombre:name.trim(),oficio:trade,zona:zone,plan:"gratis"})});
         onLogin(data as UserRow);
@@ -3797,7 +3797,8 @@ const makeSideCard=(slot:number)=>{
       const res=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/auth-handler",{
         method:"POST",
         headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.YBGfaKyMGRrH7dh7tqmTTlPP8IQ-oNSxdtV8GCtObHs","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.YBGfaKyMGRrH7dh7tqmTTlPP8IQ-oNSxdtV8GCtObHs"},
-        body:JSON.stringify({action:"google_auth",email:info.email,name:info.name,avatar_url:info.picture,type:"cliente"})
+        // Seguridad: se manda el token de Google para que el servidor compruebe de verdad la cuenta
+        body:JSON.stringify({action:"google_auth",email:info.email,name:info.name,avatar_url:info.picture,type:"cliente",access_token:t.access_token})
       });
       const data=await res.json();
       if(data.success){
@@ -3881,7 +3882,7 @@ const makeSideCard=(slot:number)=>{
       const res=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/auth-handler",{
         method:"POST",
         headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.YBGfaKyMGRrH7dh7tqmTTlPP8IQ-oNSxdtV8GCtObHs","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.YBGfaKyMGRrH7dh7tqmTTlPP8IQ-oNSxdtV8GCtObHs"},
-        body:JSON.stringify({action:"google_auth",email:info.email,name:info.name,avatar_url:info.picture,type:"cliente"})
+        body:JSON.stringify({action:"google_auth",email:info.email,name:info.name,avatar_url:info.picture,type:"cliente",access_token:t.access_token})
       });
       const data=await res.json();
       if(data.success){
@@ -5150,20 +5151,9 @@ function ConfirmarBaja(){
   useEffect(()=>{
     const token=new URLSearchParams(window.location.search).get("token");
     if(!token){setStatus("error");return;}
-    db.from("users").select("id,name,email,delete_requested_at").eq("delete_token",token).single().then(async({data,error})=>{
-  if(error||!data){setStatus("error");return;}
-  if(!data.delete_requested_at){setStatus("error");return;}
-  const requested=new Date(data.delete_requested_at).getTime();
-  if(Date.now()-requested>86400000){setStatus("error");return;}
-      // Marcar como eliminado
-      await db.from("users").update({
-        deleted:true,
-        delete_token:null,
-        password:"DELETED",
-        phone:"DELETED",
-        email:data.email+"_deleted_"+Date.now(),
-      }).eq("id",data.id);
-      setStatus("ok");
+    // Seguridad: la comprobación del enlace (24 h) y la baja las hace la base de datos
+    db.rpc("oy_cuenta_baja_confirmar",{p_token:token}).then(({data,error})=>{
+      setStatus(!error&&(data as any)?.ok?"ok":"error");
     });
   },[]);
 
@@ -5203,7 +5193,22 @@ export default function App(){
     const params=new URLSearchParams(window.location.search);
     return params.get("with");
   });
-  
+  // Seguridad: si la sesión de este navegador ya no vale (cuenta borrada, datos que no cuadran…), se pide volver a entrar
+  const [avisoReentrar,setAvisoReentrar]=useState(false);
+  useEffect(()=>{
+    const h=(e:any)=>{
+      let actual:any=null;
+      try{actual=JSON.parse(localStorage.getItem("oy_user")||"null");}catch{}
+      if(!actual||actual.id!==e?.detail?.id)return;
+      try{localStorage.removeItem("oy_user");}catch{}
+      cerrarSesion();
+      setUser(null);
+      setAvisoReentrar(true);
+    };
+    window.addEventListener("oy-sesion-perdida",h);
+    return ()=>window.removeEventListener("oy-sesion-perdida",h);
+  },[]);
+
   useEffect(()=>{
     const handler=(e:any)=>{
       e.preventDefault();
@@ -5288,7 +5293,8 @@ export default function App(){
       const res=await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/auth-handler",{
         method:"POST",
         headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.YBGfaKyMGRrH7dh7tqmTTlPP8IQ-oNSxdtV8GCtObHs","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.YBGfaKyMGRrH7dh7tqmTTlPP8IQ-oNSxdtV8GCtObHs"},
-        body:JSON.stringify({action:"google_auth",email:payload.email,name:payload.name,avatar_url:payload.picture,type:"cliente"})
+        // Seguridad: se manda el token de Google para que el servidor compruebe de verdad la cuenta
+        body:JSON.stringify({action:"google_auth",email:payload.email,name:payload.name,avatar_url:payload.picture,type:"cliente",credential:response.credential})
       });
       const data=await res.json();
       if(data.success){
@@ -5334,7 +5340,7 @@ if(!_lastVisit){
 }
   }catch(e){}
 };
- const logout=()=>{setUser(null);localStorage.removeItem("oy_user");};
+ const logout=()=>{setUser(null);localStorage.removeItem("oy_user");cerrarSesion();};
   const update=(u:UserRow)=>{setUser(u);localStorage.setItem("oy_user",JSON.stringify(u));};
   if(!ready)return(
     <div style={{minHeight:"100dvh",background:"radial-gradient(1100px 700px at 88% -12%,rgba(255,184,0,0.14),rgba(255,184,0,0) 62%),#0F1117",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:0}}>
@@ -5413,6 +5419,13 @@ if(!_lastVisit){
 @keyframes shimmer{0%{background-position:-200% center;}100%{background-position:200% center;}}
 @keyframes fadeSlideUp{from{transform:translateY(12px);opacity:0;}to{transform:translateY(0);opacity:1;}}
     `}</style>
+    {avisoReentrar&&!user&&(
+      <div role="status" style={{position:"fixed",top:"calc(12px + env(safe-area-inset-top))",left:"50%",transform:"translateX(-50%)",zIndex:2147483000,width:420,maxWidth:"calc(100vw - 24px)",display:"flex",gap:10,alignItems:"center",padding:"12px 14px",borderRadius:14,background:"#10182C",border:"1px solid rgba(255,215,0,0.35)",color:"#F2F5FA",fontFamily:"'DM Sans',sans-serif",fontSize:14,fontWeight:700,boxShadow:"0 18px 40px -12px rgba(0,0,0,0.55)"}}>
+        <span style={{fontSize:18}}>🔒</span>
+        <span style={{flex:1}}>Por seguridad, vuelve a entrar en tu cuenta.</span>
+        <button onClick={()=>setAvisoReentrar(false)} aria-label="Cerrar aviso" style={{background:"none",border:"none",color:"#B4BCCB",fontSize:18,cursor:"pointer",padding:4}}>✕</button>
+      </div>
+    )}
     {user&&user.type==="admin"&&<AdminPanel onLogout={logout} nombre={user.name} />}
     {user&&(user as any).type==="gestor"&&<AdminPanel onLogout={logout} nombre={(user as any).name} />}
     {user&&user.type==="profesional"&&<ProDashboard user={user} onLogout={logout} onUpdate={update} deepLinkChatWith={deepLinkChatWith} />}
