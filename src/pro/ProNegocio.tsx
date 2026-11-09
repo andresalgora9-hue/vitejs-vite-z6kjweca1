@@ -4,7 +4,8 @@
 // ============================================================
 import React, { useState, useEffect } from "react";
 import { db } from "../supabase";
-import { C, F, Card, Boton, Titulo, eurCorto, duracionMin } from "./proComun";
+import { C, F, Card, Boton, Titulo, eurCorto, duracionMin, fecha } from "./proComun";
+import ProFicha from "./ProFicha";
 
 const ETAPAS_GANADO_HIST = ["precio_acordado", "programado", "completado", "cobrado_cliente", "facturado", "liquidado"];
 const DIA = 86400000;
@@ -59,6 +60,14 @@ export default function ProNegocio({ user, onUpdate, onToast }: {
   const [emailFact, setEmailFact] = useState(user.billing_email || "");
   const [telefono, setTelefono] = useState(user.phone || "");
   const [guardando, setGuardando] = useState(false);
+
+  // Ficha «Tu zona y tus trabajos» (la que usamos para sus campañas)
+  const [fichaInfo, setFichaInfo] = useState<any>(null);
+  const [editarFicha, setEditarFicha] = useState(false);
+  const cargarFicha = () => {
+    db.rpc("oy_ficha_pro", { p_pro: user.id }).then(({ data, error }: any) => { if (!error && data) setFichaInfo(data); }, () => {});
+  };
+  useEffect(() => { cargarFicha(); }, [user.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     (async () => {
@@ -180,6 +189,29 @@ export default function ProNegocio({ user, onUpdate, onToast }: {
               </div>
             )}
           </Card>
+        </>
+      )}
+
+      {fichaInfo && (fichaInfo.mostrar || fichaInfo.aceptada_at) && (
+        <>
+          <Titulo>Tu zona y tus trabajos</Titulo>
+          <Card accent={fichaInfo.aceptada_at ? undefined : C.orange + "88"}>
+            {fichaInfo.aceptada_at ? (
+              <div style={{ fontSize: 13.5, color: C.text, lineHeight: 1.6 }}>
+                <div><span style={{ color: C.mutedL }}>Zonas:</span> {fichaInfo.ficha?.zonas || "—"}</div>
+                <div><span style={{ color: C.mutedL }}>Trabajos:</span> {fichaInfo.ficha?.servicios || "—"}</div>
+                {fichaInfo.ficha?.no_hace && <div><span style={{ color: C.mutedL }}>No quieres recibir:</span> {fichaInfo.ficha.no_hace}</div>}
+                <div><span style={{ color: C.mutedL }}>Clientes nuevos por semana:</span> {fichaInfo.ficha?.capacidad_semana ?? "—"}</div>
+                <div style={{ fontSize: 12, color: C.muted, marginTop: 6 }}>Confirmada el {fecha(fichaInfo.aceptada_at)}</div>
+              </div>
+            ) : (
+              <div style={{ fontSize: 13.5, color: C.text, lineHeight: 1.55 }}>Todavía no has rellenado tu ficha. La necesitamos para preparar tus campañas.</div>
+            )}
+            <div style={{ display: "flex", marginTop: 12 }}>
+              <Boton onClick={() => setEditarFicha(true)} outline={!!fichaInfo.aceptada_at}>{fichaInfo.aceptada_at ? "Cambiar mi ficha" : "Rellenar mi ficha"}</Boton>
+            </div>
+          </Card>
+          {editarFicha && <ProFicha userId={user.id} abrir onCerrar={(g) => { setEditarFicha(false); if (g) cargarFicha(); }} />}
         </>
       )}
 
