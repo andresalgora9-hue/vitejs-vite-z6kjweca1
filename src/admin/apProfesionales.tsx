@@ -105,7 +105,7 @@ function FichaPro({ p, d, onClose, onHecho }: { p: Pro; d: SeccionProps["d"]; on
 
       {p.captacion_lead_id && (
         <>
-          <Titulo>{ficha?.hecha_por === "profesional" ? "Su ficha (rellenada por él en la app)" : "Ficha de captación"}</Titulo>
+          <Titulo>{p.ficha_aceptada_at ? "Su ficha (rellenada por él en la app)" : ficha?.origen === "ficha_pdf" ? "Su ficha (pasada de su PDF; falta que la acepte en la app)" : "Ficha de captación"}</Titulo>
           {ficha ? (
             <>
               {p.ficha_aceptada_at && fila("Confirmada por él", <span style={{ color: C.green }}>{fechaHora(p.ficha_aceptada_at)} · aceptó qué leads son válidos</span>)}
