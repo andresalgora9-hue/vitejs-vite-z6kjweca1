@@ -313,7 +313,7 @@ function StepDatos({ onNext }: any) {
           setLoading(true);
           const res = await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/dynamic-handler", {
             method: "POST",
-            headers: { "Content-Type": "application/json", "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI" },
+            headers: { "Content-Type": "application/json", "apikey": "sb_publishable_ReA-g1IhCfbhwMfkei7naw_BgtOs9nv", "Authorization": "Bearer sb_publishable_ReA-g1IhCfbhwMfkei7naw_BgtOs9nv" },
             body: JSON.stringify({
               action: "create_checkout_session",
               email: form.email,
@@ -374,7 +374,7 @@ function StepTarjeta({ datos, onSuccess }: any) {
 
     const res = await fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/dynamic-handler", {
       method: "POST",
-      headers: { "Content-Type": "application/json", "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI" },
+      headers: { "Content-Type": "application/json", "apikey": "sb_publishable_ReA-g1IhCfbhwMfkei7naw_BgtOs9nv", "Authorization": "Bearer sb_publishable_ReA-g1IhCfbhwMfkei7naw_BgtOs9nv" },
       body: JSON.stringify({
         action: "create_checkout_session",
         email: datos.email,
@@ -547,7 +547,7 @@ export default function EliteLanding() {
         setStep(3);
         fetch("https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1/auth-handler", {
           method: "POST",
-          headers: { "Content-Type": "application/json", "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqd29qeHdyc2J2d3dzaHd3cHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MjA1MzQsImV4cCI6MjA2MDk5NjUzNH0.3aMGMIe7Y3pPPBT7yWwLBpAyMJNyBMFJAf3fNtyO2hI" },
+          headers: { "Content-Type": "application/json", "apikey": "sb_publishable_ReA-g1IhCfbhwMfkei7naw_BgtOs9nv", "Authorization": "Bearer sb_publishable_ReA-g1IhCfbhwMfkei7naw_BgtOs9nv" },
           body: JSON.stringify({ action: "register", email: pd.email, password: pd.password, name: pd.nombre, type: "profesional", phone: pd.telefono })
         }).then(r => r.json()).then(async result => {
           if (result.success) {
