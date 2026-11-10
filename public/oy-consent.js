@@ -320,10 +320,11 @@
      página no es una landing de pintura con calculadora.
      Reparto 1/3 por visitante (localStorage); forzar con ?ab=a, ?ab=b o ?ab=c. */
   /* 09/11/2026: Córdoba fuera del test (ahí va solo la cabecera de siempre). */
+  /* 10/11/2026: Madrid también fuera (Andrés: sin test A/B, solo lo que funciona). */
   try {
     (function () {
       var ruta = location.pathname || "";
-      if (!/pint|gotele|alisar|moho|humedad/i.test(ruta) || /fachada|local|baratos|carpinter|admin|captacion|panel|cordoba/i.test(ruta)) return;
+      if (!/pint|gotele|alisar|moho|humedad/i.test(ruta) || /fachada|local|baratos|carpinter|admin|captacion|panel|cordoba|madrid/i.test(ruta)) return;
       var TEST = "fondo_hero_v1", CLAVE = "oy_ab_" + TEST, v = "";
       try { v = (new URLSearchParams(location.search).get("ab") || "").toUpperCase(); } catch (e) {}
       if (v === "A" || v === "B" || v === "C") {
