@@ -2561,7 +2561,7 @@ function ClientHome({user,onLogout,onUpdate,deepLinkChatWith,onLogin,onHandoffDo
       const emailParam=p.get("email")||"";
       const oficioParam=p.get("oficio")||qrOficio;
       const descParam=p.get("desc")||"";
-      const ciudadParam=p.get("ciudad")||"Sevilla";
+      const ciudadParam=p.get("ciudad")||p.get("city_slug")||p.get("city")||"Sevilla"; // 10/11/2026: las landings mandan la ciudad como city_slug/city (antes caía en Sevilla)
       const zonaParam=p.get("zona")||"";
       const landingParam=p.get("landing")||"app";
       const utmSourceParam=p.get("utm_source")||"";
