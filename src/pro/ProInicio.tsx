@@ -18,7 +18,7 @@ const TEXTO_PUSH: Record<EstadoPush, { titulo: string; detalle: string; color: s
   instalar_ios: { titulo: "Instala OficioYa para recibir avisos", detalle: "En iPhone: pulsa Compartir y \"Añadir a pantalla de inicio\". Abre OficioYa desde ese icono y activa los avisos aquí.", color: C.orange },
 };
 
-function TarjetaPush({ userId, onToast }: { userId: string; onToast?: (m: string) => void }) {
+export function TarjetaPush({ userId, onToast }: { userId: string; onToast?: (m: string) => void }) {
   const [estado, setEstado] = useState<EstadoPush | null>(null);
   const [ocupado, setOcupado] = useState(false);
   const [info, setInfo] = useState(false);
