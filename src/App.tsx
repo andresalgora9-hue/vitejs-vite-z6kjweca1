@@ -13,6 +13,7 @@ import ProTrabajos from "./pro/ProLeads";
 import ProInicio from "./pro/ProInicio";
 import ProFacturas from "./pro/ProFacturas";
 import ProNegocio from "./pro/ProNegocio";
+import ProPerfil from "./pro/ProPerfil";
 import ProInstalarApp from "./pro/ProInstalarApp";
 import ProAvisoInicio from "./pro/ProAvisoInicio";
 import ProFicha from "./pro/ProFicha";
@@ -4257,6 +4258,7 @@ function ProDashboard({user,onLogout,onUpdate,deepLinkChatWith}:{user:UserRow;on
   const [showOnboarding,setShowOnboarding]=useState(()=>!localStorage.getItem("oy_onboarded_"+user.id));
   const handleCloseOnboarding=()=>{localStorage.setItem("oy_onboarded_"+user.id,"1");setShowOnboarding(false);};
   const [fichaAbierta,setFichaAbierta]=useState(false);
+  const [perfilSec,setPerfilSec]=useState<string|null>(null);
   const [tab,setTab]=useState<"inicio"|"chats"|"trabajos"|"facturas"|"perfil"|"planes">(()=>{try{const q=new URLSearchParams(window.location.search);return q.get("tarjeta")||q.get("ir")==="facturas"?"facturas":"inicio";}catch{return "inicio";}});
   const [toast,setToast]=useState<string|null>(null);
   const [saving,setSaving]=useState(false);
@@ -4899,141 +4901,12 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
         )}
 
         {tab==="facturas"&&(
-          <ProFacturas user={{id:user.id,name:user.name}} onIrAPerfil={()=>setTab("perfil")} onToast={showToast} />
+          <ProFacturas user={{id:user.id,name:user.name}} onIrAPerfil={()=>{setPerfilSec("facturacion");setTab("perfil");}} onToast={showToast} />
         )}
         
-        {tab==="perfil"&&(<>
-          <ProNegocio user={user} onUpdate={onUpdate} onToast={showToast} />
-          <div style={{padding:"22px 0 16px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-            <h2 style={{fontWeight:800,fontSize:22,color:C.text}}>Mi perfil público</h2>
-            <Btn small onClick={saveProfile} disabled={saving}>{saving?"Guardando...":"Guardar"}</Btn>
-          </div>
-          <GCard style={{marginBottom:14}}>
-            <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:16}}>
-              <AvatarUpload user={user} onUpdate={(u)=>{onUpdate(u);localStorage.setItem("oy_user",JSON.stringify(u));}} />
-              <div>
-                <p style={{fontWeight:800,fontSize:16,color:C.text}}>{user.name}</p>
-                <p style={{fontSize:12,color:C.muted}}>{user.email}</p>
-                <p style={{fontSize:11,color:C.accent,marginTop:2}}>Pulsa la foto para cambiarla</p>
-              </div>
-            </div>
-            <p style={{fontWeight:700,color:C.text,fontSize:13,marginBottom:12}}>Información básica</p>
-            <Inp label="Descripción profesional" value={bio} onChange={setBio} placeholder="Describe tu experiencia, especialidades y servicios..." multiline />
-           <Inp label="Años de experiencia" value={expYears} onChange={setExpYears} type="number" />
-            <Inp label="WhatsApp / Teléfono" value={whatsapp} onChange={setWhatsapp} placeholder="+34 600 000 000" />
-            <Toggle value={freeQuote} onChange={setFreeQuote} label="Ofrezco presupuesto gratuito" />
-            <Toggle value={available} onChange={v=>{setAvailable(v);db.from("users").update({available:v}).eq("id",user.id);onUpdate({...user,available:v});}} label="Disponible para nuevos trabajos" />
-            <Toggle value={(user as any).show_on_map||false} onChange={async v=>{await db.from("users").update({show_on_map:v}).eq("id",user.id);onUpdate({...user,show_on_map:v} as any);showToast(v?"📍 Apareces en el mapa":"Ya no apareces en el mapa");}} label="📍 Aparecer en el mapa para clientes" />
-            {(user as any).show_on_map&&(
-              <div style={{padding:"10px 12px",background:"#FFD70012",border:"1px solid #FFD70033",borderRadius:8,marginTop:4}}>
-                <p style={{fontSize:12,color:"#FFD700",marginBottom:8}}>📍 Tu posición en el mapa</p>
-                <button onClick={()=>{
-                  if(navigator.geolocation){
-                    navigator.geolocation.getCurrentPosition(async pos=>{
-                      const lat=pos.coords.latitude;
-                      const lng=pos.coords.longitude;
-                      await db.from("users").update({map_lat:lat,map_lng:lng}).eq("id",user.id);
-                      onUpdate({...user,map_lat:lat,map_lng:lng} as any);
-                      showToast("✓ Posición actualizada en el mapa");
-                    },()=>showToast("⛔ No pudimos obtener tu ubicación"));
-                  }
-                }} style={{width:"100%",padding:"9px",background:"linear-gradient(135deg,#FFD700,#FF8C00)",border:"none",borderRadius:8,color:"#000",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,cursor:"pointer"}}>
-                  📍 Usar mi ubicación actual
-                </button>
-                {(user as any).map_lat&&<p style={{fontSize:11,color:"#00D68F",marginTop:6,textAlign:"center" as const}}>✓ Posición guardada</p>}
-              </div>
-            )}
-          </GCard>
-          <GCard style={{marginBottom:14}}>
-            <p style={{fontWeight:700,color:C.text,fontSize:13,marginBottom:12}}>Disponibilidad y respuesta</p>
-            <div style={{marginBottom:14}}>
-              <p style={{fontSize:11,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.08em",marginBottom:8,fontWeight:700}}>Horario de trabajo</p>
-              <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
-                {SCHEDULES.map(s=>{
-                  const sel=schedules.includes(s);
-                  return <button key={s} onClick={()=>setSchedules(prev=>sel?prev.filter(x=>x!==s):[...prev,s])} style={{padding:"6px 12px",borderRadius:99,border:"1px solid "+(sel?C.accent:C.border),background:sel?C.accent+"18":"transparent",color:sel?C.accent:C.muted,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:sel?700:400,transition:"all 0.15s"}}>{s}</button>;
-                })}
-              </div>
-            </div>
-            <div>
-              <p style={{fontSize:11,color:C.muted,textTransform:"uppercase" as const,letterSpacing:"0.08em",marginBottom:8,fontWeight:700}}>Tiempo de respuesta</p>
-              <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
-                {RESPONSE_TIMES.map(r=><button key={r} onClick={()=>setResponseTime(r)} style={{padding:"6px 12px",borderRadius:99,border:"1px solid "+(responseTime===r?C.cyan:C.border),background:responseTime===r?C.cyan+"18":"transparent",color:responseTime===r?C.cyan:C.muted,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",fontWeight:responseTime===r?700:400,transition:"all 0.15s"}}>{r}</button>)}
-              </div>
-            </div>
-          </GCard>
-        <GCard style={{marginBottom:14}}>
-  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-    <p style={{fontWeight:700,color:C.text,fontSize:13}}>📍 Zonas de servicio</p>
-    <button onClick={()=>setShowMapaPro(true)} style={{padding:"6px 12px",background:"linear-gradient(135deg,#1C1A0A,#141208)",border:"1.5px solid "+C.accent+"44",borderRadius:8,color:C.accent,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:11,display:"flex",alignItems:"center",gap:5}}>
-      <span>🗺️</span> Editar en mapa
-    </button>
-  </div>
-  {serviceZones.length===0
-    ?<p style={{fontSize:12,color:C.muted}}>Sin zonas · Pulsa "Editar en mapa"</p>
-    :<div style={{display:"flex",flexWrap:"wrap",gap:5}}>
-      {serviceZones.map(z=><span key={z} style={{fontSize:11,padding:"3px 9px",borderRadius:99,background:C.accent+"15",color:C.accent,border:"1px solid "+C.accent+"33"}}>{z}</span>)}
-    </div>
-  }
-</GCard>
-          <GCard style={{marginBottom:14}}><MultiSelect label="Tus especialidades" options={availableSpecialties} selected={specialties} onChange={setSpecialties} /></GCard>
-          <GCard style={{marginBottom:14}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-              <p style={{fontWeight:700,color:C.text,fontSize:13}}>📸 Fotos de trabajos realizados</p>
-              <span style={{fontSize:10,color:photoLimit<999?C.muted:C.green,background:C.surface,padding:"2px 7px",borderRadius:4,border:"1px solid "+C.border}}>
-                {photoLimit<999?photos.length+"/"+photoLimit+" fotos":"Sin límite"}
-              </span>
-            </div>
-            {!canAddPhoto&&<div style={{padding:"10px 12px",background:C.orange+"12",borderRadius:8,border:"1px solid "+C.orange+"22",marginBottom:10}}>
-              <p style={{fontSize:12,color:C.orange}}>⚠️ Límite alcanzado. <button onClick={()=>setTab("planes")} style={{background:"none",border:"none",color:C.accent,cursor:"pointer",fontSize:12,fontWeight:700,padding:0}}>Mejora tu plan →</button></p>
-            </div>}
-            <input ref={photoInputRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>{const f=e.target.files?.[0];if(f){setPhotoFile(f);setPhotoPreview(URL.createObjectURL(f));}}} />
-            {photoPreview&&<div style={{position:"relative",marginBottom:10}}>
-              <img src={photoPreview} alt="preview" style={{width:"100%",maxHeight:150,objectFit:"cover",borderRadius:10,border:"1px solid "+C.border}} />
-              <button onClick={()=>{setPhotoFile(null);setPhotoPreview("");}} style={{position:"absolute",top:6,right:6,background:C.red,border:"none",borderRadius:"50%",width:24,height:24,color:"#fff",cursor:"pointer",fontSize:12,fontWeight:700}}>✕</button>
-            </div>}
-            {canAddPhoto&&<div style={{display:"flex",gap:8,marginBottom:12,flexWrap:"wrap"}}>
-              <button onClick={()=>photoInputRef.current?.click()} style={{padding:"9px 14px",background:C.surface,border:"1px dashed "+C.border,borderRadius:8,color:C.muted,cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif",whiteSpace:"nowrap"}}>📸 Elegir foto</button>
-              <input value={photoCaption} onChange={e=>setPhotoCaption(e.target.value)} placeholder="Descripción del trabajo..." style={{flex:1,minWidth:120,background:C.surface,border:"1px solid "+C.border,borderRadius:8,padding:"9px 12px",color:C.text,fontFamily:"inherit",fontSize:13,outline:"none"}} />
-              <Btn small disabled={uploadingPhoto} onClick={addPhoto}>{uploadingPhoto?"Subiendo...":"Añadir"}</Btn>
-            </div>}
-            <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8}}>
-              {photos.map(p=>(
-                <div key={p.id} style={{background:C.surface,borderRadius:10,border:"1px solid "+C.border,padding:12,position:"relative"}}>
-                  {p.url?<img src={p.url} alt={p.caption} style={{width:"100%",aspectRatio:"4/3",objectFit:"cover",borderRadius:8,marginBottom:8}} onError={(e:any)=>{e.target.style.display="none";}} />:<div style={{aspectRatio:"4/3",background:C.card,borderRadius:8,marginBottom:8,display:"flex",alignItems:"center",justifyContent:"center",fontSize:28}}>📸</div>}
-                  <p style={{fontSize:11,color:C.mutedL,marginBottom:6}}>{p.caption}</p>
-                  <button onClick={()=>deletePhoto(p.id)} style={{fontSize:10,color:C.red,background:"none",border:"none",cursor:"pointer",padding:0}}>Eliminar</button>
-                </div>
-              ))}
-              {photos.length===0&&<div style={{gridColumn:"1/-1",textAlign:"center",padding:20,color:C.muted,fontSize:12}}>Sin fotos aún · Añade fotos de tus mejores trabajos</div>}
-            </div>
-          </GCard>
-          <GCard style={{marginBottom:14}}>
-            <p style={{fontWeight:700,color:C.text,fontSize:13,marginBottom:12}}>📜 Títulos y certificados</p>
-            <div style={{display:"flex",gap:8,marginBottom:12}}>
-              <input value={certName} onChange={e=>setCertName(e.target.value)} onKeyDown={e=>e.key==="Enter"&&addCert()} placeholder="Ej: Certificado instalador eléctrico..." style={{flex:1,background:C.surface,border:"1px solid "+C.border,borderRadius:8,padding:"9px 12px",color:C.text,fontFamily:"inherit",fontSize:13,outline:"none"}} />
-              <Btn small onClick={addCert}>Añadir</Btn>
-            </div>
-            {certs.map(c=>(
-              <div key={c.id} style={{display:"flex",gap:10,alignItems:"center",padding:"10px 12px",background:C.surface,borderRadius:8,border:"1px solid "+C.border,marginBottom:6}}>
-                <span style={{fontSize:18}}>📜</span>
-                <span style={{flex:1,fontSize:13,color:C.text}}>{c.name}</span>
-                {c.verified&&<span style={{fontSize:10,color:C.green,fontWeight:700}}>✓ Verificado</span>}
-              </div>
-            ))}
-          </GCard>
-          <GCard style={{marginBottom:14}}>
-          <p style={{fontWeight:700,color:C.text,fontSize:13,marginBottom:12}}>Compartir mi perfil</p>
-          <p style={{fontSize:12,color:C.muted,marginBottom:12}}>Comparte tu perfil con clientes para que te encuentren directamente</p>
-          <div style={{display:"flex",gap:8,alignItems:"center",background:C.surface,borderRadius:8,border:"1px solid "+C.border,padding:"10px 12px",marginBottom:10}}>
-            <span style={{flex:1,fontSize:11,color:C.mutedL,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" as const}}>{getDeepLinkUrl(user)}</span>
-          </div>
-          <Btn full onClick={()=>{shareProfile(user);showToast("✓ Link copiado al portapapeles");}}>Compartir perfil</Btn>
-        </GCard>
-          <ChangePasswordCard userId={user.id} />
-          <Btn full outline danger onClick={onLogout} color={C.red}>Cerrar sesión</Btn>
-          <ProDeleteAccountButton user={user} onLogout={onLogout}/>
-            </>)}
+        {tab==="perfil"&&(
+          <ProPerfil user={user} onUpdate={onUpdate} onToast={showToast} onLogout={onLogout} onIrAFacturas={()=>setTab("facturas")} pausada={showOnboarding||fichaAbierta} seccion={perfilSec} onSeccionVista={()=>setPerfilSec(null)} />
+        )}
       </div>
         <nav style={{
         position:"fixed",
