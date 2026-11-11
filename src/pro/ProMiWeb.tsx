@@ -8,7 +8,9 @@ import React, { useEffect, useState } from "react";
 import { db } from "../supabase";
 import { C, F, Card, Boton, fecha } from "./proComun";
 
-// € + IVA por cada cliente que le pide presupuesto desde su web (oy_config.precio_lead_web_pro)
+// € + IVA por cada cliente que le pide presupuesto desde su web (oy_config.precio_lead_web_pro),
+// solo con las condiciones de su web aceptadas. Si no, ese cliente le cuesta como cualquier otro suyo
+// (lo decide pro_leads_precio_pro). Las condiciones las lee de oy_condiciones_web, si ya existe.
 const PRECIO_WEB = 15;
 
 const slug = (t: string) => (t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
@@ -29,12 +31,19 @@ export default function ProMiWeb({ user }: { user: { id: string; name: string; t
   const [copiado, setCopiado] = useState<"" | "web" | "op">("");
   const [ops, setOps] = useState<Opinion[] | null>(null);
   const [todas, setTodas] = useState(false);
+  // null: todavía no hay condiciones que aceptar (o no se han podido leer)
+  const [cond, setCond] = useState<{ precio: number; aceptada: boolean } | null>(null);
 
   useEffect(() => {
     db.from("reviews").select("id,client_name,stars,text,created_at,approved")
       .eq("worker_id", user.id).order("created_at", { ascending: false }).limit(50)
       .then(({ data }: any) => setOps((data || []) as Opinion[]));
+    db.rpc("oy_condiciones_web", { p_pro: user.id }).then(({ data, error }: any) => {
+      if (error || !data || !data.vigente) { setCond(null); return; }
+      setCond({ precio: Number(data.vigente.precio) || PRECIO_WEB, aceptada: !!data.aceptada });
+    }, () => setCond(null));
   }, [user.id]);
+  const euros = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(2).replace(".", ","));
 
   const copiar = async (t: string, k: "web" | "op") => {
     try { await navigator.clipboard.writeText(t); } catch { window.prompt("Copia el enlace:", t); }
@@ -82,7 +91,13 @@ export default function ProMiWeb({ user }: { user: { id: string; name: string; t
         </div>
         <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid " + C.border, display: "grid", gap: 8, fontSize: 12.5, color: C.mutedL, lineHeight: 1.45 }}>
           <span>🔎 Es pública: Google puede enseñarla cuando buscan tu nombre o tu oficio en tu ciudad.</span>
-          <span>💶 Cada cliente que te pide presupuesto desde tu web: <b style={{ color: C.text }}>{PRECIO_WEB} € + IVA</b>. Te llega directo a ti.</span>
+          {cond && cond.aceptada ? (
+            <span>💶 Cada cliente que te pide presupuesto desde tu web: <b style={{ color: C.text }}>{euros(cond.precio)} € + IVA</b>. Te llega directo a ti.</span>
+          ) : cond ? (
+            <span>💶 Los clientes de tu web te llegan directos a ti. Si aceptas las condiciones de tu web, cada uno te cuesta <b style={{ color: C.text }}>{euros(cond.precio)} € + IVA</b>; si no, lo mismo que el resto de tus clientes.</span>
+          ) : (
+            <span>💶 Los clientes que te piden presupuesto desde tu web te llegan directos a ti, al mismo precio que el resto de tus clientes.</span>
+          )}
         </div>
       </Card>
 
