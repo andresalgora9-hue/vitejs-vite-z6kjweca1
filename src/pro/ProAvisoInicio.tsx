@@ -17,8 +17,13 @@ const ETAPAS = [
   { t: "Perdido", c: C.red },
 ];
 
-export default function ProAvisoInicio({ userId, oculto = false, onIrALeads }: { userId: string; oculto?: boolean; onIrALeads?: () => void }) {
+export default function ProAvisoInicio({ userId, oculto = false, onIrALeads, onAbierta }: {
+  userId: string; oculto?: boolean; onIrALeads?: () => void; onAbierta?: (abierta: boolean) => void;
+}) {
   const [aviso, setAviso] = useState<Aviso | null>(null);
+  // Avisa a la app de si está abierta, para que las demás ventanas de entrada esperen
+  const abierta = !!aviso && !oculto;
+  useEffect(() => { onAbierta?.(abierta); }, [abierta]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     let vivo = true;
