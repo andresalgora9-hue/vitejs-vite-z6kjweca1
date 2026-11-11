@@ -10,6 +10,7 @@ import {
 import { GestionFactura, estadoFactura } from "./apFacturas";
 import AltasPendientes from "./apAltas";
 import { RescindirContrato, BajaInfo } from "./apBaja";
+import { OpinionesPro } from "./apOpiniones";
 
 const ALTA: Record<string, { t: string; c: string }> = {
   pagada: { t: "💳 Alta pagada", c: C.green },
@@ -219,6 +220,8 @@ function FichaPro({ p, d, onClose, onHecho }: { p: Pro; d: SeccionProps["d"]; on
         );
       })}
       {facturas.length === 0 && <div style={{ fontSize: 13, color: C.muted }}>Sin facturas todavía.</div>}
+
+      <OpinionesPro proId={p.id} nombre={p.name} oficio={p.trade} />
 
       {factura && <GestionFactura f={factura} d={d} onClose={() => setFactura(null)} onHecho={(m) => { setFactura(null); onHecho(m); }} />}
       {rescindir && <RescindirContrato p={p} onClose={() => setRescindir(false)} onHecho={(m) => { setRescindir(false); onHecho(m); }} />}

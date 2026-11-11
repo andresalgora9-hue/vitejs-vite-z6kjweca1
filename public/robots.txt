@@ -6,3 +6,4 @@ Sitemap: https://www.aficioya.com/sitemap-guias.xml
 Sitemap: https://www.aficioya.com/sitemap-barrios.xml
 Sitemap: https://www.aficioya.com/sitemap-reformas.xml
 Sitemap: https://www.aficioya.com/sitemap-guias-ciudades.xml
+Sitemap: https://www.aficioya.com/sitemap-profesionales.xml

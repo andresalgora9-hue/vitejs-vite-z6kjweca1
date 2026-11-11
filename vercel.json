@@ -476,6 +476,14 @@
       "destination": "/:trade-:zone.html"
     },
     {
+      "source": "/pro/:slug/opinion",
+      "destination": "/api/pro?slug=:slug&v=opinion"
+    },
+    {
+      "source": "/sitemap-profesionales.xml",
+      "destination": "/api/pro?v=sitemap"
+    },
+    {
       "source": "/pro/:slug",
       "destination": "/api/pro?slug=:slug"
     },

@@ -18,6 +18,7 @@ import ProTarjeta, { EstadoCobro } from "./ProTarjeta";
 import ProChatOficioYa from "./ProChatOficioYa";
 import { TarjetaPush } from "./ProInicio";
 import ProPerfilGuia, { PasoGuia } from "./ProPerfilGuia";
+import ProMiWeb from "./ProMiWeb";
 
 const FN = "https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1";
 const CABECERAS_FN = { "Content-Type": "application/json", apikey: SUPABASE_KEY, Authorization: "Bearer " + SUPABASE_KEY };
@@ -586,7 +587,7 @@ export default function ProPerfil({ user, onUpdate, onToast, onLogout, onIrAFact
     },
     {
       guia: "web", parte: "web", icono: <Icono n="web" />, titulo: "Tu web",
-      texto: "Tu propia página para enseñar tu trabajo y mandársela a tus clientes. La estamos preparando: mientras, ve subiendo tu foto, tu presentación y fotos de tus trabajos.",
+      texto: "Tu propia página para enseñar tu trabajo y mandársela a tus clientes. Ya está publicada: aquí tienes su enlace y el enlace para pedir opiniones a tus clientes. Lo que rellenes sale en ella.",
     },
     {
       icono: <Icono n="check" s={30} grosor={2.4} />, titulo: "¡Listo!",
@@ -889,10 +890,10 @@ export default function ProPerfil({ user, onUpdate, onToast, onLogout, onIrAFact
                     <span style={{ display: "block", color: C.text, fontWeight: 900, fontSize: 16.5 }}>Tu web profesional</span>
                     <span style={{ display: "block", color: C.mutedL, fontSize: 12.5, marginTop: 2 }}>Una página solo tuya, para tus clientes</span>
                   </span>
-                  <span style={{ fontSize: 11.5, fontWeight: 900, padding: "5px 9px", borderRadius: 99, background: C.accent, color: "#1A1200", whiteSpace: "nowrap" }}>Muy pronto</span>
+                  <span style={{ fontSize: 11.5, fontWeight: 900, padding: "5px 9px", borderRadius: 99, background: C.green, color: "#062A1E", whiteSpace: "nowrap" }}>Publicada</span>
                 </div>
                 <div style={{ fontSize: 13.5, color: C.mutedL, lineHeight: 1.55, margin: "12px 0 0" }}>
-                  Con tus trabajos, tu presentación y las opiniones de tus clientes, para mandarla por WhatsApp o ponerla en tus redes. La estamos preparando: lo que rellenes aquí saldrá en ella.
+                  Con tus trabajos, tu presentación y las opiniones de tus clientes, para mandarla por WhatsApp o ponerla en tus redes. Ya está publicada: lo que rellenes aquí sale en ella.
                 </div>
               </div>
               <div style={{ height: 14 }} />
@@ -900,6 +901,9 @@ export default function ProPerfil({ user, onUpdate, onToast, onLogout, onIrAFact
               <div style={{ fontSize: 11.5, color: C.muted, textAlign: "center", marginTop: 8 }}>Vista previa con tus datos</div>
             </Card>
           </div>
+
+          {/* 11/11/2026: enlace a su web, enlace para pedir opiniones (WhatsApp) y sus opiniones */}
+          <div style={{ marginTop: 14 }}><ProMiWeb user={u} /></div>
 
           <Grupo>Ve preparándola</Grupo>
 
@@ -996,14 +1000,6 @@ export default function ProPerfil({ user, onUpdate, onToast, onLogout, onIrAFact
             </div>
           </Seccion>
 
-          <Card style={{ marginTop: 18 }}>
-            <div style={{ fontSize: 14, fontWeight: 800, color: C.text }}>Mientras tanto, tu perfil en OficioYa</div>
-            <div style={{ fontSize: 12.5, color: C.mutedL, marginTop: 4, lineHeight: 1.45 }}>Ya puedes compartirlo. Lo que rellenes aquí sale también en él.</div>
-            <div style={{ fontSize: 12.5, color: C.mutedL, background: C.bg, border: "1px solid " + C.border, borderRadius: 10, padding: "10px 12px", margin: "10px 0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-              aficioya.com/pro/{slug((u.name || "") + " " + (u.trade || ""))}
-            </div>
-            <div style={{ display: "flex" }}><Boton outline onClick={compartir}><Icono n="compartir" s={17} /> Compartir mi perfil</Boton></div>
-          </Card>
         </div>
       )}
 
