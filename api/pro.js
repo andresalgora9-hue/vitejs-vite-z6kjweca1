@@ -766,7 +766,7 @@ ${d.verificado ? `<section class="wrap s trust" id="sello">
 <div class="mbar" id="mbar"><a href="#pedir">Pedir presupuesto gratis</a></div>
 
 <div class="lb" id="lb" hidden role="dialog" aria-modal="true" aria-label="Foto en grande">
-  <div class="lb-img"><img id="lbImg" src="" alt=""></div>
+  <div class="lb-img"><img id="lbImg" alt=""></div>
   <div class="lb-bar">
     <span class="lb-cap" id="lbCap"></span><span class="lb-num" id="lbNum"></span>
     <button type="button" class="lb-btn" id="lbPrev" aria-label="Foto anterior">${svg("left", 20, 2.4)}</button>
