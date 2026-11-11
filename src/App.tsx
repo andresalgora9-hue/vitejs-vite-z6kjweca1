@@ -18,6 +18,7 @@ import ProInstalarApp from "./pro/ProInstalarApp";
 import ProAvisoInicio from "./pro/ProAvisoInicio";
 import ProFicha from "./pro/ProFicha";
 import ProAnexoTarjeta from "./pro/ProAnexoTarjeta";
+import ProAlEntrar from "./pro/ProAlEntrar";
 import ClienteArea from "./cliente/ClienteArea";
 const SUPABASE_ANON_KEY = "sb_publishable_ReA-g1IhCfbhwMfkei7naw_BgtOs9nv";
 const SUPABASE_FUNCTIONS_URL = "https://rjwojxwrsbvwwshwwpvq.supabase.co/functions/v1";
@@ -4259,6 +4260,10 @@ function ProDashboard({user,onLogout,onUpdate,deepLinkChatWith}:{user:UserRow;on
   const [showOnboarding,setShowOnboarding]=useState(()=>!localStorage.getItem("oy_onboarded_"+user.id));
   const handleCloseOnboarding=()=>{localStorage.setItem("oy_onboarded_"+user.id,"1");setShowOnboarding(false);};
   const [fichaAbierta,setFichaAbierta]=useState(false);
+  const [avisoInicioAbierto,setAvisoInicioAbierto]=useState(false);
+  const [alEntrarAbierto,setAlEntrarAbierto]=useState(false);
+  const [anexoAbierto,setAnexoAbierto]=useState(false);
+  const [anexoVisto,setAnexoVisto]=useState(false); // si ya ha visto el anexo (que ofrece guardar la tarjeta), esta vez no se le vuelve a pedir
   const [perfilSec,setPerfilSec]=useState<string|null>(null);
   const [tab,setTab]=useState<"inicio"|"chats"|"trabajos"|"facturas"|"perfil"|"planes">(()=>{try{const q=new URLSearchParams(window.location.search);return q.get("tarjeta")||q.get("ir")==="facturas"?"facturas":"inicio";}catch{return "inicio";}});
   const [toast,setToast]=useState<string|null>(null);
@@ -4317,30 +4322,8 @@ const [chatUser,setChatUser]=useState<UserRow|null>(null);
   const photoLimit=999; // sin planes: fotos sin límite
   const canAddPhoto=true;
 
-  // Pedir permiso de notificaciones push
-  // Pedir permiso de notificaciones push y suscribir
-  useEffect(()=>{
-    const setupPush=async()=>{
-      if(!("Notification" in window)||!("serviceWorker" in navigator))return;
-      try{if(localStorage.getItem("oy_push_off")==="1")return;}catch{}
-      let perm=Notification.permission;
-      if(perm==="default"){
-        await new Promise(r=>setTimeout(r,3000));
-        perm=await Notification.requestPermission();
-        if(perm==="granted"){
-          await subscribeToPush(user.id);
-          const reg=await navigator.serviceWorker.ready;
-          reg.showNotification("🔔 oficioya activado",{
-            body:"Recibirás alertas de nuevos clientes aunque el móvil esté bloqueado",
-            icon:"/icon-192.png",
-          });
-        }
-      } else if(perm==="granted"){
-        await subscribeToPush(user.id);
-      }
-    };
-    setupPush();
-  },[user.id]);
+  // Avisos push: ahora los lleva ProAlEntrar (11/11/2026). Si el móvil ya tiene permiso, renueva la suscripción
+  // en silencio; si no, se lo pide con una ventana y un botón (antes se pedía sola a los 3 segundos).
 
   useEffect(()=>{
     db.from("certificates").select("*").eq("worker_id",user.id).then(({data}:any)=>setCerts(data||[]));
@@ -4839,8 +4822,9 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
       <div style={{maxWidth:900,margin:"0 auto",padding:"0 16px"}}>
 
         <ProFicha userId={user.id} oculto={showOnboarding} onAbierta={setFichaAbierta} />
-        <ProAvisoInicio userId={user.id} oculto={showOnboarding||fichaAbierta} onIrALeads={()=>setTab("trabajos")} />
-        <ProAnexoTarjeta userId={user.id} oculto={showOnboarding||fichaAbierta} />
+        <ProAvisoInicio userId={user.id} oculto={showOnboarding||fichaAbierta} onIrALeads={()=>setTab("trabajos")} onAbierta={setAvisoInicioAbierto} />
+        <ProAnexoTarjeta userId={user.id} oculto={showOnboarding||fichaAbierta} onAbierta={(a)=>{setAnexoAbierto(a);if(a)setAnexoVisto(true);}} />
+        <ProAlEntrar userId={user.id} oculto={showOnboarding||fichaAbierta||avisoInicioAbierto||anexoAbierto} sinTarjeta={anexoVisto} onAbierta={setAlEntrarAbierto} onIrAFacturas={()=>setTab("facturas")} onToast={showToast} />
 
         {tab==="inicio"&&(
           <ProInicio user={{id:user.id,name:user.name,trade:user.trade,zone:user.zone}} onIrALeads={()=>setTab("trabajos")} onToast={showToast} />
@@ -4907,7 +4891,7 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
         )}
         
         {tab==="perfil"&&(
-          <ProPerfil user={user} onUpdate={onUpdate} onToast={showToast} onLogout={onLogout} onIrAFacturas={()=>setTab("facturas")} pausada={showOnboarding||fichaAbierta} seccion={perfilSec} onSeccionVista={()=>setPerfilSec(null)} />
+          <ProPerfil user={user} onUpdate={onUpdate} onToast={showToast} onLogout={onLogout} onIrAFacturas={()=>setTab("facturas")} pausada={showOnboarding||fichaAbierta||avisoInicioAbierto||anexoAbierto||alEntrarAbierto} seccion={perfilSec} onSeccionVista={()=>setPerfilSec(null)} />
         )}
       </div>
         <nav style={{

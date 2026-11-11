@@ -183,8 +183,8 @@ async function swListo(): Promise<ServiceWorkerRegistration | null> {
   ]);
 }
 
-const esIOS = () => /iPhone|iPad|iPod/i.test(navigator.userAgent);
-const instalada = () =>
+export const esIOS = () => /iPhone|iPad|iPod/i.test(navigator.userAgent);
+export const instalada = () =>
   (navigator as any).standalone === true || window.matchMedia("(display-mode: standalone)").matches;
 
 export async function estadoPush(userId: string): Promise<EstadoPush> {
@@ -231,6 +231,21 @@ export async function activarPush(userId: string): Promise<EstadoPush> {
     });
   } catch { /* nada */ }
   return "activado";
+}
+
+// Al entrar: si este dispositivo ya tiene permiso, renueva su suscripción en silencio (sin preguntar nada
+// ni enseñar ningún aviso). Así este dispositivo es el que recibe los avisos, como hasta ahora.
+export async function asegurarPush(userId: string): Promise<void> {
+  if (!("Notification" in window) || !("serviceWorker" in navigator) || !("PushManager" in window)) return;
+  if (Notification.permission !== "granted") return;
+  try { if (localStorage.getItem("oy_push_off") === "1") return; } catch { /* nada */ }
+  const reg = await swListo();
+  if (!reg) return;
+  let sub = await reg.pushManager.getSubscription();
+  if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: claveAUint8(VAPID_PUBLIC_KEY) });
+  const { data } = await db.from("push_subscriptions").select("subscription").eq("user_id", userId).maybeSingle();
+  if ((data as any)?.subscription?.endpoint === sub.endpoint) return;
+  await db.from("push_subscriptions").upsert({ user_id: userId, subscription: sub.toJSON() }, { onConflict: "user_id" });
 }
 
 export async function desactivarPush(userId: string): Promise<EstadoPush> {

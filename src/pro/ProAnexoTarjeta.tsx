@@ -11,12 +11,17 @@ import { C, F } from "./proComun";
 
 type Anexo = { mostrar: boolean; version?: string; titulo?: string; texto?: string; nombre?: string | null };
 
-export default function ProAnexoTarjeta({ userId, oculto = false }: { userId: string; oculto?: boolean }) {
+export default function ProAnexoTarjeta({ userId, oculto = false, onAbierta }: {
+  userId: string; oculto?: boolean; onAbierta?: (abierta: boolean) => void;
+}) {
   const [anexo, setAnexo] = useState<Anexo | null>(null);
   const [luego, setLuego] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState("");
   const [hecho, setHecho] = useState<{ enlace: string | null; tarjeta: boolean } | null>(null);
+  // Avisa a la app de si está abierto, para que las demás ventanas de entrada (ProAlEntrar) esperen
+  const abierta = !!anexo && !oculto && !luego;
+  useEffect(() => { onAbierta?.(abierta); }, [abierta]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     let vivo = true;
