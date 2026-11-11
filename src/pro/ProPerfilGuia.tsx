@@ -1,8 +1,9 @@
 // ============================================================
 // OficioYa · Panel PROFESIONAL — guía por pasos del PERFIL (11/11/2026)
-// Sale la primera vez que el profesional abre «Perfil». Cada paso resalta un apartado de la pantalla
-// y explica para qué sirve. Se puede omitir en cualquier momento («Omitir» o la tecla Esc) y volver
-// a ver con el botón «Guía» de arriba del perfil.
+// Sale la primera vez que el profesional abre «Perfil» (aviso de las novedades). Cada paso resalta un
+// apartado de la pantalla y explica para qué sirve. Esa primera vez es obligatoria hasta el paso 2:
+// desde ahí puede «Omitir» (o pulsar Esc). Con el botón «Guía» la repasa cuando quiera y la puede
+// omitir desde el principio (omitibleDesde = 0).
 // Los apartados se marcan en la pantalla con data-guia="..."; un paso sin «guia» sale centrado.
 // ============================================================
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -16,6 +17,7 @@ export interface PasoGuia {
   texto: React.ReactNode;
   boton?: string;             // texto del botón principal (por defecto «Siguiente»)
   secundario?: string;        // en los cuadros centrados: texto del botón de salir (por defecto «Omitir»)
+  etiqueta?: string;          // en los cuadros centrados: aviso pequeño encima del título (p. ej. «Novedad»)
 }
 
 const MARGEN = 12;      // separación del cuadro con los bordes de la pantalla
@@ -43,10 +45,11 @@ function rectRedondo(x: number, y: number, w: number, h: number, r: number) {
     + `H${x + k}A${k} ${k} 0 0 1 ${x} ${y + h - k}V${y + k}A${k} ${k} 0 0 1 ${x + k} ${y}Z`;
 }
 
-export default function ProPerfilGuia({ pasos, onTerminar, onParte }: {
+export default function ProPerfilGuia({ pasos, onTerminar, onParte, omitibleDesde = 0 }: {
   pasos: PasoGuia[];
   onTerminar: (completa: boolean) => void;
   onParte?: (parte: "datos" | "web") => void;
+  omitibleDesde?: number; // número de paso desde el que sale «Omitir» (0 = siempre; la bienvenida cuenta como 0)
 }) {
   const [i, setI] = useState(0);
   const [caja, setCaja] = useState<Caja | null>(null);
@@ -59,6 +62,7 @@ export default function ProPerfilGuia({ pasos, onTerminar, onParte }: {
   const numerados = pasos.filter((p) => p.guia);
   const n = paso.guia ? numerados.indexOf(paso) + 1 : 0;
   const ultimo = i === pasos.length - 1;
+  const puedeOmitir = n >= omitibleDesde && !ultimo;
 
   // Al cambiar de paso: abre su pestaña, lleva el apartado a la vista y, cuando ha llegado, lo mide
   useEffect(() => {
@@ -103,7 +107,7 @@ export default function ProPerfilGuia({ pasos, onTerminar, onParte }: {
   // Teclado: Esc omite, flechas o Intro avanzan / retroceden
   useEffect(() => {
     const tecla = (e: KeyboardEvent) => {
-      if (e.key === "Escape") { e.preventDefault(); onTerminar(false); }
+      if (e.key === "Escape") { e.preventDefault(); if (puedeOmitir) onTerminar(false); }
       else if (e.key === "ArrowRight") { e.preventDefault(); siguiente(); }
       else if (e.key === "ArrowLeft") { e.preventDefault(); atras(); }
     };
@@ -187,13 +191,16 @@ export default function ProPerfilGuia({ pasos, onTerminar, onParte }: {
               width: 64, height: 64, borderRadius: 18, margin: "0 auto 16px", display: "flex", alignItems: "center", justifyContent: "center",
               background: "linear-gradient(135deg,rgba(255,215,0,0.16),rgba(255,140,0,0.10))", border: "1px solid rgba(255,215,0,0.3)", color: C.accent,
             }}>{paso.icono}</div>
+            {paso.etiqueta && (
+              <div style={{ display: "inline-block", marginBottom: 10, fontSize: 11.5, fontWeight: 900, letterSpacing: "0.08em", textTransform: "uppercase", color: "#1A1200", background: C.accent, borderRadius: 99, padding: "4px 10px" }}>{paso.etiqueta}</div>
+            )}
             <h2 id="oy-guia-t" style={{ margin: "0 0 8px", fontSize: 21, fontWeight: 900, letterSpacing: "-0.02em" }}>{paso.titulo}</h2>
             <div id="oy-guia-d" aria-live="polite" style={{ fontSize: 14.5, lineHeight: 1.6, color: C.mutedL, marginBottom: 20 }}>{paso.texto}</div>
             <button ref={principal} onClick={siguiente} style={{
               ...btnBase, width: "100%", minHeight: 48, border: "none", color: "#1A1200", fontWeight: 900, fontSize: 15.5,
               background: "linear-gradient(135deg,#FFFFFF 0%,#F0E6C0 45%,#FFD700 100%)", boxShadow: "0 12px 28px -14px rgba(255,200,0,0.8)",
             }}>{paso.boton || "Siguiente"}</button>
-            {!ultimo && (
+            {puedeOmitir && (
               <button onClick={() => onTerminar(false)} style={{ ...btnBase, width: "100%", marginTop: 6, border: "none", background: "transparent", color: C.muted, fontWeight: 700 }}>
                 {paso.secundario || "Omitir"}
               </button>
@@ -222,9 +229,11 @@ export default function ProPerfilGuia({ pasos, onTerminar, onParte }: {
             <div id="oy-guia-d" aria-live="polite" style={{ fontSize: 14.5, lineHeight: 1.55, color: C.mutedL }}>{paso.texto}</div>
 
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 14 }}>
-              <button onClick={() => onTerminar(false)} style={{
-                ...btnBase, flex: 1, textAlign: "left", padding: "0 4px", border: "none", background: "transparent", color: C.muted, fontWeight: 700, fontSize: 14,
-              }}>Omitir</button>
+              {puedeOmitir ? (
+                <button onClick={() => onTerminar(false)} style={{
+                  ...btnBase, flex: 1, textAlign: "left", padding: "0 4px", border: "none", background: "transparent", color: C.muted, fontWeight: 700, fontSize: 14,
+                }}>Omitir</button>
+              ) : <span style={{ flex: 1 }} />}
               {n > 1 && (
                 <button onClick={atras} style={{ ...btnBase, border: "1px solid " + C.border, background: "transparent", color: C.text }}>Atrás</button>
               )}

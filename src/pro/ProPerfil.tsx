@@ -6,7 +6,8 @@
 //   · Mi web (lo que verán sus clientes): foto, presentación, experiencia, fotos de trabajos y títulos.
 //     La web completa de cada profesional se prepara más adelante; aquí ya puede ir rellenándola.
 // Arriba se ve lo completo que está el perfil y lo que falta (cada cosa lleva directa a rellenarla).
-// La primera vez que entra sale la guía por pasos (ProPerfilGuia): se puede omitir y volver a ver.
+// La primera vez que entra sale sí o sí el aviso de las novedades con la guía por pasos (ProPerfilGuia):
+// se puede omitir a partir del paso 2 y volver a ver con el botón «Guía».
 // Sustituye al bloque antiguo de «Perfil» de App.tsx (ProNegocio + «Mi perfil público»).
 // ============================================================
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -321,7 +322,9 @@ export default function ProPerfil({ user, onUpdate, onToast, onLogout, onIrAFact
   const [titulos, setTitulos] = useState<any[]>([]);
   const [leads, setLeads] = useState<any[]>([]);
   const [hist, setHist] = useState<any[]>([]);
-  const [guia, setGuia] = useState(false);
+  // Guía: «novedades» = aviso obligatorio la primera vez (se puede omitir desde el paso 2); «repaso» = botón «Guía»
+  const [guia, setGuia] = useState<"novedades" | "repaso" | null>(null);
+  const seccionTrasGuia = useRef<string | null>(null);
   const [editarFicha, setEditarFicha] = useState(false);
   const [verCondiciones, setVerCondiciones] = useState(false);
 
@@ -373,23 +376,27 @@ export default function ProPerfil({ user, onUpdate, onToast, onLogout, onIrAFact
 
   useEffect(() => { cargar(); }, [cargar]);
 
-  // Si llega para rellenar algo en concreto, se abre ese apartado
+  // Si llega para rellenar algo en concreto, se abre ese apartado (si antes tiene que ver las novedades, al acabar)
   useEffect(() => {
     if (!cargado || !seccion) return;
-    irA("datos", seccion);
+    if (guiaVista(user.id)) irA("datos", seccion);
+    else seccionTrasGuia.current = seccion;
     onSeccionVista?.();
   }, [cargado, seccion]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // La guía sale sola la primera vez (cuando no hay otra ventana encima ni viene a rellenar algo concreto)
+  // La primera vez que entra, sale sí o sí el aviso de las novedades con la guía (espera si hay otra ventana encima)
   useEffect(() => {
-    if (!cargado || pausada || seccion || guiaVista(user.id)) return;
-    const t = setTimeout(() => setGuia(true), 500);
+    if (!cargado || pausada || guia || guiaVista(user.id)) return;
+    const t = setTimeout(() => setGuia("novedades"), 500);
     return () => clearTimeout(t);
-  }, [cargado, pausada, user.id]);
+  }, [cargado, pausada, user.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const cerrarGuia = () => {
     try { localStorage.setItem(CLAVE_GUIA + user.id, "1"); } catch { /* nada */ }
-    setGuia(false); setParte("datos"); setAbierta(null);
+    setGuia(null); setParte("datos"); setAbierta(null);
+    const pendiente = seccionTrasGuia.current;
+    seccionTrasGuia.current = null;
+    if (pendiente) { irA("datos", pendiente); return; }
     const s = document.querySelector("[data-scroll]") as HTMLElement | null;
     if (s) s.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -540,10 +547,14 @@ export default function ProPerfil({ user, onUpdate, onToast, onLogout, onIrAFact
   // ── Pasos de la guía ──
   const nombre = (u.name || "").trim().split(/\s+/)[0];
   const pasos: PasoGuia[] = [
-    {
+    guia === "repaso" ? {
       icono: <Icono n="chispa" s={30} />, titulo: "Te enseñamos tu perfil" + (nombre ? ", " + nombre : ""),
       texto: "En un minuto verás qué hay en cada apartado y para qué sirve. Puedes saltarte la guía cuando quieras.",
       boton: "Empezar", secundario: "Ahora no",
+    } : {
+      icono: <Icono n="chispa" s={30} />, etiqueta: "Novedad", titulo: "Hemos renovado tu perfil" + (nombre ? ", " + nombre : ""),
+      texto: <>Ahora está ordenado en dos partes, <b style={{ color: C.text }}>tus datos</b> y <b style={{ color: C.text }}>tu web</b>, con una barra que te dice qué te falta. Te enseñamos los cambios en un minuto.</>,
+      boton: "Ver los cambios",
     },
     {
       guia: "progreso", parte: "datos", icono: <Icono n="grafica" />, titulo: "Cómo va tu perfil",
@@ -592,7 +603,7 @@ export default function ProPerfil({ user, onUpdate, onToast, onLogout, onIrAFact
 
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "22px 0 12px" }}>
         <h2 style={{ fontWeight: 800, fontSize: 22, color: C.text, margin: 0 }}>Tu perfil</h2>
-        <button onClick={() => setGuia(true)} style={{
+        <button onClick={() => setGuia("repaso")} style={{
           display: "flex", alignItems: "center", gap: 6, minHeight: 36, padding: "0 12px", borderRadius: 99, cursor: "pointer",
           border: "1px solid " + C.border, background: "rgba(255,255,255,0.04)", color: C.mutedL, fontFamily: F, fontWeight: 800, fontSize: 13,
         }}><Icono n="ayuda" s={17} /> Guía</button>
@@ -997,7 +1008,7 @@ export default function ProPerfil({ user, onUpdate, onToast, onLogout, onIrAFact
       )}
 
       {editarFicha && <ProFicha userId={user.id} abrir onCerrar={(g) => { setEditarFicha(false); if (g) cargar(); }} />}
-      {guia && <ProPerfilGuia pasos={pasos} onTerminar={cerrarGuia} onParte={(p) => { setParte(p); setAbierta(null); }} />}
+      {guia && <ProPerfilGuia pasos={pasos} omitibleDesde={guia === "novedades" ? 2 : 0} onTerminar={cerrarGuia} onParte={(p) => { setParte(p); setAbierta(null); }} />}
     </div>
   );
 }
