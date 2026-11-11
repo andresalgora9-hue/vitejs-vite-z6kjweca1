@@ -5,8 +5,10 @@
 //   /sitemap-profesionales.xml   → las webs con contenido, para Google
 //
 // Datos: RPC oy_web_pro / oy_web_pros_lista (solo datos públicos: nunca teléfono, email ni facturación).
-// Formulario → oy_lead_contacto con landing «web-pro» y su id: el cliente va directo a ese profesional
-// y se le cobra a 15 € + IVA (oy_config.precio_lead_web_pro). Opiniones → oy_opinion_enviar.
+// Formulario → oy_lead_contacto con landing «web-pro» y su id: si el profesional está recibiendo clientes
+// de OficioYa, el cliente va directo a él y se le cobra a 15 € + IVA (oy_config.precio_lead_web_pro) si tiene
+// aceptadas las condiciones de su web; si no, como cualquier otro cliente suyo (pro_leads_precio_pro).
+// Si no recibe clientes, lo atiende OficioYa (Admin → Leads) y no se le cobra. Opiniones → oy_opinion_enviar.
 // ?prueba=1 en la web o en la página de opinión: no se envía nada (para probar).
 
 const SUPABASE_URL = "https://rjwojxwrsbvwwshwwpvq.supabase.co";
