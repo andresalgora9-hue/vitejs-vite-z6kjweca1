@@ -4823,7 +4823,7 @@ const SPECIALTIES_BY_TRADE:Record<string,string[]>={
 
         <ProFicha userId={user.id} oculto={showOnboarding} onAbierta={setFichaAbierta} />
         <ProAvisoInicio userId={user.id} oculto={showOnboarding||fichaAbierta} onIrALeads={()=>setTab("trabajos")} onAbierta={setAvisoInicioAbierto} />
-        <ProAnexoTarjeta userId={user.id} oculto={showOnboarding||fichaAbierta} onAbierta={(a)=>{setAnexoAbierto(a);if(a)setAnexoVisto(true);}} />
+        <ProAnexoTarjeta userId={user.id} oculto={showOnboarding||fichaAbierta} onAbierta={(a,t)=>{setAnexoAbierto(a);if(a&&t!==false)setAnexoVisto(true);}} />
         <ProAlEntrar userId={user.id} oculto={showOnboarding||fichaAbierta||avisoInicioAbierto||anexoAbierto} sinTarjeta={anexoVisto} onAbierta={setAlEntrarAbierto} onIrAFacturas={()=>setTab("facturas")} onToast={showToast} />
 
         {tab==="inicio"&&(
