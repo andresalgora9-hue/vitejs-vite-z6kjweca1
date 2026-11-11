@@ -46,7 +46,7 @@ main{padding:18px 0 40px}
 body.con-barra{padding-bottom:118px}
 
 /* Progreso */
-.progreso{list-style:none;display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:2px 0 18px}
+.progreso{list-style:none;display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:2px 0 18px}
 .progreso li{font-size:12.5px;font-weight:700;color:var(--ink-faint);text-align:center}
 .progreso li::before{content:'';display:block;height:5px;border-radius:99px;background:var(--line-strong);margin-bottom:6px}
 .progreso li.hecho{color:var(--ink-soft)}
@@ -197,19 +197,48 @@ footer details p{margin-top:8px}
   <!-- Pasos -->
   <section id="v-pasos" hidden>
     <ol class="progreso" id="progreso" aria-label="Pasos para firmar">
-      <li>Tus datos</li><li>Contrato</li><li>Email</li><li>DNI</li><li>Firma</li>
+      <li>Ficha</li><li>Tus datos</li><li>Contrato</li><li>Email</li><li>DNI</li><li>Firma</li>
     </ol>
 
-    <!-- Paso 1: sus datos (con ellos se prepara su contrato) -->
-    <div id="p1" hidden>
+    <!-- Paso 0 (v10, 11/11/2026): su ficha, zonas y trabajos que hace. Va antes del contrato y se firma con él -->
+    <div id="p0" hidden>
       <h1 class="titulo" tabindex="-1">Tu contrato con OficioYa</h1>
-      <p class="sub" id="p1-sub"></p>
+      <p class="sub" id="p0-sub"></p>
       <div class="tarjeta" id="p1-condiciones" hidden></div>
       <div id="p1-video" hidden>
         <h2 class="seccion-t">Te lo explicamos en un vídeo</h2>
         <video class="video" id="video" controls playsinline preload="metadata"></video>
       </div>
-      <h2 class="seccion-t">Tus datos</h2>
+      <h2 class="seccion-t">Tu ficha: dónde trabajas y qué trabajos haces</h2>
+      <p class="nota">Con ella preparamos tus anuncios. La firmas con tu contrato.</p>
+      <form id="f-ficha" novalidate autocomplete="off">
+        <label class="lbl" for="fx-zonas">¿En qué pueblos o zonas trabajas?</label>
+        <input id="fx-zonas" placeholder="Ej.: Madrid capital, Alcalá de Henares, Getafe">
+        <span id="fx-serv-lbl" style="display:block;font-weight:700;font-size:15.5px;margin:16px 0 2px">¿Qué trabajos haces?</span>
+        <p class="nota-s">Marca todos los que haces.</p>
+        <div id="fx-servicios" role="group" aria-labelledby="fx-serv-lbl"></div>
+        <input id="fx-otros" placeholder="Otros trabajos que haces (opcional)" style="margin-top:8px">
+        <label class="lbl" for="fx-horario">Horario <small>(opcional)</small></label>
+        <input id="fx-horario" placeholder="Ej.: lunes a viernes de 8 a 18 h">
+        <label class="check"><input type="checkbox" id="fx-finde"> <span>Trabajo fines de semana y festivos</span></label>
+        <label class="check"><input type="checkbox" id="fx-urg"> <span>Atiendo urgencias 24 h</span></label>
+        <label class="lbl" for="fx-cap">¿Cuántos clientes nuevos puedes atender a la semana?</label>
+        <input id="fx-cap" inputmode="numeric" maxlength="3" placeholder="Ej.: 5" style="max-width:140px">
+        <div class="tarjeta" style="margin-top:18px">
+          <p class="nota" id="fx-texto"></p>
+          <label class="check" style="border-top:1px solid var(--line);margin-top:10px"><input type="checkbox" id="fx-acepto"> <span><b>Mi ficha es correcta y acepto estas condiciones</b></span></label>
+        </div>
+        <p class="err" id="fx-err" role="alert"></p>
+        <div class="botones">
+          <button class="btn" type="submit" id="fx-seguir">Firmar mi ficha y seguir</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Paso 1: sus datos (con ellos se prepara su contrato) -->
+    <div id="p1" hidden>
+      <h1 class="titulo" tabindex="-1">Tus datos</h1>
+      <p class="sub" id="p1-sub"></p>
       <p class="nota" id="d-intro">Son los datos del contrato que estaban en blanco. Escríbelos como aparecen en tu DNI.</p>
       <form id="f-datos" novalidate autocomplete="on">
         <span class="lbl" style="display:block;font-weight:700;font-size:15.5px;margin:6px 0 6px" id="como-lbl">¿Cómo firmas?</span>
@@ -265,16 +294,20 @@ footer details p{margin-top:8px}
           <label class="check"><input type="checkbox" id="h-rite"> Instalaciones térmicas (RITE): calderas, calefacción, ACS</label>
         </div>
 
+        <div id="d-sepa" hidden>
         <h2 class="seccion-t">Domiciliación de las facturas <small style="font-family:Barlow,sans-serif;font-weight:600;font-size:14px;color:var(--ink-soft)">(opcional)</small></h2>
         <p class="nota">Si pones tu IBAN, autorizas el cargo de tus facturas en tu cuenta (Anexo II del contrato). Si lo dejas en blanco, pagarás por transferencia o Bizum.</p>
         <label class="lbl" for="d-iban">IBAN</label>
         <input id="d-iban" class="mayus" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ES00 0000 0000 0000 0000 0000" inputmode="text">
         <label class="lbl" for="d-banco">Banco <small>(opcional)</small></label>
         <input id="d-banco" autocomplete="off">
+        </div>
+        <p class="nota" id="d-cobro" style="margin-top:18px"></p>
 
         <p class="err" id="d-err" role="alert"></p>
         <div class="botones">
           <button class="btn" type="submit" id="d-seguir">Continuar</button>
+          <button class="btn sec" type="button" data-volver="0">Volver a mi ficha</button>
         </div>
       </form>
     </div>
@@ -521,15 +554,16 @@ function ir(n, desdeHistorial){
       else history.replaceState({ paso: n }, '');
     } catch(e) {}
   }
-  for (var i = 1; i <= 5; i++) $('p' + i).hidden = i !== n;
+  for (var i = 0; i <= 5; i++) $('p' + i).hidden = i !== n;
   Array.prototype.forEach.call($('progreso').children, function(li, i){
-    li.className = i + 1 < n ? 'hecho' : i + 1 === n ? 'actual' : '';
-    if (i + 1 === n) li.setAttribute('aria-current', 'step'); else li.removeAttribute('aria-current');
+    li.className = i < n ? 'hecho' : i === n ? 'actual' : '';
+    if (i === n) li.setAttribute('aria-current', 'step'); else li.removeAttribute('aria-current');
   });
   $('barra').hidden = n !== 2; document.body.classList.toggle('con-barra', n === 2);
   window.scrollTo(0, 0);
   var h = $('p' + n).querySelector('h1'); if (h) { try { h.focus({ preventScroll: true }); } catch(e) { h.focus(); } }
   if (n === 2) contarLectura(true); else contarLectura(false);
+  if (n === 0) entrarFicha();
   if (n === 3) entrarEmail();
   if (n === 5) entrarFirma();
 }
@@ -561,6 +595,7 @@ function iniciar(){
     else if (paso > 2 && !S.leido) paso = 2;
     else if (paso > 3 && !S.sesion) paso = 3;
     else if (paso > 4 && !DNI) paso = 4;   // las fotos no se guardan: si recarga, se repiten
+    if (!fichaLista()) paso = 0;           // v10: primero su ficha (zonas y trabajos)
     ir(paso);
     if (otroDia && docListo()) $('d-err').textContent = 'Vuelve a preparar tu contrato para que lleve la fecha de hoy: tus datos siguen aquí.';
     else if (docListo()) cargarContrato();
@@ -581,9 +616,16 @@ function prepararPasos(){
   var c = E.condiciones, p = E.profesional || {};
   var oficio = (c && c.oficio_txt) || p.oficio_txt || '';
   var ciudad = (c && c.ciudad) || p.ciudad || '';
-  $('p1-sub').textContent = (oficio ? 'Plaza de ' + oficio.toLowerCase() + (ciudad ? ' en ' + ciudad : '') + '. ' : '')
-    + (E.personalizable ? 'Primero escribe tus datos: los ponemos en tu contrato y después lo lees entero antes de firmar. Te llevará unos 5 minutos.'
-                        : 'Escribe tus datos, lee el contrato entero y fírmalo. Te llevará unos 5 minutos.');
+  var exenta = !!c && Number(c.activacion) === 0;
+  $('p0-sub').textContent = (oficio ? 'Plaza de ' + oficio.toLowerCase() + (ciudad ? ' en ' + ciudad : '') + '. ' : '')
+    + 'Son tres pasos: tu ficha (zonas y trabajos que haces), tu contrato y '
+    + (exenta ? 'guardar tu tarjeta para tus facturas (0 €).' : 'el pago de la activación con tarjeta.') + ' Te llevará unos 10 minutos.';
+  $('p1-sub').textContent = E.personalizable ? 'Los ponemos en tu contrato y después lo lees entero antes de firmar.'
+                                             : 'Escribe tus datos, lee el contrato entero y fírmalo.';
+  $('d-cobro').textContent = exenta
+    ? 'Al final guardarás tu tarjeta (0 €, no se cobra nada): tus facturas de leads se cobrarán solas en ella cuando se emitan.'
+    : 'Al final pagarás la activación con tarjeta: esa tarjeta queda guardada y tus facturas de leads se cobrarán solas cuando se emitan.';
+  prepararFicha();
   if (E.personalizable) {
     $('d-intro').textContent = 'Los escribimos en tu contrato. Ponlos como aparecen en tu DNI.';
     $('p2-sub').textContent = 'Ya lleva tus datos. Léelo entero antes de firmar.';
@@ -616,6 +658,70 @@ function prepararPasos(){
   $('d-cargo-otro').hidden = $('d-cargo').value !== 'otro';
   $('rev-caja').hidden = !E.pedir_reverso;
 }
+
+/* ---------- Paso 0: su ficha, zonas y trabajos que hace (v10) ---------- */
+function fichaLista(){ return !!(E && E.ficha && E.ficha.guardada); }
+function fichaDatos(){
+  var g = (E && E.ficha && E.ficha.guardada) || S.ficha || {};
+  return {
+    zonas: g.zonas || '',
+    servicios: Array.isArray(g.servicios_lista) ? g.servicios_lista : (Array.isArray(g.servicios) ? g.servicios : []),
+    otros: g.servicios_otros || g.otros || '', horario: g.horario || '',
+    fines_semana: !!g.fines_semana, urgencias_24h: !!g.urgencias_24h,
+    capacidad_semana: g.capacidad_semana != null ? String(g.capacidad_semana) : ''
+  };
+}
+function prepararFicha(){
+  var fi = (E && E.ficha) || {}, lista = fi.servicios || [], d = fichaDatos();
+  $('fx-zonas').value = d.zonas;
+  $('fx-servicios').innerHTML = lista.map(function(sv, i){
+    return '<label class="check"><input type="checkbox" data-serv="' + i + '"' + (d.servicios.indexOf(sv) > -1 ? ' checked' : '') + '> <span>' + esc(sv) + '</span></label>';
+  }).join('');
+  $('fx-otros').value = d.otros;
+  $('fx-otros').placeholder = lista.length ? 'Otros trabajos que haces (opcional)' : 'Los trabajos que haces, separados por comas';
+  $('fx-horario').value = d.horario;
+  $('fx-finde').checked = d.fines_semana; $('fx-urg').checked = d.urgencias_24h;
+  $('fx-cap').value = d.capacidad_semana;
+  $('fx-texto').textContent = fi.texto || '';
+  $('fx-acepto').checked = fichaLista();
+}
+function leerFicha(){
+  var lista = (E && E.ficha && E.ficha.servicios) || [], marcados = [];
+  Array.prototype.forEach.call($('fx-servicios').querySelectorAll('input[data-serv]'), function(i){
+    if (i.checked) marcados.push(lista[Number(i.getAttribute('data-serv'))]);
+  });
+  return {
+    zonas: $('fx-zonas').value.trim().replace(/\s+/g, ' '), servicios: marcados, otros: $('fx-otros').value.trim(),
+    horario: $('fx-horario').value.trim(), fines_semana: $('fx-finde').checked, urgencias_24h: $('fx-urg').checked,
+    capacidad_semana: $('fx-cap').value.replace(/\D/g, ''), acepta: $('fx-acepto').checked
+  };
+}
+function entrarFicha(){ $('fx-err').textContent = ''; }
+$('fx-cap').addEventListener('input', function(){ this.value = this.value.replace(/\D/g, '').slice(0, 3); });
+$('f-ficha').addEventListener('input', function(){
+  $('fx-err').textContent = '';
+  if (fichaLista()) return;   // ya guardada: los cambios se guardan al pulsar el botón
+  var f = leerFicha(); delete f.acepta; S.ficha = f; guardarS();
+});
+var enviandoFicha = false;
+$('f-ficha').addEventListener('submit', function(ev){
+  ev.preventDefault();
+  var fx = leerFicha(), err = $('fx-err'), cap = Number(fx.capacidad_semana);
+  if (fx.zonas.length < 2) { err.textContent = 'Dinos en qué pueblos o zonas trabajas.'; $('fx-zonas').focus(); return; }
+  if (!fx.servicios.length && !fx.otros) { err.textContent = 'Marca los trabajos que haces.'; return; }
+  if (!(cap >= 1 && cap <= 200)) { err.textContent = 'Dinos cuántos clientes nuevos puedes atender a la semana.'; $('fx-cap').focus(); return; }
+  if (!fx.acepta) { err.textContent = 'Marca la casilla para aceptar tu ficha.'; return; }
+  if (enviandoFicha) return; enviandoFicha = true;
+  var b = $('fx-seguir'), txt = b.textContent; b.disabled = true; b.textContent = 'Guardando tu ficha…';
+  api('ficha', { ficha: fx }).then(function(r){
+    E.ficha = E.ficha || {}; E.ficha.guardada = r.ficha; E.ficha.hecha = true; E.ficha.at = r.ficha_at;
+    S.ficha = null; guardarS();
+    ir(1);
+  }).catch(function(e){
+    err.textContent = e.message;
+    if (e.status === 409) error('Este contrato ya no se puede cambiar', e.message, true);
+  }).then(function(){ enviandoFicha = false; b.disabled = false; b.textContent = txt; });
+});
 
 /* ---------- Paso 1: el contrato ---------- */
 function volverADatos(msg){
@@ -1068,6 +1174,7 @@ function entrarFirma(){
   var filas = [
     ['Contrato', esc(c ? 'Cesión de leads · ' + c.oficio_txt + ' en ' + c.ciudad : (doc.nombre || 'Contrato con OficioYa'))],
     c ? ['Condiciones', euros(c.precio) + ' + IVA por cliente · activación ' + euros(c.activacion) + ' + IVA'] : null,
+    E.ficha && E.ficha.guardada ? ['Tu ficha', esc(E.ficha.guardada.zonas) + '<br>' + esc(E.ficha.guardada.servicios)] : null,
     ['Firmas', esc(d.nombre) + ' · ' + esc(d.nif) + (d.como === 'empresa' ? '<br>en nombre de ' + esc(d.razon) + ' (' + esc(d.cif) + '), como ' + esc(String(d.cargoTxt || '').toLowerCase()) : '')],
     ['Email', esc(S.emailVerificado || d.email) + ' · confirmado'],
     ['Huella', '<span class="huella">' + esc(doc.sha256 || '') + '</span>']
@@ -1113,6 +1220,7 @@ $('f-firmar').addEventListener('click', function(){
     $('velo-firmando').hidden = true; firmando = false; $('f-firmar').disabled = false;
     if (e.status === 401) { S.sesion = null; S.emailVerificado = null; S.codigoA = null; guardarS(); ir(3); $('c-err').textContent = 'Por seguridad, confirma otra vez tu email con un código nuevo.'; return; }
     if (e.status === 412) { volverADatos(e.message); return; }
+    if (e.status === 428) { ir(0); $('fx-err').textContent = e.message; return; }
     if (e.status === 409 && /firmado/.test(e.message)) { borrarS(); hecho(null); return; }
     if (e.status === 409) { error('El contrato ha cambiado', 'Tu comercial lo ha actualizado. Recarga la página para ver el nuevo.', true); return; }
     if (e.status === 410) { error('Este enlace ya no es válido', e.message); return; }
@@ -1140,13 +1248,26 @@ function hecho(r){
   }
   $('hecho-botones').innerHTML = bot;
   var pago = (r && r.pago_activacion) || (E && E.pago_activacion);
-  if (pago && c) {
-    $('hecho-activacion').innerHTML = '<h3>Último paso: la activación</h3>'
+  var exenta = !!c && Number(c.activacion) === 0, tj = E && E.tarjeta, caja = $('hecho-activacion');
+  if (!r && E && E.activacion_pagada) {
+    var marca = tj && tj.marca ? String(tj.marca).charAt(0).toUpperCase() + String(tj.marca).slice(1) : 'Tu tarjeta';
+    caja.innerHTML = '<h3>' + (exenta ? 'Tu alta está hecha' : 'Activación pagada') + '</h3>'
+      + '<p>' + (tj ? esc(marca) + (tj.ultimos4 ? ' ···· ' + esc(tj.ultimos4) : '') + ' queda guardada: tus facturas de leads se cobran solas cuando se emiten.'
+                    : 'Ya tienes tu cuenta: mira tu email para entrar en la app.') + '</p>';
+    caja.hidden = false;
+  } else if (pago && c) {
+    caja.innerHTML = '<h3>Último paso: paga la activación</h3>'
       + '<p>' + euros(c.activacion) + ' + IVA (<b>' + euros(c.activacion_iva) + '</b> en total), en los 5 días siguientes a la firma. Con ella reservamos tu plaza en ' + esc(c.ciudad) + ' y ponemos en marcha tus anuncios.</p>'
-      + '<div class="botones"><a class="btn" href="' + esc(pago) + '" target="_blank" rel="noopener">Pagar la activación con tarjeta o Bizum</a></div>'
-      + '<p class="nota-s" style="margin-top:10px">También puedes pagarla por transferencia a la cuenta del contrato (ING · ES45 1465 0100 9117 4426 4278, titular Andrés Algora Marín) y mandar el justificante por WhatsApp al 656 39 80 14.</p>';
-    $('hecho-activacion').hidden = false;
-  } else $('hecho-activacion').hidden = true;
+      + '<p style="margin-top:8px">Se paga con tarjeta y <b>esa tarjeta queda guardada</b>: tus facturas de leads se cobrarán solas cuando se emitan, sin transferencias. Al pagar se crea tu cuenta y te llega por email el acceso a la app.</p>'
+      + '<div class="botones"><a class="btn" href="' + esc(pago) + '">Pagar la activación y guardar mi tarjeta</a></div>'
+      + '<p class="nota-s" style="margin-top:10px">Pago seguro con Stripe. Podrás cambiar la tarjeta cuando quieras desde la app.</p>';
+    caja.hidden = false;
+  } else if (r && r.tarjeta) {
+    caja.innerHTML = '<h3>Último paso: guarda tu tarjeta</h3>'
+      + '<p>Tu activación es gratis (0 €). Guarda tu tarjeta: no se te cobra nada ahora y tus facturas de leads se cobrarán solas cuando se emitan.</p>'
+      + '<div class="botones"><a class="btn" href="' + esc(r.tarjeta) + '">Guardar mi tarjeta (0 €)</a></div>';
+    caja.hidden = false;
+  } else caja.hidden = true;
   window.scrollTo(0, 0);
   try { $('hecho-titulo').focus({ preventScroll: true }); } catch(x) {}
 }
