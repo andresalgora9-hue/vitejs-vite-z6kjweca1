@@ -8,12 +8,16 @@
 // Arriba se ve lo completo que está el perfil y lo que falta (cada cosa lleva directa a rellenarla).
 // La primera vez que entra sale sí o sí el aviso de las novedades con la guía por pasos (ProPerfilGuia):
 // se puede omitir a partir del paso 2 y volver a ver con el botón «Guía».
+// Al terminar (u omitir) la guía se le piden las condiciones de su web (ProCondicionesWeb: 15 € + IVA por
+// cliente que le llegue por ella). Si las deja para luego, se le vuelven a pedir al entrar en Perfil.
 // Sustituye al bloque antiguo de «Perfil» de App.tsx (ProNegocio + «Mi perfil público»).
 // ============================================================
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { db, STORAGE_URL, SUPABASE_KEY } from "../supabase";
 import { C, F, Boton, Card, fecha, duracionMin, digitos } from "./proComun";
 import ProFicha from "./ProFicha";
+import ProCondicionesWeb, { AvisoCondicionesWeb, ResumenCondicionesWeb, eurosWeb } from "./ProCondicionesWeb";
+import type { CondicionesWeb, OrigenCondiciones } from "./ProCondicionesWeb";
 import ProTarjeta, { EstadoCobro } from "./ProTarjeta";
 import ProChatOficioYa from "./ProChatOficioYa";
 import { TarjetaPush } from "./ProInicio";
@@ -328,6 +332,11 @@ export default function ProPerfil({ user, onUpdate, onToast, onLogout, onIrAFact
   const seccionTrasGuia = useRef<string | null>(null);
   const [editarFicha, setEditarFicha] = useState(false);
   const [verCondiciones, setVerCondiciones] = useState(false);
+  // Condiciones de su web (15 € + IVA por cliente que le llegue por ella): se aceptan al terminar la guía
+  const [condWeb, setCondWeb] = useState<CondicionesWeb | null>(null);
+  const [condAbierta, setCondAbierta] = useState<OrigenCondiciones | null>(null);
+  const condPospuesta = useRef(false); // pulsó «Ahora no»: no se le vuelven a pedir hasta que vuelva a entrar
+  const condPendiente = !!(condWeb?.vigente && condWeb.pendiente);
 
   // Formularios
   const [tel, setTel] = useState(""); const [wa, setWa] = useState("");
@@ -351,7 +360,7 @@ export default function ProPerfil({ user, onUpdate, onToast, onLogout, onIrAFact
   };
 
   const cargar = useCallback(async () => {
-    const [us, fi, co, ct, fo, ti, ls, ds] = await Promise.all([
+    const [us, fi, co, ct, fo, ti, ls, ds, cw] = await Promise.all([
       db.from("users").select(CAMPOS_USUARIO).eq("id", user.id).maybeSingle(),
       db.rpc("oy_ficha_pro", { p_pro: user.id }),
       db.rpc("oy_cobro_estado_pro", { p_pro: user.id }),
@@ -360,12 +369,14 @@ export default function ProPerfil({ user, onUpdate, onToast, onLogout, onIrAFact
       db.from("certificates").select("*").eq("worker_id", user.id),
       db.from("pro_leads").select("created_at,estado,presupuesto_eur,price,primer_contacto_at,budget_request_id").eq("pro_id", user.id).eq("anulado", false),
       db.from("deals").select("stage,price,budget_request_id").eq("pro_id", user.id),
+      db.rpc("oy_condiciones_web", { p_pro: user.id }),
     ] as any[]);
     const x = { ...user, ...((us as any).data || {}) };
     setU(x); rellenar(x);
     if (!(fi as any).error) setFicha((fi as any).data || null);
     if (!(co as any).error) setCobro((co as any).data || null);
     if (!(ct as any).error) setContrato((ct as any).data || null);
+    if (!(cw as any).error) setCondWeb((cw as any).data || null);
     setFotos((fo as any).data || []);
     setTitulos((ti as any).data || []);
     const l = (ls as any).data || [];
@@ -380,8 +391,8 @@ export default function ProPerfil({ user, onUpdate, onToast, onLogout, onIrAFact
   // Si llega para rellenar algo en concreto, se abre ese apartado (si antes tiene que ver las novedades, al acabar)
   useEffect(() => {
     if (!cargado || !seccion) return;
-    if (guiaVista(user.id)) irA("datos", seccion);
-    else seccionTrasGuia.current = seccion;
+    if (guiaVista(user.id) && !(condPendiente && !condPospuesta.current)) irA("datos", seccion);
+    else seccionTrasGuia.current = seccion; // primero la guía o las condiciones de su web; al cerrarlas se abre
     onSeccionVista?.();
   }, [cargado, seccion]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -392,14 +403,38 @@ export default function ProPerfil({ user, onUpdate, onToast, onLogout, onIrAFact
     return () => clearTimeout(t);
   }, [cargado, pausada, user.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const cerrarGuia = () => {
+  // Si ya vio la guía y le faltan las condiciones de su web, se le piden al entrar (salvo que pulsara «Ahora no»)
+  useEffect(() => {
+    if (!cargado || pausada || guia || condAbierta || !condPendiente || condPospuesta.current || !guiaVista(user.id)) return;
+    const t = setTimeout(() => setCondAbierta("perfil"), 500);
+    return () => clearTimeout(t);
+  }, [cargado, pausada, guia, condAbierta, condPendiente, user.id]);
+
+  const cerrarGuia = (completa?: boolean) => {
     try { localStorage.setItem(CLAVE_GUIA + user.id, "1"); } catch { /* nada */ }
     setGuia(null); setParte("datos"); setAbierta(null);
+    // Al terminar (u omitir) la guía, si le faltan las condiciones de su web, se le piden ahora
+    if (condPendiente) { setCondAbierta(completa ? "guia_perfil" : "guia_perfil_omitida"); return; }
     const pendiente = seccionTrasGuia.current;
     seccionTrasGuia.current = null;
     if (pendiente) { irA("datos", pendiente); return; }
     const s = document.querySelector("[data-scroll]") as HTMLElement | null;
     if (s) s.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Al cerrar las condiciones de su web (aceptadas o «Ahora no»)
+  const cerrarCondiciones = (aceptada: boolean) => {
+    setCondAbierta(null);
+    if (!aceptada) condPospuesta.current = true;
+    const pendiente = seccionTrasGuia.current;
+    seccionTrasGuia.current = null;
+    if (pendiente) { irA("datos", pendiente); return; }
+    const s = document.querySelector("[data-scroll]") as HTMLElement | null;
+    if (s) s.scrollTo({ top: 0, behavior: "smooth" });
+  };
+  const condicionesAceptadas = async () => {
+    const { data, error } = await db.rpc("oy_condiciones_web", { p_pro: user.id });
+    if (!error) setCondWeb((data as any) || null);
   };
 
   const guardarUsuario = async (clave: string, cambios: Record<string, any>, ok: string) => {
@@ -430,8 +465,9 @@ export default function ProPerfil({ user, onUpdate, onToast, onLogout, onIrAFact
       { id: "anios", texto: "Años de experiencia", hecho: Number(u.experience_years) > 0, parte: "web", sec: "experiencia" },
       { id: "fotos", texto: "3 fotos de tus trabajos", hecho: fotos.length >= 3, parte: "web", sec: "trabajos" },
     );
+    if (condWeb?.vigente) t.push({ id: "condweb", texto: "Condiciones de tu web", hecho: !condWeb.pendiente, parte: "web", sec: "condiciones-web" });
     return t;
-  }, [u, ficha, cobro, fotos, conFicha]);
+  }, [u, ficha, cobro, fotos, conFicha, condWeb]);
   const hechas = tareas.filter((t) => t.hecho).length;
   const pct = Math.round((hechas / tareas.length) * 100);
   const pendientes = tareas.filter((t) => !t.hecho);
@@ -589,7 +625,11 @@ export default function ProPerfil({ user, onUpdate, onToast, onLogout, onIrAFact
       guia: "web", parte: "web", icono: <Icono n="web" />, titulo: "Tu web",
       texto: "Tu propia página para enseñar tu trabajo y mandársela a tus clientes. Ya está publicada: aquí tienes su enlace y el enlace para pedir opiniones a tus clientes. Lo que rellenes sale en ella.",
     },
-    {
+    condPendiente && condWeb?.vigente ? {
+      icono: <Icono n="contrato" s={30} />, titulo: "¡Listo! Te queda un paso",
+      texto: <>Acepta las condiciones de tu web y cada cliente que te llegue por ella te costará solo <b style={{ color: C.text }}>{eurosWeb(condWeb.vigente.precio)} + IVA</b>.</>,
+      boton: "Ver las condiciones",
+    } : {
       icono: <Icono n="check" s={30} grosor={2.4} />, titulo: "¡Listo!",
       texto: <>Si tienes cualquier duda, escríbenos en <b style={{ color: C.text }}>Habla con OficioYa</b>, al final de Mis datos. Y si quieres repasar esta guía, toca <b style={{ color: C.text }}>Guía</b> arriba del todo.</>,
       boton: "Ver mi perfil",
@@ -643,7 +683,7 @@ export default function ProPerfil({ user, onUpdate, onToast, onLogout, onIrAFact
                 <div style={{ fontSize: 12.5, color: C.muted, marginBottom: 7, fontWeight: 700 }}>Te falta:</div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                   {pendientes.map((t) => (
-                    <button key={t.id} onClick={() => irA(t.parte, t.sec)} style={{
+                    <button key={t.id} onClick={() => (t.id === "condweb" ? setCondAbierta("falta") : irA(t.parte, t.sec))} style={{
                       display: "inline-flex", alignItems: "center", gap: 5, minHeight: 34, padding: "0 11px 0 9px", borderRadius: 99, cursor: "pointer",
                       border: "1px solid " + C.orange + "55", background: C.orange + "14", color: "#FFC27A", fontFamily: F, fontWeight: 800, fontSize: 12.5,
                     }}><Icono n="mas" s={14} grosor={2.6} />{t.texto}</button>
@@ -806,6 +846,7 @@ export default function ProPerfil({ user, onUpdate, onToast, onLogout, onIrAFact
                   )}
                 </div>
               )}
+              <ResumenCondicionesWeb datos={condWeb} onAbrir={() => setCondAbierta("contrato")} />
               <div style={{ fontSize: 12.5, color: C.muted, marginTop: 14, lineHeight: 1.5 }}>¿Quieres una copia de tu contrato? Pídela en <b style={{ color: C.mutedL }}>Habla con OficioYa</b> y te la mandamos.</div>
             </Seccion>
           </div>
@@ -881,6 +922,7 @@ export default function ProPerfil({ user, onUpdate, onToast, onLogout, onIrAFact
       {/* ═════════════ MI WEB ═════════════ */}
       {parte === "web" && (
         <div role="tabpanel">
+          <AvisoCondicionesWeb datos={condWeb} onAbrir={() => setCondAbierta("mi_web")} />
           <div style={{ marginTop: 14 }}>
             <Card style={{ padding: 16, borderRadius: 16, marginBottom: 0 }}>
               <div data-guia="web">
@@ -1005,6 +1047,10 @@ export default function ProPerfil({ user, onUpdate, onToast, onLogout, onIrAFact
 
       {editarFicha && <ProFicha userId={user.id} abrir onCerrar={(g) => { setEditarFicha(false); if (g) cargar(); }} />}
       {guia && <ProPerfilGuia pasos={pasos} omitibleDesde={guia === "novedades" ? 2 : 0} onTerminar={cerrarGuia} onParte={(p) => { setParte(p); setAbierta(null); }} />}
+      {condAbierta && condWeb?.vigente && (
+        <ProCondicionesWeb proId={user.id} nombre={u.name} datos={condWeb} origen={condAbierta}
+          onCerrar={cerrarCondiciones} onAceptada={condicionesAceptadas} />
+      )}
     </div>
   );
 }
