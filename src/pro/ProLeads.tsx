@@ -109,6 +109,39 @@ const enlaceTel = (tel: string | null) => "tel:" + (tel || "").replace(/[^0-9+]/
 
 const faltanDatos = (l: Lead) => !l.client_name || !digitos(l.client_phone);
 
+// «1.200», «1200,50», «1.200,50», «1200.5», «1200 €» → número (igual que en la ventana «Falta actualizar este cliente»)
+function aNumero(s: string): number {
+  let t = (s || "").replace(/[\s€]/g, "");
+  if (!t) return NaN;
+  if (t.includes(",")) t = t.replace(/\./g, "").replace(",", ".");
+  else if (!/^\d+\.\d{1,2}$/.test(t)) t = t.replace(/\./g, "");
+  return Number(t);
+}
+
+// Con el teclado del móvil abierto, la parte de la pantalla que de verdad se ve. En Android (Chrome) el teclado
+// tapa la página sin encogerla, así que lo de abajo (el botón «Guardar») quedaba escondido detrás del teclado.
+// Devuelve null si no hay teclado o no se puede saber: entonces la ventana queda como siempre.
+function useZonaVisible(): { top: number; height: number } | null {
+  const [zona, setZona] = useState<{ top: number; height: number } | null>(null);
+  useEffect(() => {
+    const vv: any = (window as any).visualViewport;
+    if (!vv || typeof vv.addEventListener !== "function") return;
+    const medir = () => {
+      const conZoom = Math.abs((vv.scale || 1) - 1) > 0.01;
+      const tapado = window.innerHeight - vv.height;
+      const nueva = !conZoom && tapado > 120
+        ? { top: Math.max(0, Math.round(vv.offsetTop || 0)), height: Math.round(vv.height) }
+        : null;
+      setZona((a) => (a?.top === nueva?.top && a?.height === nueva?.height ? a : nueva));
+    };
+    medir();
+    vv.addEventListener("resize", medir);
+    vv.addEventListener("scroll", medir);
+    return () => { vv.removeEventListener("resize", medir); vv.removeEventListener("scroll", medir); };
+  }, []);
+  return zona;
+}
+
 // ── PIEZAS DE INTERFAZ ──────────────────────────────────────
 function Card({ children, style = {}, accent }: any) {
   return (
@@ -144,7 +177,7 @@ function Etiqueta({ texto, color }: { texto: string; color: string }) {
   );
 }
 
-function Campo({ label, value, onChange, type = "text", placeholder = "", multilinea = false, inputMode }: any) {
+function Campo({ label, value, onChange, type = "text", placeholder = "", multilinea = false, inputMode, onEnter }: any) {
   const base: React.CSSProperties = {
     width: "100%", boxSizing: "border-box", padding: "11px 12px", background: C.bg,
     border: "1px solid " + C.border, borderRadius: 9, color: C.text, fontSize: 15,
@@ -155,28 +188,55 @@ function Campo({ label, value, onChange, type = "text", placeholder = "", multil
       <label style={{ display: "block", fontSize: 12, color: C.mutedL, marginBottom: 6, fontWeight: 600 }}>{label}</label>
       {multilinea
         ? <textarea value={value} placeholder={placeholder} rows={3} onChange={(e) => onChange(e.target.value)} style={{ ...base, resize: "vertical" }} />
-        : <input type={type} inputMode={inputMode} value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} style={base} />}
+        : <input type={type} inputMode={inputMode} value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)}
+            onKeyDown={onEnter ? (e) => { if (e.key === "Enter") { e.preventDefault(); onEnter(); } } : undefined} style={base} />}
     </div>
   );
 }
 
-function Modal({ title, children, onClose }: any) {
+// La ficha tiene la cabecera y el pie fijos: solo se desliza el contenido. Así «Guardar» está siempre a la vista
+// (antes quedaba al final del todo, debajo de los datos del cliente, y con el teclado abierto no se veía).
+function Modal({ title, children, onClose, pie }: any) {
+  const zona = useZonaVisible();
+  const cuerpo = useRef<HTMLDivElement>(null);
+  // Al abrirse el teclado, que el campo en el que está escribiendo no se quede fuera de la vista
+  useEffect(() => {
+    if (!zona) return;
+    const c = cuerpo.current, el = document.activeElement as HTMLElement | null;
+    if (!c || !el || !c.contains(el)) return;
+    const re = el.getBoundingClientRect(), rc = c.getBoundingClientRect();
+    if (re.bottom > rc.bottom - 10) c.scrollTop += re.bottom - rc.bottom + 14;
+    else if (re.top < rc.top + 10) c.scrollTop -= rc.top - re.top + 14;
+  }, [zona?.height, zona?.top]);
   return (
     <div onClick={onClose} style={{
-      position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 30000,
+      position: "fixed", left: 0, right: 0, ...(zona ? { top: zona.top, height: zona.height } : { top: 0, bottom: 0 }),
+      background: "rgba(0,0,0,0.75)", zIndex: 30000,
       display: "flex", alignItems: "flex-end", justifyContent: "center",
     }}>
       <div onClick={(e) => e.stopPropagation()} style={{
         background: C.surface, borderRadius: "18px 18px 0 0", width: "100%", maxWidth: 520,
-        maxHeight: "92vh", overflowY: "auto", padding: 20, boxSizing: "border-box",
-        paddingBottom: "calc(20px + env(safe-area-inset-bottom))",
-        border: "1px solid " + C.border,
+        maxHeight: zona ? "100%" : "92%", display: "flex", flexDirection: "column", boxSizing: "border-box",
+        border: "1px solid " + C.border, overflow: "hidden",
       }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, gap: 10 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "20px 20px 14px", flexShrink: 0 }}>
           <h3 style={{ color: C.text, fontSize: 17, fontWeight: 800, margin: 0 }}>{title}</h3>
           <button onClick={onClose} aria-label="Cerrar" style={{ background: "none", border: "none", color: C.muted, fontSize: 26, cursor: "pointer", lineHeight: 1 }}>×</button>
         </div>
-        {children}
+        <div ref={cuerpo} style={{
+          flex: "1 1 auto", minHeight: 0, overflowY: "auto", WebkitOverflowScrolling: "touch" as any,
+          padding: "0 20px", paddingBottom: pie ? 16 : "calc(20px + env(safe-area-inset-bottom))",
+        }}>
+          {children}
+        </div>
+        {pie && (
+          <div style={{
+            flexShrink: 0, borderTop: "1px solid " + C.border, background: C.surface,
+            padding: "12px 20px", paddingBottom: zona ? 12 : "calc(12px + env(safe-area-inset-bottom))",
+          }}>
+            {pie}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -205,10 +265,28 @@ function FichaLead({ lead, userId, onClose, onGuardado }: { lead: Lead; userId: 
   const [notas, setNotas] = useState(lead.notas || "");
   const [guardando, setGuardando] = useState(false);
   const [err, setErr] = useState("");
+  const [avisoSalir, setAvisoSalir] = useState(false);
+
+  // ¿Ha cambiado algo sin guardar? (para no cerrar la ficha y perderlo sin avisar)
+  const de = useRef({
+    presupuesto: lead.presupuesto_eur != null ? String(lead.presupuesto_eur).replace(".", ",") : "",
+    nombre: lead.client_name || "", telefono: lead.client_phone || "", email: lead.client_email || "",
+    zona: lead.zona || "", direccion: lead.direccion || "", descripcion: lead.descripcion || "", notas: lead.notas || "",
+  }).current;
+  const sucio = estado !== lead.estado || (estado === "perdido" && motivo !== (lead.motivo_perdido || ""))
+    || presupuesto !== de.presupuesto || nombre !== de.nombre || telefono !== de.telefono || email !== de.email
+    || zona !== de.zona || direccion !== de.direccion || descripcion !== de.descripcion || notas !== de.notas;
+
+  // Cerrar con la × o tocando fuera: si hay cambios sin guardar, primero avisa (a la segunda, cierra)
+  const cerrar = () => {
+    if (sucio && !avisoSalir && !guardando) { setAvisoSalir(true); return; }
+    onClose();
+  };
 
   const guardar = async () => {
+    if (guardando) return;
     if (estado === "perdido" && !motivo) { setErr("Elige por qué se ha perdido."); return; }
-    const importe = presupuesto.trim() === "" ? null : Number(presupuesto.replace(/\./g, "").replace(",", "."));
+    const importe = presupuesto.trim() === "" ? null : aNumero(presupuesto);
     if (importe != null && (isNaN(importe) || importe < 0)) { setErr("El importe del presupuesto no es válido."); return; }
     setGuardando(true); setErr("");
     const { error } = await db.from("pro_leads").update({
@@ -231,8 +309,22 @@ function FichaLead({ lead, userId, onClose, onGuardado }: { lead: Lead; userId: 
   const tel = telefono.trim();
   const pidePresupuesto = estado === "presupuesto" || estado === "ganado";
 
+  // Pie de la ficha: siempre a la vista (antes «Guardar» estaba al final del todo y había que bajar a buscarlo)
+  const pie = (
+    <>
+      {err && <div role="alert" style={{ color: C.red, fontSize: 13, fontWeight: 700, marginBottom: 10 }}>{err}</div>}
+      {avisoSalir && (
+        <div style={{ color: C.text, fontSize: 13.5, fontWeight: 700, marginBottom: 10 }}>No has guardado los cambios de este cliente.</div>
+      )}
+      <div style={{ display: "flex", gap: 8 }}>
+        <Boton onClick={onClose} color={C.mutedL} outline>{avisoSalir ? "Salir sin guardar" : "Cancelar"}</Boton>
+        <Boton onClick={guardar} disabled={guardando}>{guardando ? "Guardando..." : "Guardar"}</Boton>
+      </div>
+    </>
+  );
+
   return (
-    <Modal title={nombre.trim() || (lead.canal === "llamada" ? "Llamada recibida" : "Lead sin nombre")} onClose={onClose}>
+    <Modal title={nombre.trim() || (lead.canal === "llamada" ? "Llamada recibida" : "Lead sin nombre")} onClose={cerrar} pie={pie}>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center", marginBottom: 12 }}>
         <Etiqueta texto={CANAL_LABEL[lead.canal]} color={C.mutedL} />
         <span style={{ fontSize: 12, color: C.mutedL }}>{fechaHora(lead.created_at)}</span>
@@ -281,10 +373,16 @@ function FichaLead({ lead, userId, onClose, onGuardado }: { lead: Lead; userId: 
           })}
         </div>
 
+        {estado !== lead.estado && (
+          <div style={{ marginTop: 10, fontSize: 12.5, color: C.accent, fontWeight: 700 }}>
+            Pulsa «Guardar» para dejarlo en {ESTADO[estado].label}.
+          </div>
+        )}
+
         {pidePresupuesto && (
           <div style={{ marginTop: 12 }}>
             <Campo label={estado === "ganado" ? "Importe del trabajo (€)" : "Importe del presupuesto (€)"} value={presupuesto}
-              onChange={setPresupuesto} inputMode="decimal" placeholder="Ej. 850" />
+              onChange={setPresupuesto} inputMode="decimal" placeholder="Ej. 850" onEnter={guardar} />
           </div>
         )}
 
@@ -325,12 +423,6 @@ function FichaLead({ lead, userId, onClose, onGuardado }: { lead: Lead; userId: 
         <Campo label="Solo las ves tú" value={notas} onChange={setNotas} multilinea placeholder="Ej. Visita el jueves a las 10:00" />
       </Seccion>
 
-      {err && <div style={{ color: C.red, fontSize: 13, fontWeight: 700, marginTop: 4, marginBottom: 10 }}>{err}</div>}
-
-      <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-        <Boton onClick={onClose} color={C.mutedL} outline>Cancelar</Boton>
-        <Boton onClick={guardar} disabled={guardando}>{guardando ? "Guardando..." : "Guardar"}</Boton>
-      </div>
     </Modal>
   );
 }

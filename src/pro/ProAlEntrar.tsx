@@ -77,25 +77,73 @@ const lsLeer = (k: string) => { try { return localStorage.getItem(k); } catch { 
 const lsPoner = (k: string, v: string) => { try { localStorage.setItem(k, v); } catch { /* nada */ } };
 
 // ── PIEZAS ──────────────────────────────────────────────────
-function Ventana({ titulo, children, onEsc }: { titulo: string; children: React.ReactNode; onEsc?: () => void }) {
+// Con el teclado del móvil abierto, la parte de la pantalla que de verdad se ve. En Android (Chrome) el teclado
+// tapa la página sin encogerla, así que lo de abajo (el botón «Guardar» del importe) quedaba escondido detrás.
+// Devuelve null si no hay teclado o no se puede saber: entonces la ventana queda como siempre.
+function useZonaVisible(): { top: number; height: number } | null {
+  const [zona, setZona] = useState<{ top: number; height: number } | null>(null);
+  useEffect(() => {
+    const vv: any = (window as any).visualViewport;
+    if (!vv || typeof vv.addEventListener !== "function") return;
+    const medir = () => {
+      const conZoom = Math.abs((vv.scale || 1) - 1) > 0.01;
+      const tapado = window.innerHeight - vv.height;
+      const nueva = !conZoom && tapado > 120
+        ? { top: Math.max(0, Math.round(vv.offsetTop || 0)), height: Math.round(vv.height) }
+        : null;
+      setZona((a) => (a?.top === nueva?.top && a?.height === nueva?.height ? a : nueva));
+    };
+    medir();
+    vv.addEventListener("resize", medir);
+    vv.addEventListener("scroll", medir);
+    return () => { vv.removeEventListener("resize", medir); vv.removeEventListener("scroll", medir); };
+  }, []);
+  return zona;
+}
+
+// «pie»: botones que se quedan fijos abajo de la ventana (no se deslizan con el contenido), para que «Guardar»
+// esté siempre a la vista, también en pantallas pequeñas y con el teclado abierto.
+function Ventana({ titulo, children, onEsc, pie }: { titulo: string; children: React.ReactNode; onEsc?: () => void; pie?: React.ReactNode }) {
+  const zona = useZonaVisible();
+  const cuerpo = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!onEsc) return;
     const tecla = (e: KeyboardEvent) => { if (e.key === "Escape") onEsc(); };
     window.addEventListener("keydown", tecla);
     return () => window.removeEventListener("keydown", tecla);
   }, [onEsc]);
+  // Al abrirse el teclado, que el campo en el que está escribiendo no se quede fuera de la vista
+  useEffect(() => {
+    if (!zona) return;
+    const c = cuerpo.current, el = document.activeElement as HTMLElement | null;
+    if (!c || !el || !c.contains(el)) return;
+    const re = el.getBoundingClientRect(), rc = c.getBoundingClientRect();
+    if (re.bottom > rc.bottom - 10) c.scrollTop += re.bottom - rc.bottom + 14;
+    else if (re.top < rc.top + 10) c.scrollTop -= rc.top - re.top + 14;
+  }, [zona?.height, zona?.top]);
   return (
     <div role="dialog" aria-modal="true" aria-label={titulo} style={{
-      position: "fixed", inset: 0, zIndex: Z, background: "rgba(0,0,0,0.74)", display: "flex",
-      alignItems: "center", justifyContent: "center", padding: 16, fontFamily: F,
+      position: "fixed", left: 0, right: 0, ...(zona ? { top: zona.top, height: zona.height } : { top: 0, bottom: 0 }),
+      zIndex: Z, background: "rgba(0,0,0,0.74)", display: "flex",
+      alignItems: "center", justifyContent: "center", padding: zona ? 8 : 16, boxSizing: "border-box", fontFamily: F,
     }}>
       <div style={{
-        width: "100%", maxWidth: 420, maxHeight: "calc(100vh - 32px)", overflowY: "auto", boxSizing: "border-box",
-        background: C.surface, border: "1px solid " + C.border, borderRadius: 18, padding: "20px 18px 18px",
+        width: "100%", maxWidth: 420, maxHeight: "100%", display: "flex", flexDirection: "column", boxSizing: "border-box",
+        background: C.surface, border: "1px solid " + C.border, borderRadius: 18, overflow: "hidden",
         boxShadow: "0 18px 50px rgba(0,0,0,0.55)", color: C.text, animation: "oyAlEntrar .22s ease-out",
       }}>
         <style>{"@keyframes oyAlEntrar{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}"}</style>
-        {children}
+        <div ref={cuerpo} style={{
+          flex: "1 1 auto", minHeight: 0, overflowY: "auto", WebkitOverflowScrolling: "touch" as any,
+          padding: pie ? "20px 18px 14px" : "20px 18px 18px",
+        }}>
+          {children}
+        </div>
+        {pie && (
+          <div style={{ flexShrink: 0, borderTop: "1px solid " + C.border, background: C.surface, padding: "12px 18px 16px" }}>
+            {pie}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -189,8 +237,31 @@ function VentanaCliente({ lead, n, de, onHecho, onSaltar }: {
     guardar(id);
   };
 
+  // En «Ganado» y «Perdido», el aviso de error y los botones van en el pie fijo de la ventana: así «Guardar» se ve
+  // siempre (antes, en Android, el teclado del importe lo tapaba y no había forma de llegar a él)
+  const aviso = error ? <div role="alert" style={{ color: C.red, fontSize: 13, fontWeight: 700, marginBottom: 10 }}>{error}</div> : null;
+  const saltar = fallos >= 2 ? (
+    <button onClick={onSaltar} style={{ ...botonSuave, border: "none", textDecoration: "underline", marginTop: 4 }}>
+      Saltar este cliente por ahora
+    </button>
+  ) : null;
+  const pie = paso === "elegir" ? undefined : (
+    <>
+      {aviso}
+      <div style={{ display: "flex", gap: 8 }}>
+        {!(paso === "ganado" && soloImporte) && (
+          <button onClick={() => { setPaso("elegir"); setError(""); }} style={{ ...botonSuave, marginTop: 0, flex: "0 0 96px" }}>Atrás</button>
+        )}
+        {paso === "ganado"
+          ? <button onClick={guardarGanado} disabled={guardando} style={{ ...boton(C.green), flex: 1 }}>{guardando ? "Guardando..." : "Guardar"}</button>
+          : <button onClick={guardarPerdido} disabled={guardando} style={{ ...boton(C.red, "#fff"), flex: 1 }}>{guardando ? "Guardando..." : "Guardar"}</button>}
+      </div>
+      {saltar}
+    </>
+  );
+
   return (
-    <Ventana titulo="Falta actualizar este cliente">
+    <Ventana titulo="Falta actualizar este cliente" pie={pie}>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         <Chip texto={de > 1 ? "Cliente " + n + " de " + de : "Por actualizar"} color={C.accent} />
       </div>
@@ -278,10 +349,6 @@ function VentanaCliente({ lead, n, de, onHecho, onSaltar }: {
           <div style={{ fontSize: 12.5, color: C.muted, marginTop: 6, lineHeight: 1.45 }}>
             Aproximado vale. El cliente no lo ve: nos sirve para saber qué clientes te funcionan mejor.
           </div>
-          <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
-            {!soloImporte && <button onClick={() => { setPaso("elegir"); setError(""); }} style={{ ...botonSuave, marginTop: 0, flex: "0 0 96px" }}>Atrás</button>}
-            <button onClick={guardarGanado} disabled={guardando} style={{ ...boton(C.green), flex: 1 }}>{guardando ? "Guardando..." : "Guardar"}</button>
-          </div>
         </>
       )}
 
@@ -307,19 +374,11 @@ function VentanaCliente({ lead, n, de, onHecho, onSaltar }: {
               );
             })}
           </div>
-          <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
-            <button onClick={() => { setPaso("elegir"); setError(""); }} style={{ ...botonSuave, marginTop: 0, flex: "0 0 96px" }}>Atrás</button>
-            <button onClick={guardarPerdido} disabled={guardando} style={{ ...boton(C.red, "#fff"), flex: 1 }}>{guardando ? "Guardando..." : "Guardar"}</button>
-          </div>
         </>
       )}
 
-      {error && <div role="alert" style={{ color: C.red, fontSize: 13, fontWeight: 700, marginTop: 10 }}>{error}</div>}
-      {fallos >= 2 && (
-        <button onClick={onSaltar} style={{ ...botonSuave, border: "none", textDecoration: "underline", marginTop: 4 }}>
-          Saltar este cliente por ahora
-        </button>
-      )}
+      {paso === "elegir" && error && <div role="alert" style={{ color: C.red, fontSize: 13, fontWeight: 700, marginTop: 10 }}>{error}</div>}
+      {paso === "elegir" && saltar}
     </Ventana>
   );
 }
