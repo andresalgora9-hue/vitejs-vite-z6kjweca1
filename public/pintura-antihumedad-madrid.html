@@ -32,7 +32,7 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@700;800&family=Inter:wght@400;600;700&display=swap"></noscript>
 
 <script type="application/ld+json">
-{"@context": "https://schema.org", "@type": "Service", "name": "Pintura antihumedad en Madrid", "description": "Manchas de humedad en paredes y techos en Madrid. Tratamiento y pintura antihumedad o antimoho. Precio orientativo y te llama un pintor de tu zona.", "provider": {"@type": "LocalBusiness", "name": "OficioYa", "url": "https://www.aficioya.com", "telephone": "+34656398014"}, "areaServed": {"@type": "City", "name": "Madrid"}, "serviceType": "Pintores"}
+{"@context": "https://schema.org", "@type": "Service", "name": "Pintura antihumedad en Madrid", "description": "Manchas de humedad en paredes y techos en Madrid. Tratamiento y pintura antihumedad o antimoho. Precio orientativo y te llama un pintor de tu zona.", "provider": {"@type": "LocalBusiness", "name": "OficioYa", "url": "https://www.aficioya.com"}, "areaServed": {"@type": "City", "name": "Madrid"}, "serviceType": "Pintores"}
 </script>
 <script type="application/ld+json">
 {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "¿Cuánto cuesta tratar una humedad y pintar?", "acceptedAnswer": {"@type": "Answer", "text": "Una estancia suele estar entre 150 € y 330 €; dos o tres, entre 300 € y 840 €. Son rangos orientativos."}}, {"@type": "Question", "name": "¿Por qué vuelve la mancha después de pintar?", "acceptedAnswer": {"@type": "Answer", "text": "Porque se pinta encima sin tratarla o con pintura normal. Hay que sanear y pintar con pintura antihumedad."}}, {"@type": "Question", "name": "¿Sirve si la humedad sube del suelo o viene de una fuga?", "acceptedAnswer": {"@type": "Answer", "text": "No: primero hay que arreglar el origen. El pintor te lo dice al verlo para que no pagues un trabajo que no va a durar."}}, {"@type": "Question", "name": "¿El precio de la web es el precio final?", "acceptedAnswer": {"@type": "Answer", "text": "No, es un rango orientativo según el tipo de trabajo y el tamaño. El pintor confirma el precio exacto al verlo, siempre antes de empezar."}}, {"@type": "Question", "name": "¿Me van a llamar varias empresas?", "acceptedAnswer": {"@type": "Answer", "text": "No. Tu solicitud va a un solo pintor que trabaja en tu zona. No repartimos tu teléfono entre empresas."}}, {"@type": "Question", "name": "¿Es gratis pedir presupuesto?", "acceptedAnswer": {"@type": "Answer", "text": "Sí. Pedir presupuesto es gratis y sin compromiso. Solo pagas el trabajo al pintor, y solo si decides contratarlo."}}]}
@@ -446,7 +446,7 @@ section[id],div[id]{scroll-margin-top:90px}
   <div class="nav-inner">
     <a href="/" class="logo"><img src="/icon-512.png" alt="OficioYa" width="34" height="34" style="height:34px;width:34px;border-radius:8px;object-fit:cover;flex-shrink:0"><span class="logo-word">Oficio<em>Ya</em></span><span>Madrid</span></a>
     <div class="nav-actions">
-      <a href="tel:+34656398014" class="nav-phone">&#128222; <span class="txt">Llamar</span></a>
+      <a href="#presupuesto" class="nav-phone" data-oyc-llamar style="display:none" onclick="if(window.OYContacto){OYContacto.abrir('llamada');return false}">&#128222; <span class="txt">Llamar</span></a>
     </div>
   </div>
 </nav>
@@ -1016,6 +1016,6 @@ section[id],div[id]{scroll-margin-top:90px}
 
 </script>
 
-<script src="/oy-contacto.js?v=1" data-oficio="Pintor" data-valor="116" data-gremio="pintor" defer></script>
+<script src="/oy-contacto.js?v=3" data-oficio="Pintor" data-valor="116" data-gremio="pintor" defer></script>
 </body>
 </html>

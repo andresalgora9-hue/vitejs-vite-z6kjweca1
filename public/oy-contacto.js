@@ -31,6 +31,70 @@
   var KEY = "sb_publishable_ReA-g1IhCfbhwMfkei7naw_BgtOs9nv";
   var GUARDADO = "oy_contacto_datos";
 
+  /* ---------- Respaldo por profesional ----------
+     Si el servidor falla o tarda, la llamada no se pierde. Por defecto va a OficioYa. En las ciudades de esta
+     lista va al profesional que recibe ese oficio allí (Andrés, 14/11/2026: en Madrid, a Christian y no a OficioYa).
+     Clave: gremio|ciudad. Valor: teléfono y WhatsApp de 9 cifras en base64, para que no los recojan los robots.
+     OJO: si cambia el profesional de una ciudad o su teléfono, hay que cambiarlo aquí también. */
+  var RESPALDOS = { "pintor|madrid": ["Njk3OTk4NDY1", "Njk3OTk4NDY1"] };
+  function respaldoDe(ciudad) {
+    var r = { telefono: "+34656398014", whatsapp: "34656398014" };
+    var v = RESPALDOS[String(GREMIO).toLowerCase() + "|" + String(ciudad || "").toLowerCase()];
+    if (!v) return r;
+    try {
+      var t = atob(v[0]).replace(/\D/g, "").slice(-9);
+      var w = atob(v[1] || v[0]).replace(/\D/g, "").slice(-9);
+      if (/^[6789]\d{8}$/.test(t)) {
+        r.telefono = "+34" + t;
+        r.whatsapp = "34" + (/^[6789]\d{8}$/.test(w) ? w : t);
+      }
+    } catch (e) {}
+    return r;
+  }
+
+  /* ---------- Lead pendiente ----------
+     Si el servidor falla o tarda, el cliente llama igualmente (respaldo), pero su nombre y su teléfono no se pierden:
+     se guardan en este navegador y se vuelven a enviar solos hasta que el servidor los recoge, para que el lead quede
+     registrado y asignado al profesional de su ciudad. El servidor no duplica (mismo teléfono y oficio en 7 días). */
+  var PENDIENTE = "oy_contacto_pendiente";
+  var enVuelo = false;       // hay un envío normal sin terminar: no se reintenta a la vez (evita duplicados)
+  var reintentando = false;
+  function guardarPendiente(cuerpo, valor) {
+    try { localStorage.setItem(PENDIENTE, JSON.stringify({ t: Date.now(), p: cuerpo, valor: valor })); } catch (e) {}
+  }
+  function borrarPendiente() { try { localStorage.removeItem(PENDIENTE); } catch (e) {} }
+  function convertir(canal, etiqueta, valor) {
+    try {
+      if (typeof gtag === "function") gtag("event", "generate_lead", { event_category: "solicitud_" + canal, event_label: etiqueta, value: valor, currency: "EUR" });
+      if (typeof fbq === "function") fbq("track", "Lead", { content_name: canal, content_category: OFICIO });
+    } catch (e) {}
+  }
+  function reintentarPendiente() {
+    if (reintentando || enVuelo) return;
+    var pen = null;
+    try { pen = JSON.parse(localStorage.getItem(PENDIENTE) || "null"); } catch (e) { pen = null; }
+    if (!pen || !pen.p) return;
+    if (Date.now() - (pen.t || 0) > 3 * 864e5) { borrarPendiente(); return; }
+    reintentando = true;
+    fetch(RPC, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", apikey: KEY, Authorization: "Bearer " + KEY },
+      body: JSON.stringify({ p: pen.p })
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        reintentando = false;
+        if (!res) return;
+        if (res.ok) {
+          borrarPendiente();
+          if (res.nuevo) convertir(pen.p.canal || "llamada", pen.p.landing || OFICIO, Number(pen.valor || 0));
+        } else if (res.error === "telefono" || res.error === "nombre") {
+          borrarPendiente();
+        }
+      })
+      .catch(function () { reintentando = false; });
+  }
+
   /* ---------- Origen de la visita (landing, gclid, utm) ---------- */
   function origen() {
     var o = {};
@@ -185,8 +249,10 @@
         descripcion: extra.detalle ? ((esWa ? "Quiere hablar por WhatsApp. " : "Quiere hablar por teléfono. ") + extra.detalle) : ""
       };
 
-      // Si el servidor falla o tarda, el cliente llama igualmente a OficioYa: nunca se pierde la llamada
-      var RESPALDO = { ok: true, nuevo: false, telefono: "+34656398014", whatsapp: "34656398014", profesional: null, respaldo: true };
+      // Si el servidor falla o tarda, el cliente llama igualmente: nunca se pierde la llamada.
+      // Va al profesional de la ciudad si está en RESPALDOS (arriba) y, si no, a OficioYa.
+      var rsp = respaldoDe(o.city_slug);
+      var RESPALDO = { ok: true, nuevo: false, telefono: rsp.telefono, whatsapp: rsp.whatsapp, profesional: null, respaldo: true };
       var terminado = false;
       function continuar(res) {
         if (terminado) return;
@@ -217,8 +283,18 @@
           seguir();
         }
       }
-      var reloj = setTimeout(function () { continuar(RESPALDO); }, 8000);
+      // Respaldo: el cliente llama igualmente y sus datos quedan guardados para volver a enviarlos (lead pendiente)
+      function respaldar() {
+        if (terminado) return;
+        guardarPendiente(cuerpo, VALOR);
+        continuar(RESPALDO);
+        setTimeout(reintentarPendiente, 5000);
+        setTimeout(reintentarPendiente, 20000);
+        setTimeout(reintentarPendiente, 60000);
+      }
+      var reloj = setTimeout(respaldar, 8000);
 
+      enVuelo = true;
       fetch(RPC, {
         method: "POST",
         headers: { "Content-Type": "application/json", apikey: KEY, Authorization: "Bearer " + KEY },
@@ -226,7 +302,19 @@
       })
         .then(function (r) { return r.json(); })
         .then(function (res) {
-          if (terminado) return;
+          enVuelo = false;
+          if (terminado) {
+            // La respuesta llegó después del respaldo: si el lead ya está guardado, no queda nada pendiente
+            if (res && res.ok) {
+              borrarPendiente();
+              if (res.nuevo) convertir(canal, o.landing || OFICIO, VALOR);
+            } else if (res && (res.error === "telefono" || res.error === "nombre")) {
+              borrarPendiente();
+            } else {
+              setTimeout(reintentarPendiente, 3000);
+            }
+            return;
+          }
           if (res && !res.ok && (res.error === "telefono" || res.error === "nombre")) {
             clearTimeout(reloj);
             btn.disabled = false;
@@ -235,9 +323,15 @@
             return;
           }
           clearTimeout(reloj);
-          continuar(res && res.ok ? res : RESPALDO);
+          if (res && res.ok) continuar(res);
+          else respaldar();
         })
-        .catch(function () { clearTimeout(reloj); continuar(RESPALDO); });
+        .catch(function () {
+          enVuelo = false;
+          clearTimeout(reloj);
+          if (terminado) setTimeout(reintentarPendiente, 3000);
+          else respaldar();
+        });
     });
 
     // Si la landing ya tiene nombre y teléfono (formulario del presupuesto), se llama sin volver a pedirlos
@@ -294,8 +388,20 @@
     abrir(/^tel:/.test(a.getAttribute("href")) ? "llamada" : "whatsapp");
   }, true);
 
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", limpiarNumeros);
-  else limpiarNumeros();
-
   window.OYContacto = { abrir: abrir };
+
+  /* Botones de llamada con data-oyc-llamar: van ocultos en la página y solo se enseñan aquí, cuando la ventana
+     de datos ya funciona. Así nunca hay un botón de llamar que no pase antes por nombre y teléfono. */
+  function mostrarLlamar() {
+    var b = document.querySelectorAll("[data-oyc-llamar]");
+    for (var i = 0; i < b.length; i++) b[i].style.display = "";
+  }
+  function alCargar() { limpiarNumeros(); mostrarLlamar(); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", alCargar);
+  else alCargar();
+
+  // Lead pendiente de una visita anterior o de un fallo de red: se vuelve a enviar
+  setTimeout(reintentarPendiente, 2500);
+  window.addEventListener("online", reintentarPendiente);
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) reintentarPendiente(); });
 })();
