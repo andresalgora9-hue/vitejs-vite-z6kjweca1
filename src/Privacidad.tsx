@@ -1,8 +1,8 @@
 import React from "react";
 const C = { bg:"#0A0A0F", text:"#F0F0FA", muted:"#7777AA", border:"#1E1E30", accent:"#FFD700" };
 
-export const PRIVACIDAD_VERSION = "v2.0";
-export const PRIVACIDAD_FECHA = "4 de septiembre de 2026";
+export const PRIVACIDAD_VERSION = "v2.1";
+export const PRIVACIDAD_FECHA = "14 de noviembre de 2026";
 
 export default function Privacidad() {
   return (
@@ -21,31 +21,30 @@ export default function Privacidad() {
 
       <Section title="2. Datos que Tratamos">
         <Sub>2.1 Datos que nos facilitas directamente</Sub>
-        <P>Nombre y apellidos, teléfono, correo electrónico, localidad y, en su caso, dirección del inmueble donde se prestará el servicio, descripción del trabajo solicitado, fotografías que adjuntes, mensajes intercambiados a través de la plataforma, reseñas y valoraciones.</P>
+        <P>Nombre y apellidos, teléfono, correo electrónico, localidad y, en su caso, dirección del inmueble donde se prestará el servicio, descripción del trabajo solicitado, fotografías que adjuntes, canal por el que nos contactas (formulario, llamada o WhatsApp), mensajes intercambiados a través de la plataforma, reseñas y valoraciones. Si accedes con tu cuenta de Google, recibimos de Google tu nombre y tu dirección de correo electrónico.</P>
+        <P>Cuando envías una solicitud creamos automáticamente un área de cliente asociada a tu teléfono para que puedas consultarla. Si no nos has facilitado un correo electrónico, se le asigna una dirección técnica interna que puedes sustituir por la tuya.</P>
         <Sub>2.2 Datos de los Profesionales</Sub>
-        <P>Además de los anteriores: NIF o CIF, denominación fiscal, domicilio de actividad, oficios y zonas de trabajo, documentación acreditativa de su actividad, datos bancarios para la liquidación de comisiones y fotografías de trabajos realizados.</P>
-        <Sub>2.3 Datos facilitados por un tercero</Sub>
-        <Alert>Cuando un Profesional cumplimenta un Acuerdo de Trabajo, introduce en la plataforma datos identificativos y de contacto del Cliente, así como la dirección del inmueble. El Profesional actúa en este supuesto por cuenta de OficioYa y se ha obligado contractualmente a recabar dichos datos con conocimiento del Cliente. El Cliente recibe copia íntegra del documento de forma inmediata a su firma.</Alert>
-        <Sub>2.4 Firma manuscrita</Sub>
-        <P>Al firmar un Acuerdo de Trabajo se captura el trazo de tu firma en formato de imagen, junto con la fecha y hora, la dirección IP, el identificador del dispositivo y una huella criptográfica del documento. Estos datos se tratan exclusivamente con finalidad probatoria y no se someten a análisis biométrico ni a ningún tratamiento destinado a tu identificación única, por lo que no constituyen datos de categoría especial.</P>
-        <Sub>2.5 Datos de pago</Sub>
-        <P>Los pagos se gestionan íntegramente por Stripe. OficioYa no almacena ni tiene acceso a números completos de tarjeta.</P>
-        <Sub>2.6 Datos recogidos automáticamente</Sub>
+        <P>Además de los anteriores: NIF o CIF, denominación fiscal, domicilio de actividad, oficios y zonas de trabajo, documentación acreditativa de su actividad, datos de facturación, fotografías de trabajos realizados y, para la firma electrónica de su contrato, imagen de su documento de identidad, firma manuscrita capturada en pantalla y evidencias de la firma (fecha y hora, dirección IP y dispositivo). Estos datos de firma se tratan exclusivamente con finalidad probatoria y no se someten a análisis biométrico.</P>
+        <Sub>2.3 Datos que el Profesional registra sobre tu solicitud</Sub>
+        <P>El Profesional al que se entrega tu solicitud puede anotar en la plataforma su estado (contactado, presupuestado, contratado o descartado) y el importe aproximado del trabajo. OficioYa utiliza esa información para comprobar que has sido atendido y para medir y mejorar sus campañas y su servicio.</P>
+        <Sub>2.4 Datos de pago</Sub>
+        <P>Los Clientes no realizan pagos a través de OficioYa. Los pagos de los Profesionales a OficioYa se gestionan íntegramente por Stripe. OficioYa no almacena ni tiene acceso a números completos de tarjeta.</P>
+        <Sub>2.5 Datos recogidos automáticamente</Sub>
         <P>Dirección IP, tipo de dispositivo y navegador, sistema operativo, páginas visitadas, origen de la visita (campaña, medio, término de búsqueda e identificadores publicitarios), identificadores de cookies y datos de sesión. Si activas las notificaciones, el identificador técnico de tu suscripción push.</P>
       </Section>
 
       <Section title="3. Finalidades y Bases Jurídicas">
-        <P>• <B>Ejecución del contrato o medidas precontractuales (art. 6.1.b RGPD):</B> gestión de tu solicitud de presupuesto, puesta en contacto con Profesionales, mensajería, gestión de la cuenta, generación y entrega de Acuerdos de Trabajo, facturación de comisiones a Profesionales.</P>
+        <P>• <B>Ejecución del contrato o medidas precontractuales (art. 6.1.b RGPD):</B> gestión de tu solicitud de presupuesto y su comunicación al Profesional asignado para que te contacte y te presupueste, creación y gestión de tu área de cliente, mensajería y, respecto de los Profesionales, gestión de su contrato y facturación y cobro de las solicitudes.</P>
         <P>• <B>Interés legítimo (art. 6.1.f RGPD):</B> seguridad de la plataforma, prevención del fraude, conservación de evidencias de firma y aceptación con finalidad probatoria, análisis estadístico agregado, defensa frente a reclamaciones y mejora del servicio.</P>
         <P>• <B>Consentimiento (art. 6.1.a RGPD):</B> cookies y tecnologías similares no necesarias, comunicaciones comerciales, notificaciones push y cualquier tratamiento para el que se te solicite de forma expresa y separada. Puedes retirarlo en cualquier momento sin que ello afecte a la licitud del tratamiento previo.</P>
         <P>• <B>Cumplimiento de obligaciones legales (art. 6.1.c RGPD):</B> obligaciones fiscales, contables y de conservación de facturación.</P>
-        <P>No se adoptan decisiones automatizadas con efectos jurídicos ni se elabora perfilado que produzca efectos significativos sobre los usuarios. La asignación de solicitudes a Profesionales se realiza mediante intervención humana.</P>
+        <P>No se adoptan decisiones automatizadas con efectos jurídicos ni se elabora perfilado que produzca efectos significativos sobre los usuarios. Las solicitudes se asignan al Profesional que corresponde por oficio y zona.</P>
       </Section>
 
       <Section title="4. Plazos de Conservación">
         <P>• Solicitudes de presupuesto no convertidas: 2 años.</P>
         <P>• Datos de cuenta: 5 años desde la cancelación.</P>
-        <P>• Acuerdos de Trabajo, firmas y evidencias asociadas: 5 años desde la firma (plazo general de prescripción de acciones personales, art. 1964 del Código Civil).</P>
+        <P>• Contratos con Profesionales, firmas y evidencias asociadas: durante la vigencia del contrato y 5 años más (plazo general de prescripción de acciones personales, art. 1964 del Código Civil).</P>
         <P>• Registros de aceptación de documentos legales: 5 años.</P>
         <P>• Datos de facturación y contabilidad: 6 años (Código de Comercio) y hasta 4 años a efectos fiscales desde el fin del plazo de declaración, aplicándose el mayor.</P>
         <P>• Mensajería: 2 años desde la última actividad.</P>
@@ -54,15 +53,15 @@ export default function Privacidad() {
       </Section>
 
       <Section title="5. Destinatarios y Encargados del Tratamiento">
-        <P>OficioYa no vende datos personales. Se comunican datos a los siguientes prestadores, todos ellos vinculados por contrato de encargo del tratamiento conforme al art. 28 RGPD:</P>
+        <P>OficioYa no comunica tus datos a terceros para que estos te envíen publicidad ni para finalidades distintas de las descritas en esta Política. Se comunican datos a los siguientes prestadores, todos ellos vinculados por contrato de encargo del tratamiento conforme al art. 28 RGPD:</P>
         <P>• <B>Supabase</B> — base de datos y almacenamiento (infraestructura en la Unión Europea).</P>
         <P>• <B>Vercel</B> — alojamiento y distribución de la aplicación web.</P>
-        <P>• <B>Stripe</B> — procesamiento de pagos.</P>
+        <P>• <B>Stripe</B> — procesamiento de los pagos de los Profesionales.</P>
         <P>• <B>Resend</B> — envío de correo transaccional.</P>
-        <P>• <B>Proveedor de mensajería SMS</B> — envío de códigos de verificación y copias de Acuerdos de Trabajo.</P>
+        <P>• <B>Sentry</B> — registro de errores técnicos de la aplicación (infraestructura en la Unión Europea).</P>
         <P>• <B>Google (Google Analytics 4 y Google Ads)</B> — medición y publicidad, previo consentimiento.</P>
         <P>• <B>Meta Platforms</B> — medición y publicidad, previo consentimiento.</P>
-        <P>Adicionalmente, los datos estrictamente necesarios para la prestación del servicio (nombre, teléfono, dirección y descripción del trabajo) se comunican al Profesional asignado, que actúa como responsable independiente respecto del contrato de ejecución que celebre contigo.</P>
+        <P>Adicionalmente, tu solicitud (nombre, teléfono, localidad o dirección y descripción del trabajo) se comunica a un único Profesional del oficio y la zona solicitados para que te contacte y te presupueste, que es la finalidad para la que la envías. Ese Profesional abona a OficioYa un precio por recibir tu solicitud y, desde que la recibe, actúa como responsable independiente del tratamiento de tus datos, que solo puede utilizar para atenderla.</P>
         <P>También podrán comunicarse datos a administraciones públicas, juzgados y fuerzas y cuerpos de seguridad cuando exista obligación legal, y a asesores legales o fiscales en el marco de la defensa de derechos.</P>
       </Section>
 
