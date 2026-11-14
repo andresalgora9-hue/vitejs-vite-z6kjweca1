@@ -21,7 +21,7 @@
 
   var OY = {
     BLOQUEAR_HASTA_CONSENTIR: false,   // ← cámbialo a true cuando cierre la ventana de Ads
-    TERMINOS_VERSION: "2.0",
+    TERMINOS_VERSION: "2.1",
     COOKIES_VERSION: "1.0",
     DIAS_CONSENTIMIENTO: 180,
     DOMINIO_COOKIE: ".aficioya.com"
