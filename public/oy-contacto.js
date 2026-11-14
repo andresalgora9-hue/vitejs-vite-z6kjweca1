@@ -204,7 +204,7 @@
           '<input class="oyc-trampa" name="web" tabindex="-1" autocomplete="off" aria-hidden="true">' +
           '<div class="oyc-err" aria-live="polite"></div>' +
           '<button type="submit" class="oyc-btn' + (esWa ? " oyc-wa" : "") + '">' + (esWa ? "💬 " : "📞 ") + textoBoton + '</button>' +
-          '<div class="oyc-legal">Solo usamos tus datos para atender tu solicitud. <a href="/privacidad" target="_blank" rel="noopener">Privacidad</a></div>' +
+          '<div class="oyc-legal">Al continuar aceptas las <a href="/terminos" target="_blank" rel="noopener">Condiciones</a> y la <a href="/privacidad" target="_blank" rel="noopener">Privacidad</a>. Te atiende un profesional independiente, responsable de su trabajo.</div>' +
         '</form>' +
       '</div>';
     document.body.appendChild(f);
