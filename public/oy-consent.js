@@ -15,6 +15,12 @@
      false → el banner se muestra pero GA4/Ads siguen midiendo (fase 1)
      true  → nada mide hasta que el usuario acepta (fase 2, tras
              cerrar la ventana de observación de los sitelinks)
+
+   MODO BÁSICO (landings antiguas y la app, 15/11/2026):
+     <script src="/oy-consent.js" data-basico></script>
+     Banner, casilla y enlace a /cookies, y el rechazo vale también
+     para el píxel de Meta. Sin test A/B del fondo, sin contar visitas
+     y sin mover la barra fija de móvil (.mcta).
    ============================================================ */
 (function () {
   "use strict";
@@ -27,6 +33,11 @@
     DOMINIO_COOKIE: ".aficioya.com"
   };
   window.OY = OY;
+
+  /* Modo básico: lo activa el atributo data-basico de la etiqueta <script> */
+  var SC = document.currentScript;
+  var BASICO = !!(SC && SC.hasAttribute && SC.hasAttribute("data-basico"));
+  OY.basico = BASICO;
 
   /* ---------- utilidades ---------- */
   function setCookie(n, v, dias) {
@@ -77,6 +88,23 @@
     wait_for_update: 500
   });
 
+  /* Píxel de Meta (solo en modo básico): sin permiso de publicidad el píxel no llega a
+     cargarse (su fragmento no hace nada si fbq ya existe); si ya estaba cargado, se le
+     retira el permiso y deja de enviar. */
+  function metaFuera() {
+    try {
+      if (window.fbq) { if (!window.fbq.oyBloqueado) window.fbq("consent", "revoke"); return; }
+      var n = function () {};
+      n.queue = []; n.loaded = true; n.version = "2.0"; n.oyBloqueado = true;
+      window.fbq = n;
+      if (!window._fbq) window._fbq = n;
+    } catch (e) {}
+  }
+  function metaDentro() {
+    try { if (window.fbq && !window.fbq.oyBloqueado) window.fbq("consent", "grant"); } catch (e) {}
+  }
+  if (BASICO && !concedido.ads) metaFuera();
+
   function actualizarConsent(c) {
     gtagLocal("consent", "update", {
       ad_storage: c.ads ? "granted" : "denied",
@@ -84,6 +112,7 @@
       ad_personalization: c.ads ? "granted" : "denied",
       analytics_storage: c.analytics ? "granted" : "denied"
     });
+    if (BASICO) { if (c.ads) metaDentro(); else metaFuera(); }
   }
 
   /* ---------- 2. CIUDAD DESDE EL NOMBRE DEL ARCHIVO ---------- */
@@ -147,7 +176,7 @@
       "#oyCk button{font-family:inherit;font-size:13.5px;font-weight:700;padding:11px 20px;border-radius:9px;cursor:pointer;border:1px solid #E7E9EE;background:#fff;color:#5B6472}",
       "#oyCk button.oyOk{background:#F0A93B;border-color:#F0A93B;color:#1D1305}",
       "#oyCk button:hover{border-color:#B7860F}",
-      "@media(max-width:768px){#oyCk{bottom:0;padding-bottom:calc(14px + env(safe-area-inset-bottom))}#oyCk .oyIn{gap:12px}#oyCk .oyBt{width:100%}#oyCk .oyBt button{flex:1}.mcta{bottom:auto!important}}",
+      "@media(max-width:768px){#oyCk{bottom:0;padding-bottom:calc(14px + env(safe-area-inset-bottom))}#oyCk .oyIn{gap:12px}#oyCk .oyBt{width:100%}#oyCk .oyBt button{flex:1}" + (BASICO ? "" : ".mcta{bottom:auto!important}") + "}",
       "#oyCfg{position:fixed;inset:0;z-index:9100;background:rgba(16,24,44,.55);display:flex;align-items:center;justify-content:center;padding:20px;font-family:Inter,Arial,sans-serif}",
       "#oyCfg .oyBox{background:#fff;border-radius:16px;max-width:460px;width:100%;padding:26px;max-height:86vh;overflow:auto}",
       "#oyCfg h3{font-size:17px;font-weight:800;color:#10182C;margin:0 0 6px}",
@@ -305,6 +334,18 @@
   /* ---------- 6. ENLACE A COOKIES EN EL PIE ---------- */
   function arreglarPie() {
     var fl = document.querySelector(".foot-links");
+    if (!fl && BASICO) {
+      // Pies antiguos sin .foot-links: el enlace va detrás de «Privacidad»
+      var ps = document.querySelectorAll('footer a[href="/privacidad"], .footer a[href="/privacidad"]');
+      var pr = ps[ps.length - 1];
+      if (!pr || pr.parentNode.querySelector('[href="/cookies"]')) return;
+      var ck = document.createElement("a");
+      ck.href = "/cookies";
+      ck.textContent = "Cookies";
+      pr.parentNode.insertBefore(ck, pr.nextSibling);
+      pr.parentNode.insertBefore(document.createTextNode(" "), ck);
+      return;
+    }
     if (!fl || fl.querySelector('[href="/cookies"]')) return;
     var a = document.createElement("a");
     a.href = "/cookies";
@@ -323,6 +364,7 @@
   /* 10/11/2026: Madrid también fuera (Andrés: sin test A/B, solo lo que funciona). */
   try {
     (function () {
+      if (BASICO) return;   // modo básico: estas páginas no entran en el test
       var ruta = location.pathname || "";
       if (!/pint|gotele|alisar|moho|humedad/i.test(ruta) || /fachada|local|baratos|carpinter|admin|captacion|panel|cordoba|madrid/i.test(ruta)) return;
       var TEST = "fondo_hero_v1", CLAVE = "oy_ab_" + TEST, v = "";
@@ -384,7 +426,7 @@
         }).catch(function () {});
       } catch (e) {}
     };
-    if (!/\/(admin|captacion|panel)/i.test(location.pathname) && location.pathname !== "/") {
+    if (!BASICO && !/\/(admin|captacion|panel)/i.test(location.pathname) && location.pathname !== "/") {
       if (document.readyState === "complete") setTimeout(contarVisita, 600);
       else window.addEventListener("load", function () { setTimeout(contarVisita, 600); });
     }
