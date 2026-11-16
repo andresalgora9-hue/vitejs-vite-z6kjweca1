@@ -130,6 +130,7 @@ main{padding:16px 0 24px}
 .estados{display:flex;flex-wrap:wrap;gap:6px}
 .estados button{border:1.5px solid var(--line-strong);background:var(--surface-2);border-radius:10px;padding:8px 10px;font-weight:600;font-size:14px;cursor:pointer}
 .estados button[aria-pressed="true"]{border-color:var(--naranja);background:rgba(232,134,42,.14)}
+.estados button:disabled{opacity:.6;cursor:default}
 .fila{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .lbl{display:block;font-weight:700;font-size:14px;margin:10px 0 6px}
 .historial{list-style:none;display:grid;gap:10px}
@@ -874,12 +875,27 @@ function moverA(l, d){
   aplicar(l, d, {});
 }
 function aplicar(l, d, extra){
-  var antes = l.estado;
+  var antes = l.estado, cambios = { estado:d }, k;
+  // 16/11/2026: si se mueve desde su ficha, lo escrito en la nota y en la próxima llamada va con el cambio
+  // (al moverse, la ficha se refresca y se perdería) y las etapas se bloquean mientras se guarda.
+  var enFicha = fichaId === l.id && !!$('fi-etapas');
+  if(enFicha){ var pf = pendienteFicha(l); for(k in pf) cambios[k] = pf[k]; marcarEtapas(d, true); }
+  for(k in (extra||{})) cambios[k] = extra[k];
   l.estado = d; desdeEtapa[l.id + '|' + d] = new Date().toISOString(); pintarTodos();
-  var cambios = { estado:d }; for(var k in (extra||{})) cambios[k] = extra[k];
   rpc('captacion_actualizar', { p_clave: CLAVE, p_id: l.id, p_cambios: cambios })
     .then(function(){ toast('Movido a ' + tituloEstado(d)); return cargar(); })
-    .catch(function(e){ l.estado = antes; pintarTodos(); toast('No se ha movido: ' + e.message); });
+    .catch(function(e){ l.estado = antes; pintarTodos(); if(enFicha) marcarEtapas(antes, false); toast('No se ha movido: ' + e.message); });
+}
+function pendienteFicha(l){
+  var c = {}, n = $('fi-nota'), p = $('fi-proxima');
+  if(n && n.value.trim()) c.nota = n.value;
+  if(p && p.value !== localInput(l.proxima_llamada)) c.proxima_llamada = p.value ? new Date(p.value).toISOString() : '';
+  return c;
+}
+function marcarEtapas(e, ocupado){
+  Array.prototype.forEach.call(document.querySelectorAll('#fi-etapas button'), function(b){
+    b.setAttribute('aria-pressed', String(b.getAttribute('data-e') === e)); b.disabled = !!ocupado;
+  });
 }
 function pedirMotivo(l, cb){
   var m = $('modal');
@@ -1894,12 +1910,15 @@ function abrirFicha(id, refrescar){
     bloqueAlta += '</div>';
   }
 
-  var botonesEstado = (cerrado && !admin) ? '' :
-    '<div class="bloque"><h3>Estado</h3><div class="estados" id="fi-estados">'
+  // 16/11/2026 (lo pidió Javier): las etapas, arriba de la ficha; al tocar una se mueve al momento, como en el tablero
+  var etapasFicha = (cerrado && !admin) ? '' :
+    '<div class="bloque"><h3>Etapa</h3><div class="estados" id="fi-etapas">'
     + ESTADOS.filter(function(e){ return ESTADOS_SANDRA.indexOf(e[0]) > -1 || (admin && CERRADO.indexOf(e[0]) > -1 && e[0]===l.estado); })
-        .map(function(e){ return '<button data-e="' + e[0] + '" aria-pressed="' + (l.estado===e[0]) + '">' + e[1] + '</button>'; }).join('') + '</div>'
-    + '<div id="fi-motivo-box"' + (l.estado==='no_interesado' ? '' : ' hidden') + '><label class="lbl" for="fi-motivo">Motivo</label><select id="fi-motivo"><option value="">Elige un motivo</option>'
-    + MOTIVOS.map(function(m){ return '<option' + (l.motivo===m?' selected':'') + '>' + m + '</option>'; }).join('') + '</select></div>'
+        .map(function(e){ return '<button type="button" data-e="' + e[0] + '" aria-pressed="' + (l.estado===e[0]) + '">' + e[1] + '</button>'; }).join('') + '</div></div>';
+  var botonesEstado = (cerrado && !admin) ? '' :
+    '<div class="bloque"><h3>Próxima llamada y nota</h3>'
+    + (l.estado==='no_interesado' ? '<div id="fi-motivo-box"><label class="lbl" for="fi-motivo">Motivo</label><select id="fi-motivo"><option value="">Elige un motivo</option>'
+      + MOTIVOS.map(function(m){ return '<option' + (l.motivo===m?' selected':'') + '>' + m + '</option>'; }).join('') + '</select></div>' : '')
     + '<label class="lbl" for="fi-proxima">Próxima llamada</label><div class="fila"><input id="fi-proxima" type="datetime-local" value="' + localInput(l.proxima_llamada) + '"><button class="btn sec" id="fi-sin-proxima">Sin fecha</button></div>'
     + '<label class="lbl" for="fi-nota">Nota</label><textarea id="fi-nota" placeholder="Qué te ha dicho, dudas, cuándo prefiere que le llames…"></textarea>'
     + '<button class="btn full" id="fi-guardar" style="margin-top:10px">Guardar</button></div>';
@@ -1908,6 +1927,7 @@ function abrirFicha(id, refrescar){
     '<div class="cab"><div><h2 id="fi-nombre">' + esc(l.nombre) + '</h2><span class="estado ' + l.estado + '">' + esc(NOMBRE_ESTADO[l.estado]) + '</span></div>'
     + '<button class="cerrar" id="fi-cerrar" aria-label="Cerrar">×</button></div>'
     + '<div class="acciones"><a class="btn" href="tel:+34' + esc(l.telefono) + '">Llamar</a><a class="btn sec" href="' + wa(l, saludo) + '" target="_blank" rel="noopener">WhatsApp</a></div>'
+    + etapasFicha
     + '<dl class="datos"><dt>Teléfono</dt><dd>' + telBonito(l.telefono) + '</dd><dt>Oficio</dt><dd>' + oficioTxt(l.oficio) + '</dd>'
     + '<dt>Ciudad</dt><dd>' + esc(l.ciudad || '—') + '</dd><dt>Autónomo</dt><dd>' + (l.autonomo ? 'Sí' : 'No') + '</dd>'
     + '<dt>Registro</dt><dd>' + fecha(l.created_at, true) + ' (' + hace(l.created_at) + ')</dd>'
@@ -1920,25 +1940,19 @@ function abrirFicha(id, refrescar){
     + botonesEstado
     + '<div class="bloque"><h3>Historial</h3><ul class="historial">' + (hist || '<li>Sin movimientos.</li>') + '</ul></div>';
 
-  var sel = l.estado;
-  Array.prototype.forEach.call($('ficha').querySelectorAll('#fi-estados button'), function(b){
-    b.addEventListener('click', function(){
-      sel = b.getAttribute('data-e');
-      Array.prototype.forEach.call($('ficha').querySelectorAll('#fi-estados button'), function(x){ x.setAttribute('aria-pressed', x===b); });
-      $('fi-motivo-box').hidden = sel !== 'no_interesado';
-    });
+  Array.prototype.forEach.call($('ficha').querySelectorAll('#fi-etapas button'), function(b){
+    b.addEventListener('click', function(){ if(!b.disabled) moverA(l, b.getAttribute('data-e')); });
   });
   Array.prototype.forEach.call($('ficha').querySelectorAll('[data-desc]'), function(b){ b.addEventListener('click', function(){ descargar(b.getAttribute('data-desc')); }); });
   Array.prototype.forEach.call($('ficha').querySelectorAll('[data-ver]'), function(b){ b.addEventListener('click', function(){ verDocumento(b.getAttribute('data-ver')); }); });
   $('fi-cerrar').addEventListener('click', cerrarFicha);
   if($('fi-sin-proxima')) $('fi-sin-proxima').addEventListener('click', function(){ $('fi-proxima').value = ''; });
   if($('fi-guardar')) $('fi-guardar').addEventListener('click', function(){
-    var cambios = { estado: sel, nota: $('fi-nota').value, proxima_llamada: $('fi-proxima').value ? new Date($('fi-proxima').value).toISOString() : '' };
-    if(sel === 'no_interesado'){
+    var cambios = { nota: $('fi-nota').value, proxima_llamada: $('fi-proxima').value ? new Date($('fi-proxima').value).toISOString() : '' };
+    if(l.estado === 'no_interesado'){
       if(!$('fi-motivo').value){ toast('Elige el motivo'); return; }
       cambios.motivo = $('fi-motivo').value; cambios.proxima_llamada = '';
     }
-    if(CERRADO.indexOf(l.estado) > -1 && CERRADO.indexOf(sel) < 0 && !confirm('Vas a sacar a ' + l.nombre + ' de cerrados: se libera su plaza y su comisión. ¿Seguro?')) return;
     guardar(l.id, cambios, 'Guardado');
   });
   if($('fi-contesto')) $('fi-contesto').addEventListener('click', function(){
