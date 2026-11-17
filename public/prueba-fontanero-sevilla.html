@@ -99,17 +99,21 @@ button{-webkit-tap-highlight-color:transparent}
 .nav-links{display:flex;gap:2px}
 .nav-links a{padding:10px 14px;border-radius:12px;color:var(--soft);text-decoration:none;font-size:14px;font-weight:600}
 .nav-links a:hover{background:rgba(255,255,255,.06);color:#fff}
+.nav-r{display:flex;align-items:center;gap:4px}
+.nav-urg{display:inline-flex;align-items:center;gap:8px;padding:10px 12px;color:var(--warn);text-decoration:none;font-size:14px;font-weight:700;white-space:nowrap}
+.nav-urg:hover{color:#FFE38A}
+.nav-urg i{width:8px;height:8px;border-radius:50%;background:var(--orange);flex:0 0 auto;animation:pulseo 2.4s ease-out infinite}
+@keyframes pulseo{0%{box-shadow:0 0 0 0 rgba(255,140,0,.5)}70%{box-shadow:0 0 0 8px rgba(255,140,0,0)}100%{box-shadow:0 0 0 0 rgba(255,140,0,0)}}
 .btn-s{height:44px;padding:0 16px;border:none;border-radius:14px;background:var(--btn);color:#1A1200;font-size:14px;font-weight:800;cursor:pointer;white-space:nowrap;box-shadow:0 10px 24px -12px rgba(255,200,0,.8);display:inline-flex;align-items:center;gap:8px;text-decoration:none}
 
 /* Portada */
-.hero{display:grid;grid-template-columns:minmax(0,.86fr) minmax(0,1.14fr);gap:40px;align-items:start;padding-top:56px;padding-bottom:40px}
-.hero-copy{padding-top:112px}
-.pill{display:inline-flex;align-items:center;gap:9px;margin:0;padding:7px 13px 7px 11px;border-radius:999px;background:rgba(0,214,143,.08);border:1px solid rgba(0,214,143,.3);color:var(--mint);font-size:12.5px;font-weight:700}
-.dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex:0 0 auto;animation:pulse 2.4s ease-out infinite}
-@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(0,214,143,.45)}70%{box-shadow:0 0 0 9px rgba(0,214,143,0)}100%{box-shadow:0 0 0 0 rgba(0,214,143,0)}}
-h1{margin:22px 0 0;font-size:clamp(38px,4.8vw,66px);line-height:1.02;letter-spacing:-.04em;font-weight:900;color:var(--ink)}
+.hero{display:grid;grid-template-columns:minmax(0,.86fr) minmax(0,1.14fr);grid-template-rows:auto 1fr;grid-template-areas:"copy hv" "chips hv";column-gap:40px;align-items:start;padding-top:56px;padding-bottom:40px}
+.hero-copy{grid-area:copy;padding-top:96px}
+.hv{grid-area:hv}
+.hero .tchips{grid-area:chips}
+h1{margin:0;font-size:clamp(38px,4.8vw,66px);line-height:1.02;letter-spacing:-.04em;font-weight:900;color:var(--ink)}
 h1 span{display:block;color:var(--gold2);text-shadow:0 0 46px rgba(255,170,0,.35);text-wrap:balance}
-.sub{margin:22px 0 0;max-width:540px;font-size:clamp(17px,1.4vw,20px);line-height:1.55;color:var(--ink2)}
+.sub{margin:20px 0 0;max-width:500px;font-size:clamp(17px,1.4vw,20px);line-height:1.55;color:var(--ink2)}
 .tchips{display:flex;flex-wrap:wrap;gap:10px;margin:26px 0 0;padding:0;list-style:none}
 .tchips li{display:flex;align-items:center;gap:8px;padding:10px 13px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);font-size:13.5px;font-weight:600;color:#D5DBE6}
 .tchips .ico{color:var(--gold)}
@@ -132,7 +136,7 @@ h1 span{display:block;color:var(--gold2);text-shadow:0 0 46px rgba(255,170,0,.35
 .fb span{display:block;margin-top:2px;font-size:12px;color:#A9B1C2}
 
 /* Tarjeta del presupuesto */
-.card{position:relative;z-index:3;width:440px;max-width:100%;margin-top:170px;border-radius:28px;padding:24px;scroll-margin-top:96px}
+.card{position:relative;z-index:3;width:440px;max-width:100%;margin-top:120px;border-radius:28px;padding:24px;scroll-margin-top:96px}
 .prueba{margin:0 0 12px;padding:8px 12px;border-radius:12px;background:rgba(154,219,255,.1);border:1px solid rgba(154,219,255,.35);color:#BFE7FF;font-size:12.5px;font-weight:700}
 .ft{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .ft h2{margin:0;font-size:20px;font-weight:800;letter-spacing:-.01em;color:var(--ink)}
@@ -298,13 +302,12 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
 
 @media (max-width:980px){
   .nav-links{display:none}
-  .hero{grid-template-columns:minmax(0,1fr);gap:26px;padding-top:26px}
+  .hero{grid-template-columns:minmax(0,1fr);grid-template-rows:auto;grid-template-areas:"copy" "hv" "chips";row-gap:20px;padding-top:36px}
   .hero-copy{padding-top:0}
   .hv{min-height:0}
-  .photo{position:relative;width:100%;height:270px;border-radius:28px}
-  .card{width:100%;margin-top:-70px;padding:18px}
-  .fa{left:12px;top:14px}
-  .fb{display:none}
+  .photo,.fa,.fb{display:none}
+  .card{width:100%;margin-top:0;padding:18px}
+  .hero .tchips{margin-top:0}
   .bento{grid-template-columns:repeat(2,minmax(0,1fr))}
   .steps ol{grid-template-columns:repeat(2,minmax(0,1fr))}
   .sline{display:none}
@@ -318,6 +321,7 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
   .wrap{padding:0 16px}
   .nav{padding:0 10px}
   .logo-es{display:none}
+  .nav-urg{padding:10px 8px;font-size:13.5px}
   .s{padding-top:72px;padding-bottom:24px}
   .cta{margin:72px 0 32px;padding:44px 20px}
   .tabla{padding:4px 18px 18px}
@@ -335,6 +339,9 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
   .ticket p{max-width:none;text-align:left}
   .gimg{height:180px}
   .btn-s{padding:0 12px;font-size:13.5px}
+  .nav-in{padding:0 8px 0 12px}
+  .logo{gap:7px}
+  .logo-tx{font-size:18px}
   .tabla td{font-size:15px}
   .tabla td.hab{font-size:16px;padding-left:10px}
   .cta-b a,.cta-b button{width:100%;justify-content:center}
@@ -393,21 +400,18 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
       <a href="#confianza">Confianza</a>
       <a href="#zonas">Zonas</a>
     </nav>
-    <a class="btn-s" href="tel:+34656398014"><svg class="ico" width="16" height="16" aria-hidden="true"><use href="#i-phone"/></svg>Llamar</a>
+    <div class="nav-r">
+      <a class="nav-urg" href="tel:+34656398014"><i aria-hidden="true"></i>¿Es urgente?</a>
+      <a class="btn-s" href="tel:+34656398014"><svg class="ico" width="16" height="16" aria-hidden="true"><use href="#i-phone"/></svg>Llamar</a>
+    </div>
   </div>
 </header>
 
 <main>
 <section class="wrap hero" id="inicio">
   <div class="hero-copy">
-    <p class="pill"><span class="dot" aria-hidden="true"></span><span>Fontaneros en Sevilla y área metropolitana</span></p>
     <h1>Fontanero en Sevilla. <span>Vea el precio antes de llamar.</span></h1>
-    <p class="sub">Elija su avería y vea el precio orientativo en 20 segundos. Después hable directamente con el fontanero de su zona: le da el precio exacto al verla, antes de empezar.</p>
-    <ul class="tchips">
-      <li><svg class="ico" width="18" height="18" aria-hidden="true"><use href="#i-shield"/></svg>Autónomos comprobados</li>
-      <li><svg class="ico" width="18" height="18" aria-hidden="true"><use href="#i-user"/></svg>Un solo fontanero</li>
-      <li><svg class="ico" width="18" height="18" aria-hidden="true"><use href="#i-euro"/></svg>Gratis para usted</li>
-    </ul>
+    <p class="sub">Elija su avería y vea lo que suele costar. Después le pasamos con el fontanero de su zona.</p>
   </div>
 
   <div class="hv">
@@ -451,6 +455,12 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
       </div>
     </div>
   </div>
+
+  <ul class="tchips">
+    <li><svg class="ico" width="18" height="18" aria-hidden="true"><use href="#i-shield"/></svg>Autónomos comprobados</li>
+    <li><svg class="ico" width="18" height="18" aria-hidden="true"><use href="#i-user"/></svg>Un solo fontanero</li>
+    <li><svg class="ico" width="18" height="18" aria-hidden="true"><use href="#i-euro"/></svg>Gratis para usted</li>
+  </ul>
 </section>
 
 <section class="wrap s" id="arregla">
