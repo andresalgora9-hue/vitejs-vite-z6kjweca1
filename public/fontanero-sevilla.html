@@ -68,7 +68,7 @@
     {"@type":"Question","name":"¿Quién responde si el fontanero me cobra de más?","acceptedAnswer":{"@type":"Answer","text":"El fontanero es un profesional independiente y es quien responde de su presupuesto y de su trabajo. Usted ve un precio orientativo antes de contactar y decide si acepta el presupuesto. Si algo no cuadra, puede escribir a OficioYa: trasladamos su queja al profesional y le facilitamos sus datos para que pueda reclamarle."}},
     {"@type":"Question","name":"¿El presupuesto que me da la web es el precio final?","acceptedAnswer":{"@type":"Answer","text":"No, es una estimación orientativa según el tipo de avería. El fontanero confirma el precio exacto tras ver el problema, siempre antes de empezar a trabajar."}},
     {"@type":"Question","name":"¿Hay fontanero 24 horas en Sevilla?","acceptedAnswer":{"@type":"Answer","text":"Sí. Puede ver qué fontaneros de su zona están disponibles en este momento, incluidas urgencias fuera del horario habitual y fines de semana."}},
-    {"@type":"Question","name":"¿Cuánto cuesta reparar una fuga de agua en Sevilla?","acceptedAnswer":{"@type":"Answer","text":"Una reparación sencilla parte de unos 35 € y el rango habitual va de 65 € a 250 € según dónde esté la fuga y si hay que picar."}},
+    {"@type":"Question","name":"¿Cuánto cuesta reparar una fuga de agua en Sevilla?","acceptedAnswer":{"@type":"Answer","text":"Una reparación sencilla parte de unos 80 € y el rango habitual va de 100 € a 300 € según dónde esté la fuga y si hay que picar."}},
     {"@type":"Question","name":"¿En qué zonas de Sevilla trabajáis?","acceptedAnswer":{"@type":"Answer","text":"Sevilla capital y área metropolitana: Triana, Nervión, Los Remedios, Macarena, Cerro-Amate, Sevilla Este, Dos Hermanas, Mairena del Aljarafe, Alcalá de Guadaíra, Bormujos, Coria del Río y Montequinto."}}
   ]
 }
@@ -188,7 +188,7 @@ nav{background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border-bottom:1px
 }
 .result{display:none;margin-top:14px;border-top:1px dashed var(--line);padding-top:15px}
 .result.show{display:block}
-.old-range{font-size:13px;color:var(--ink-faint);text-decoration:line-through;margin-bottom:4px}
+.old-range{font-size:13px;color:var(--ink-faint);margin-bottom:4px}
 .result-label{font-size:12px;color:var(--ink-faint);margin-bottom:8px}
 .result-range{font-family:'Sora',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-size:26px;font-weight:800;color:var(--gold-deep)}
 .result-disc{font-size:11.5px;color:var(--ink-faint);line-height:1.5;margin:8px 0 14px}
@@ -477,11 +477,11 @@ footer{border-top:1px solid var(--line);padding:44px 0 28px;background:var(--sur
           <div class="field">
             <label>¿Qué le está pasando?</label>
             <div class="chip-grid" id="chipGrid">
-              <button type="button" class="chip-opt" data-id="fuga" data-low="65" data-high="250" data-floor="35" data-desc="Fuga de agua o inundación"><svg class="ico"><use href="#i-drop"/></svg><span>Fuga o inundación</span></button>
-              <button type="button" class="chip-opt" data-id="atasco" data-low="55" data-high="220" data-floor="30" data-desc="Atasco o desagüe obstruido"><svg class="ico"><use href="#i-drain"/></svg><span>Atasco o desagüe</span></button>
-              <button type="button" class="chip-opt" data-id="grifo" data-low="45" data-high="150" data-floor="25" data-desc="Grifo, cisterna o sanitario"><svg class="ico"><use href="#i-tap"/></svg><span>Grifo o cisterna</span></button>
-              <button type="button" class="chip-opt" data-id="termo" data-low="70" data-high="220" data-floor="40" data-desc="Avería en termo eléctrico"><svg class="ico"><use href="#i-bolt"/></svg><span>Termo eléctrico</span></button>
-              <button type="button" class="chip-opt" data-id="instalacion" data-low="90" data-high="320" data-floor="55" data-desc="Instalación o reforma de fontanería"><svg class="ico"><use href="#i-tool"/></svg><span>Instalación o reforma</span></button>
+              <button type="button" class="chip-opt" data-id="fuga" data-low="100" data-high="300" data-floor="80" data-desc="Fuga de agua o inundación"><svg class="ico"><use href="#i-drop"/></svg><span>Fuga o inundación</span></button>
+              <button type="button" class="chip-opt" data-id="atasco" data-low="90" data-high="250" data-floor="80" data-desc="Atasco o desagüe obstruido"><svg class="ico"><use href="#i-drain"/></svg><span>Atasco o desagüe</span></button>
+              <button type="button" class="chip-opt" data-id="grifo" data-low="90" data-high="220" data-floor="70" data-desc="Grifo, cisterna o sanitario"><svg class="ico"><use href="#i-tap"/></svg><span>Grifo o cisterna</span></button>
+              <button type="button" class="chip-opt" data-id="termo" data-low="120" data-high="300" data-floor="90" data-desc="Avería en termo eléctrico"><svg class="ico"><use href="#i-bolt"/></svg><span>Termo eléctrico</span></button>
+              <button type="button" class="chip-opt" data-id="instalacion" data-low="200" data-high="1200" data-floor="150" data-desc="Instalación o reforma de fontanería"><svg class="ico"><use href="#i-tool"/></svg><span>Instalación o reforma</span></button>
             </div>
             <p style="font-size:12.5px;color:var(--ink-faint,#8891A0);margin:10px 0 0;line-height:1.45">Solo termos eléctricos: no atendemos calderas, calentadores ni instalaciones de gas.</p>
           </div>
@@ -490,7 +490,7 @@ footer{border-top:1px solid var(--line);padding:44px 0 28px;background:var(--sur
             <p class="old-range" id="oldRange">—</p>
             <p class="result-label">Con este caso, esto es lo que suele costar en Sevilla</p>
             <p class="result-range" id="priceRange">—</p>
-            <p class="result-disc">Precio mínimo orientativo para el caso más sencillo dentro de esta avería. El fontanero confirma el precio exacto según lo que encuentre, la zona y el material necesario.</p>
+            <p class="result-disc">Rango habitual orientativo para esta avería. El fontanero confirma el precio exacto al verla, según lo que encuentre, la zona y el material necesario.</p>
 
             <div class="field">
               <label for="descProblema">Cuéntenos qué está pasando<span class="field-tag-optional">Opcional</span></label>
@@ -565,19 +565,19 @@ footer{border-top:1px solid var(--line);padding:44px 0 28px;background:var(--sur
         <span class="svc-ic"><svg class="ico ico-lg"><use href="#i-drop"/></svg></span>
         <h3>Fugas de agua</h3>
         <p>Goteo bajo el fregadero, humedad en pared o techo o tubería empotrada. Localizamos el punto antes de picar, en toda Sevilla y su área metropolitana.</p>
-        <span class="svc-foot"><span class="svc-from">Desde 35 €</span><svg class="ico svc-go"><use href="#i-arrow"/></svg></span>
+        <span class="svc-foot"><span class="svc-from">Desde 80 €</span><svg class="ico svc-go"><use href="#i-arrow"/></svg></span>
       </a>
       <a class="svc" href="/desatascos-sevilla.html">
         <span class="svc-ic"><svg class="ico ico-lg"><use href="#i-drain"/></svg></span>
         <h3>Desatascos y desagües</h3>
         <p>Fregadero, ducha, inodoro o bajante comunitaria que no traga. Con máquina cuando hace falta, para viviendas y comunidades de Sevilla.</p>
-        <span class="svc-foot"><span class="svc-from">Desde 30 €</span><svg class="ico svc-go"><use href="#i-arrow"/></svg></span>
+        <span class="svc-foot"><span class="svc-from">Desde 80 €</span><svg class="ico svc-go"><use href="#i-arrow"/></svg></span>
       </a>
       <a class="svc" href="/instalador-fontanero-sevilla.html">
         <span class="svc-ic"><svg class="ico ico-lg"><use href="#i-tool"/></svg></span>
         <h3>Instalación y reforma</h3>
         <p>Cambio de bañera por ducha, mamparas, grifería y sanitarios, o la instalación completa de un baño reformado en Sevilla.</p>
-        <span class="svc-foot"><span class="svc-from">Desde 55 €</span><svg class="ico svc-go"><use href="#i-arrow"/></svg></span>
+        <span class="svc-foot"><span class="svc-from">Desde 150 €</span><svg class="ico svc-go"><use href="#i-arrow"/></svg></span>
       </a>
       <a class="svc" href="/fontanero-urgente-sevilla.html">
         <span class="svc-ic"><svg class="ico ico-lg"><use href="#i-bolt"/></svg></span>
@@ -595,7 +595,7 @@ footer{border-top:1px solid var(--line);padding:44px 0 28px;background:var(--sur
         <span class="svc-ic"><svg class="ico ico-lg"><use href="#i-tag"/></svg></span>
         <h3>Presupuesto ajustado</h3>
         <p>El precio más contenido de Sevilla sin renunciar a que el profesional esté verificado y tenga reseñas de clientes reales.</p>
-        <span class="svc-foot"><span class="svc-from">Desde 25 €</span><svg class="ico svc-go"><use href="#i-arrow"/></svg></span>
+        <span class="svc-foot"><span class="svc-from">Desde 70 €</span><svg class="ico svc-go"><use href="#i-arrow"/></svg></span>
       </a>
     </div>
   </section>
@@ -733,11 +733,11 @@ footer{border-top:1px solid var(--line);padding:44px 0 28px;background:var(--sur
       <div class="prow head">
         <div class="pcell">Tipo de avería</div><div class="pcell">Desde</div><div class="pcell">Rango habitual</div>
       </div>
-      <div class="prow"><div class="pcell">Fuga o inundación</div><div class="pcell">35 €</div><div class="pcell">65 € – 250 €</div></div>
-      <div class="prow"><div class="pcell">Atasco o desagüe</div><div class="pcell">30 €</div><div class="pcell">55 € – 220 €</div></div>
-      <div class="prow"><div class="pcell">Grifo o cisterna</div><div class="pcell">25 €</div><div class="pcell">45 € – 150 €</div></div>
-      <div class="prow"><div class="pcell">Termo eléctrico</div><div class="pcell">40 €</div><div class="pcell">70 € – 220 €</div></div>
-      <div class="prow"><div class="pcell">Instalación o reforma</div><div class="pcell">55 €</div><div class="pcell">90 € – 320 €</div></div>
+      <div class="prow"><div class="pcell">Fuga o inundación</div><div class="pcell">80 €</div><div class="pcell">100 € – 300 €</div></div>
+      <div class="prow"><div class="pcell">Atasco o desagüe</div><div class="pcell">80 €</div><div class="pcell">90 € – 250 €</div></div>
+      <div class="prow"><div class="pcell">Grifo o cisterna</div><div class="pcell">70 €</div><div class="pcell">90 € – 220 €</div></div>
+      <div class="prow"><div class="pcell">Termo eléctrico</div><div class="pcell">90 €</div><div class="pcell">120 € – 300 €</div></div>
+      <div class="prow"><div class="pcell">Instalación o reforma</div><div class="pcell">150 €</div><div class="pcell">200 € – 1.200 €</div></div>
     </div>
     <p class="ptable-note">Ver el precio orientativo y contactar con el fontanero son gratis para el cliente. Usted paga directamente al fontanero el trabajo que acepte.</p>
   </section>
@@ -775,7 +775,7 @@ footer{border-top:1px solid var(--line);padding:44px 0 28px;background:var(--sur
       <div class="faq"><h3>¿Quién responde si el fontanero me cobra de más?</h3><p>El fontanero es un profesional independiente y es quien responde de su presupuesto y de su trabajo. Usted ve un precio orientativo antes de contactar y decide si acepta el presupuesto. Si algo no cuadra, puede escribirnos: trasladamos su queja al profesional y le facilitamos sus datos para que pueda reclamarle.</p></div>
       <div class="faq"><h3>¿El presupuesto de la web es el precio final?</h3><p>No, es una estimación orientativa para el caso más sencillo dentro de cada tipo de avería. El fontanero confirma el precio exacto al ver el problema, antes de empezar a trabajar.</p></div>
       <div class="faq"><h3>¿Hay fontanero 24 horas en Sevilla?</h3><p>Sí. Puede ver qué fontaneros de su zona están disponibles en este momento, incluidas urgencias fuera del horario habitual. Más detalle en <a href="/fontanero-24-horas-sevilla.html">fontanero 24 horas en Sevilla</a>.</p></div>
-      <div class="faq"><h3>¿Cuánto cuesta reparar una fuga de agua?</h3><p>Una reparación sencilla parte de unos 35 €, y el rango habitual va de 65 € a 250 € según dónde esté la fuga y si hay que picar pared. Vea <a href="/fuga-de-agua-sevilla.html">reparación de fugas en Sevilla</a>.</p></div>
+      <div class="faq"><h3>¿Cuánto cuesta reparar una fuga de agua?</h3><p>Una reparación sencilla parte de unos 80 €, y el rango habitual va de 100 € a 300 € según dónde esté la fuga y si hay que picar pared. Vea <a href="/fuga-de-agua-sevilla.html">reparación de fugas en Sevilla</a>.</p></div>
       <div class="faq"><h3>¿Puedo enseñarle el problema al fontanero?</h3><p>Sí. Como habla con él directamente, puede explicárselo en la llamada y, si hace falta, él mismo le dirá cómo mandarle una foto para hacerse idea del alcance antes de ir.</p></div>
       <div class="faq"><h3>¿En qué zonas trabajáis?</h3><p>Sevilla capital y área metropolitana: Triana, Nervión, Los Remedios, Macarena, Cerro-Amate, Sevilla Este, <a href="/fontanero-dos-hermanas.html">Dos Hermanas</a>, Alcalá de Guadaíra, Mairena del Aljarafe, Bormujos, Coria del Río y Montequinto.</p></div>
     </div>
@@ -975,8 +975,10 @@ footer{border-top:1px solid var(--line);padding:44px 0 28px;background:var(--sur
       desc: btn.dataset.desc
     };
 
-    document.getElementById('oldRange').textContent = 'Rango orientativo: ' + selected.low + '€ – ' + selected.high + '€';
-    document.getElementById('priceRange').textContent = 'Desde ' + selected.floor + '€';
+    // Precio orientativo normal: grande, el rango habitual; encima, desde cuánto sale lo más sencillo.
+    var oyEur = function(n){ return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); };
+    document.getElementById('oldRange').textContent = 'Lo más sencillo, desde ' + oyEur(selected.floor) + ' €';
+    document.getElementById('priceRange').textContent = oyEur(selected.low) + ' € – ' + oyEur(selected.high) + ' €';
     document.getElementById('resultBox').classList.add('show');
     document.getElementById('resultBox').scrollIntoView({behavior:'smooth', block:'nearest'});
 

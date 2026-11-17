@@ -191,7 +191,7 @@ nav{background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px
 .chip-opt{display:flex;align-items:center;gap:10px;text-align:left;width:100%;background:var(--bg-soft);border:1.5px solid var(--line);border-radius:9px;padding:12px 13px;cursor:pointer;font-family:'Inter',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-size:13.5px;font-weight:600;color:var(--ink);transition:border-color .15s,background .15s}
 .chip-opt:hover{border-color:var(--gold)}
 .chip-opt.sel{background:var(--ink);border-color:var(--ink);color:#fff}
-.old-range{font-size:13px;color:var(--ink-faint);text-decoration:line-through;margin-bottom:4px}
+.old-range{font-size:13px;color:var(--ink-faint);margin-bottom:4px}
 .field textarea{width:100%;font-family:'Inter',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-size:14px;font-weight:500;color:var(--ink);background:var(--bg-soft);border:1.5px solid var(--line);border-radius:9px;padding:12px;min-height:70px;resize:vertical}
 .field textarea:focus{border-color:var(--gold)}
 .field-tag-optional{display:inline-block;background:var(--bg-soft);color:var(--ink-faint);font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:7px;letter-spacing:.2px;text-transform:none;vertical-align:middle}
@@ -391,11 +391,11 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
           <div class="field">
             <label>¿Qué le está pasando?</label>
             <div class="chip-grid" id="chipGrid">
-              <button type="button" class="chip-opt" data-id="fuga" data-label="💧 Fuga o inundación" data-low="65" data-high="250" data-floor="35" data-desc="Fuga de agua o inundación">💧 Fuga o inundación</button>
-              <button type="button" class="chip-opt" data-id="atasco" data-label="🚿 Atasco o desagüe" data-low="55" data-high="220" data-floor="30" data-desc="Atasco o desagüe obstruido">🚿 Atasco o desagüe</button>
-              <button type="button" class="chip-opt" data-id="grifo" data-label="🚰 Grifo o cisterna" data-low="45" data-high="150" data-floor="25" data-desc="Grifo, cisterna o sanitario">🚰 Grifo o cisterna</button>
-              <button type="button" class="chip-opt" data-id="termo" data-label="⚡ Termo eléctrico" data-low="70" data-high="220" data-floor="40" data-desc="Avería en termo eléctrico">⚡ Termo eléctrico</button>
-              <button type="button" class="chip-opt" data-id="instalacion" data-label="🛠️ Instalación o reforma" data-low="90" data-high="320" data-floor="55" data-desc="Instalación o reforma de fontanería">🛠️ Instalación o reforma</button>
+              <button type="button" class="chip-opt" data-id="fuga" data-label="💧 Fuga o inundación" data-low="100" data-high="300" data-floor="80" data-desc="Fuga de agua o inundación">💧 Fuga o inundación</button>
+              <button type="button" class="chip-opt" data-id="atasco" data-label="🚿 Atasco o desagüe" data-low="90" data-high="250" data-floor="80" data-desc="Atasco o desagüe obstruido">🚿 Atasco o desagüe</button>
+              <button type="button" class="chip-opt" data-id="grifo" data-label="🚰 Grifo o cisterna" data-low="90" data-high="220" data-floor="70" data-desc="Grifo, cisterna o sanitario">🚰 Grifo o cisterna</button>
+              <button type="button" class="chip-opt" data-id="termo" data-label="⚡ Termo eléctrico" data-low="120" data-high="300" data-floor="90" data-desc="Avería en termo eléctrico">⚡ Termo eléctrico</button>
+              <button type="button" class="chip-opt" data-id="instalacion" data-label="🛠️ Instalación o reforma" data-low="200" data-high="1200" data-floor="150" data-desc="Instalación o reforma de fontanería">🛠️ Instalación o reforma</button>
             </div>
             <p style="font-size:12.5px;color:var(--ink-faint,#8891A0);margin:10px 0 0;line-height:1.45">Solo termos eléctricos: no atendemos calderas, calentadores ni instalaciones de gas.</p>
           </div>
@@ -405,7 +405,7 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
             <p class="old-range" id="oldRange">—</p>
             <p class="result-label">Con este caso, esto es lo que suele costar en su zona de Sevilla</p>
             <p class="result-range" id="priceRange">—</p>
-            <p class="result-disc">Precio mínimo orientativo para el caso más sencillo dentro de esta avería. El fontanero confirma el precio exacto según lo que encuentre, la zona y el material necesario.</p>
+            <p class="result-disc">Rango habitual orientativo para esta avería. El fontanero confirma el precio exacto al verla, según lo que encuentre, la zona y el material necesario.</p>
 
             <div class="field">
               <label for="descProblema">Cuéntenos qué está pasando<span class="field-tag-optional">Opcional</span></label>
@@ -596,22 +596,22 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
         <div class="svc">
           <h3>Fuga bajo el fregadero o el lavabo</h3>
           <p>Goteo en el sifón, en el latiguillo o en la unión con la pared. Suele ser la más rápida de resolver si se coge a tiempo.</p>
-          <span class="svc-from">Desde 35 €</span>
+          <span class="svc-from">Desde 80 €</span>
         </div>
         <div class="svc">
           <h3>Fuga en tubería empotrada</h3>
           <p>Humedad en pared o techo, a veces afectando al vecino de abajo. Requiere localizar el punto antes de picar, para no abrir de más.</p>
-          <span class="svc-from">Rango 65 € – 250 €</span>
+          <span class="svc-from">Rango 150 € – 400 €</span>
         </div>
         <div class="svc">
           <h3>Fuga en el váter o la cisterna</h3>
           <p>Agua que corre continuamente o sale por la base. Barato de arreglar y caro de ignorar: se nota directamente en el consumo.</p>
-          <span class="svc-from">Desde 25 €</span>
+          <span class="svc-from">Desde 70 €</span>
         </div>
         <div class="svc">
           <h3>Rotura de bajante o llave de paso</h3>
           <p>Suele salir en obras o en instalaciones antiguas de hierro. Conviene cortar el agua y que lo vea un profesional el mismo día.</p>
-          <span class="svc-from">Rango 65 € – 250 €</span>
+          <span class="svc-from">Rango 100 € – 300 €</span>
         </div>
       </div>
     </div>
@@ -649,11 +649,11 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
           <div class="pcell">Desde</div>
           <div class="pcell">Rango habitual</div>
         </div>
-        <div class="prow"><div class="pcell">Fuga o inundación</div><div class="pcell">35 €</div><div class="pcell">65 € – 250 €</div></div>
-        <div class="prow"><div class="pcell">Atasco o desagüe</div><div class="pcell">30 €</div><div class="pcell">55 € – 220 €</div></div>
-        <div class="prow"><div class="pcell">Grifo o cisterna</div><div class="pcell">25 €</div><div class="pcell">45 € – 150 €</div></div>
-        <div class="prow"><div class="pcell">Termo eléctrico</div><div class="pcell">40 €</div><div class="pcell">70 € – 220 €</div></div>
-        <div class="prow"><div class="pcell">Instalación o reforma</div><div class="pcell">55 €</div><div class="pcell">90 € – 320 €</div></div>
+        <div class="prow"><div class="pcell">Fuga o inundación</div><div class="pcell">80 €</div><div class="pcell">100 € – 300 €</div></div>
+        <div class="prow"><div class="pcell">Atasco o desagüe</div><div class="pcell">80 €</div><div class="pcell">90 € – 250 €</div></div>
+        <div class="prow"><div class="pcell">Grifo o cisterna</div><div class="pcell">70 €</div><div class="pcell">90 € – 220 €</div></div>
+        <div class="prow"><div class="pcell">Termo eléctrico</div><div class="pcell">90 €</div><div class="pcell">120 € – 300 €</div></div>
+        <div class="prow"><div class="pcell">Instalación o reforma</div><div class="pcell">150 €</div><div class="pcell">200 € – 1.200 €</div></div>
       </div>
       <p class="ptable-note">Buscar y comparar es gratis. OficioYa no cobra al cliente: usted paga directamente al fontanero el trabajo que acepte.</p>
     </div>
@@ -754,10 +754,10 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
       desc: btn.dataset.desc
     };
 
-    // Efecto de precio a la baja: el rango orientativo completo queda tachado arriba,
-    // y debajo el mínimo real para el caso más sencillo dentro de esta avería.
-    document.getElementById('oldRange').textContent = 'Rango orientativo: ' + selected.low + '€ – ' + selected.high + '€';
-    document.getElementById('priceRange').textContent = 'Desde ' + selected.floor + '€';
+    // Precio orientativo normal: grande, el rango habitual; encima, desde cuánto sale lo más sencillo.
+    var oyEur = function(n){ return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); };
+    document.getElementById('oldRange').textContent = 'Lo más sencillo, desde ' + oyEur(selected.floor) + ' €';
+    document.getElementById('priceRange').textContent = oyEur(selected.low) + ' € – ' + oyEur(selected.high) + ' €';
     document.getElementById('resultBox').classList.add('show');
     document.getElementById('resultBox').scrollIntoView({behavior:'smooth', block:'nearest'});
 

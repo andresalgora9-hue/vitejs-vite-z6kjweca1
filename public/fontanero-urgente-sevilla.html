@@ -167,7 +167,7 @@ nav{background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px
 .result-range{font-family:'Sora',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-size:26px;font-weight:800;color:var(--gold-deep)}
 .result-label{font-size:12px;color:var(--ink-faint);margin-bottom:10px}
 .result-disc{font-size:11.5px;color:var(--ink-faint);line-height:1.5;margin-bottom:14px}
-.old-range{font-size:13px;color:var(--ink-faint);text-decoration:line-through;margin-bottom:4px}
+.old-range{font-size:13px;color:var(--ink-faint);margin-bottom:4px}
 .btn-result-cta{display:block;width:100%;text-align:center;background:var(--cta);color:#fff;font-weight:700;font-size:14.5px;padding:14px;border-radius:9px;border:none;cursor:pointer;font-family:'Inter',system-ui,-apple-system,'Segoe UI',Arial,sans-serif}
 .btn-result-cta:hover{background:var(--cta-hover)}
 .field input{width:100%;font-family:'Inter',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-size:14.5px;font-weight:600;color:var(--ink);background:var(--bg-soft);border:1.5px solid var(--line);border-radius:9px;padding:12px 12px}
@@ -318,11 +318,11 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
       <div class="field">
         <label>¿Qué le está pasando?</label>
         <div class="chip-grid" id="chipGrid">
-          <button type="button" class="chip-opt" data-id="fuga" data-label="💧 Fuga o inundación" data-low="90" data-high="250" data-floor="65" data-desc="Fuga de agua o inundación (urgente)">💧 Fuga o inundación</button>
-          <button type="button" class="chip-opt" data-id="atasco" data-label="🚿 Atasco que desborda" data-low="80" data-high="220" data-floor="55" data-desc="Atasco o desagüe que desborda (urgente)">🚿 Atasco que desborda</button>
-          <button type="button" class="chip-opt" data-id="sinagua" data-label="🚱 Me he quedado sin agua" data-low="90" data-high="220" data-floor="65" data-desc="Avería que ha cortado el suministro (urgente)">🚱 Me he quedado sin agua</button>
-          <button type="button" class="chip-opt" data-id="termo" data-label="⚡ Termo averiado" data-low="100" data-high="220" data-floor="70" data-desc="Avería urgente en termo eléctrico">⚡ Termo averiado</button>
-          <button type="button" class="chip-opt" data-id="otro" data-label="🛠️ Otra urgencia" data-low="90" data-high="250" data-floor="65" data-desc="Otra urgencia de fontanería">🛠️ Otra urgencia</button>
+          <button type="button" class="chip-opt" data-id="fuga" data-label="💧 Fuga o inundación" data-low="120" data-high="350" data-floor="100" data-desc="Fuga de agua o inundación (urgente)">💧 Fuga o inundación</button>
+          <button type="button" class="chip-opt" data-id="atasco" data-label="🚿 Atasco que desborda" data-low="110" data-high="300" data-floor="90" data-desc="Atasco o desagüe que desborda (urgente)">🚿 Atasco que desborda</button>
+          <button type="button" class="chip-opt" data-id="sinagua" data-label="🚱 Me he quedado sin agua" data-low="120" data-high="300" data-floor="100" data-desc="Avería que ha cortado el suministro (urgente)">🚱 Me he quedado sin agua</button>
+          <button type="button" class="chip-opt" data-id="termo" data-label="⚡ Termo averiado" data-low="140" data-high="320" data-floor="110" data-desc="Avería urgente en termo eléctrico">⚡ Termo averiado</button>
+          <button type="button" class="chip-opt" data-id="otro" data-label="🛠️ Otra urgencia" data-low="120" data-high="350" data-floor="100" data-desc="Otra urgencia de fontanería">🛠️ Otra urgencia</button>
         </div>
             <p style="font-size:12.5px;color:var(--ink-faint,#8891A0);margin:10px 0 0;line-height:1.45">Solo termos eléctricos: no atendemos calderas, calentadores ni instalaciones de gas.</p>
       </div>
@@ -331,7 +331,7 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
         <p class="old-range" id="oldRange">—</p>
         <p class="result-label">En horario de urgencia, esto es lo que suele costar en Sevilla</p>
         <p class="result-range" id="priceRange">—</p>
-        <p class="result-disc">Precio mínimo orientativo para el caso más sencillo dentro de esta avería, con recargo de urgencia ya incluido. El fontanero confirma el precio exacto según lo que encuentre.</p>
+        <p class="result-disc">Rango habitual orientativo para esta avería, con recargo de urgencia ya incluido. El fontanero confirma el precio exacto según lo que encuentre.</p>
 
         <div class="field">
           <label for="descProblema">Cuéntenos qué está pasando<span class="field-tag-optional">Opcional</span></label>
@@ -430,10 +430,10 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
           <div class="pcell">Desde</div>
           <div class="pcell">Rango habitual</div>
         </div>
-        <div class="prow"><div class="pcell">Fuga o inundación</div><div class="pcell">65 €</div><div class="pcell">90 € – 250 €</div></div>
-        <div class="prow"><div class="pcell">Atasco que desborda</div><div class="pcell">55 €</div><div class="pcell">80 € – 220 €</div></div>
-        <div class="prow"><div class="pcell">Corte de suministro</div><div class="pcell">65 €</div><div class="pcell">90 € – 220 €</div></div>
-        <div class="prow"><div class="pcell">Termo averiado</div><div class="pcell">70 €</div><div class="pcell">100 € – 220 €</div></div>
+        <div class="prow"><div class="pcell">Fuga o inundación</div><div class="pcell">100 €</div><div class="pcell">120 € – 350 €</div></div>
+        <div class="prow"><div class="pcell">Atasco que desborda</div><div class="pcell">90 €</div><div class="pcell">110 € – 300 €</div></div>
+        <div class="prow"><div class="pcell">Corte de suministro</div><div class="pcell">100 €</div><div class="pcell">120 € – 300 €</div></div>
+        <div class="prow"><div class="pcell">Termo averiado</div><div class="pcell">110 €</div><div class="pcell">140 € – 320 €</div></div>
       </div>
       <p class="ptable-note">Buscar y comparar es gratis. OficioYa no cobra al cliente: usted paga directamente al fontanero el trabajo que acepte.</p>
     </div>
@@ -533,8 +533,10 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
       desc: btn.dataset.desc
     };
 
-    document.getElementById('oldRange').textContent = 'Rango orientativo: ' + selected.low + '€ – ' + selected.high + '€';
-    document.getElementById('priceRange').textContent = 'Desde ' + selected.floor + '€';
+    // Precio orientativo normal: grande, el rango habitual; encima, desde cuánto sale lo más sencillo.
+    var oyEur = function(n){ return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); };
+    document.getElementById('oldRange').textContent = 'Lo más sencillo, desde ' + oyEur(selected.floor) + ' €';
+    document.getElementById('priceRange').textContent = oyEur(selected.low) + ' € – ' + oyEur(selected.high) + ' €';
     document.getElementById('resultBox').classList.add('show');
     document.getElementById('resultBox').scrollIntoView({behavior:'smooth', block:'nearest'});
 

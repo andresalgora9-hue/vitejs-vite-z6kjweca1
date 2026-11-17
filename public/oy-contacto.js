@@ -141,6 +141,8 @@
     ".oyc-btn[disabled]{opacity:.6;cursor:default}",
     ".oyc-btn.oyc-wa{background:#1F8A5F;color:#fff}",
     ".oyc-err{color:#C0392B;font-size:13px;font-weight:600;margin-top:8px;min-height:1px}",
+    ".oyc-nota{font-size:12.5px;color:#5B6472;background:#FFF8EC;border:1px solid #F3DDB3;border-radius:10px;padding:9px 11px;margin:-4px 0 4px;line-height:1.45}",
+    ".oyc-nota b{color:#10182C}",
     ".oyc-legal{font-size:11.5px;color:#8891A0;margin-top:10px;text-align:center;line-height:1.4}",
     ".oyc-legal a{color:#8891A0}",
     ".oyc-ok{text-align:center;padding:6px 0 2px}",
@@ -185,6 +187,10 @@
     var titulo = esWa ? "Antes de escribir por WhatsApp" : "Antes de llamar, déjanos tus datos";
     var sub = "Así el " + esc(GREMIO) + " sabe quién eres y te atiende antes. Gratis y sin compromiso.";
     var textoBoton = esWa ? "Continuar a WhatsApp" : "Llamar ahora";
+    // Fontanería: aviso para quien solo quiere saber el precio y de que no se hace gas (sin preguntas de más)
+    var nota = String(GREMIO).toLowerCase() === "fontanero"
+      ? '<p class="oyc-nota"><b>¿Solo quieres saber el precio?</b> Tienes el orientativo en esta página. Llama si quieres que el fontanero vaya a verlo: el precio exacto te lo da al ver la avería.<br><b>No hacemos gas:</b> calderas, calentadores ni instalaciones de gas.</p>'
+      : "";
 
     var f = document.createElement("div");
     f.className = "oyc-fondo";
@@ -195,7 +201,7 @@
       '<div class="oyc-caja">' +
         '<div class="oyc-top"><h2 class="oyc-tit">' + (esWa ? "💬 " : "📞 ") + titulo + '</h2>' +
         '<button type="button" class="oyc-x" aria-label="Cerrar">×</button></div>' +
-        '<p class="oyc-sub">' + sub + '</p>' +
+        '<p class="oyc-sub">' + sub + '</p>' + nota +
         '<form novalidate>' +
           '<label class="oyc-lab" for="oyc-nombre">Tu nombre</label>' +
           '<input class="oyc-in" id="oyc-nombre" name="nombre" autocomplete="name" placeholder="Nombre" maxlength="60">' +

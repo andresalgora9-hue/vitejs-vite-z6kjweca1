@@ -73,7 +73,7 @@
   "@context":"https://schema.org",
   "@type":"FAQPage",
   "mainEntity":[
-    {"@type":"Question","name":"¿Cuánto cuesta un desatasco en Sevilla?","acceptedAnswer":{"@type":"Answer","text":"Un desatasco simple de fregadero, lavabo o WC ronda los 65-160 €. Si hace falta máquina o cámara de inspección para localizar el punto en una bajante, sube a 200-300 €. El profesional confirma el precio exacto al ver el problema."}},
+    {"@type":"Question","name":"¿Cuánto cuesta un desatasco en Sevilla?","acceptedAnswer":{"@type":"Answer","text":"Un desatasco simple de fregadero, lavabo o WC ronda los 90-200 €. Si hace falta máquina o cámara de inspección para localizar el punto en una bajante, sube a 180-350 €. El profesional confirma el precio exacto al ver el problema."}},
     {"@type":"Question","name":"¿Qué puedo probar antes de llamar?","acceptedAnswer":{"@type":"Answer","text":"Agua muy caliente con desengrasante para grasa de cocina, la ventosa de goma para lavabo y WC, y revisar o desenroscar el sifón bajo el fregadero, donde suele acumularse el atasco."}},
     {"@type":"Question","name":"El agua sale por varios desagües a la vez, ¿de quién es el problema?","acceptedAnswer":{"@type":"Answer","text":"Si el atasco afecta a varios desagües a la vez, suele estar en la bajante o red general del edificio, no en su vivienda. Ese caso suele corresponder a la comunidad de vecinos; coméntelo antes de asumir el coste usted solo."}},
     {"@type":"Question","name":"¿Trabajan con cámara de inspección?","acceptedAnswer":{"@type":"Answer","text":"Sí, para atascos en bajante o cuando el punto exacto no es visible, hay profesionales en OficioYa que usan cámara de inspección antes de intervenir."}},
@@ -186,7 +186,7 @@ nav{background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px
 .chip-opt{display:flex;align-items:center;gap:10px;text-align:left;width:100%;background:var(--bg-soft);border:1.5px solid var(--line);border-radius:9px;padding:12px 13px;cursor:pointer;font-family:'Inter',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-size:13.5px;font-weight:600;color:var(--ink);transition:border-color .15s,background .15s}
 .chip-opt:hover{border-color:var(--gold)}
 .chip-opt.sel{background:var(--ink);border-color:var(--ink);color:#fff}
-.old-range{font-size:13px;color:var(--ink-faint);text-decoration:line-through;margin-bottom:4px}
+.old-range{font-size:13px;color:var(--ink-faint);margin-bottom:4px}
 .field textarea{width:100%;font-family:'Inter',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-size:14px;font-weight:500;color:var(--ink);background:var(--bg-soft);border:1.5px solid var(--line);border-radius:9px;padding:12px;min-height:70px;resize:vertical}
 .field textarea:focus{border-color:var(--gold)}
 .field-tag-optional{display:inline-block;background:var(--bg-soft);color:var(--ink-faint);font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:7px;letter-spacing:.2px;text-transform:none;vertical-align:middle}
@@ -381,11 +381,12 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
           <div class="field">
             <label>¿Qué tiene atascado?</label>
             <div class="chip-grid" id="chipGrid">
-              <button type="button" class="chip-opt" data-id="fregadero" data-label="🍽️ Fregadero o lavabo" data-low="65" data-high="150" data-floor="35" data-desc="Atasco en fregadero o lavabo">🍽️ Fregadero o lavabo</button>
-              <button type="button" class="chip-opt" data-id="wc" data-label="🚽 WC o inodoro" data-low="75" data-high="160" data-floor="40" data-desc="Atasco en WC o inodoro">🚽 WC o inodoro</button>
-              <button type="button" class="chip-opt" data-id="bajante" data-label="🏢 Bajante o tubería general" data-low="200" data-high="300" data-floor="90" data-desc="Atasco en bajante o tubería general (posible cámara/máquina)">🏢 Bajante o tubería general</button>
-              <button type="button" class="chip-opt" data-id="exterior" data-label="🌳 Patio, terraza o exterior" data-low="80" data-high="200" data-floor="45" data-desc="Atasco en patio, terraza o exterior">🌳 Patio, terraza o exterior</button>
+              <button type="button" class="chip-opt" data-id="fregadero" data-label="🍽️ Fregadero o lavabo" data-low="90" data-high="160" data-floor="80" data-desc="Atasco en fregadero o lavabo">🍽️ Fregadero o lavabo</button>
+              <button type="button" class="chip-opt" data-id="wc" data-label="🚽 WC o inodoro" data-low="100" data-high="200" data-floor="90" data-desc="Atasco en WC o inodoro">🚽 WC o inodoro</button>
+              <button type="button" class="chip-opt" data-id="bajante" data-label="🏢 Bajante o tubería general" data-low="180" data-high="350" data-floor="150" data-desc="Atasco en bajante o tubería general (posible cámara/máquina)">🏢 Bajante o tubería general</button>
+              <button type="button" class="chip-opt" data-id="exterior" data-label="🌳 Patio, terraza o exterior" data-low="90" data-high="220" data-floor="80" data-desc="Atasco en patio, terraza o exterior">🌳 Patio, terraza o exterior</button>
             </div>
+            <p style="font-size:12.5px;color:var(--ink-faint,#8891A0);margin:10px 0 0;line-height:1.45">No atendemos calderas, calentadores ni instalaciones de gas.</p>
           </div>
 
           <!-- Todo esto aparece debajo, en el mismo sitio, sin ocultar los chips de arriba -->
@@ -393,7 +394,7 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
             <p class="old-range" id="oldRange">—</p>
             <p class="result-label">Con este caso, esto es lo que suele costar en Sevilla</p>
             <p class="result-range" id="priceRange">—</p>
-            <p class="result-disc">Precio mínimo orientativo para el caso más sencillo dentro de este tipo de atasco. El profesional confirma el precio exacto según lo que encuentre y si hace falta máquina o cámara de inspección.</p>
+            <p class="result-disc">Rango habitual orientativo para este tipo de atasco. El profesional confirma el precio exacto según lo que encuentre y si hace falta máquina o cámara de inspección.</p>
 
             <div class="field">
               <label for="descProblema">Cuéntenos qué está pasando<span class="field-tag-optional">Opcional</span></label>
@@ -584,22 +585,22 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
         <div class="svc">
           <h3>Fregadero o lavabo</h3>
           <p>Grasa acumulada en el sifón o en el primer tramo de tubería. Suele ser el más rápido y barato de resolver.</p>
-          <span class="svc-from">Desde 35 €</span>
+          <span class="svc-from">Desde 80 €</span>
         </div>
         <div class="svc">
           <h3>WC o inodoro</h3>
           <p>Objeto o exceso de papel bloqueando la salida. A veces se resuelve con ventosa, otras necesita máquina.</p>
-          <span class="svc-from">Desde 40 €</span>
+          <span class="svc-from">Desde 90 €</span>
         </div>
         <div class="svc">
           <h3>Bajante o tubería general</h3>
           <p>Afecta a varios desagües a la vez. Suele necesitar máquina o cámara de inspección para localizar el punto exacto.</p>
-          <span class="svc-from">Rango 200 € – 300 €</span>
+          <span class="svc-from">Rango 180 € – 350 €</span>
         </div>
         <div class="svc">
           <h3>Patio, terraza o exterior</h3>
           <p>Hojas, tierra o raíces en el sumidero exterior. Con acceso fácil suele resolverse en la misma visita.</p>
-          <span class="svc-from">Desde 45 €</span>
+          <span class="svc-from">Desde 80 €</span>
         </div>
       </div>
     </div>
@@ -634,10 +635,10 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
           <div class="pcell">Desde</div>
           <div class="pcell">Rango habitual</div>
         </div>
-        <div class="prow"><div class="pcell">Fregadero o lavabo</div><div class="pcell">35 €</div><div class="pcell">65 € – 150 €</div></div>
-        <div class="prow"><div class="pcell">WC o inodoro</div><div class="pcell">40 €</div><div class="pcell">75 € – 160 €</div></div>
-        <div class="prow"><div class="pcell">Bajante o tubería general</div><div class="pcell">90 €</div><div class="pcell">200 € – 300 €</div></div>
-        <div class="prow"><div class="pcell">Patio, terraza o exterior</div><div class="pcell">45 €</div><div class="pcell">80 € – 200 €</div></div>
+        <div class="prow"><div class="pcell">Fregadero o lavabo</div><div class="pcell">80 €</div><div class="pcell">90 € – 160 €</div></div>
+        <div class="prow"><div class="pcell">WC o inodoro</div><div class="pcell">90 €</div><div class="pcell">100 € – 200 €</div></div>
+        <div class="prow"><div class="pcell">Bajante o tubería general</div><div class="pcell">150 €</div><div class="pcell">180 € – 350 €</div></div>
+        <div class="prow"><div class="pcell">Patio, terraza o exterior</div><div class="pcell">80 €</div><div class="pcell">90 € – 220 €</div></div>
       </div>
       <p class="ptable-note">Buscar y comparar es gratis. OficioYa no cobra al cliente: usted paga directamente al profesional el trabajo que acepte.</p>
     </div>
@@ -647,7 +648,7 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
     <p class="sec-label">Preguntas frecuentes</p>
     <h2 class="sec-h2">Lo que más nos preguntan</h2>
     <div class="faqs">
-      <div class="faq"><h3>¿Cuánto cuesta un desatasco en Sevilla?</h3><p>Un desatasco simple de fregadero, lavabo o WC ronda los 65-160 €. Si hace falta máquina o cámara de inspección para localizar el punto en una bajante, sube a 200-300 €. El profesional confirma el precio exacto al ver el problema.</p></div>
+      <div class="faq"><h3>¿Cuánto cuesta un desatasco en Sevilla?</h3><p>Un desatasco simple de fregadero, lavabo o WC ronda los 90-200 €. Si hace falta máquina o cámara de inspección para localizar el punto en una bajante, sube a 180-350 €. El profesional confirma el precio exacto al ver el problema.</p></div>
       <div class="faq"><h3>¿Qué puedo probar antes de llamar?</h3><p>Agua muy caliente con desengrasante para grasa de cocina, la ventosa de goma para lavabo y WC, y revisar o desenroscar el sifón bajo el fregadero, donde suele acumularse el atasco.</p></div>
       <div class="faq"><h3>El agua sale por varios desagües a la vez, ¿de quién es el problema?</h3><p>Si el atasco afecta a varios desagües a la vez, suele estar en la bajante o red general del edificio, no en su vivienda. Ese caso suele corresponder a la comunidad de vecinos; coméntelo antes de asumir el coste usted solo.</p></div>
       <div class="faq"><h3>¿Trabajan con cámara de inspección?</h3><p>Sí, para atascos en bajante o cuando el punto exacto no es visible, hay profesionales en OficioYa que usan cámara de inspección antes de intervenir.</p></div>
@@ -727,10 +728,10 @@ footer p{font-size:12.5px;color:var(--ink-faint)}
       desc: btn.dataset.desc
     };
 
-    // Efecto de precio a la baja: el rango orientativo completo queda tachado arriba,
-    // y debajo el mínimo real para el caso más sencillo dentro de este tipo de atasco.
-    document.getElementById('oldRange').textContent = 'Rango orientativo: ' + selected.low + '€ – ' + selected.high + '€';
-    document.getElementById('priceRange').textContent = 'Desde ' + selected.floor + '€';
+    // Precio orientativo normal: grande, el rango habitual; encima, desde cuánto sale lo más sencillo.
+    var oyEur = function(n){ return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); };
+    document.getElementById('oldRange').textContent = 'Lo más sencillo, desde ' + oyEur(selected.floor) + ' €';
+    document.getElementById('priceRange').textContent = oyEur(selected.low) + ' € – ' + oyEur(selected.high) + ' €';
     document.getElementById('resultBox').classList.add('show');
     document.getElementById('resultBox').scrollIntoView({behavior:'smooth', block:'nearest'});
 
