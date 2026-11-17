@@ -26,6 +26,8 @@
   var VALOR = Number(DS.valor || 0);
   var GREMIO = DS.gremio || "profesional";
   var SOLO_LLAMADA = DS.soloLlamada === "1";
+  // Fontanería (17/11/2026): casilla obligatoria de Condiciones y Privacidad antes de enviar
+  var CASILLA = String(GREMIO).toLowerCase() === "fontanero";
 
   var RPC = "https://rjwojxwrsbvwwshwwpvq.supabase.co/rest/v1/rpc/oy_lead_contacto";
   var KEY = "sb_publishable_ReA-g1IhCfbhwMfkei7naw_BgtOs9nv";
@@ -117,6 +119,20 @@
     if (!o.city_slug) o.city_slug = "sevilla";
     return o;
   }
+  /* Registro de la aceptación de Condiciones (igual que la casilla de oy-consent.js) */
+  function guardarAceptacion() {
+    try {
+      var ver = (window.OY && window.OY.TERMINOS_VERSION) || "2.1";
+      var reg = JSON.stringify({
+        terminos: ver, privacidad: ver, at: new Date().toISOString(),
+        punto: "llamada:" + ((location.pathname.split("/").pop() || "").replace(/\.html?$/, "") || "index"),
+        ciudad: (window.OY && window.OY.ciudad) || "", ua: navigator.userAgent.slice(0, 180)
+      });
+      try { localStorage.setItem("oy_terms", reg); } catch (e) {}
+      document.cookie = "oy_terms=" + encodeURIComponent(reg) + ";max-age=" + 30 * 86400 + ";path=/;SameSite=Lax" +
+        (location.hostname.indexOf("aficioya.com") > -1 ? ";domain=.aficioya.com" : "");
+    } catch (e) {}
+  }
   function bonito(slug) {
     return String(slug || "").replace(/-/g, " ").replace(/\b\w/g, function (c) { return c.toUpperCase(); });
   }
@@ -141,10 +157,13 @@
     ".oyc-btn[disabled]{opacity:.6;cursor:default}",
     ".oyc-btn.oyc-wa{background:#1F8A5F;color:#fff}",
     ".oyc-err{color:#C0392B;font-size:13px;font-weight:600;margin-top:8px;min-height:1px}",
-    ".oyc-nota{font-size:12.5px;color:#5B6472;background:#FFF8EC;border:1px solid #F3DDB3;border-radius:10px;padding:9px 11px;margin:-4px 0 4px;line-height:1.45}",
-    ".oyc-nota b{color:#10182C}",
     ".oyc-legal{font-size:11.5px;color:#8891A0;margin-top:10px;text-align:center;line-height:1.4}",
     ".oyc-legal a{color:#8891A0}",
+    ".oyc-terms{display:flex;gap:10px;align-items:flex-start;margin:14px 0 0;font-size:12.5px;line-height:1.45;color:#5B6472;cursor:pointer}",
+    ".oyc-terms input{width:19px;height:19px;margin:1px 0 0;flex:0 0 auto;accent-color:#F0A93B;cursor:pointer}",
+    ".oyc-terms a{color:#8C670C;text-decoration:underline}",
+    ".oyc-terms.oyc-mal{color:#B42318}",
+    ".oyc-terms.oyc-mal input{outline:2px solid #B42318;outline-offset:2px;border-radius:3px}",
     ".oyc-ok{text-align:center;padding:6px 0 2px}",
     ".oyc-ok-ico{font-size:40px;line-height:1}",
     ".oyc-ok-t{font-size:18px;font-weight:800;margin:8px 0 4px}",
@@ -187,10 +206,6 @@
     var titulo = esWa ? "Antes de escribir por WhatsApp" : "Antes de llamar, déjanos tus datos";
     var sub = "Así el " + esc(GREMIO) + " sabe quién eres y te atiende antes. Gratis y sin compromiso.";
     var textoBoton = esWa ? "Continuar a WhatsApp" : "Llamar ahora";
-    // Fontanería: aviso para quien solo quiere saber el precio y de que no se hace gas (sin preguntas de más)
-    var nota = String(GREMIO).toLowerCase() === "fontanero"
-      ? '<p class="oyc-nota"><b>¿Solo quieres saber el precio?</b> Tienes el orientativo en esta página. Llama si quieres que el fontanero vaya a verlo: el precio exacto te lo da al ver la avería.<br><b>No hacemos gas:</b> calderas, calentadores ni instalaciones de gas.</p>'
-      : "";
 
     var f = document.createElement("div");
     f.className = "oyc-fondo";
@@ -201,16 +216,17 @@
       '<div class="oyc-caja">' +
         '<div class="oyc-top"><h2 class="oyc-tit">' + (esWa ? "💬 " : "📞 ") + titulo + '</h2>' +
         '<button type="button" class="oyc-x" aria-label="Cerrar">×</button></div>' +
-        '<p class="oyc-sub">' + sub + '</p>' + nota +
+        '<p class="oyc-sub">' + sub + '</p>' +
         '<form novalidate>' +
           '<label class="oyc-lab" for="oyc-nombre">Tu nombre</label>' +
           '<input class="oyc-in" id="oyc-nombre" name="nombre" autocomplete="name" placeholder="Nombre" maxlength="60">' +
           '<label class="oyc-lab" for="oyc-tel">Tu teléfono</label>' +
           '<input class="oyc-in" id="oyc-tel" name="telefono" type="tel" inputmode="tel" autocomplete="tel" placeholder="600 000 000" maxlength="16">' +
           '<input class="oyc-trampa" name="web" tabindex="-1" autocomplete="off" aria-hidden="true">' +
+          (CASILLA ? '<label class="oyc-terms"><input type="checkbox" class="oyc-acepto"><span>He leído y acepto las <a href="/terminos" target="_blank" rel="noopener">Condiciones de Uso</a> y la <a href="/privacidad" target="_blank" rel="noopener">Política de Privacidad</a>.</span></label>' : '') +
           '<div class="oyc-err" aria-live="polite"></div>' +
           '<button type="submit" class="oyc-btn' + (esWa ? " oyc-wa" : "") + '">' + (esWa ? "💬 " : "📞 ") + textoBoton + '</button>' +
-          '<div class="oyc-legal">Al continuar aceptas las <a href="/terminos" target="_blank" rel="noopener">Condiciones</a> y la <a href="/privacidad" target="_blank" rel="noopener">Privacidad</a>. Te atiende un profesional independiente, responsable de su trabajo.</div>' +
+          '<div class="oyc-legal">' + (CASILLA ? 'Te atiende un profesional independiente, responsable de su trabajo.' : 'Al continuar aceptas las <a href="/terminos" target="_blank" rel="noopener">Condiciones</a> y la <a href="/privacidad" target="_blank" rel="noopener">Privacidad</a>. Te atiende un profesional independiente, responsable de su trabajo.') + '</div>' +
         '</form>' +
       '</div>';
     document.body.appendChild(f);
@@ -224,6 +240,15 @@
     var inNombre = f.querySelector("#oyc-nombre");
     var inTel = f.querySelector("#oyc-tel");
     var err = f.querySelector(".oyc-err");
+    var acepto = f.querySelector(".oyc-acepto");
+    if (acepto) {
+      // Si ya aceptó las condiciones en el formulario de la landing (casilla de oy-consent.js), la casilla viene marcada
+      var ckLanding = document.getElementById("oyTermsCk");
+      if (ckLanding && ckLanding.checked) acepto.checked = true;
+      acepto.addEventListener("change", function () {
+        if (acepto.checked) { acepto.parentNode.classList.remove("oyc-mal"); err.textContent = ""; }
+      });
+    }
     var btn = f.querySelector(".oyc-btn");
     if (previo.nombre) inNombre.value = previo.nombre;
     if (previo.telefono) inTel.value = previo.telefono;
@@ -241,6 +266,13 @@
       if (nombre.length < 2) { err.textContent = "Escribe tu nombre."; inNombre.focus(); return; }
       if (!/^[6789]\d{8}$/.test(tel)) { err.textContent = "Escribe un teléfono válido (9 cifras)."; inTel.focus(); return; }
       if (f.querySelector(".oyc-trampa").value) { cerrar(); return; }
+      if (acepto && !acepto.checked) {
+        err.textContent = "Marca la casilla de las condiciones para continuar.";
+        acepto.parentNode.classList.add("oyc-mal");
+        acepto.focus();
+        return;
+      }
+      if (acepto) guardarAceptacion();
 
       btn.disabled = true;
       btn.textContent = "Un momento...";
@@ -340,8 +372,9 @@
         });
     });
 
-    // Si la landing ya tiene nombre y teléfono (formulario del presupuesto), se llama sin volver a pedirlos
-    if (extra.auto && extra.nombre && extra.telefono) {
+    // Si la landing ya tiene nombre y teléfono (formulario del presupuesto), se llama sin volver a pedirlos.
+    // Si falta aceptar las condiciones, la ventana se queda abierta con los datos puestos para que marque la casilla.
+    if (extra.auto && extra.nombre && extra.telefono && (!acepto || acepto.checked)) {
       setTimeout(function () {
         if (form.requestSubmit) form.requestSubmit();
         else form.dispatchEvent(new Event("submit", { cancelable: true }));
