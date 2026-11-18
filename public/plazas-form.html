@@ -264,6 +264,10 @@ fbq('track','PageView');
             <label class="lbl" for="telefono">Tu teléfono</label>
             <input id="telefono" type="tel" inputmode="tel" autocomplete="tel" placeholder="600 000 000">
           </div>
+          <div class="field">
+            <label class="lbl" for="email">Tu email</label>
+            <input id="email" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="tunombre@gmail.com">
+          </div>
           <span class="lbl-q" id="q-auto">¿Estás dado de alta como autónomo?</span>
           <div class="sino" role="radiogroup" aria-labelledby="q-auto">
             <button type="button" role="radio" aria-checked="false" data-a="si">Sí</button>
@@ -273,7 +277,7 @@ fbq('track','PageView');
           <button type="button" class="btn" id="enviar" disabled>Solicitar mi plaza</button>
           <p class="err" id="err2" role="alert"></p>
           <p class="tranqui" id="tranqui">Sin compromiso. Pronto nos pondremos en contacto contigo para conocernos.</p>
-          <p class="legal">Al solicitar tu plaza aceptas que te llamemos. <a href="/privacidad">Política de privacidad</a>.</p>
+          <p class="legal">Al solicitar tu plaza aceptas que te llamemos (también nuestra asistente virtual) y que te escribamos por SMS o email sobre tu plaza. <a href="/privacidad">Política de privacidad</a>.</p>
         </div>
       </div>
 
@@ -552,11 +556,35 @@ Array.prototype.forEach.call(document.querySelectorAll('.sino button'), function
 function actualizarBoton(){ $('enviar').disabled = estado.autonomo !== true; }
 
 /* Paso 2: enviar */
+/* Email real (19/11/2026): formato, sin correos de usar y tirar ni inventados, erratas típicas corregidas
+   y comprobación de que el dominio recibe correo (si no se puede comprobar, no bloquea) */
+var EMAIL_DESECHABLES = ['mailinator.com','yopmail.com','yopmail.net','10minutemail.com','guerrillamail.com','tempmail.com','temp-mail.org','trashmail.com','getnada.com','sharklasers.com','maildrop.cc','dispostable.com','fakeinbox.com','throwawaymail.com','mintemail.com','emailondeck.com','mohmal.com','tempail.com','correotemporal.org','tempmailo.com','minuteinbox.com'];
+var EMAIL_ERRATAS = {'gmial.com':'gmail.com','gmal.com':'gmail.com','gmail.co':'gmail.com','gmail.es':'gmail.com','gamil.com':'gmail.com','gnail.com':'gmail.com','gmai.com':'gmail.com','gmail.con':'gmail.com','hotmial.com':'hotmail.com','hotmal.com':'hotmail.com','hotmail.co':'hotmail.com','hotmai.com':'hotmail.com','hotamil.com':'hotmail.com','hotmail.con':'hotmail.com','hotmail.e':'hotmail.es','yahho.es':'yahoo.es','yaho.es':'yahoo.es','outlok.com':'outlook.com','outloo.com':'outlook.com','outlook.co':'outlook.com','icloud.co':'icloud.com','iclod.com':'icloud.com'};
+function emailNormal(e){ return (e||'').trim().toLowerCase().replace(/\s+/g,''); }
+function emailFormato(e){ return /^[a-z0-9._%+-]{1,64}@[a-z0-9.-]+\.[a-z]{2,24}$/.test(e) && e.indexOf('..') < 0; }
+function emailErrata(e){ var d = e.split('@')[1]; return EMAIL_ERRATAS[d] ? e.split('@')[0] + '@' + EMAIL_ERRATAS[d] : null; }
+function emailFalso(e){
+  var u = e.split('@')[0], d = e.split('@')[1];
+  return EMAIL_DESECHABLES.indexOf(d) >= 0
+    || /^(test|prueba|asdf|qwerty|a+|x+|abc|nombre|correo|email|mail|ejemplo|example|no|ninguno|nada|fake|falso|sincorreo|notengo)[0-9]*$/.test(u)
+    || /^(example|ejemplo|test|prueba|correo|dominio)\./.test(d);
+}
+function emailDominioOk(d){
+  var dns = function(t){ return fetch('https://dns.google/resolve?name=' + encodeURIComponent(d) + '&type=' + t).then(function(r){ return r.json(); }); };
+  var tiempo = new Promise(function(ok){ setTimeout(function(){ ok(true); }, 3500); });
+  var mira = dns('MX').then(function(j){
+    if(j.Status === 3) return false;
+    if(j.Answer && j.Answer.length) return true;
+    return dns('A').then(function(k){ return !!(k.Answer && k.Answer.length); });
+  }).catch(function(){ return true; });
+  return Promise.race([mira, tiempo]);
+}
 function telefonoValido(t){
   var d = (t||'').replace(/[^0-9+]/g,'').replace(/^(\+34|0034)/,'');
   return /^[6789][0-9]{8}$/.test(d) ? d : null;
 }
 $('telefono').addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); if(!$('enviar').disabled) enviar(); } });
+$('email').addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); if(!$('enviar').disabled) enviar(); } });
 $('enviar').addEventListener('click', enviar);
 
 function mensajeWA(){
@@ -569,11 +597,24 @@ function enviar(){
   var tel = telefonoValido($('telefono').value);
   if(nombre.length < 2){ $('err2').textContent = 'Escribe tu nombre.'; $('nombre').focus(); return; }
   if(!tel){ $('err2').textContent = 'Revisa el teléfono: tiene que tener 9 cifras.'; $('telefono').focus(); return; }
+  var email = emailNormal($('email').value);
+  if(!emailFormato(email)){ $('err2').textContent = 'Escribe tu email (lo necesitamos para mandarte el contrato).'; $('email').focus(); return; }
+  var arreglo = emailErrata(email);
+  if(arreglo){ $('email').value = arreglo; $('err2').textContent = '¿Querías decir ' + arreglo + '? Lo hemos corregido: revísalo y vuelve a pulsar.'; $('email').focus(); return; }
+  if(emailFalso(email)){ $('err2').textContent = 'Pon tu email de verdad: ahí te mandaremos el contrato.'; $('email').focus(); return; }
   $('err2').textContent = '';
-  var btn = $('enviar'), txt = btn.textContent; btn.disabled = true; btn.textContent = 'Enviando…';
+  var btn = $('enviar'), txt = btn.textContent; btn.disabled = true; btn.textContent = 'Comprobando…';
+  emailDominioOk(email.split('@')[1]).then(function(ok){
+    if(!ok){ btn.disabled = false; btn.textContent = txt; $('err2').textContent = 'Ese email no existe: revísalo.'; $('email').focus(); return; }
+    btn.textContent = 'Enviando…';
+    guardar(nombre, tel, email, btn, txt);
+  });
+}
+
+function guardar(nombre, tel, email, btn, txt){
 
   var fila = {
-    nombre: nombre, telefono: tel, oficio: estado.oficio, ciudad: estado.ciudad, ciudad_slug: estado.slug,
+    nombre: nombre, telefono: tel, email: email, oficio: estado.oficio, ciudad: estado.ciudad, ciudad_slug: estado.slug,
     plaza_libre: estado.plaza, autonomo: true, origen: 'plazas_form', variante: VARIANTE,
     utm_source: ORIGEN.utm_source, utm_medium: ORIGEN.utm_medium,
     utm_campaign: ORIGEN.utm_campaign, utm_content: ORIGEN.utm_content, fbclid: ORIGEN.fbclid
