@@ -199,6 +199,9 @@ body.ancho .wrap{max-width:none}
 .chip.ok{background:rgba(30,158,90,.13);color:var(--ok)}
 .chip.ambar{background:rgba(201,133,18,.15);color:var(--ambar)}
 .tarjeta.arrastrando{opacity:.3}
+.ia-pend{border-color:#E8862A!important;box-shadow:0 0 0 2px #E8862A,0 0 16px rgba(232,134,42,.65)!important;animation:iaBrillo 1.6s ease-in-out infinite}
+@keyframes iaBrillo{50%{box-shadow:0 0 0 2px #E8862A,0 0 4px rgba(232,134,42,.2)}}
+.chip.ia{background:#E8862A;color:#fff}
 .fantasma{position:fixed;left:0;top:0;z-index:80;pointer-events:none;margin:0;box-shadow:0 16px 36px rgba(0,0,0,.3);opacity:.97}
 body.arrastre,body.arrastre *{cursor:grabbing!important}
 body.arrastre .tablero{scroll-snap-type:none}
@@ -681,10 +684,12 @@ function irA(t){
 }
 
 /* ---------- Tarjeta de lead ---------- */
+/* Cerrado por el agente de llamadas IA y sin contrato enviado todavía (18/11/2026) */
+function iaPendiente(l){ return !!l.ia_cierre_at && ['contrato_enviado','completado','pagado','no_interesado'].indexOf(l.estado) < 0; }
 function tarjeta(l, extra){
   var urgente = l.estado==='nuevo' && horasDesde(l.created_at) > 24;
   var der = extra || ('<span class="estado ' + l.estado + '">' + esc(NOMBRE_ESTADO[l.estado]) + '</span>');
-  return '<button class="lead ' + (l.oficio==='fontanero'?'f':'p') + (urgente?' urgente':'') + (recien[l.id]?' recien':'') + '" data-id="' + l.id + '">'
+  return '<button class="lead ' + (l.oficio==='fontanero'?'f':'p') + (urgente?' urgente':'') + (recien[l.id]?' recien':'') + (iaPendiente(l)?' ia-pend':'') + '" data-id="' + l.id + '">'
     + '<span class="nom">' + esc(l.nombre) + '</span>'
     + '<span class="der">' + der + '</span>'
     + '<span class="meta"><span class="of"><i></i>' + oficioTxt(l.oficio) + '</span> · ' + esc(l.ciudad || 'Sin ciudad')
@@ -823,8 +828,9 @@ function tarjetaK(l){
   else if(docsDe(l.id).length) chips.push('<span class="chip ok">Contrato subido</span>');
   else if(l.estado === 'contrato_enviado') chips.push('<span class="chip ambar">Sin enlace para firmar</span>');
   if(CERRADO.indexOf(l.estado) > -1) chips.push(l.pro_user_id ? '<span class="chip ok">Alta hecha</span>' : '<span class="chip ambar">Falta el alta</span>');
+  if(iaPendiente(l)) chips.unshift('<span class="chip ia">🤖 Mandar contrato</span>');
   if(l.estado==='no_interesado' && l.motivo) chips.push('<span class="chip">' + esc(l.motivo) + '</span>');
-  return '<div class="tarjeta ' + (l.oficio==='fontanero' ? 'f' : 'p') + (urg ? ' urgente' : '') + '" data-id="' + l.id + '" tabindex="0" role="button" aria-label="' + esc(l.nombre) + ', ' + esc(tituloEstado(l.estado)) + '">'
+  return '<div class="tarjeta ' + (l.oficio==='fontanero' ? 'f' : 'p') + (urg ? ' urgente' : '') + (iaPendiente(l) ? ' ia-pend' : '') + '" data-id="' + l.id + '" tabindex="0" role="button" aria-label="' + esc(l.nombre) + ', ' + esc(tituloEstado(l.estado)) + '">'
     + '<b>' + esc(l.nombre) + '</b>'
     + '<div class="t-meta"><span class="of"><i></i>' + oficioTxt(l.oficio) + '</span> · ' + esc(l.ciudad || 'Sin ciudad') + '</div>'
     + '<div class="t-pie">' + chips.join('') + '</div></div>';
