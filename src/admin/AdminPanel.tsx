@@ -15,17 +15,19 @@ import Marketing from "./apMarketing";
 import Ajustes from "./apAjustes";
 import Analisis from "./apAnalisis";
 import EquipoIA from "./apEquipoIA";
+import AgenteIA from "./apAgenteIA";
 import Chats from "./apChats";
 import Archivos from "./apArchivos";
 import Impuestos from "./apImpuestos";
 
-type Seccion = "resumen" | "analisis" | "equipo" | "chats" | "leads" | "facturas" | "impuestos" | "archivos" | "profesionales" | "captacion" | "mensajes" | "marketing" | "ajustes" | "antiguo";
+type Seccion = "resumen" | "analisis" | "equipo" | "agente" | "chats" | "leads" | "facturas" | "impuestos" | "archivos" | "profesionales" | "captacion" | "mensajes" | "marketing" | "ajustes" | "antiguo";
 
 const NAV: { id: Seccion; label: string; icono: string }[] = [
   { id: "resumen", label: "Resumen", icono: "M4 13h4v7H4zM10 8h4v12h-4zM16 4h4v16h-4z" },
   { id: "analisis", label: "Análisis detallado", icono: "M3 3v18h18M7 15l4-4 3 3 5-6" },
   { id: "chats", label: "Chats", icono: "M20.5 12.2c0 3.9-3.8 7-8.5 7a10 10 0 0 1-2.6-.34L4.2 20.5l1.5-3.7A6.7 6.7 0 0 1 3.5 12.2c0-3.9 3.8-7 8.5-7s8.5 3.1 8.5 7zM8.5 11.5h7M8.5 14.5h4.5" },
   { id: "equipo", label: "Equipo IA", icono: "M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM17 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM3 20c.5-3 3-5 6-5s5.5 2 6 5M15 15.4c.6-.3 1.3-.4 2-.4 3 0 5.5 2 6 5" },
+  { id: "agente", label: "Agente IA · Lucía", icono: "M12 3a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zM5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7" },
   { id: "leads", label: "Leads", icono: "M4 6h16M4 12h16M4 18h10" },
   { id: "facturas", label: "Facturas", icono: "M6.5 3.5h8l4 4v13h-12zM14.5 3.5v4h4M9.5 12h6M9.5 15.5h6" },
   { id: "impuestos", label: "Impuestos", icono: "M6 3.5h12v17l-3-1.6-3 1.6-3-1.6-3 1.6zM9.5 14.5l5-5M9.6 9.6h.01M14.4 14.4h.01" },
@@ -41,7 +43,7 @@ const NAV: { id: Seccion; label: string; icono: string }[] = [
 // Menú ordenado por bloques
 const GRUPOS: { t: string; ids: Seccion[] }[] = [
   { t: "Negocio", ids: ["resumen", "marketing", "analisis"] },
-  { t: "Clientes y profesionales", ids: ["leads", "profesionales", "captacion", "chats", "mensajes"] },
+  { t: "Clientes y profesionales", ids: ["leads", "profesionales", "captacion", "agente", "chats", "mensajes"] },
   { t: "Dinero y papeles", ids: ["facturas", "impuestos", "archivos"] },
   { t: "Equipo", ids: ["equipo"] },
   { t: "Sistema", ids: ["ajustes", "antiguo"] },
@@ -162,6 +164,7 @@ export default function AdminPanel({ onLogout, nombre }: { onLogout: () => void;
       case "resumen": return <Resumen {...props} />;
       case "analisis": return <Analisis {...props} />;
       case "equipo": return <EquipoIA {...props} />;
+      case "agente": return <AgenteIA {...props} />;
       case "chats": return <Chats {...props} />;
       case "leads": return <Leads {...props} />;
       case "facturas": return <Facturas {...props} />;
