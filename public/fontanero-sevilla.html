@@ -372,6 +372,7 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
   .btn-s{padding:0 10px;gap:6px;font-size:13px}
 }
 
+.btn-llamar{width:100%;height:50px;margin-top:10px;border:1.5px solid rgba(255,255,255,.22);border-radius:18px;background:transparent;color:inherit;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
 </style>
 </head>
 <body>
@@ -443,7 +444,7 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
 <section class="wrap hero" id="inicio">
   <div class="hero-copy">
     <h1>Fontanero en Sevilla. <span>Vea el precio antes de llamar.</span></h1>
-    <p class="sub">Elija su avería y vea lo que suele costar. Después le pasamos con el fontanero de su zona.</p>
+    <p class="sub">Elija su avería y vea lo que suele costar. Deje sus datos y el fontanero de su zona le llama.</p>
   </div>
 
   <div class="hv">
@@ -478,9 +479,9 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
           <label class="fld"><span>Su nombre</span><input class="inp" id="leadNombre" type="text" autocomplete="name" placeholder="Nombre" maxlength="60"></label>
           <label class="fld"><span>Su teléfono</span><input class="inp" id="leadTelefono" type="tel" inputmode="tel" autocomplete="tel" placeholder="612 345 678" maxlength="16"></label>
         </div>
-        <label class="fld mt"><span>Cuéntele qué pasa (opcional)</span><textarea class="inp" id="descProblema" placeholder="Ej.: el fregadero de la cocina no traga desde esta mañana"></textarea></label>
-        <p class="lead-err" id="leadErr">Necesitamos su nombre y un teléfono de 9 cifras para pasarle con el fontanero.</p>
-        <button type="button" class="btn" id="resultCta" onclick="enviarSolicitud()"><svg class="ico" width="18" height="18" aria-hidden="true"><use href="#i-phone"/></svg>Llamar al fontanero</button>
+        <p class="lead-err" id="leadErr">Necesitamos su nombre y un teléfono de 9 cifras para que el fontanero le llame.</p>
+        <button type="button" class="btn" id="resultCta" onclick="enviarSolicitud('formulario')">Enviar solicitud &rarr;</button>
+        <button type="button" class="btn-llamar" onclick="enviarSolicitud('llamada')" data-oyc-llamar style="display:none"><svg class="ico" width="17" height="17" aria-hidden="true"><use href="#i-phone"/></svg>¿Es urgente? Llamar ahora</button>
         <p class="note">Gratis y sin compromiso. Su teléfono solo lo ve el fontanero que le atiende.</p>
       </div>
     </div>
@@ -562,7 +563,7 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
     <div class="sline" aria-hidden="true"><i id="sline"></i></div>
     <ol>
       <li class="glass"><div class="num">1</div><h3>Elija qué le pasa</h3><p>Verá lo que suele costar en Sevilla, sin registrarse y sin hablar con nadie todavía.</p></li>
-      <li class="glass"><div class="num">2</div><h3>Deje su nombre y teléfono</h3><p>Pulse Llamar y le pasamos directamente con el fontanero de su zona.</p></li>
+      <li class="glass"><div class="num">2</div><h3>Deje su nombre y teléfono</h3><p>Pulse Enviar solicitud y el fontanero de su zona le llama. Si es urgente, puede llamarle usted directamente.</p></li>
       <li class="glass"><div class="num">3</div><h3>Hable con el fontanero</h3><p>Le cuenta la avería y acuerdan cuándo va. Si hace falta, le pide una foto.</p></li>
       <li class="glass"><div class="num">4</div><h3>Precio cerrado antes de empezar</h3><p>Al verla le dice el precio exacto. Usted decide y le paga a él, no a nosotros.</p></li>
     </ol>
@@ -705,7 +706,7 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
     function pintar(){ barra.classList.toggle('oculta', ticketVisible || heroVisible || escribiendo); }
     new IntersectionObserver(function(e){ ticketVisible = e[0].isIntersecting; pintar(); }, {threshold: 0.12}).observe(ticket);
     if (hero) new IntersectionObserver(function(e){ heroVisible = e[0].isIntersecting; pintar(); }, {threshold: 0}).observe(hero);
-    ['leadNombre','leadTelefono','descProblema'].forEach(function(id){
+    ['leadNombre','leadTelefono'].forEach(function(id){
       var campo = document.getElementById(id);
       if(!campo) return;
       campo.addEventListener('focus', function(){ escribiendo = true; pintar(); });
@@ -767,7 +768,6 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
       termo:"Ej.: el termo no calienta o hace saltar la luz",
       instalacion:"Ej.: quiero cambiar la bañera por un plato de ducha"
     };
-    document.getElementById('descProblema').placeholder = EJEMPLOS[selected.id] || 'Cuéntele qué pasa';
     if (typeof gtag === 'function') gtag('event','view_item',{'event_category':'presupuesto_calculado','event_label':selected.id});
   });
 
@@ -780,8 +780,9 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
     });
   });
 
-  // Envío: se guarda el lead y se le pasa la llamada al fontanero
-  function enviarSolicitud(){
+  // Envío (18/11/2026): por defecto formulario (el fontanero recibe el aviso y llama); «¿Es urgente?» guarda el lead y abre la llamada
+  function enviarSolicitud(canal){
+    canal = canal === 'llamada' ? 'llamada' : 'formulario';
     if(!selected){
       var g = document.getElementById('chipGrid');
       if(g) g.scrollIntoView({behavior:'smooth', block:'center'});
@@ -800,8 +801,9 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
     var notaEl = document.getElementById('descProblema');
     var nota = (notaEl && notaEl.value || '').trim();
     var desc = selected.desc + (nota ? ' — ' + nota : '');
-    if (window.OYContacto) { OYContacto.abrir('llamada', { detalle: desc, nombre: nombre, telefono: tel9, auto: true }); return; }
-    window.location.href = 'tel:+34656398014';
+    if (window.OYContacto) { OYContacto.abrir(canal, { detalle: desc, nombre: nombre, telefono: tel9, auto: true }); return; }
+    // Sin el script de contacto: la app crea la solicitud (flujo de siempre)
+    window.location.href = '/?' + new URLSearchParams({ quick:'1', oficio:'Fontanero', nombre:nombre, telefono:tel9, email:'lead' + tel9 + '@aficioya-lead.com', desc:desc, landing:(location.pathname.split('/').pop()||'').replace(/\.html$/,'') }).toString();
   }
 
   // Fondo con profundidad, como en la portada: la tubería se dibuja al bajar y al final gotea
@@ -864,6 +866,6 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
     frame();
   })();
 </script>
-<script src="/oy-contacto.js?v=3" data-solo-llamada="1" data-oficio="Fontanero" data-valor="40" data-gremio="fontanero" defer></script>
+<script src="/oy-contacto.js?v=4" data-solo-llamada="1" data-oficio="Fontanero" data-valor="40" data-gremio="fontanero" defer></script>
 </body>
 </html>

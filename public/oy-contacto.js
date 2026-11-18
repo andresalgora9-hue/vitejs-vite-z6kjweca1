@@ -193,8 +193,10 @@
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
 
   function abrir(canal, extra) {
-    canal = canal === "whatsapp" ? "whatsapp" : "llamada";
-    if (SOLO_LLAMADA) canal = "llamada";
+    // "formulario" (18/11/2026): el cliente deja sus datos y el profesional le llama. No se abre ninguna llamada.
+    var esForm = canal === "formulario";
+    canal = esForm ? "formulario" : (canal === "whatsapp" ? "whatsapp" : "llamada");
+    if (SOLO_LLAMADA && !esForm) canal = "llamada";
     extra = extra || {};
     ponerEstilos();
     cerrar();
@@ -203,9 +205,10 @@
     try { previo = JSON.parse(localStorage.getItem(GUARDADO) || "{}") || {}; } catch (e) {}
 
     var esWa = canal === "whatsapp";
-    var titulo = esWa ? "Antes de escribir por WhatsApp" : "Antes de llamar, déjanos tus datos";
+    var ico = esWa ? "💬 " : (esForm ? "" : "📞 ");
+    var titulo = esForm ? "Envía tu solicitud" : (esWa ? "Antes de escribir por WhatsApp" : "Antes de llamar, déjanos tus datos");
     var sub = "Así el " + esc(GREMIO) + " sabe quién eres y te atiende antes. Gratis y sin compromiso.";
-    var textoBoton = esWa ? "Continuar a WhatsApp" : "Llamar ahora";
+    var textoBoton = esForm ? "Enviar solicitud" : (esWa ? "Continuar a WhatsApp" : "Llamar ahora");
 
     var f = document.createElement("div");
     f.className = "oyc-fondo";
@@ -214,7 +217,7 @@
     f.setAttribute("aria-label", titulo);
     f.innerHTML =
       '<div class="oyc-caja">' +
-        '<div class="oyc-top"><h2 class="oyc-tit">' + (esWa ? "💬 " : "📞 ") + titulo + '</h2>' +
+        '<div class="oyc-top"><h2 class="oyc-tit">' + ico + titulo + '</h2>' +
         '<button type="button" class="oyc-x" aria-label="Cerrar">×</button></div>' +
         '<p class="oyc-sub">' + sub + '</p>' +
         '<form novalidate>' +
@@ -225,7 +228,7 @@
           '<input class="oyc-trampa" name="web" tabindex="-1" autocomplete="off" aria-hidden="true">' +
           (CASILLA ? '<label class="oyc-terms"><input type="checkbox" class="oyc-acepto"><span>He leído y acepto las <a href="/terminos" target="_blank" rel="noopener">Condiciones de Uso</a> y la <a href="/privacidad" target="_blank" rel="noopener">Política de Privacidad</a>.</span></label>' : '') +
           '<div class="oyc-err" aria-live="polite"></div>' +
-          '<button type="submit" class="oyc-btn' + (esWa ? " oyc-wa" : "") + '">' + (esWa ? "💬 " : "📞 ") + textoBoton + '</button>' +
+          '<button type="submit" class="oyc-btn' + (esWa ? " oyc-wa" : "") + '">' + ico + textoBoton + '</button>' +
           '<div class="oyc-legal">' + (CASILLA ? 'Te atiende un profesional independiente, responsable de su trabajo.' : 'Al continuar aceptas las <a href="/terminos" target="_blank" rel="noopener">Condiciones</a> y la <a href="/privacidad" target="_blank" rel="noopener">Privacidad</a>. Te atiende un profesional independiente, responsable de su trabajo.') + '</div>' +
         '</form>' +
       '</div>';
@@ -284,7 +287,8 @@
         city_slug: o.city_slug, zona: bonito(o.zona || o.city_slug),
         landing: o.landing, gclid: o.gclid || "",
         utm_source: o.utm_source || "", utm_campaign: o.utm_campaign || "", utm_content: o.utm_content || "",
-        descripcion: extra.detalle ? ((esWa ? "Quiere hablar por WhatsApp. " : "Quiere hablar por teléfono. ") + extra.detalle) : ""
+        descripcion: esForm ? ("Ha dejado sus datos para que le llamen." + (extra.detalle ? " " + extra.detalle : ""))
+          : (extra.detalle ? ((esWa ? "Quiere hablar por WhatsApp. " : "Quiere hablar por teléfono. ") + extra.detalle) : "")
       };
 
       // Si el servidor falla o tarda, el cliente llama igualmente: nunca se pierde la llamada.
@@ -305,8 +309,8 @@
         function seguir() {
           if (seguido) return;
           seguido = true;
-          mostrarOk(f, esWa, destino, res);
-          location.href = destino;
+          mostrarOk(f, esWa, destino, res, esForm ? tel : null);
+          if (!esForm) location.href = destino;
         }
         if (res.nuevo && typeof gtag === "function") {
           gtag("event", "generate_lead", {
@@ -356,7 +360,7 @@
           if (res && !res.ok && (res.error === "telefono" || res.error === "nombre")) {
             clearTimeout(reloj);
             btn.disabled = false;
-            btn.textContent = (esWa ? "💬 " : "📞 ") + textoBoton;
+            btn.textContent = ico + textoBoton;
             err.textContent = res.error === "telefono" ? "Escribe un teléfono válido (9 cifras)." : "Escribe tu nombre.";
             return;
           }
@@ -382,11 +386,24 @@
     }
   }
 
-  function mostrarOk(f, esWa, destino, res) {
+  function mostrarOk(f, esWa, destino, res, telCliente) {
     var caja = f.querySelector(".oyc-caja");
     if (!caja) return;
     var quien = res.profesional ? esc(res.profesional) : "Te atendemos";
     var numero = String(res.telefono || "").replace(/^\+34/, "").replace(/(\d{3})(\d{3})(\d{3})/, "$1 $2 $3");
+    if (telCliente) {
+      // Formulario: no se abre la llamada. El profesional ya tiene el aviso y llama él.
+      var suyo = String(telCliente).replace(/(\d{3})(\d{3})(\d{3})/, "$1 $2 $3");
+      caja.innerHTML =
+        '<div class="oyc-top"><div style="flex:1"></div><button type="button" class="oyc-x" aria-label="Cerrar">×</button></div>' +
+        '<div class="oyc-ok"><div class="oyc-ok-ico">✅</div>' +
+        '<div class="oyc-ok-t">' + (res.profesional ? quien + " ya tiene tu solicitud" : "Ya tenemos tu solicitud") + '</div>' +
+        '<div class="oyc-ok-s">Te llamará en breve al <b>' + esc(suyo) + '</b>. Ten el teléfono a mano.</div>' +
+        (res.respaldo ? '' : '<a class="oyc-btn" href="' + esc(destino) + '">📞 ¿Es urgente? Llamar al ' + esc(numero) + '</a>') +
+        '</div>';
+      caja.querySelector(".oyc-x").addEventListener("click", cerrar);
+      return;
+    }
     caja.innerHTML =
       '<div class="oyc-top"><div style="flex:1"></div><button type="button" class="oyc-x" aria-label="Cerrar">×</button></div>' +
       '<div class="oyc-ok"><div class="oyc-ok-ico">✅</div>' +
