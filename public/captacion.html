@@ -360,6 +360,7 @@ body.arrastre .tablero{scroll-snap-type:none}
         <div class="vista-sel" role="group" aria-label="Vista de métricas" id="vista-met">
           <button type="button" data-v="gestion" aria-pressed="true">Gestión comercial</button>
           <button type="button" data-v="campanas" aria-pressed="false">Campañas</button>
+          <button type="button" data-v="lucia" aria-pressed="false">🤖 Lucía</button>
         </div>
       </div>
       <div class="chips" id="chips-periodo"></div>
@@ -395,6 +396,15 @@ body.arrastre .tablero{scroll-snap-type:none}
       <div class="titulo-sec"><h2>Plazas ocupadas</h2><small>Lo que ve el mapa de la landing</small></div>
       <div class="scroll"><table class="tabla" id="t-plazas"></table></div>
       <p class="nota" id="nota-gasto"></p>
+      </div>
+      <div id="m-lucia" hidden>
+        <div class="titulo-sec"><h2>🤖 Lucía hoy</h2><small id="v-estado"></small></div>
+        <div class="cifras" id="v-hoy"></div>
+        <div class="titulo-sec"><h2>Este mes</h2></div>
+        <div class="cifras" id="v-mes"></div>
+        <div class="titulo-sec"><h2>Últimas llamadas</h2><small>Toca una para abrir la ficha</small></div>
+        <div class="scroll"><table class="tabla" id="v-ultimas"></table></div>
+        <p class="nota" id="v-nota"></p>
       </div>
     </section>
 
@@ -1407,7 +1417,7 @@ var CAB = '<tr><th></th><th class="n">Registros</th><th class="n">Contactados</t
 var CAB_G = '<th class="n">Gasto</th><th class="n">€/registro</th><th class="n">€/firmado</th>';
 
 var vistaMet = 'gestion';
-try{ vistaMet = localStorage.getItem('oy_capt_met') === 'campanas' ? 'campanas' : 'gestion'; }catch(e){}
+try{ var vm = localStorage.getItem('oy_capt_met'); vistaMet = vm === 'campanas' || vm === 'lucia' ? vm : 'gestion'; }catch(e){}
 $('vista-met').addEventListener('click', function(e){
   var b = e.target.closest('button[data-v]'); if(!b) return;
   vistaMet = b.getAttribute('data-v'); try{ localStorage.setItem('oy_capt_met', vistaMet); }catch(x){}
@@ -1417,9 +1427,45 @@ function pintarMetricas(){
   var periodos = [[7,'7 días'],[30,'30 días'],[90,'90 días'],[0,'Todo']];
   $('chips-periodo').innerHTML = periodos.map(function(p){ return '<button data-p="' + p[0] + '" aria-pressed="' + (periodo===p[0]) + '">' + p[1] + '</button>'; }).join('');
   Array.prototype.forEach.call($('vista-met').querySelectorAll('button'), function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-v') === vistaMet)); });
-  $('m-gestion').hidden = vistaMet !== 'gestion'; $('m-campanas').hidden = vistaMet !== 'campanas';
-  if(vistaMet === 'gestion') pintarGestion(); else pintarCampanas();
+  $('m-gestion').hidden = vistaMet !== 'gestion'; $('m-campanas').hidden = vistaMet !== 'campanas'; $('m-lucia').hidden = vistaMet !== 'lucia';
+  $('chips-periodo').hidden = vistaMet === 'lucia';
+  if(vistaMet === 'gestion') pintarGestion(); else if(vistaMet === 'lucia') pintarLucia(); else pintarCampanas();
 }
+/* ---------- Lucía (agente de llamadas IA): actividad, gasto y tope diario ---------- */
+function pintarLucia(){
+  var v = D.voz;
+  if(!v){ $('v-hoy').innerHTML = '<div class="vacio">Sin datos de Lucía.</div>'; return; }
+  var h = v.hoy || {}, m = v.mes || {}, lim = Number(v.limite_dia || 0), g = Number(h.gasto || 0);
+  var tope = lim && g >= lim - 1;
+  $('v-estado').textContent = !v.activo ? 'Apagada' : tope ? 'Parada por hoy: tope de gasto alcanzado' : (v.en_curso ? v.en_curso + ' llamada' + (v.en_curso > 1 ? 's' : '') + ' en curso' : 'Activa');
+  function cifra(n, t){ return '<div class="cifra"><strong>' + n + '</strong><span>' + t + '</span></div>'; }
+  var pct = function(a, b){ return b ? ' (' + Math.round(a * 100 / b) + ' %)' : ''; };
+  $('v-hoy').innerHTML = cifra(h.llamadas || 0, 'Llamadas')
+    + cifra(h.contestadas || 0, 'Contestadas' + pct(h.contestadas || 0, h.llamadas || 0))
+    + cifra(h.cierres || 0, 'Cierres (contrato enviado)')
+    + cifra(euros(g), 'Gasto de hoy' + (lim ? ' · tope ' + euros(lim) : ''))
+    + cifra(v.cola_hoy || 0, 'Pendientes para hoy')
+    + cifra(v.cola || 0, 'En seguimiento')
+    + cifra(h.buzon || 0, 'Buzón de voz (cuelga)')
+    + cifra((h.minutos || 0) + ' min', 'Minutos hablados');
+  $('v-mes').innerHTML = cifra(m.llamadas || 0, 'Llamadas')
+    + cifra(m.contestadas || 0, 'Contestadas' + pct(m.contestadas || 0, m.llamadas || 0))
+    + cifra(m.cierres || 0, 'Cierres')
+    + cifra(euros(Number(m.gasto || 0)), 'Gasto' + (m.cierres ? ' · ' + euros(Number(m.gasto || 0) / m.cierres) + ' por cierre' : ''));
+  var U = v.ultimas || [];
+  var RES = { cierre:'✅ Cierre', rellamar:'📅 Rellamar', dudas:'❓ Dudas', no_interesado:'❌ No interesado', sin_respuesta:'— Sin respuesta', firmando:'✍️ Firmando', ya_pagado:'💳 Pagado', otro:'—' };
+  $('v-ultimas').innerHTML = '<tr><th>Cuándo</th><th>Profesional</th><th>Resultado</th><th class="n">Interés</th><th class="n">Dur.</th><th class="n">Coste</th><th>Resumen</th></tr>'
+    + (U.length ? U.map(function(x){
+        var res = x.buzon ? '📭 Buzón' : x.contestada === false ? '📵 No contesta' : (RES[x.resultado] || esc(x.resultado || '—'));
+        var cuando = new Date(x.created_at).toLocaleString('es-ES', { weekday:'short', hour:'2-digit', minute:'2-digit' });
+        var dur = x.duracion_s ? (x.duracion_s >= 60 ? Math.floor(x.duracion_s/60) + ' min ' + (x.duracion_s % 60) + ' s' : x.duracion_s + ' s') : '—';
+        return '<tr' + (x.lead_id ? ' data-id="' + x.lead_id + '" style="cursor:pointer"' : '') + '><td>' + esc(cuando) + '</td><td>' + esc(x.nombre || 'Prueba') + (x.ciudad ? '<br><small>' + esc(oficioTxt(x.oficio)) + ' · ' + esc(x.ciudad) + '</small>' : '') + '</td><td>' + res + '</td><td class="n">' + (x.interes == null ? '—' : x.interes + '/10') + '</td><td class="n">' + dur + '</td><td class="n">' + (x.coste ? euros(Number(x.coste)) : '—') + '</td><td><small>' + esc(x.resumen || '') + '</small></td></tr>';
+      }).join('') : '<tr><td colspan="7">Todavía no hay llamadas.</td></tr>');
+  var hor = v.horario || {}, dias = ['L','M','X','J','V','S','D'];
+  $('v-nota').textContent = 'Horario: ' + [1,2,3,4,5,6,7].map(function(n){ var t = hor[n] || []; return t.length ? dias[n-1] + ' ' + t.map(function(r){ return r[0] + '-' + r[1]; }).join(' y ') : ''; }).filter(Boolean).join(' · ')
+    + '. Sin respuesta: mañana y tarde durante 2 días. A más interés, más seguimiento. Nunca llama a profesionales activos ni a quien tiene contrato firmado. El gasto incluye Retell y la línea (aprox.).';
+}
+$('v-ultimas').addEventListener('click', function(e){ var t = e.target.closest('tr[data-id]'); if(t) abrirFicha(t.getAttribute('data-id')); });
 function pintarCampanas(){
   var desde = periodo ? new Date(Date.now() - periodo*86400000) : new Date(0);
   var L = D.leads.filter(function(l){ return new Date(l.created_at) >= desde; });
