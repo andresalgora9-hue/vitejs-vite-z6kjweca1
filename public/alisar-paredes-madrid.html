@@ -498,6 +498,16 @@ section[id],div[id]{scroll-margin-top:90px}
 
           <div id="leadForm">
           <div class="field">
+            <label for="leadCuando">&iquest;Cu&aacute;ndo quieres hacerlo?</label>
+            <select id="leadCuando">
+              <option value="" selected disabled>Elige una opci&oacute;n</option>
+              <option value="Lo antes posible">Lo antes posible</option>
+              <option value="En el próximo mes">En el pr&oacute;ximo mes</option>
+              <option value="En 1-3 meses">En 1-3 meses</option>
+              <option value="Solo estoy mirando precios">Solo estoy mirando precios</option>
+            </select>
+          </div>
+          <div class="field">
             <label for="leadNombre">Tu nombre</label>
             <input id="leadNombre" type="text" placeholder="&iquest;C&oacute;mo te llamas?" autocomplete="name" maxlength="60">
           </div>
@@ -823,7 +833,7 @@ section[id],div[id]{scroll-margin-top:90px}
   }
   function errorForm(msg, campo){
     document.getElementById('leadErr').textContent = msg;
-    ['leadNombre','leadTelefono'].forEach(function(id){ document.getElementById(id).removeAttribute('aria-invalid'); });
+    ['leadCuando','leadNombre','leadTelefono'].forEach(function(id){ document.getElementById(id).removeAttribute('aria-invalid'); });
     if(campo){ campo.setAttribute('aria-invalid','true'); campo.focus(); }
   }
 
@@ -832,6 +842,8 @@ section[id],div[id]{scroll-margin-top:90px}
     var inNombre = document.getElementById('leadNombre'), inTel = document.getElementById('leadTelefono'), btn = document.getElementById('leadBtn');
     var nombre = inNombre.value.trim(), tel = inTel.value.replace(/\D/g,'').slice(-9);
     errorForm('', null);
+    var inCuando = document.getElementById('leadCuando'), cuando = inCuando.value;
+    if(!cuando){ errorForm('Dinos cu\u00e1ndo quieres hacerlo.', inCuando); return; }
     if(nombre.length < 2){ errorForm('Escribe tu nombre para que el pintor sepa a qui\u00e9n llamar.', inNombre); return; }
     if(!/^[6789]\d{8}$/.test(tel)){ errorForm('Escribe un tel\u00e9fono de 9 cifras, por ejemplo 600 000 000.', inTel); return; }
     if(document.getElementById('leadWeb').value) return;
@@ -839,6 +851,7 @@ section[id],div[id]{scroll-margin-top:90px}
 
     var r = RANGOS[seleccion.tipo][seleccion.tamano];
     var desc = DESC_TIPO[seleccion.tipo] + ' (' + seleccion.tamanoLabel + '). Rango orientativo mostrado: ' + fmt(r[0]) + '-' + fmt(r[1]) + ' EUR.';
+    desc += ' Cu\u00e1ndo quiere hacerlo: ' + cuando + '.';
     if(typeof m2Elegido !== 'undefined' && m2Elegido) desc += ' Metros indicados: ' + m2Elegido + ' m2.';
     if(typeof colorElegido !== 'undefined' && colorElegido) desc += ' Color que le gusta: ' + colorElegido + '.';
     var gclid = ORIGEN.gclid || gclidGuardado();
