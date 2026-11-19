@@ -127,6 +127,10 @@ input:focus,button:focus-visible,.c:focus-visible{outline:2px solid var(--naranj
 .campo{margin-bottom:12px}
 .campo label,.lbl-q{display:block;font-weight:700;font-size:15px;margin-bottom:7px}
 .campo input{width:100%;font:500 17px 'Barlow',sans-serif;color:var(--ink);background:var(--surface-2);border:1.5px solid var(--line-strong);border-radius:12px;padding:13px 14px;min-height:52px}
+.campo select{width:100%;font:500 17px 'Barlow',sans-serif;color:var(--ink);background:var(--surface-2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23B8BEC9' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 16px center;border:1.5px solid var(--line-strong);border-radius:12px;padding:13px 44px 13px 14px;min-height:52px;appearance:none;-webkit-appearance:none;color-scheme:dark;cursor:pointer}
+.campo select.vacio{color:var(--ink-faint)}
+.campo select option{color:var(--ink)}
+.of:disabled{opacity:.45;cursor:not-allowed}
 .sino{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
 .sino button{min-height:50px;border-radius:12px;border:1.5px solid var(--line-strong);background:var(--surface-2);font-weight:700;font-size:17px;cursor:pointer}
 .sino button[aria-checked="true"]{border-color:var(--ink);background:rgba(255,255,255,.08)}
@@ -322,7 +326,7 @@ fbq('track','PageView');
     <span><i style="background:var(--poco)"></i>Queda 1</span>
     <span><i style="background:var(--lleno)"></i>Completo</span>
   </div>
-  <p class="otra"><button type="button" class="link" id="otraCiudad">¿Tu ciudad no aparece?</button></p>
+  <p class="otra"><button type="button" class="link" id="otraCiudad">Ver todas las ciudades</button></p>
   <p class="ventajas"><b>La publicidad la pagamos nosotros.</b> Solicita tu plaza y te llamamos para conocernos.</p>
 </main>
 
@@ -336,11 +340,11 @@ fbq('track','PageView');
     <h2 id="h-titulo">Madrid</h2>
     <p class="h-sub" id="h-sub">Plazas disponibles ahora para darte de alta</p>
     <div class="campo" id="campoCiudad" hidden style="margin-top:14px">
-      <label for="ciudadLibre">Tu ciudad</label>
-      <input id="ciudadLibre" autocomplete="address-level2" placeholder="Escribe tu ciudad">
+      <label for="ciudadSel">Tu ciudad</label>
+      <select id="ciudadSel" class="vacio"><option value="">Elige tu ciudad</option></select>
     </div>
 
-    <div class="oficios" role="radiogroup" aria-label="Elige tu oficio">
+    <div class="oficios" id="oficios" role="radiogroup" aria-label="Elige tu oficio">
       <button type="button" class="of" data-v="fontanero" role="radio" aria-checked="false">
         <span class="of-nom"><i></i>Fontanería</span><span class="of-slots"></span><span class="of-txt"></span>
       </button>
@@ -419,6 +423,15 @@ var params = new URLSearchParams(location.search), ORIGEN = {};
 });
 
 /* ---------- Datos ---------- */
+/* Solo se puede elegir una ciudad con precio (tabla precios_ciudad, 19/11/2026).
+   Si no se pueden leer los precios, se usan las ciudades activas; la base de datos
+   rechaza igualmente cualquier ciudad sin precio. */
+var PRECIOS = null;
+function conPrecio(c, oficio){
+  if(!PRECIOS) return true;
+  var p = PRECIOS[c.slug]; if(!p) return false;
+  return oficio ? !!p[oficio] : (p.fontanero || p.pintor);
+}
 var porSlug = {};
 function libres(c, oficio){
   var t = c.total_por_oficio || 2;
@@ -433,11 +446,15 @@ function estadoCiudad(c){
 }
 function indexar(lista){
   porSlug = {};
-  lista.forEach(function(c){ porSlug[c.slug] = c; });
+  lista.forEach(function(c){ if(conPrecio(c)) porSlug[c.slug] = c; });
+  var orden = lista.filter(function(c){ return porSlug[c.slug]; }).sort(function(a,b){ return a.ciudad.localeCompare(b.ciudad,'es'); });
   var dl = $('lista'); dl.innerHTML = '';
-  lista.slice().sort(function(a,b){ return a.ciudad.localeCompare(b.ciudad,'es'); }).forEach(function(c){
+  var cs = $('ciudadSel'); cs.innerHTML = '<option value="">Elige tu ciudad</option>';
+  orden.forEach(function(c){
     var o = document.createElement('option'); o.value = c.ciudad; dl.appendChild(o);
+    var o2 = document.createElement('option'); o2.value = c.slug; o2.textContent = c.ciudad; cs.appendChild(o2);
   });
+  cs.classList.add('vacio');
 }
 
 /* ---------- Mapa ---------- */
@@ -447,7 +464,7 @@ function el(tag, attrs){ var e = document.createElementNS(NS, tag); for(var k in
 function pintarPuntos(){
   var g = $('puntos'); g.innerHTML = '';
   CIUDADES.forEach(function(c){
-    var p = POS[c.slug]; if(!p || c.en_mapa===false) return;
+    var p = POS[c.slug]; if(!p || c.en_mapa===false || !porSlug[c.slug]) return;
     var est = estadoCiudad(c);
     var grupo = el('g', { 'class':'c s-'+est, 'data-slug':c.slug, 'tabindex':'0', 'role':'button',
       'aria-label': c.ciudad + ': ' + libres(c,'fontanero') + ' plazas de fontanería y ' + libres(c,'pintor') + ' de pintura libres' });
@@ -517,16 +534,19 @@ function pintarOficio(btn, c, oficio){
   var slots = btn.querySelector('.of-slots'); slots.innerHTML = '';
   for(var i=0;i<t;i++){ var s=document.createElement('span'); if(i>=l) s.className='x'; slots.appendChild(s); }
   btn.classList.toggle('lleno', l===0);
-  btn.querySelector('.of-txt').textContent = l===0 ? 'Completo · lista de espera' : (l + ' de ' + t + (l===1 ? ' plaza libre' : ' plazas libres'));
+  btn.disabled = !!c && !conPrecio(c, oficio);
+  btn.querySelector('.of-txt').textContent = btn.disabled ? 'Aún no disponible aquí' : (l===0 ? 'Completo · lista de espera' : (l + ' de ' + t + (l===1 ? ' plaza libre' : ' plazas libres')));
 }
 
 function abrir(slug, textoLibre, foco){
   var c = slug ? porSlug[slug] : null;
   sel = { slug:slug, ciudad: c ? c.ciudad : (textoLibre||''), oficio:null, autonomo:null, plaza:null, enviado:false, origenFoco: foco || document.activeElement };
   $('h-titulo').textContent = c ? c.ciudad : 'Tu ciudad';
-  $('h-sub').textContent = c ? 'Plazas disponibles ahora para darte de alta' : 'Dinos dónde trabajas y lo revisamos en la llamada';
+  $('h-sub').textContent = c ? 'Plazas disponibles ahora para darte de alta'
+    : (textoLibre ? 'Aún no estamos en ' + textoLibre + '. Elige la ciudad más cercana:' : 'Elige tu ciudad de la lista. Si no está, elige la más cercana.');
   $('campoCiudad').hidden = !!c;
-  $('ciudadLibre').value = c ? '' : (textoLibre||'');
+  $('oficios').hidden = !c;
+  $('ciudadSel').value = ''; $('ciudadSel').classList.add('vacio');
   Array.prototype.forEach.call(document.querySelectorAll('.of'), function(b){
     b.setAttribute('aria-checked','false'); pintarOficio(b, c, b.getAttribute('data-v'));
   });
@@ -545,7 +565,7 @@ function abrir(slug, textoLibre, foco){
   document.body.classList.add('bloq');
   $('velo').hidden = false; $('hoja').hidden = false;
   requestAnimationFrame(function(){ $('velo').classList.add('on'); $('hoja').classList.add('on'); });
-  setTimeout(function(){ (c ? document.querySelector('.of') : $('ciudadLibre')).focus({preventScroll:true}); }, 340);
+  setTimeout(function(){ (c ? document.querySelector('.of:not(:disabled)') || $('cerrar') : $('ciudadSel')).focus({preventScroll:true}); }, 340);
 
   ga('pro_ver_ciudad', { ciudad: sel.ciudad || 'otra' });
   meta('trackCustom', 'VerCiudad', { ciudad: sel.ciudad || 'otra' });
@@ -628,8 +648,8 @@ $('email').addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preve
 function enviar(){
   if(sel.enviado || sel.autonomo !== true) return;
   var nombre = $('nombre').value.trim(), tel = telefonoValido($('telefono').value);
-  var ciudad = sel.slug ? sel.ciudad : $('ciudadLibre').value.trim();
-  if(!sel.slug && ciudad.length < 2){ $('err').textContent = 'Escribe tu ciudad.'; $('ciudadLibre').focus(); return; }
+  var ciudad = sel.ciudad;
+  if(!sel.slug || !porSlug[sel.slug]){ $('err').textContent = 'Elige tu ciudad de la lista.'; $('ciudadSel').focus(); return; }
   if(nombre.length < 2){ $('err').textContent = 'Escribe tu nombre.'; $('nombre').focus(); return; }
   if(!tel){ $('err').textContent = 'Revisa el teléfono: tiene que tener 9 cifras.'; $('telefono').focus(); return; }
   var email = emailNormal($('email').value);
@@ -690,12 +710,25 @@ function buscar(){
   if(slug && porSlug[slug]) abrir(slug, null, $('buscar'));
   else abrir(null, $('buscar').value.trim(), $('buscar'));
 }
+$('ciudadSel').addEventListener('change', function(){
+  var s = $('ciudadSel').value;
+  if(s && porSlug[s]) abrir(s, null, sel.origenFoco);
+});
 $('buscar').addEventListener('change', buscar);
 $('buscar').addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); buscar(); } });
 $('otraCiudad').addEventListener('click', function(){ abrir(null, '', $('otraCiudad')); });
 
 /* Arranque: datos de respaldo al instante y, después, los del CRM en directo */
 indexar(CIUDADES); pintarPuntos();
+fetch(SB_URL + '/rest/v1/precios_ciudad?select=slug,fontanero,pintor', { headers: HEADERS })
+  .then(function(r){ if(!r.ok) throw 0; return r.json(); })
+  .then(function(l){
+    if(!Array.isArray(l) || !l.length) return;
+    PRECIOS = {};
+    l.forEach(function(p){ PRECIOS[p.slug] = { fontanero: Number(p.fontanero) > 0, pintor: Number(p.pintor) > 0 }; });
+    indexar(CIUDADES); pintarPuntos();
+  })
+  .catch(function(){});
 fetch(SB_URL + '/rest/v1/plazas_ciudad?select=slug,ciudad,provincia_ine,en_mapa,total_por_oficio,fontanero_ocupadas,pintor_ocupadas&activa=eq.true', { headers: HEADERS })
   .then(function(r){ if(!r.ok) throw 0; return r.json(); })
   .then(function(lista){ if(Array.isArray(lista) && lista.length){ CIUDADES = lista; indexar(CIUDADES); pintarPuntos(); } })

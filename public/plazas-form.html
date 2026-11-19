@@ -77,6 +77,11 @@ a{color:inherit}
 .oficio[aria-pressed="true"][data-v="pintor"]{border-color:var(--naranja);background:rgba(245,163,60,.14)}
 input{width:100%;font:500 17px 'Barlow',sans-serif;color:var(--ink);background:var(--surface-2);border:1.5px solid var(--line-strong);border-radius:12px;padding:14px 14px;min-height:54px}
 input::placeholder{color:var(--ink-faint)}
+select{width:100%;font:500 17px 'Barlow',sans-serif;color:var(--ink);background:var(--surface-2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23B8BEC9' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 16px center;border:1.5px solid var(--line-strong);border-radius:12px;padding:14px 44px 14px 14px;min-height:54px;appearance:none;-webkit-appearance:none;color-scheme:dark;cursor:pointer}
+select.vacio{color:var(--ink-faint)}
+select option{color:var(--ink)}
+select:focus{outline:2px solid var(--naranja);outline-offset:2px}
+.nota-ciudad{display:block;color:var(--ink-faint);font-size:14px;margin-top:6px}
 input:focus,.oficio:focus-visible,.btn:focus-visible{outline:2px solid var(--naranja);outline-offset:2px}
 .field{margin-bottom:14px}
 .btn{appearance:none;border:0;width:100%;min-height:58px;border-radius:12px;background:var(--cta);color:var(--cta-ink);font:700 19px 'Barlow',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;text-align:center}
@@ -243,8 +248,8 @@ fbq('track','PageView');
 
         <div class="field">
           <label class="lbl" for="ciudad">Tu ciudad</label>
-          <input id="ciudad" list="lista-ciudades" autocomplete="address-level2" placeholder="Escribe tu ciudad" enterkeyhint="go">
-          <datalist id="lista-ciudades"></datalist>
+          <select id="ciudad" class="vacio"><option value="">Elige tu ciudad</option></select>
+          <small class="nota-ciudad">Si tu ciudad no está, elige la más cercana.</small>
         </div>
         <button type="button" class="btn" id="ver">Ver plazas libres</button>
         <p class="err" id="err1" role="alert"></p>
@@ -420,15 +425,6 @@ var WHATSAPP = '34610272887';
 
 /* Respaldo por si no responde Supabase: todas libres salvo Sevilla */
 var CIUDADES = [{"slug":"a-coruna","ciudad":"A Coruña","provincia_ine":"15","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"albacete","ciudad":"Albacete","provincia_ine":"02","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"alicante","ciudad":"Alicante","provincia_ine":"03","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"almeria","ciudad":"Almería","provincia_ine":"04","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"avila","ciudad":"Ávila","provincia_ine":"05","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"badajoz","ciudad":"Badajoz","provincia_ine":"06","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"palma","ciudad":"Palma","provincia_ine":"07","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"barcelona","ciudad":"Barcelona","provincia_ine":"08","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"burgos","ciudad":"Burgos","provincia_ine":"09","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"caceres","ciudad":"Cáceres","provincia_ine":"10","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"cadiz","ciudad":"Cádiz","provincia_ine":"11","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"castellon","ciudad":"Castellón de la Plana","provincia_ine":"12","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"ciudad-real","ciudad":"Ciudad Real","provincia_ine":"13","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"cordoba","ciudad":"Córdoba","provincia_ine":"14","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"cuenca","ciudad":"Cuenca","provincia_ine":"16","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"girona","ciudad":"Girona","provincia_ine":"17","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"granada","ciudad":"Granada","provincia_ine":"18","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"guadalajara","ciudad":"Guadalajara","provincia_ine":"19","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"donostia","ciudad":"Donostia-San Sebastián","provincia_ine":"20","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"huelva","ciudad":"Huelva","provincia_ine":"21","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"huesca","ciudad":"Huesca","provincia_ine":"22","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"jaen","ciudad":"Jaén","provincia_ine":"23","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"leon","ciudad":"León","provincia_ine":"24","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"lleida","ciudad":"Lleida","provincia_ine":"25","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"logrono","ciudad":"Logroño","provincia_ine":"26","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"lugo","ciudad":"Lugo","provincia_ine":"27","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"madrid","ciudad":"Madrid","provincia_ine":"28","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"malaga","ciudad":"Málaga","provincia_ine":"29","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"murcia","ciudad":"Murcia","provincia_ine":"30","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"pamplona","ciudad":"Pamplona","provincia_ine":"31","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"ourense","ciudad":"Ourense","provincia_ine":"32","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"oviedo","ciudad":"Oviedo","provincia_ine":"33","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"palencia","ciudad":"Palencia","provincia_ine":"34","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"las-palmas","ciudad":"Las Palmas de Gran Canaria","provincia_ine":"35","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"pontevedra","ciudad":"Pontevedra","provincia_ine":"36","en_mapa":false,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"salamanca","ciudad":"Salamanca","provincia_ine":"37","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"santa-cruz","ciudad":"Santa Cruz de Tenerife","provincia_ine":"38","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"santander","ciudad":"Santander","provincia_ine":"39","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"segovia","ciudad":"Segovia","provincia_ine":"40","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"sevilla","ciudad":"Sevilla","provincia_ine":"41","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":2,"pintor_ocupadas":2},{"slug":"soria","ciudad":"Soria","provincia_ine":"42","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"tarragona","ciudad":"Tarragona","provincia_ine":"43","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"teruel","ciudad":"Teruel","provincia_ine":"44","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"toledo","ciudad":"Toledo","provincia_ine":"45","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"valencia","ciudad":"Valencia","provincia_ine":"46","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"valladolid","ciudad":"Valladolid","provincia_ine":"47","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"bilbao","ciudad":"Bilbao","provincia_ine":"48","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"zamora","ciudad":"Zamora","provincia_ine":"49","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"zaragoza","ciudad":"Zaragoza","provincia_ine":"50","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"vitoria","ciudad":"Vitoria-Gasteiz","provincia_ine":"01","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"vigo","ciudad":"Vigo","provincia_ine":"36","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"gijon","ciudad":"Gijón","provincia_ine":"33","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"cartagena","ciudad":"Cartagena","provincia_ine":"30","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"jerez","ciudad":"Jerez de la Frontera","provincia_ine":"11","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"elche","ciudad":"Elche","provincia_ine":"03","en_mapa":false,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"marbella","ciudad":"Marbella","provincia_ine":"29","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"ceuta","ciudad":"Ceuta","provincia_ine":"51","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0},{"slug":"melilla","ciudad":"Melilla","provincia_ine":"52","en_mapa":true,"total_por_oficio":2,"fontanero_ocupadas":0,"pintor_ocupadas":0}];
-var ALIAS = {
-  'getafe':'madrid','mostoles':'madrid','alcala de henares':'madrid','fuenlabrada':'madrid','leganes':'madrid','alcorcon':'madrid',
-  'torrejon de ardoz':'madrid','parla':'madrid','alcobendas':'madrid','las rozas':'madrid','pozuelo de alarcon':'madrid',
-  'badalona':'barcelona','hospitalet':'barcelona',"l'hospitalet de llobregat":'barcelona','sabadell':'barcelona','terrassa':'barcelona',
-  'dos hermanas':'sevilla','alcala de guadaira':'sevilla','mairena del aljarafe':'sevilla','tomares':'sevilla','bormujos':'sevilla','camas':'sevilla',
-  'san juan de aznalfarache':'sevilla','la rinconada':'sevilla',
-  'san sebastian':'donostia','donostia':'donostia','vitoria':'vitoria','palma de mallorca':'palma','la coruna':'a-coruna','coruna':'a-coruna',
-  'castellon':'castellon','las palmas':'las-palmas','tenerife':'santa-cruz','santa cruz':'santa-cruz','la laguna':'santa-cruz','jerez':'jerez'
-};
 
 function norm(s){
   return (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[’`]/g,"'").toLowerCase().replace(/\s+/g,' ').trim();
@@ -438,20 +434,45 @@ function ga(ev, data){ try{ if(typeof gtag==='function') gtag('event', ev, Objec
 function meta(tipo, ev, data){ try{ if(typeof fbq==='function') fbq(tipo, ev, data||{}); }catch(e){} }
 function nombreOficio(o){ return o==='fontanero' ? 'fontanería' : 'pintura'; }
 
-var porSlug = {}, porNombre = {};
+/* Solo se puede elegir una ciudad con precio (tabla precios_ciudad, 19/11/2026).
+   Si no se pueden leer los precios, se usan las ciudades activas; la base de datos
+   rechaza igualmente cualquier ciudad sin precio. */
+var PRECIOS = null;
+function conPrecio(c, oficio){
+  if(!PRECIOS) return true;
+  var p = PRECIOS[c.slug]; if(!p) return false;
+  return oficio ? !!p[oficio] : (p.fontanero || p.pintor);
+}
+var porSlug = {};
 function indexar(lista){
-  porSlug = {}; porNombre = {};
-  lista.forEach(function(c){ porSlug[c.slug] = c; porNombre[norm(c.ciudad)] = c.slug; });
-  var dl = $('lista-ciudades'); dl.innerHTML = '';
-  lista.slice().sort(function(a,b){ return a.ciudad.localeCompare(b.ciudad,'es'); }).forEach(function(c){
-    var o = document.createElement('option'); o.value = c.ciudad; dl.appendChild(o);
-  });
+  porSlug = {};
+  lista.forEach(function(c){ porSlug[c.slug] = c; });
+  rellenarCiudades();
+}
+function rellenarCiudades(){
+  var s = $('ciudad'), actual = s.value;
+  s.innerHTML = '<option value="">Elige tu ciudad</option>';
+  CIUDADES.filter(function(c){ return conPrecio(c, estado.oficio); })
+    .sort(function(a,b){ return a.ciudad.localeCompare(b.ciudad,'es'); })
+    .forEach(function(c){ var o = document.createElement('option'); o.value = c.slug; o.textContent = c.ciudad; s.appendChild(o); });
+  s.value = porSlug[actual] && conPrecio(porSlug[actual], estado.oficio) ? actual : '';
+  s.classList.toggle('vacio', !s.value);
 }
 function libres(c, oficio){
   var t = c.total_por_oficio || 2;
   return Math.max(0, t - ((oficio==='fontanero' ? c.fontanero_ocupadas : c.pintor_ocupadas) || 0));
 }
+var estado = { oficio:null, ciudad:null, slug:null, plaza:null, autonomo:null, enviado:false };
 indexar(CIUDADES);
+fetch(SB_URL + '/rest/v1/precios_ciudad?select=slug,fontanero,pintor', { headers: HEADERS })
+  .then(function(r){ if(!r.ok) throw 0; return r.json(); })
+  .then(function(l){
+    if(!Array.isArray(l) || !l.length) return;
+    PRECIOS = {};
+    l.forEach(function(p){ PRECIOS[p.slug] = { fontanero: Number(p.fontanero) > 0, pintor: Number(p.pintor) > 0 }; });
+    rellenarCiudades();
+  })
+  .catch(function(){});
 fetch(SB_URL + '/rest/v1/plazas_ciudad?select=slug,ciudad,provincia_ine,en_mapa,total_por_oficio,fontanero_ocupadas,pintor_ocupadas&activa=eq.true', { headers: HEADERS })
   .then(function(r){ if(!r.ok) throw 0; return r.json(); })
   .then(function(l){ if(Array.isArray(l) && l.length){ CIUDADES = l; indexar(l); } })
@@ -466,7 +487,6 @@ var ORIGEN = {};
   ORIGEN[k] = v || null;
 });
 
-var estado = { oficio:null, ciudad:null, slug:null, plaza:null, autonomo:null, enviado:false };
 
 /* Paso 1: oficio y ciudad */
 Array.prototype.forEach.call(document.querySelectorAll('.oficio'), function(b){
@@ -475,12 +495,16 @@ Array.prototype.forEach.call(document.querySelectorAll('.oficio'), function(b){
     Array.prototype.forEach.call(document.querySelectorAll('.oficio'), function(x){
       x.setAttribute('aria-pressed', x===b ? 'true' : 'false');
     });
+    rellenarCiudades();
     reiniciar();
-    if($('ciudad').value.trim()) verPlazas();
+    if($('ciudad').value) verPlazas();
   });
 });
-$('ciudad').addEventListener('input', reiniciar);
-$('ciudad').addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); verPlazas(); } });
+$('ciudad').addEventListener('change', function(){
+  $('ciudad').classList.toggle('vacio', !$('ciudad').value);
+  reiniciar();
+  if($('ciudad').value && estado.oficio) verPlazas();
+});
 $('ver').addEventListener('click', verPlazas);
 
 function reiniciar(){
@@ -489,21 +513,18 @@ function reiniciar(){
 }
 
 function verPlazas(){
-  var txt = $('ciudad').value.trim();
-  if(!estado.oficio){ $('err1').textContent = 'Elige tu oficio: fontanero o pintor.'; return; }
-  if(txt.length < 2){ $('err1').textContent = 'Escribe tu ciudad.'; $('ciudad').focus(); return; }
-  $('err1').textContent = '';
-
-  var n = norm(txt);
-  var slug = ALIAS[n] || porNombre[n] || null;
+  var slug = $('ciudad').value;
   var c = slug ? porSlug[slug] : null;
-  estado.slug = c ? slug : null;
-  estado.ciudad = c ? c.ciudad : txt;
+  if(!estado.oficio){ $('err1').textContent = 'Elige tu oficio: fontanero o pintor.'; return; }
+  if(!c || !conPrecio(c, estado.oficio)){ $('err1').textContent = 'Elige tu ciudad de la lista.'; $('ciudad').focus(); return; }
+  $('err1').textContent = '';
+  estado.slug = slug;
+  estado.ciudad = c.ciudad;
 
   var slots = $('slots'); slots.innerHTML = '';
   var titulo, texto, boton, tranqui;
 
-  if(c){
+  {
     var total = c.total_por_oficio || 2, l = libres(c, estado.oficio), ocup = total - l;
     for(var i=0;i<total;i++){
       var s=document.createElement('span'); s.className='slot ' + (i<ocup ? 'ocupada' : 'libre'); slots.appendChild(s);
@@ -521,12 +542,6 @@ function verPlazas(){
       boton = 'Avisadme si se libera';
       tranqui = 'Sin compromiso. Solo te llamamos si queda una plaza libre.';
     }
-  } else {
-    estado.plaza = null;
-    titulo = 'Aún no tenemos campaña en ' + txt + '.';
-    texto = 'Déjanos tus datos y te llamamos para ver cuánta demanda hay en tu zona.';
-    boton = 'Solicitar mi plaza';
-    tranqui = 'Sin compromiso. Te llamamos pronto y lo vemos juntos.';
   }
 
   $('res-titulo').textContent = titulo;
@@ -593,6 +608,7 @@ function mensajeWA(){
 
 function enviar(){
   if(estado.enviado || estado.autonomo !== true) return;
+  if(!estado.slug || !porSlug[estado.slug]){ $('err2').textContent = 'Elige tu ciudad de la lista.'; $('ciudad').focus(); return; }
   var nombre = $('nombre').value.trim();
   var tel = telefonoValido($('telefono').value);
   if(nombre.length < 2){ $('err2').textContent = 'Escribe tu nombre.'; $('nombre').focus(); return; }
