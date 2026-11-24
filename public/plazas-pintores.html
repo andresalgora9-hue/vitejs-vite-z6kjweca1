@@ -804,12 +804,12 @@ if('IntersectionObserver' in window){
     if(!n) return;
     var el=n;
     while(el.parentElement && el.parentElement.textContent.indexOf(tope)<0 && el.parentElement!==document.body){ el=el.parentElement; }
-    el.style.display='none';
+    var t=el.textContent; if(t.indexOf('Quién está detrás')>=0 || t.indexOf('Mira si queda plaza')>=0 || (texto.indexOf('Cándido')<0 && t.indexOf('Escucha a Cándido')>=0)) return; el.style.display='none';
   }
   function iniciar(){
     var b=document.querySelector('.oficio[data-v="'+OF+'"]');
     if(b && b.getAttribute('aria-pressed')!=='true') b.click();
-    ocultarBloque('CMA Carmaral','+40 solicitudes de pintura');
+    ocultarBloque('CMA Carmaral','solicitudes de');
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){setTimeout(iniciar,0);}); else setTimeout(iniciar,0);
 })();
