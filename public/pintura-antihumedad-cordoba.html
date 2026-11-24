@@ -678,7 +678,7 @@ section[id],div[id]{scroll-margin-top:90px}
       <a class="ilink" href="/pintores-cordoba.html">Pintores en Córdoba</a>
       <a class="ilink" href="/empresa-pintores-cordoba.html">Empresa de pintores</a>
       <a class="ilink" href="/precio-pintar-piso-cordoba.html">Cuánto cuesta pintar un piso</a>
-      <a class="ilink" href="/pintar-habitacion-cordoba.html">Pintar una habitación</a>
+      <a class="ilink" href="/pintar-habitacion-cordoba.html">Pintar habitaciones</a>
       <a class="ilink" href="/quitar-gotele-cordoba.html">Quitar gotelé</a>
       <a class="ilink" href="/alisar-paredes-cordoba.html">Alisar paredes</a>
     </div>
@@ -739,7 +739,7 @@ section[id],div[id]{scroll-margin-top:90px}
   var DESC_TIPO= {"moho": "Tratar moho/humedad y pintar con pintura antihumedad", "fachada": "Pintar fachada o exterior"};
   var HINTS    = {"moho": "Limpieza antimoho y pintura antihumedad", "fachada": "Varía según altura y estado de la pared"};
   var TIPO_INICIAL = 'moho';
-  var seleccion = { tipo:TIPO_INICIAL, tamano:'p2', tamanoLabel:TAMANOS[TIPO_INICIAL].opts[1][1] };
+  var seleccion = { tipo:TIPO_INICIAL, tamano:'p2', tamanoLabel:(TAMANOS[TIPO_INICIAL].opts.filter(function(o){return o[0]==='p2';})[0]||TAMANOS[TIPO_INICIAL].opts[0])[1] };
 
   function fmt(n){ return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
 
@@ -764,7 +764,7 @@ section[id],div[id]{scroll-margin-top:90px}
   function elegirTipo(valor, btn){
     document.querySelectorAll('#tipoOpts .opt').forEach(function(o){ o.classList.remove('sel'); });
     btn.classList.add('sel');
-    seleccion.tipo = valor; seleccion.tamano = 'p2'; seleccion.tamanoLabel = TAMANOS[valor].opts[1][1];
+    seleccion.tipo = valor; seleccion.tamano = 'p2'; seleccion.tamanoLabel = (TAMANOS[valor].opts.filter(function(o){return o[0]==='p2';})[0]||TAMANOS[valor].opts[0])[1];
     pintarTamanos(); actualizarPrecio();
     if (typeof gtag === 'function'){ gtag('event','view_item',{'event_category':'calc_pintor','event_label':'tipo_'+valor}); }
   }
