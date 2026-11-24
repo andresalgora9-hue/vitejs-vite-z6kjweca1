@@ -800,7 +800,7 @@ if('IntersectionObserver' in window){
   var OF='pintor';
   function ocultarBloque(texto, tope){
     var nodos=[].slice.call(document.querySelectorAll('h2,h3,p,div,section,figure,article'));
-    var n=nodos.filter(function(e){return e.childElementCount<=3 && e.textContent.indexOf(texto)>=0;})[0];
+    var n=nodos.filter(function(e){return e.textContent.indexOf(texto)>=0;}).sort(function(a,b){return a.textContent.length-b.textContent.length;})[0];
     if(!n) return;
     var el=n;
     while(el.parentElement && el.parentElement.textContent.indexOf(tope)<0 && el.parentElement!==document.body){ el=el.parentElement; }
@@ -809,7 +809,7 @@ if('IntersectionObserver' in window){
   function iniciar(){
     var b=document.querySelector('.oficio[data-v="'+OF+'"]');
     if(b && b.getAttribute('aria-pressed')!=='true') b.click();
-    ocultarBloque('CMA Carmaral','Ya funciona en Sevilla');
+    ocultarBloque('CMA Carmaral','+40 solicitudes de pintura');
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){setTimeout(iniciar,0);}); else setTimeout(iniciar,0);
 })();
