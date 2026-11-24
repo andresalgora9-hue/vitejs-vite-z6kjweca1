@@ -153,6 +153,21 @@ footer a{color:var(--ink-soft)}
   .mapa3d,.hoja,.velo,.provs path{transition:none}
   .c .halo{animation:none!important}
 }
+
+/* Pantalla de registro hecho: pasos con Lucía y Andrés + garantía (24/11/2026) */
+.proceso{margin:4px auto 16px;max-width:420px;text-align:left}
+.proceso[hidden]{display:none}
+.proceso h3{font-size:19px;margin:0 0 12px;text-align:center}
+.proceso ol{list-style:none;display:grid;gap:12px;padding:0;margin:0}
+.proceso li{display:grid;grid-template-columns:38px 1fr;gap:12px;align-items:start;padding:13px 14px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line)}
+.proceso li .n{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:rgba(245,163,60,.16);color:var(--naranja);font-family:'Fredoka',sans-serif;font-weight:700;font-size:19px}
+.proceso li b{display:block;font-size:16.5px;color:var(--ink)}
+.proceso li span{display:block;color:var(--ink-soft);font-size:15px;line-height:1.45;margin-top:2px}
+.proceso li em{display:inline-block;margin-top:6px;font-style:normal;font-size:13px;font-weight:700;color:var(--naranja)}
+.garantia{margin-top:12px;display:flex;gap:12px;align-items:flex-start;padding:14px;border-radius:12px;background:rgba(93,203,142,.10);border:1px solid rgba(93,203,142,.45)}
+.garantia svg{flex:none;margin-top:1px}
+.garantia b{display:block;color:var(--ok);font-size:16px}
+.garantia span{display:block;color:var(--ink-soft);font-size:14.5px;line-height:1.45;margin-top:2px}
 </style>
 
 <!-- Google Analytics 4 (sin etiqueta de Google Ads: estos leads son profesionales, no clientes) -->
@@ -378,14 +393,42 @@ fbq('track','PageView');
       <div class="ll-et"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>Te llamaremos desde</div>
       <span class="ll-num">919 93 57 95</span>
       <div class="ll-quien">Somos <b>OficioYa</b>. Cuando veas este número, cógelo: somos nosotros.</div>
-      <div class="ll-24" id="ll-24">Te llamamos en menos de 24 h</div><br>
+      <div class="ll-24" id="ll-24">Te llamamos en menos de 10 minutos</div><br>
       <a class="ll-guardar" id="ll-guardar" href="#" download="OficioYa.vcf">Guardar en mis contactos</a>
+    </div>
+    <div class="proceso" id="proceso">
+      <h3>Así seguimos ahora</h3>
+      <ol>
+        <li><span class="n">1</span><div><b>Te llama Lucía, nuestra asistente</b><span>Te lo explica todo, te hace unas preguntas sobre tu trabajo y tu zona y te ayuda a empezar con nosotros para que puedas captar clientes.</span><em>Unos 10 minutos</em></div></li>
+        <li><span class="n">2</span><div><b>Te llama Andrés, el CEO</b><span>Justo después, para conocerte y darte acceso a la plataforma al momento.</span></div></li>
+        <li><span class="n">3</span><div><b>Empiezas a recibir clientes</b><span>Lanzamos los anuncios en tu ciudad y te llegan las solicitudes a tu app.</span></div></li>
+      </ol>
+      <div class="garantia">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5DCB8E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+        <div><b>Garantía de 30 días</b><span>Si en 30 días no te empiezan a llegar clientes, te devolvemos el pago inicial.</span></div>
+      </div>
     </div>
     <button type="button" class="btn sec" id="okCerrar">Cerrar</button>
   </div>
 </div>
 
 <script>
+/* Cuándo llama Lucía (L-V 9-14 y 17-21, sábado 9-14, domingo no) — hora de España */
+function cuandoLlamamos(){
+  try{
+    var p = new Intl.DateTimeFormat('es-ES',{timeZone:'Europe/Madrid',weekday:'short',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(new Date());
+    var g = function(t){ var x = p.filter(function(q){return q.type===t;})[0]; return x ? x.value : ''; };
+    var dias = {'lun':1,'mar':2,'mié':3,'jue':4,'vie':5,'sáb':6,'dom':0};
+    var d = dias[g('weekday').replace('.','').toLowerCase()], m = (+g('hour'))*60 + (+g('minute'));
+    var maniana = m >= 540 && m < 830, tarde = m >= 1020 && m < 1250;
+    if(d>=1 && d<=5 && (maniana || tarde)) return 'Te llamamos en menos de 10 minutos';
+    if(d===6 && maniana) return 'Te llamamos en menos de 10 minutos';
+    if(d>=1 && d<=5 && m >= 830 && m < 1020) return 'Te llamamos hoy a partir de las 17:00';
+    if(m < 540 && d>=1 && d<=6) return 'Te llamamos hoy a partir de las 9:00';
+    if(d===6 || d===0 || (d===5 && m>=1250)) return 'Te llamamos el lunes a partir de las 9:00';
+    return 'Te llamamos mañana a partir de las 9:00';
+  }catch(e){ return 'Te llamamos en menos de 10 minutos'; }
+}
 /* ============================================================
    Las plazas se leen en directo de la tabla plazas_ciudad de Supabase.
    Cuando Sandra marca un profesional como firmado en el CRM, sube
@@ -682,7 +725,8 @@ function guardar(nombre, tel, email, ciudad, btn, txt){
     if(!r.ok) throw new Error('HTTP ' + r.status);
     sel.enviado = true;
     var espera = sel.plaza === false, primero = nombre.split(' ')[0];
-    $('ll-24').textContent = espera ? 'Te llamamos en cuanto haya plaza' : 'Te llamamos en menos de 24 h';
+    $('ll-24').textContent = espera ? 'Te llamamos en cuanto haya plaza' : cuandoLlamamos();
+  $('proceso').hidden = espera;
     if(espera){
       meta('trackCustom','ListaEspera',{ oficio: sel.oficio, ciudad: ciudad, variante: VARIANTE });
       ga('pro_lista_espera',{ oficio: sel.oficio, ciudad: ciudad });
@@ -692,13 +736,13 @@ function guardar(nombre, tel, email, ciudad, btn, txt){
       meta('track','Lead',{ content_name:'registro_plaza', content_category: sel.oficio, variante: VARIANTE });
       ga('pro_lead',{ oficio: sel.oficio, ciudad: ciudad, plaza: String(sel.plaza) });
       $('ok-titulo').textContent = 'Plaza solicitada';
-      $('ok-texto').textContent = 'Gracias, ' + primero + '. Pronto nos pondremos en contacto contigo para conocernos y empezar a traerte clientes de ' + oficioTxt(sel.oficio) + ' en ' + ciudad + '.';
+      $('ok-texto').textContent = 'Gracias, ' + primero + '. Tu plaza de ' + oficioTxt(sel.oficio) + ' en ' + ciudad + ' está solicitada. Coge el teléfono: te vamos a llamar.';
     }
     $('paso-form').hidden = true; $('paso-ok').hidden = false; $('okCerrar').focus({preventScroll:true});
   }).catch(function(){
     btn.disabled = false; btn.textContent = txt;
     var msg = 'Hola, soy ' + nombre + ', ' + sel.oficio + ' autónomo en ' + ciudad + '. Quiero darme de alta en OficioYa.';
-    $('err').innerHTML = 'No hemos podido guardar tu solicitud. <a href="https://wa.me/34610272887?text=' + encodeURIComponent(msg) + '" target="_blank" rel="noopener">Envíanoslo por WhatsApp</a>.';
+    $('err').innerHTML = 'No hemos podido guardar tu solicitud. Vuelve a intentarlo o llámanos al <a href="tel:+34919935795">919 93 57 95</a>.';
   });
 }
 
