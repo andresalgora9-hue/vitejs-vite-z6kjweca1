@@ -544,7 +544,6 @@ section[id],div[id]{scroll-margin-top:90px}
       <div class="compare-row"><div class="compare-cell">Paredes o techos con moho</div><div class="compare-cell">1 estancia</div><div class="compare-cell">150 &ndash; 330 &euro;</div></div>
       <div class="compare-row"><div class="compare-cell">Paredes o techos con moho</div><div class="compare-cell">2-3 estancias</div><div class="compare-cell">300 &ndash; 840 &euro;</div></div>
       <div class="compare-row"><div class="compare-cell">Paredes o techos con moho</div><div class="compare-cell">Piso entero</div><div class="compare-cell">900 &ndash; 1.900 &euro;</div></div>
-      <div class="compare-row"><div class="compare-cell">Habitaciones sueltas</div><div class="compare-cell">1 habitación</div><div class="compare-cell">100 &ndash; 165 &euro;</div></div>
       <div class="compare-row"><div class="compare-cell">Habitaciones sueltas</div><div class="compare-cell">2-3 habitaciones</div><div class="compare-cell">200 &ndash; 420 &euro;</div></div>
       <div class="compare-row"><div class="compare-cell">Habitaciones sueltas</div><div class="compare-cell">4 o más</div><div class="compare-cell">420 &ndash; 760 &euro;</div></div>
     </div>
@@ -575,9 +574,9 @@ section[id],div[id]{scroll-margin-top:90px}
         <button type="button" class="tw-cta" onclick="irAPresupuesto('moho')">Calcular precio de tratar el moho &rarr;</button>
       </div>
       <div class="tw" id="habitacion">
-        <h3>🛏️ Una sola habitación</h3>
-        <p>También trabajos pequeños: un dormitorio, el salón, el pasillo o solo los techos. Mismo presupuesto gratis y el mismo pintor.</p>
-        <ul><li>Dormitorio</li><li>Salón</li><li>Pasillo y entrada</li><li>Solo techos</li></ul>
+        <h3>🛏️ Varias habitaciones</h3>
+        <p>Desde 2 habitaciones: dormitorios, salón y pasillo, sin pintar el piso entero. Mismo presupuesto gratis y el mismo pintor.</p>
+        <ul><li>Dormitorios</li><li>Salón</li><li>Pasillo y entrada</li><li>Paredes y techos</li></ul>
         <button type="button" class="tw-cta" onclick="irAPresupuesto('habitaciones')">Calcular precio por habitaciones &rarr;</button>
       </div>
     </div>
@@ -649,7 +648,7 @@ section[id],div[id]{scroll-margin-top:90px}
       <a class="ilink" href="/pintor-cerca-de-mi-valencia.html">Pintor cerca de ti</a>
       <a class="ilink" href="/pintar-piso-valencia.html">Pintar piso</a>
       <a class="ilink" href="/precio-pintar-piso-valencia.html">Cuánto cuesta pintar un piso</a>
-      <a class="ilink" href="/pintar-habitacion-valencia.html">Pintar una habitación</a>
+      <a class="ilink" href="/pintar-habitacion-valencia.html">Pintar habitaciones</a>
       <a class="ilink" href="/pintar-piso-alquilar-valencia.html">Pintar piso para alquilar</a>
       <a class="ilink" href="/quitar-gotele-valencia.html">Quitar gotelé</a>
       <a class="ilink" href="/alisar-paredes-valencia.html">Alisar paredes</a>
@@ -713,11 +712,11 @@ section[id],div[id]{scroll-margin-top:90px}
      CALCULADORA · PRECIOS ORIENTATIVOS
      ============================================================ */
   var RANGOS   = {"moho": {"p1": [150, 330], "p2": [300, 840], "p3": [900, 1900]}, "habitaciones": {"p1": [100, 165], "p2": [200, 420], "p3": [420, 760]}};
-  var TAMANOS  = {"moho": {"titulo": "¿Cuánto hay que tratar?", "opts": [["p1", "1 estancia"], ["p2", "2-3 estancias"], ["p3", "Piso entero"]]}, "habitaciones": {"titulo": "¿Cuántas habitaciones?", "opts": [["p1", "1 habitación"], ["p2", "2-3 habitaciones"], ["p3", "4 o más"]]}};
+  var TAMANOS  = {"moho": {"titulo": "¿Cuánto hay que tratar?", "opts": [["p1", "1 estancia"], ["p2", "2-3 estancias"], ["p3", "Piso entero"]]}, "habitaciones": {"titulo": "¿Cuántas habitaciones?", "opts": [["p2", "2-3 habitaciones"], ["p3", "4 o más"]]}};
   var DESC_TIPO= {"moho": "Tratar moho/humedad y pintar con pintura antihumedad", "habitaciones": "Pintar habitaciones sueltas"};
   var HINTS    = {"moho": "Limpieza antimoho y pintura antihumedad", "habitaciones": "Incluye paredes, techos y rodapiés"};
   var TIPO_INICIAL = 'moho';
-  var seleccion = { tipo:TIPO_INICIAL, tamano:'p2', tamanoLabel:TAMANOS[TIPO_INICIAL].opts[1][1] };
+  var seleccion = { tipo:TIPO_INICIAL, tamano:'p2', tamanoLabel:(TAMANOS[TIPO_INICIAL].opts.filter(function(o){return o[0]==='p2';})[0]||TAMANOS[TIPO_INICIAL].opts[0])[1] };
 
   function fmt(n){ return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
 
@@ -742,7 +741,7 @@ section[id],div[id]{scroll-margin-top:90px}
   function elegirTipo(valor, btn){
     document.querySelectorAll('#tipoOpts .opt').forEach(function(o){ o.classList.remove('sel'); });
     btn.classList.add('sel');
-    seleccion.tipo = valor; seleccion.tamano = 'p2'; seleccion.tamanoLabel = TAMANOS[valor].opts[1][1];
+    seleccion.tipo = valor; seleccion.tamano = 'p2'; seleccion.tamanoLabel = (TAMANOS[valor].opts.filter(function(o){return o[0]==='p2';})[0]||TAMANOS[valor].opts[0])[1];
     pintarTamanos(); actualizarPrecio();
     if (typeof gtag === 'function'){ gtag('event','view_item',{'event_category':'calc_pintor','event_label':'tipo_'+valor}); }
   }

@@ -35,7 +35,7 @@
 {"@context": "https://schema.org", "@type": "Service", "name": "Precio de pintar un piso en Valencia", "description": "Calcula cuánto cuesta pintar un piso en Valencia según los metros. Precio orientativo por m², con o sin gotelé, y te llama un pintor de tu zona. Gratis.", "provider": {"@type": "LocalBusiness", "name": "OficioYa", "url": "https://www.aficioya.com", "telephone": "+34656398014"}, "areaServed": {"@type": "City", "name": "Valencia"}, "serviceType": "Pintores"}
 </script>
 <script type="application/ld+json">
-{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "¿Cuánto cuesta pintar un piso de 80 m² en Valencia?", "acceptedAnswer": {"@type": "Answer", "text": "Con pintura plástica lisa suele estar entre 680 € y 1.200 €. Si hay que quitar el gotelé, entre 950 € y 2.040 €. Son rangos orientativos."}}, {"@type": "Question", "name": "¿Cuánto cuesta pintar una habitación?", "acceptedAnswer": {"@type": "Answer", "text": "Entre 100 € y 165 € una habitación; de 200 € a 420 € si son 2 o 3."}}, {"@type": "Question", "name": "¿Qué hace subir el precio?", "acceptedAnswer": {"@type": "Answer", "text": "El gotelé, las paredes en mal estado, las humedades, los techos altos y que haya que mover muchos muebles."}}, {"@type": "Question", "name": "¿El precio de la web es el precio final?", "acceptedAnswer": {"@type": "Answer", "text": "No, es un rango orientativo según el tipo de trabajo y el tamaño. El pintor confirma el precio exacto al verlo, siempre antes de empezar."}}, {"@type": "Question", "name": "¿Me van a llamar varias empresas?", "acceptedAnswer": {"@type": "Answer", "text": "No. Tu solicitud va a un solo pintor que trabaja en tu zona. No repartimos tu teléfono entre empresas."}}, {"@type": "Question", "name": "¿Es gratis pedir presupuesto?", "acceptedAnswer": {"@type": "Answer", "text": "Sí. Pedir presupuesto es gratis y sin compromiso. Solo pagas el trabajo al pintor, y solo si decides contratarlo."}}]}
+{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "¿Cuánto cuesta pintar un piso de 80 m² en Valencia?", "acceptedAnswer": {"@type": "Answer", "text": "Con pintura plástica lisa suele estar entre 680 € y 1.200 €. Si hay que quitar el gotelé, entre 950 € y 2.040 €. Son rangos orientativos."}}, {"@type": "Question", "name": "¿Cuánto cuesta pintar habitaciones?", "acceptedAnswer": {"@type": "Answer", "text": "De 200 € a 420 € si son 2 o 3 habitaciones; de 420 € a 760 € si son 4 o más."}}, {"@type": "Question", "name": "¿Qué hace subir el precio?", "acceptedAnswer": {"@type": "Answer", "text": "El gotelé, las paredes en mal estado, las humedades, los techos altos y que haya que mover muchos muebles."}}, {"@type": "Question", "name": "¿El precio de la web es el precio final?", "acceptedAnswer": {"@type": "Answer", "text": "No, es un rango orientativo según el tipo de trabajo y el tamaño. El pintor confirma el precio exacto al verlo, siempre antes de empezar."}}, {"@type": "Question", "name": "¿Me van a llamar varias empresas?", "acceptedAnswer": {"@type": "Answer", "text": "No. Tu solicitud va a un solo pintor que trabaja en tu zona. No repartimos tu teléfono entre empresas."}}, {"@type": "Question", "name": "¿Es gratis pedir presupuesto?", "acceptedAnswer": {"@type": "Answer", "text": "Sí. Pedir presupuesto es gratis y sin compromiso. Solo pagas el trabajo al pintor, y solo si decides contratarlo."}}]}
 </script>
 
 <style>
@@ -542,7 +542,6 @@ section[id],div[id]{scroll-margin-top:90px}
       <div class="compare-row"><div class="compare-cell">El piso completo</div><div class="compare-cell">− de 60 m²</div><div class="compare-cell">380 &ndash; 680 &euro;</div></div>
       <div class="compare-row"><div class="compare-cell">El piso completo</div><div class="compare-cell">60–100 m²</div><div class="compare-cell">680 &ndash; 1.200 &euro;</div></div>
       <div class="compare-row"><div class="compare-cell">El piso completo</div><div class="compare-cell">+ de 100 m²</div><div class="compare-cell">1.200 &ndash; 1.950 &euro;</div></div>
-      <div class="compare-row"><div class="compare-cell">Habitaciones sueltas</div><div class="compare-cell">1 habitación</div><div class="compare-cell">100 &ndash; 165 &euro;</div></div>
       <div class="compare-row"><div class="compare-cell">Habitaciones sueltas</div><div class="compare-cell">2-3 habitaciones</div><div class="compare-cell">200 &ndash; 420 &euro;</div></div>
       <div class="compare-row"><div class="compare-cell">Habitaciones sueltas</div><div class="compare-cell">4 o más</div><div class="compare-cell">420 &ndash; 760 &euro;</div></div>
       <div class="compare-row"><div class="compare-cell">Piso con gotelé</div><div class="compare-cell">− de 60 m²</div><div class="compare-cell">530 &ndash; 1.160 &euro;</div></div>
@@ -576,9 +575,9 @@ section[id],div[id]{scroll-margin-top:90px}
         <button type="button" class="tw-cta" onclick="irAPresupuesto('piso_completo')">Calcular precio de pintar mi piso &rarr;</button>
       </div>
       <div class="tw" id="habitacion">
-        <h3>🛏️ Una sola habitación</h3>
-        <p>También trabajos pequeños: un dormitorio, el salón, el pasillo o solo los techos. Mismo presupuesto gratis y el mismo pintor.</p>
-        <ul><li>Dormitorio</li><li>Salón</li><li>Pasillo y entrada</li><li>Solo techos</li></ul>
+        <h3>🛏️ Varias habitaciones</h3>
+        <p>Desde 2 habitaciones: dormitorios, salón y pasillo, sin pintar el piso entero. Mismo presupuesto gratis y el mismo pintor.</p>
+        <ul><li>Dormitorios</li><li>Salón</li><li>Pasillo y entrada</li><li>Paredes y techos</li></ul>
         <button type="button" class="tw-cta" onclick="irAPresupuesto('habitaciones')">Calcular precio por habitaciones &rarr;</button>
       </div>
       <div class="tw" id="gotele">
@@ -624,7 +623,7 @@ section[id],div[id]{scroll-margin-top:90px}
     <h2 class="sec-h2">Lo que m&aacute;s nos preguntan</h2>
     <div class="faqs">
       <div class="faq"><h3>¿Cuánto cuesta pintar un piso de 80 m² en Valencia?</h3><p>Con pintura plástica lisa suele estar entre 680 € y 1.200 €. Si hay que quitar el gotelé, entre 950 € y 2.040 €. Son rangos orientativos.</p></div>
-      <div class="faq"><h3>¿Cuánto cuesta pintar una habitación?</h3><p>Entre 100 € y 165 € una habitación; de 200 € a 420 € si son 2 o 3.</p></div>
+      <div class="faq"><h3>¿Cuánto cuesta pintar habitaciones?</h3><p>De 200 € a 420 € si son 2 o 3 habitaciones; de 420 € a 760 € si son 4 o más.</p></div>
       <div class="faq"><h3>¿Qué hace subir el precio?</h3><p>El gotelé, las paredes en mal estado, las humedades, los techos altos y que haya que mover muchos muebles.</p></div>
       <div class="faq"><h3>¿El precio de la web es el precio final?</h3><p>No, es un rango orientativo según el tipo de trabajo y el tamaño. El pintor confirma el precio exacto al verlo, siempre antes de empezar.</p></div>
       <div class="faq"><h3>¿Me van a llamar varias empresas?</h3><p>No. Tu solicitud va a un solo pintor que trabaja en tu zona. No repartimos tu teléfono entre empresas.</p></div>
@@ -655,7 +654,7 @@ section[id],div[id]{scroll-margin-top:90px}
       <a class="ilink" href="/pintores-particulares-valencia.html">Pintores particulares</a>
       <a class="ilink" href="/pintor-cerca-de-mi-valencia.html">Pintor cerca de ti</a>
       <a class="ilink" href="/pintar-piso-valencia.html">Pintar piso</a>
-      <a class="ilink" href="/pintar-habitacion-valencia.html">Pintar una habitación</a>
+      <a class="ilink" href="/pintar-habitacion-valencia.html">Pintar habitaciones</a>
       <a class="ilink" href="/pintar-piso-alquilar-valencia.html">Pintar piso para alquilar</a>
       <a class="ilink" href="/quitar-gotele-valencia.html">Quitar gotelé</a>
       <a class="ilink" href="/alisar-paredes-valencia.html">Alisar paredes</a>
@@ -720,11 +719,11 @@ section[id],div[id]{scroll-margin-top:90px}
      CALCULADORA · PRECIOS ORIENTATIVOS
      ============================================================ */
   var RANGOS   = {"piso_completo": {"p1": [380, 680], "p2": [680, 1200], "p3": [1200, 1950]}, "habitaciones": {"p1": [100, 165], "p2": [200, 420], "p3": [420, 760]}, "gotele_piso": {"p1": [530, 1160], "p2": [950, 2040], "p3": [1680, 3320]}};
-  var TAMANOS  = {"piso_completo": {"titulo": "¿De qué tamaño es el piso?", "opts": [["p1", "− de 60 m²"], ["p2", "60–100 m²"], ["p3", "+ de 100 m²"]]}, "habitaciones": {"titulo": "¿Cuántas habitaciones?", "opts": [["p1", "1 habitación"], ["p2", "2-3 habitaciones"], ["p3", "4 o más"]]}, "gotele_piso": {"titulo": "¿De qué tamaño es el piso?", "opts": [["p1", "− de 60 m²"], ["p2", "60–100 m²"], ["p3", "+ de 100 m²"]]}};
+  var TAMANOS  = {"piso_completo": {"titulo": "¿De qué tamaño es el piso?", "opts": [["p1", "− de 60 m²"], ["p2", "60–100 m²"], ["p3", "+ de 100 m²"]]}, "habitaciones": {"titulo": "¿Cuántas habitaciones?", "opts": [["p2", "2-3 habitaciones"], ["p3", "4 o más"]]}, "gotele_piso": {"titulo": "¿De qué tamaño es el piso?", "opts": [["p1", "− de 60 m²"], ["p2", "60–100 m²"], ["p3", "+ de 100 m²"]]}};
   var DESC_TIPO= {"piso_completo": "Pintar el piso completo", "habitaciones": "Pintar habitaciones sueltas", "gotele_piso": "Quitar gotelé, alisar y pintar el piso completo"};
   var HINTS    = {"piso_completo": "Incluye mano de obra y pintura plástica lisa", "habitaciones": "Incluye paredes, techos y rodapiés", "gotele_piso": "Quitar o tapar el gotelé, alisar y pintar"};
   var TIPO_INICIAL = 'piso_completo';
-  var seleccion = { tipo:TIPO_INICIAL, tamano:'p2', tamanoLabel:TAMANOS[TIPO_INICIAL].opts[1][1] };
+  var seleccion = { tipo:TIPO_INICIAL, tamano:'p2', tamanoLabel:(TAMANOS[TIPO_INICIAL].opts.filter(function(o){return o[0]==='p2';})[0]||TAMANOS[TIPO_INICIAL].opts[0])[1] };
 
   function fmt(n){ return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
 
@@ -749,7 +748,7 @@ section[id],div[id]{scroll-margin-top:90px}
   function elegirTipo(valor, btn){
     document.querySelectorAll('#tipoOpts .opt').forEach(function(o){ o.classList.remove('sel'); });
     btn.classList.add('sel');
-    seleccion.tipo = valor; seleccion.tamano = 'p2'; seleccion.tamanoLabel = TAMANOS[valor].opts[1][1];
+    seleccion.tipo = valor; seleccion.tamano = 'p2'; seleccion.tamanoLabel = (TAMANOS[valor].opts.filter(function(o){return o[0]==='p2';})[0]||TAMANOS[valor].opts[0])[1];
     pintarTamanos(); actualizarPrecio();
     if (typeof gtag === 'function'){ gtag('event','view_item',{'event_category':'calc_pintor','event_label':'tipo_'+valor}); }
   }
