@@ -4,7 +4,8 @@
    landing (mismo servicio, mismos precios y el mismo pintor) cambia "Córdoba" por su ciudad.
    El lead sigue yendo al pintor de Córdoba (city_slug "cordoba"), con la zona real del cliente.
    Sin oyloc (orgánico, Googlebot, enlaces) no hace nada. Probar: ?oyloc=1005421 (Sevilla).
-   Medición: mkt_visitas.ab_test = "geo_cordoba_v1", variante "sevilla" | "cordoba" | "otra".
+   Medición: mkt_visitas.ab_test = "geo_cordoba_v1"; variante A = provincia de Sevilla (landing
+   adaptada), B = Córdoba capital, C = otro sitio (mkt_visita solo guarda las letras A/B/C).
    IDs sacados de los geotargets de Google (CSV del 06/10/2026). Para quitarlo: borra el
    <script src="/oy-geo.js"> de las 6 landings. */
 (function () {
@@ -37,7 +38,7 @@
     }
     try { sessionStorage.setItem("oy_geo", JSON.stringify({ id: id })); } catch (e) {}
     var ciudad = SEV[id] || (CP41.indexOf("," + id + ",") >= 0 ? "Sevilla" : "");
-    if (!window.OYAB) window.OYAB = { test: "geo_cordoba_v1", variante: ciudad ? "sevilla" : (id === CORDOBA ? "cordoba" : "otra") };
+    if (!window.OYAB) window.OYAB = { test: "geo_cordoba_v1", variante: ciudad ? "A" : (id === CORDOBA ? "B" : "C") };
     if (!ciudad) return;
     window.OYGEO = { id: id, ciudad: ciudad };
 
