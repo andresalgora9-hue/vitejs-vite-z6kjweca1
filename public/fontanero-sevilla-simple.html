@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<!-- Test A/B (25/11/2026): versión B de /fontanero-sevilla.html, sin calculadora. Solo nombre, teléfono y casilla.
+     El reparto 50/50 lo hace el script del principio de fontanero-sevilla.html. -->
+<script>window.OYAB = { test: "fs_simple_v1", variante: "B" };</script>
+<script src="/oy-consent.js"></script>
+<title>Fontanero en Sevilla: le llama el fontanero de su zona | OficioYa</title>
+<meta name="description" content="Fontanero en Sevilla y área metropolitana. Deje su nombre y su teléfono y el fontanero de su zona le llama. Gratis y sin compromiso.">
+<meta name="robots" content="noindex, follow">
+<link rel="canonical" href="https://www.aficioya.com/fontanero-sevilla.html">
+<meta name="theme-color" content="#0F1117">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400..900&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400..900&display=swap"></noscript>
+<style>
+:root{--bg:#0F1117;--ink:#F2F5FA;--ink2:#B4BCCB;--ink3:#96A0B3;--gold:#FFD700;--line:rgba(255,255,255,.12);--grad:linear-gradient(135deg,#FFD700,#FF8C00);--btn:linear-gradient(135deg,#FFFFFF 0%,#F0E6C0 45%,#FFD700 100%)}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;min-height:100vh;display:flex;flex-direction:column;background:radial-gradient(900px 600px at 90% -10%,rgba(255,184,0,.16),rgba(255,184,0,0) 62%),linear-gradient(180deg,#11131A 0%,#0D0F15 60%,#0A0B10 100%);color:#E8EDF5;font-family:'DM Sans',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+button,input{font:inherit;color:inherit}
+button{-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.ico{flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+
+.top{max-width:560px;width:100%;margin:0 auto;padding:18px 20px 0}
+.logo{display:inline-flex;align-items:center;gap:9px;text-decoration:none;color:#E8EDF5}
+.logo-ic{width:30px;height:30px;border-radius:8px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 6px 16px -6px rgba(255,160,0,.75)}
+.logo-tx{font-weight:900;font-size:19px;letter-spacing:-.02em}
+.logo-tx b{color:var(--gold);font-weight:900}
+
+main{flex:1;max-width:560px;width:100%;margin:0 auto;padding:26px 20px 30px}
+h1{margin:0;font-size:clamp(30px,8vw,42px);line-height:1.06;letter-spacing:-.03em;font-weight:900;color:var(--ink)}
+h1 span{display:block;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{margin:12px 0 0;font-size:16.5px;line-height:1.5;color:var(--ink2)}
+
+.card{margin-top:22px;padding:22px 20px 20px;border-radius:22px;background:rgba(14,16,23,.78);border:1px solid rgba(255,255,255,.13);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 40px 90px -36px rgba(0,0,0,.95)}
+.fld{display:block;margin-bottom:12px}
+.fld span{display:block;font-size:13px;font-weight:700;color:var(--ink2);margin-bottom:6px}
+.inp{width:100%;height:52px;border-radius:14px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);padding:0 15px;font-size:17px;color:var(--ink);outline:none;transition:border-color .2s,background .2s}
+.inp::placeholder{color:#6F7889}
+.inp:focus{border-color:rgba(255,215,0,.7);background:rgba(255,255,255,.09)}
+.lead-err{display:none;margin:0 0 12px;font-size:13px;font-weight:600;color:#FF8A80}
+.lead-err.show{display:block}
+.btn{width:100%;height:56px;border:0;border-radius:15px;background:var(--btn);color:#14161D;font-size:17px;font-weight:900;letter-spacing:-.01em;cursor:pointer;box-shadow:0 14px 30px -12px rgba(255,200,0,.55);transition:transform .15s}
+.btn:active{transform:scale(.985)}
+.btn-llamar{width:100%;height:52px;margin-top:10px;border-radius:15px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.05);color:var(--ink);font-size:16px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px}
+.note{margin:13px 0 0;font-size:12.5px;line-height:1.5;color:var(--ink3);text-align:center}
+.gas{margin:6px 0 0;font-size:12px;color:var(--ink3);text-align:center}
+#oyTerms span{color:#AEB6C4!important}
+#oyTerms a{color:var(--gold)!important}
+
+.tchips{list-style:none;margin:18px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.tchips li{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;color:var(--ink2);padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.04)}
+.tchips .ico{color:var(--gold)}
+
+footer{max-width:560px;width:100%;margin:0 auto;padding:18px 20px calc(22px + env(safe-area-inset-bottom));font-size:12px;color:var(--ink3);text-align:center}
+footer nav{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:8px}
+footer a{color:var(--ink2);text-decoration:none}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+  <symbol id="i-euro" viewBox="0 0 24 24"><path d="M18 7a7 7 0 1 0 0 10"/><path d="M4 10h10M4 14h10"/></symbol>
+</defs></svg>
+
+<header class="top">
+  <a class="logo" href="/" aria-label="OficioYa, inicio">
+    <span class="logo-ic" aria-hidden="true">🔨</span>
+    <span class="logo-tx">Oficio<b>Ya</b></span>
+  </a>
+</header>
+
+<main>
+  <h1>Fontanero en Sevilla. <span>Le llama el de su zona.</span></h1>
+  <p class="sub">Deje su nombre y su teléfono y el fontanero de su zona le llama para darle precio.</p>
+
+  <div class="card" id="presupuesto">
+    <label class="fld"><span>Su nombre</span><input class="inp" id="leadNombre" type="text" autocomplete="name" placeholder="Nombre" maxlength="60"></label>
+    <label class="fld"><span>Su teléfono</span><input class="inp" id="leadTelefono" type="tel" inputmode="tel" autocomplete="tel" placeholder="612 345 678" maxlength="16"></label>
+    <p class="lead-err" id="leadErr">Necesitamos su nombre y un teléfono de 9 cifras para que el fontanero le llame.</p>
+    <button type="button" class="btn" id="resultCta" onclick="enviarSolicitud('formulario')">Solicitar presupuesto &rarr;</button>
+    <button type="button" class="btn-llamar" onclick="enviarSolicitud('llamada')" data-oyc-llamar style="display:none"><svg class="ico" width="17" height="17" aria-hidden="true"><use href="#i-phone"/></svg>¿Es urgente? Llamar ahora</button>
+    <p class="note">Gratis y sin compromiso. Su teléfono solo lo ve el fontanero que le atiende.</p>
+    <p class="gas">Solo termos eléctricos: no hacemos calderas, calentadores ni gas.</p>
+  </div>
+
+  <ul class="tchips">
+    <li><svg class="ico" width="17" height="17" aria-hidden="true"><use href="#i-shield"/></svg>Autónomos comprobados</li>
+    <li><svg class="ico" width="17" height="17" aria-hidden="true"><use href="#i-user"/></svg>Un solo fontanero</li>
+    <li><svg class="ico" width="17" height="17" aria-hidden="true"><use href="#i-euro"/></svg>Gratis para usted</li>
+  </ul>
+</main>
+
+<footer>
+  <nav aria-label="Pie de página">
+    <a href="/terminos">Condiciones de uso</a>
+    <a href="/privacidad">Privacidad</a>
+    <a href="/cookies">Cookies</a>
+  </nav>
+  <span>© 2026 OficioYa · Sevilla. Le atiende un profesional independiente, responsable de su trabajo.</span>
+</footer>
+
+<!-- Google Ads + GA4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=AW-401-649-4560"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'AW-401-649-4560');
+  gtag('config', 'G-S6F18YG34M');
+</script>
+
+<script>
+  // Captura de gclid / wbraid / gbraid (90 días)
+  (function(){
+    try{
+      var qs = new URLSearchParams(window.location.search);
+      ['gclid','wbraid','gbraid'].forEach(function(k){
+        var v = qs.get(k);
+        if(v){ localStorage.setItem('oy_'+k, JSON.stringify({v:v, t:Date.now()})); }
+      });
+    }catch(e){}
+  })();
+
+  // Envío: «Solicitar presupuesto» deja los datos y el fontanero llama; «¿Es urgente?» guarda el lead y abre la llamada.
+  // La casilla de Condiciones la pone oy-consent.js encima del primer botón y no deja enviar sin marcarla.
+  function enviarSolicitud(canal){
+    canal = canal === 'llamada' ? 'llamada' : 'formulario';
+    var inNom = document.getElementById('leadNombre'), inTel = document.getElementById('leadTelefono');
+    var nombre = (inNom && inNom.value || '').trim();
+    var tel9 = (inTel && inTel.value || '').replace(/\D/g,'').replace(/^(0034|34)(?=\d{9}$)/,'');
+    var err = document.getElementById('leadErr');
+    if(!nombre || !/^[6789]\d{8}$/.test(tel9)){
+      if(err) err.classList.add('show');
+      (nombre ? inTel : inNom).focus();
+      return;
+    }
+    if(err) err.classList.remove('show');
+    if (window.OYContacto) { OYContacto.abrir(canal, { detalle: '', nombre: nombre, telefono: tel9, auto: true }); return; }
+    // Sin el script de contacto: la app crea la solicitud (flujo de siempre)
+    window.location.href = '/?' + new URLSearchParams({ quick:'1', oficio:'Fontanero', nombre:nombre, telefono:tel9, email:'lead' + tel9 + '@aficioya-lead.com', desc:'Solicitud de fontanero', landing:'fontanero-sevilla-simple' }).toString();
+  }
+</script>
+<script src="/oy-contacto.js?v=4" data-solo-llamada="1" data-oficio="Fontanero" data-valor="40" data-gremio="fontanero" defer></script>
+</body>
+</html>

@@ -380,7 +380,7 @@ n.addEventListener("input",t);pi.addEventListener("input",t);t();
 w.querySelector("#msgCopiar").addEventListener("click",function(){var b=this;ta.select();function ok(){b.textContent="✓ Copiado";}
 try{navigator.clipboard.writeText(ta.value).then(ok,function(){try{document.execCommand("copy");ok();}catch(x){}});}catch(x){try{document.execCommand("copy");ok();}catch(y){}}});
 w.querySelector("#msgWa").addEventListener("click",function(){window.open("https://wa.me/?text="+encodeURIComponent(ta.value),"_blank");});}};</script>
-<script src="/oy-guia.js?v=1" defer></script>
+<script src="/oy-guia.js?v=2" defer></script>
 <script src="/oy-contacto.js?v=2" data-solo-llamada="1" data-oficio="Fontanero" data-valor="40" data-gremio="fontanero" defer></script>
 </body>
 </html>
