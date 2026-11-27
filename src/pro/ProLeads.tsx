@@ -5,6 +5,7 @@
 // ============================================================
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { db } from "../supabase";
+import ProPresupuesto, { BotonPresupuesto, usePresupuestosPorLead, esPintor, ResumenPresu } from "./ProPresupuesto";
 
 const C = {
   bg: "#0F1117", surface: "#15171E", card: "#1A1C24", border: "#2A2D36",
@@ -252,7 +253,10 @@ function Seccion({ titulo, children }: any) {
 }
 
 // ── FICHA DEL LEAD ──────────────────────────────────────────
-function FichaLead({ lead, userId, onClose, onGuardado }: { lead: Lead; userId: string; onClose: () => void; onGuardado: (msg: string) => void }) {
+function FichaLead({ lead, userId, onClose, onGuardado, onPresupuesto, hecho }: {
+  lead: Lead; userId: string; onClose: () => void; onGuardado: (msg: string) => void;
+  onPresupuesto?: () => void; hecho?: ResumenPresu | null;
+}) {
   const [estado, setEstado] = useState<Estado>(lead.estado);
   const [motivo, setMotivo] = useState(lead.motivo_perdido || "");
   const [presupuesto, setPresupuesto] = useState(lead.presupuesto_eur != null ? String(lead.presupuesto_eur).replace(".", ",") : "");
@@ -357,6 +361,26 @@ function FichaLead({ lead, userId, onClose, onGuardado }: { lead: Lead; userId: 
         <Boton href={tel ? enlaceWhatsApp(tel) : undefined} disabled={!tel} color={C.green} outline>WhatsApp</Boton>
       </div>
 
+      {onPresupuesto && !lead.anulado && (
+        <button onClick={() => { if (sucio) { setErr("Guarda los cambios de este cliente antes de hacer el presupuesto."); return; } onPresupuesto(); }} style={{
+          display: "flex", alignItems: "center", gap: 12, width: "100%", textAlign: "left", fontFamily: F, cursor: "pointer",
+          marginTop: 10, padding: "12px 14px", borderRadius: 12,
+          border: "1px solid " + (hecho ? C.green + "88" : C.accent + "88"),
+          background: hecho ? "linear-gradient(160deg, rgba(0,214,143,0.14), rgba(0,214,143,0.04))" : "linear-gradient(160deg, rgba(255,215,0,0.16), rgba(255,140,0,0.06))",
+        }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={hecho ? C.green : C.accent} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M14 3.5H7.2a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h9.6a2 2 0 0 0 2-2V8.3z" /><path d="M14 3.5v4.8h4.8" /><path d="M8.8 12.6h6.4M8.8 16h4" />
+          </svg>
+          <span style={{ flex: 1 }}>
+            <span style={{ display: "block", color: hecho ? C.green : C.accent, fontWeight: 800, fontSize: 14 }}>{hecho ? "Ver presupuesto " + hecho.numero : "Crear presupuesto"}</span>
+            <span style={{ display: "block", color: C.mutedL, fontSize: 12, marginTop: 2 }}>
+              {hecho ? "Reenviarlo o cambiar algo" : "Detallado, con tu logo, listo para mandar por WhatsApp"}
+            </span>
+          </span>
+          <span style={{ color: hecho ? C.green : C.accent, fontSize: 18 }}>›</span>
+        </button>
+      )}
+
       <Seccion titulo="Estado">
         <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
           {ESTADOS.map((e) => {
@@ -436,6 +460,9 @@ export default function ProLeads({ user, onToast }: { user: { id: string; name: 
   const [mes, setMes] = useState(mesActual);
   const [filtro, setFiltro] = useState<Estado | "todos">("todos");
   const [abierto, setAbierto] = useState<Lead | null>(null);
+  const [presu, setPresu] = useState<Lead | null>(null);
+  const [avisoPresu, setAvisoPresu] = useState(0);
+  const { mapa: presupuestos } = usePresupuestosPorLead(user.id, avisoPresu);
 
   const toastRef = useRef(onToast);
   useEffect(() => { toastRef.current = onToast; }, [onToast]);
@@ -586,12 +613,15 @@ export default function ProLeads({ user, onToast }: { user: { id: string; name: 
         const esNuevo = l.estado === "nuevo" && !l.anulado;
         const titulo = l.client_name || (l.canal === "llamada" ? "Llamada · faltan datos" : "Sin nombre");
         const detalle = [l.zona, l.descripcion].filter(Boolean).join(" · ");
+        const conPresu = esPintor(l.trade) && !l.anulado;
         return (
-          <button key={l.id} onClick={() => setAbierto(l)} style={{
-            display: "block", width: "100%", textAlign: "left", cursor: "pointer", fontFamily: F,
+          <div key={l.id} role="button" tabIndex={0} onClick={() => setAbierto(l)}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setAbierto(l); } }} style={{
+            display: "flex", gap: 10, alignItems: "stretch", width: "100%", boxSizing: "border-box", textAlign: "left", cursor: "pointer", fontFamily: F,
             background: C.card, border: "1px solid " + (esNuevo ? C.accent : C.border),
             borderRadius: 12, padding: 14, marginBottom: 10, opacity: l.anulado ? 0.6 : 1,
           }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
               <Etiqueta texto={CANAL_LABEL[l.canal]} color={C.mutedL} />
               <span style={{ fontSize: 12, color: C.mutedL }}>{fechaHora(l.created_at)}</span>
@@ -613,7 +643,9 @@ export default function ProLeads({ user, onToast }: { user: { id: string; name: 
                 color: l.anulado ? C.muted : C.text, textDecoration: l.anulado ? "line-through" : "none",
               }}>{eur(l.price)}</span>
             </div>
-          </button>
+            </div>
+            {conPresu && <BotonPresupuesto hecho={presupuestos[l.id]} onClick={() => setPresu(l)} ancho={76} />}
+          </div>
         );
       })}
 
@@ -623,6 +655,18 @@ export default function ProLeads({ user, onToast }: { user: { id: string; name: 
           userId={user.id}
           onClose={() => setAbierto(null)}
           onGuardado={(msg) => { setAbierto(null); onToast?.(msg); cargar(); }}
+          onPresupuesto={esPintor(abierto.trade) ? () => { const l = abierto; setAbierto(null); setPresu(l); } : undefined}
+          hecho={presupuestos[abierto.id]}
+        />
+      )}
+
+      {presu && (
+        <ProPresupuesto
+          userId={user.id}
+          lead={presu}
+          onClose={() => setPresu(null)}
+          onCambio={() => { setAvisoPresu((n) => n + 1); cargar(); }}
+          onToast={onToast}
         />
       )}
     </div>

@@ -9,6 +9,7 @@ import {
   eurCorto, haceCuanto, enlaceTel, enlaceWhatsApp, digitos,
   EstadoPush, estadoPush, activarPush, desactivarPush, probarPush,
 } from "./proComun";
+import ProPresupuesto, { BotonPresupuesto, usePresupuestosPorLead, esPintor, LeadPresu } from "./ProPresupuesto";
 
 const TEXTO_PUSH: Record<EstadoPush, { titulo: string; detalle: string; color: string }> = {
   activado: { titulo: "Avisos activados", detalle: "Te avisamos al momento cuando entra un cliente, aunque tengas el móvil bloqueado.", color: C.green },
@@ -100,6 +101,10 @@ export default function ProInicio({ user, onIrALeads, onToast }: {
 }) {
   const [leads, setLeads] = useState<LeadRow[]>([]);
   const [cargando, setCargando] = useState(true);
+  const [presu, setPresu] = useState<LeadPresu | null>(null);
+  const [avisoPresu, setAvisoPresu] = useState(0);
+  const { mapa: presupuestos } = usePresupuestosPorLead(user.id, avisoPresu);
+  const conPresu = (l: LeadRow) => esPintor(l.trade || user.trade);
   const toastRef = useRef(onToast);
   useEffect(() => { toastRef.current = onToast; }, [onToast]);
 
@@ -163,6 +168,8 @@ export default function ProInicio({ user, onIrALeads, onToast }: {
         const tel = digitos(l.client_phone) ? l.client_phone : null;
         return (
           <Card key={l.id} accent={C.accent}>
+            <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
               <Etiqueta texto={CANAL_LABEL[l.canal]} color={C.mutedL} />
               <span style={{ fontSize: 12, color: C.orange, fontWeight: 700 }}>Esperando {haceCuanto(l.created_at).replace("hace ", "")}</span>
@@ -175,6 +182,9 @@ export default function ProInicio({ user, onIrALeads, onToast }: {
                 {[l.zona, l.descripcion].filter(Boolean).join(" · ")}
               </div>
             )}
+            </div>
+            {conPresu(l) && <BotonPresupuesto hecho={presupuestos[l.id]} onClick={() => setPresu(l)} />}
+            </div>
             <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
               {tel ? (
                 <>
@@ -195,9 +205,13 @@ export default function ProInicio({ user, onIrALeads, onToast }: {
       {enCurso.length === 0 ? (
         <Card><div style={{ color: C.mutedL, fontSize: 13.5 }}>No tienes trabajos en curso.</div></Card>
       ) : enCurso.map((l) => (
-        <button key={l.id} onClick={onIrALeads} style={{
-          display: "flex", alignItems: "center", gap: 12, width: "100%", textAlign: "left", fontFamily: F,
-          background: C.card, border: "1px solid " + C.border, borderRadius: 12, padding: "12px 14px", marginBottom: 8, cursor: "pointer",
+        <div key={l.id} style={{
+          display: "flex", alignItems: "stretch", gap: 8, background: C.card, border: "1px solid " + C.border,
+          borderRadius: 12, padding: conPresu(l) ? "8px 8px 8px 0" : 0, marginBottom: 8,
+        }}>
+        <button onClick={onIrALeads} style={{
+          display: "flex", alignItems: "center", gap: 12, flex: 1, minWidth: 0, textAlign: "left", fontFamily: F,
+          background: "transparent", border: "none", borderRadius: 12, padding: conPresu(l) ? "4px 6px 4px 14px" : "12px 14px", cursor: "pointer",
         }}>
           <span style={{ flex: 1, minWidth: 0 }}>
             <span style={{ display: "block", color: C.text, fontWeight: 700, fontSize: 14.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -211,6 +225,8 @@ export default function ProInicio({ user, onIrALeads, onToast }: {
           </span>
           <Etiqueta texto={l.estado === "presupuesto" ? "Presupuesto" : "Contactado"} color={l.estado === "presupuesto" ? C.orange : C.blue} />
         </button>
+        {conPresu(l) && <BotonPresupuesto hecho={presupuestos[l.id]} onClick={() => setPresu(l)} ancho={74} />}
+        </div>
       ))}
 
       {/* Este mes */}
@@ -230,6 +246,16 @@ export default function ProInicio({ user, onIrALeads, onToast }: {
       <div style={{ marginTop: 12, display: "flex" }}>
         <Boton onClick={onIrALeads} outline color={C.accent}>Ver todos mis leads</Boton>
       </div>
+
+      {presu && (
+        <ProPresupuesto
+          userId={user.id}
+          lead={presu}
+          onClose={() => setPresu(null)}
+          onCambio={() => { setAvisoPresu((n) => n + 1); cargar(); }}
+          onToast={onToast}
+        />
+      )}
     </div>
   );
 }
