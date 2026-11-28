@@ -4,26 +4,28 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <script>
-/* TEST A/B fs_simple_v1 (25/11/2026, revisar el 10/12/2026):
-   A = esta página (con calculadora) · B = /fontanero-sevilla-simple.html (solo nombre, teléfono y casilla).
-   Solo entran las visitas de Google Ads (gclid/gbraid/wbraid) sin #ancla, 50/50 por visitante (se guarda en su navegador).
-   Forzar una versión: ?ab=a o ?ab=b. Para cerrar el test, borra este bloque <script> entero. */
+/* TEST A/B/C/D fs_4v_v1 (28/11/2026, revisar el 09/01/2027). Sustituye al test fs_simple_v1 (cerrado el 28/11).
+   A = esta página (precio real y horas de trabajo) · B = /fontanero-sevilla-confianza.html (profesional, el precio en pequeño)
+   C = /fontanero-sevilla-filtro.html (avisa de lo que no se hace) · D = /fontanero-sevilla-simple.html (solo formulario o llamada, sin precios)
+   Solo entran las visitas de Google Ads (gclid/gbraid/wbraid) sin #ancla, a partes iguales por visitante (se guarda en su navegador).
+   Forzar una versión: ?ab=a, ?ab=b, ?ab=c o ?ab=d. Para cerrar el test, borra este bloque <script> entero. */
 (function(){
   try{
-    var CLAVE = "oy_ab_fs_simple", q = location.search || "";
-    var forz = (q.match(/[?&]ab=([ab])(&|$)/i) || [])[1];
+    var CLAVE = "oy_ab_fs_4v", q = location.search || "";
+    var forz = (q.match(/[?&]ab=([abcd])(&|$)/i) || [])[1];
     if (!forz && (!/[?&](gclid|gbraid|wbraid)=/.test(q) || location.hash || /bot|crawl|spider|google-|lighthouse/i.test(navigator.userAgent))) return;
     var v = forz ? forz.toUpperCase() : "";
     if (!v) { try { v = localStorage.getItem(CLAVE) || ""; } catch(e){} }
-    if (v !== "A" && v !== "B") v = Math.random() < 0.5 ? "B" : "A";
+    if (v !== "A" && v !== "B" && v !== "C" && v !== "D") { v = "ABCD".charAt(Math.floor(Math.random() * 4)); }
     try { localStorage.setItem(CLAVE, v); } catch(e){}
-    window.OYAB = { test: "fs_simple_v1", variante: v };
-    if (v === "B") location.replace("/fontanero-sevilla-simple.html" + q + location.hash);
+    window.OYAB = { test: "fs_4v_v1", variante: v };
+    var DEST = { B: "/fontanero-sevilla-confianza.html", C: "/fontanero-sevilla-filtro.html", D: "/fontanero-sevilla-simple.html" };
+    if (DEST[v]) location.replace(DEST[v] + q + location.hash);
   }catch(e){}
 })();
 </script>
 <script src="/oy-consent.js"></script>
-<title>Fontanero en Sevilla: precio orientativo y llamada directa | OficioYa</title>
+<title>Fontanero en Sevilla: precio real y horas de trabajo | OficioYa</title>
 <meta name="description" content="Fontanero en Sevilla y área metropolitana. Vea lo que suele costar su avería y hable directamente con un fontanero comprobado de su zona.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.aficioya.com/fontanero-sevilla.html">
@@ -50,7 +52,7 @@
 {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://www.aficioya.com/"}, {"@type": "ListItem", "position": 2, "name": "Fontanero en Sevilla", "item": "https://www.aficioya.com/fontanero-sevilla.html"}]}
 </script>
 <script type="application/ld+json">
-{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "¿Cuánto tardo en hablar con un fontanero?", "acceptedAnswer": {"@type": "Answer", "text": "No tiene que esperar a que le devuelvan la llamada: al pulsar Llamar le pasamos directamente con un fontanero de su zona. Si está en mitad de un trabajo, se lo dice en ese momento y acuerdan día y hora."}}, {"@type": "Question", "name": "¿El precio de la web es el precio final?", "acceptedAnswer": {"@type": "Answer", "text": "No. Es orientativo: lo que suele costar en Sevilla cada tipo de avería. El fontanero le da el precio exacto al verla, antes de empezar a trabajar, y usted decide."}}, {"@type": "Question", "name": "¿Por qué no me dan el precio exacto por teléfono?", "acceptedAnswer": {"@type": "Answer", "text": "Porque depende de lo que haya: dónde está el atasco o la fuga, el acceso y el material. Por teléfono le puede orientar; el precio cerrado se lo da al verlo, antes de empezar."}}, {"@type": "Question", "name": "¿Cuánto me cuesta usar OficioYa?", "acceptedAnswer": {"@type": "Answer", "text": "Nada. Usted paga directamente al fontanero el trabajo que acepte, al precio acordado."}}, {"@type": "Question", "name": "¿Y si es urgente?", "acceptedAnswer": {"@type": "Answer", "text": "Dígalo al llamar. El fontanero le dice en ese momento cuándo puede ir."}}, {"@type": "Question", "name": "¿Hacen trabajos de gas?", "acceptedAnswer": {"@type": "Answer", "text": "No. No atendemos calderas, calentadores ni instalaciones de gas. Termos eléctricos, sí."}}, {"@type": "Question", "name": "¿Quién responde si algo sale mal?", "acceptedAnswer": {"@type": "Answer", "text": "El fontanero es un profesional independiente y responde de su presupuesto y de su trabajo. Si algo no sale como se acordó, escríbanos: trasladamos su queja al fontanero y le facilitamos sus datos para que pueda reclamarle."}}, {"@type": "Question", "name": "¿Puedo enseñarle el problema antes?", "acceptedAnswer": {"@type": "Answer", "text": "Sí. Como habla con él directamente, puede explicárselo en la llamada y, si hace falta, él le dirá cómo mandarle una foto."}}, {"@type": "Question", "name": "¿En qué zonas trabaja?", "acceptedAnswer": {"@type": "Answer", "text": "Sevilla capital (Triana, Nervión, Los Remedios, Macarena, Cerro-Amate y Sevilla Este) y el área metropolitana: Dos Hermanas, Montequinto, Alcalá de Guadaíra, Mairena del Aljarafe, Bormujos y Coria del Río."}}]}
+{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "¿Cuánto tardo en hablar con un fontanero?", "acceptedAnswer": {"@type": "Answer", "text": "No tiene que esperar a que le devuelvan la llamada: al pulsar Llamar le pasamos directamente con un fontanero de su zona. Si está en mitad de un trabajo, se lo dice en ese momento y acuerdan día y hora."}}, {"@type": "Question", "name": "¿Por qué cuesta lo que cuesta?", "acceptedAnswer": {"@type": "Answer", "text": "El precio no es solo el rato de la reparación. Incluye ir hasta su casa, encontrar de dónde viene la avería, repararla con el material y las máquinas que hagan falta y probar que queda bien. Un atasco suele llevar de 1 a 3 horas; una fuga, de 1 a 4; un termo, de 2 a 4; y una bajante con máquina, de 2 a 5. Además, el fontanero es un autónomo dado de alta y responde de su trabajo."}}, {"@type": "Question", "name": "¿El precio de la web es el precio final?", "acceptedAnswer": {"@type": "Answer", "text": "No. Es orientativo: lo que suele costar en Sevilla cada tipo de avería. El fontanero le da el precio exacto al verla, antes de empezar a trabajar, y usted decide."}}, {"@type": "Question", "name": "¿Por qué no me dan el precio exacto por teléfono?", "acceptedAnswer": {"@type": "Answer", "text": "Porque depende de lo que haya: dónde está el atasco o la fuga, el acceso y el material. Por teléfono le puede orientar; el precio cerrado se lo da al verlo, antes de empezar."}}, {"@type": "Question", "name": "¿Cuánto me cuesta usar OficioYa?", "acceptedAnswer": {"@type": "Answer", "text": "Nada. Usted paga directamente al fontanero el trabajo que acepte, al precio acordado."}}, {"@type": "Question", "name": "¿Y si es urgente?", "acceptedAnswer": {"@type": "Answer", "text": "Dígalo al llamar. El fontanero le dice en ese momento cuándo puede ir."}}, {"@type": "Question", "name": "¿Hacen trabajos de gas?", "acceptedAnswer": {"@type": "Answer", "text": "No. No atendemos calderas, calentadores ni instalaciones de gas. Termos eléctricos, sí."}}, {"@type": "Question", "name": "¿Quién responde si algo sale mal?", "acceptedAnswer": {"@type": "Answer", "text": "El fontanero es un profesional independiente y responde de su presupuesto y de su trabajo. Si algo no sale como se acordó, escríbanos: trasladamos su queja al fontanero y le facilitamos sus datos para que pueda reclamarle."}}, {"@type": "Question", "name": "¿Puedo enseñarle el problema antes?", "acceptedAnswer": {"@type": "Answer", "text": "Sí. Como habla con él directamente, puede explicárselo en la llamada y, si hace falta, él le dirá cómo mandarle una foto."}}, {"@type": "Question", "name": "¿En qué zonas trabaja?", "acceptedAnswer": {"@type": "Answer", "text": "Sevilla capital (Triana, Nervión, Los Remedios, Macarena, Cerro-Amate y Sevilla Este) y el área metropolitana: Dos Hermanas, Montequinto, Alcalá de Guadaíra, Mairena del Aljarafe, Bormujos y Coria del Río."}}]}
 </script>
 
 <style>
@@ -223,6 +225,16 @@ textarea.inp{height:auto;min-height:74px;padding:13px 16px;resize:vertical;line-
 .steps h3{margin:18px 0 8px;font-size:19px;font-weight:800;letter-spacing:-.01em;color:var(--ink)}
 .steps p{margin:0;font-size:14.5px;line-height:1.55;color:var(--ink2)}
 
+
+/* Horas de trabajo (28/11/2026) */
+.ticket .hrs{flex:0 0 auto;text-align:right}
+.ticket .hrs small{color:var(--mint,#7CF0C5)}
+.ticket .hrs b{display:block;margin-top:2px;white-space:nowrap;font-size:26px;font-weight:900;color:#fff;letter-spacing:-.02em}
+.ticket .hrs span{display:block;max-width:170px;margin-left:auto;margin-top:2px;font-size:11.5px;line-height:1.35;color:var(--ink2)}
+.tnote{margin:8px 2px 0;font-size:12px;color:var(--ink2)}
+.hrs-c{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:15px;font-weight:800;color:#FFE38A}
+.hrs-t{display:flex;align-items:center;gap:6px;margin-top:5px;font-size:13.5px;font-weight:700;color:#FFE38A}
+@media (max-width:640px){.ticket .hrs{text-align:left}.ticket .hrs span{margin-left:0;max-width:none}}
 /* Precios */
 .tabla{margin-top:36px;border-radius:30px;padding:10px 28px 22px}
 .tabla table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
@@ -462,8 +474,8 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
 <main>
 <section class="wrap hero" id="inicio">
   <div class="hero-copy">
-    <h1>Fontanero en Sevilla. <span>Vea el precio antes de llamar.</span></h1>
-    <p class="sub">Elija su avería y vea lo que suele costar. Deje sus datos y el fontanero de su zona le llama.</p>
+    <h1>Fontanero en Sevilla. <span>Precio real y horas de trabajo, antes de llamar.</span></h1>
+    <p class="sub">Elija su avería: verá lo que cuesta de verdad en Sevilla y cuánto trabajo lleva. Deje sus datos y el fontanero de su zona le llama.</p>
   </div>
 
   <div class="hv">
@@ -474,25 +486,26 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
       </picture>
     </div>
     <div class="fl fa" data-par="0.10"><div class="fchip"><span class="fic"><svg class="ico" width="20" height="20" aria-hidden="true"><use href="#i-shield"/></svg></span><span><small>Fontanero comprobado</small><b>Alta de autónomo y acuerdo firmado</b></span></div></div>
-    <div class="fl fb" data-par="0.18"><div class="fchip"><small>LO QUE SUELE COSTAR</small><strong id="chipBv">100 € – 260 €</strong><span id="chipBs">Atasco o desagüe · Sevilla</span></div></div>
+    <div class="fl fb" data-par="0.18"><div class="fchip"><small>LO QUE SUELE COSTAR</small><strong id="chipBv">120 € – 350 €</strong><span id="chipBs">Atasco o desagüe · Sevilla</span></div></div>
 
     <div class="card dark" id="presupuesto">
-      <div class="ft"><h2>Precio orientativo</h2><span class="tag-ok">Gratis</span></div>
+      <div class="ft"><h2>Precio real en Sevilla</h2><span class="tag-ok">Sin compromiso</span></div>
       <p class="lbl">1 · ¿Qué le pasa?</p>
       <div class="tiles" id="chipGrid" role="group" aria-label="Tipo de avería">
-        <button type="button" class="tile chip-opt" aria-pressed="false" data-id="atasco" data-low="100" data-high="260" data-floor="90" data-desc="Atasco o desagüe obstruido"><span class="ic"><svg class="ico" width="20" height="20" aria-hidden="true"><use href="#i-drain"/></svg></span><span><b>Atasco o desagüe</b><small>Fregadero, ducha o inodoro</small></span></button>
-        <button type="button" class="tile chip-opt" aria-pressed="false" data-id="fuga" data-low="90" data-high="290" data-floor="70" data-desc="Fuga de agua o inundación"><span class="ic"><svg class="ico" width="20" height="20" aria-hidden="true"><use href="#i-drop"/></svg></span><span><b>Fuga de agua</b><small>Goteos y tuberías</small></span></button>
-        <button type="button" class="tile chip-opt" aria-pressed="false" data-id="grifo" data-low="80" data-high="210" data-floor="60" data-desc="Grifo, cisterna o sanitario"><span class="ic"><svg class="ico" width="20" height="20" aria-hidden="true"><use href="#i-tap"/></svg></span><span><b>Grifo o cisterna</b><small>Cambiar o reparar</small></span></button>
-        <button type="button" class="tile chip-opt" aria-pressed="false" data-id="termo" data-low="110" data-high="290" data-floor="80" data-desc="Avería en termo eléctrico"><span class="ic"><svg class="ico" width="20" height="20" aria-hidden="true"><use href="#i-bolt"/></svg></span><span><b>Termo eléctrico</b><small>No calienta o gotea</small></span></button>
-        <button type="button" class="tile chip-opt ancha" aria-pressed="false" data-id="instalacion" data-low="190" data-high="1190" data-floor="140" data-desc="Instalación o reforma de fontanería"><span class="ic"><svg class="ico" width="20" height="20" aria-hidden="true"><use href="#i-tool"/></svg></span><span><b>Plato de ducha o instalación</b><small>Cambiar la bañera, tuberías nuevas</small></span></button>
+        <button type="button" class="tile chip-opt" aria-pressed="false" data-id="atasco" data-low="120" data-high="350" data-floor="100" data-horas="1 – 3 h" data-desc="Atasco o desagüe obstruido"><span class="ic"><svg class="ico" width="20" height="20" aria-hidden="true"><use href="#i-drain"/></svg></span><span><b>Atasco o desagüe</b><small>Fregadero, ducha o inodoro</small></span></button>
+        <button type="button" class="tile chip-opt" aria-pressed="false" data-id="fuga" data-low="120" data-high="450" data-floor="90" data-horas="1 – 4 h" data-desc="Fuga de agua o inundación"><span class="ic"><svg class="ico" width="20" height="20" aria-hidden="true"><use href="#i-drop"/></svg></span><span><b>Fuga de agua</b><small>Goteos y tuberías</small></span></button>
+        <button type="button" class="tile chip-opt" aria-pressed="false" data-id="grifo" data-low="100" data-high="280" data-floor="80" data-horas="1 – 3 h" data-desc="Grifo, cisterna o sanitario"><span class="ic"><svg class="ico" width="20" height="20" aria-hidden="true"><use href="#i-tap"/></svg></span><span><b>Grifo o cisterna</b><small>Cambiar o reparar</small></span></button>
+        <button type="button" class="tile chip-opt" aria-pressed="false" data-id="termo" data-low="150" data-high="450" data-floor="100" data-horas="2 – 4 h" data-desc="Avería en termo eléctrico"><span class="ic"><svg class="ico" width="20" height="20" aria-hidden="true"><use href="#i-bolt"/></svg></span><span><b>Termo eléctrico</b><small>No calienta o gotea</small></span></button>
+        <button type="button" class="tile chip-opt ancha" aria-pressed="false" data-id="instalacion" data-low="350" data-high="1500" data-floor="250" data-horas="1 – 3 días" data-desc="Instalación o reforma de fontanería"><span class="ic"><svg class="ico" width="20" height="20" aria-hidden="true"><use href="#i-tool"/></svg></span><span><b>Plato de ducha o instalación</b><small>Cambiar la bañera, tuberías nuevas</small></span></button>
       </div>
       <p class="gas">Solo termos eléctricos: no hacemos calderas, calentadores ni instalaciones de gas.</p>
 
       <div class="result" id="resultBox" aria-live="polite">
         <div class="ticket">
           <div><small>LO QUE SUELE COSTAR</small><strong id="priceRange">—</strong><span class="desde" id="oldRange">—</span></div>
-          <p>El fontanero confirma el precio al verla, antes de empezar</p>
+          <div class="hrs"><small>TIEMPO DE TRABAJO</small><b id="horasEst">—</b><span>Llegar, encontrar el origen, repararlo y probarlo</span></div>
         </div>
+        <p class="tnote">El fontanero confirma el precio al verla, antes de empezar.</p>
         <p class="lbl">2 · Sus datos</p>
         <div class="two">
           <label class="fld"><span>Su nombre</span><input class="inp" id="leadNombre" type="text" autocomplete="name" placeholder="Nombre" maxlength="60"></label>
@@ -524,8 +537,8 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
       <div class="gimg"><img src="https://images.pexels.com/photos/30387000/pexels-photo-30387000.jpeg?auto=compress&cs=tinysrgb&w=700" width="700" height="937" loading="lazy" decoding="async" alt="Fregadero de cocina con grifo de caño alto" style="object-position:50% 45%"><span class="gbadge"><svg class="ico" width="15" height="15" aria-hidden="true"><use href="#i-drain"/></svg>Desatascos</span></div>
       <div class="gbody">
         <h3>Fregadero, ducha o inodoro que no traga</h3>
-        <p>Bajante o alcantarillado: desde 250 €, con máquina.</p>
-        <div class="gfoot"><div><small>Lo habitual en Sevilla</small><strong>100 € – 260 €</strong></div><button class="btn-g" type="button" data-calc="atasco">Ver mi precio<svg class="ico" width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg></button></div>
+        <p>Bajante o alcantarillado con máquina: desde 280 € (2 – 5 h de trabajo).</p>
+        <div class="gfoot"><div><small>Lo habitual en Sevilla</small><strong>120 € – 350 €</strong><span class="hrs-c"><svg class="ico" width="15" height="15" aria-hidden="true"><use href="#i-clock"/></svg>1 – 3 h de trabajo</span></div><button class="btn-g" type="button" data-calc="atasco">Ver mi precio<svg class="ico" width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg></button></div>
       </div>
     </article>
     <article class="gcard glass">
@@ -533,7 +546,7 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
       <div class="gbody">
         <h3>Fugas, goteos y tuberías</h3>
         <p>Llaves de paso que pierden agua y tramos de tubería dañados.</p>
-        <div class="gfoot"><div><small>Lo habitual en Sevilla</small><strong>90 € – 290 €</strong></div><button class="btn-g" type="button" data-calc="fuga">Ver mi precio<svg class="ico" width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg></button></div>
+        <div class="gfoot"><div><small>Lo habitual en Sevilla</small><strong>120 € – 450 €</strong><span class="hrs-c"><svg class="ico" width="15" height="15" aria-hidden="true"><use href="#i-clock"/></svg>1 – 4 h de trabajo</span></div><button class="btn-g" type="button" data-calc="fuga">Ver mi precio<svg class="ico" width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg></button></div>
       </div>
     </article>
     <article class="gcard glass">
@@ -541,7 +554,7 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
       <div class="gbody">
         <h3>Grifos, cisternas y sanitarios</h3>
         <p>Cambiar un grifo, arreglar la cisterna o montar un inodoro o un lavabo.</p>
-        <div class="gfoot"><div><small>Lo habitual en Sevilla</small><strong>80 € – 210 €</strong></div><button class="btn-g" type="button" data-calc="grifo">Ver mi precio<svg class="ico" width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg></button></div>
+        <div class="gfoot"><div><small>Lo habitual en Sevilla</small><strong>100 € – 280 €</strong><span class="hrs-c"><svg class="ico" width="15" height="15" aria-hidden="true"><use href="#i-clock"/></svg>1 – 3 h de trabajo</span></div><button class="btn-g" type="button" data-calc="grifo">Ver mi precio<svg class="ico" width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg></button></div>
       </div>
     </article>
     <article class="gcard glass">
@@ -549,7 +562,7 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
       <div class="gbody">
         <h3>Plato de ducha e instalaciones</h3>
         <p>Cambiar la bañera por un plato de ducha, tuberías nuevas y puntos de agua.</p>
-        <div class="gfoot"><div><small>Lo habitual en Sevilla</small><strong>190 € – 1.190 €</strong></div><button class="btn-g" type="button" data-calc="instalacion">Ver mi precio<svg class="ico" width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg></button></div>
+        <div class="gfoot"><div><small>Lo habitual en Sevilla</small><strong>350 € – 1.500 €</strong><span class="hrs-c"><svg class="ico" width="15" height="15" aria-hidden="true"><use href="#i-clock"/></svg>1 – 3 días de trabajo</span></div><button class="btn-g" type="button" data-calc="instalacion">Ver mi precio<svg class="ico" width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg></button></div>
       </div>
     </article>
     <article class="gcard glass">
@@ -557,7 +570,7 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
       <div class="gbody">
         <h3>Termo eléctrico</h3>
         <p>Reparación o cambio de termos eléctricos. No hacemos gas.</p>
-        <div class="gfoot"><div><small>Lo habitual en Sevilla</small><strong>110 € – 290 €</strong></div><button class="btn-g" type="button" data-calc="termo">Ver mi precio<svg class="ico" width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg></button></div>
+        <div class="gfoot"><div><small>Lo habitual en Sevilla</small><strong>150 € – 450 €</strong><span class="hrs-c"><svg class="ico" width="15" height="15" aria-hidden="true"><use href="#i-clock"/></svg>2 – 4 h de trabajo</span></div><button class="btn-g" type="button" data-calc="termo">Ver mi precio<svg class="ico" width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg></button></div>
       </div>
     </article>
     <article class="gcard urg">
@@ -593,18 +606,18 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
   <div class="head">
     <p class="eyebrow">PRECIOS</p>
     <h2 class="h">Lo que suele costar en Sevilla.</h2>
-    <p class="lead">Precios orientativos con mano de obra. El fontanero le confirma el exacto al ver la avería, siempre antes de empezar.</p>
+    <p class="lead">Precios orientativos con mano de obra. El fontanero le confirma el exacto al ver la avería, siempre antes de empezar. Debajo de cada trabajo, el tiempo que suele llevar: llegar, encontrar el origen, repararlo y probar que queda bien.</p>
   </div>
   <div class="tabla glass">
     <table>
       <caption>Ver el precio orientativo y hablar con el fontanero es gratis. Usted paga directamente al fontanero el trabajo que acepte.</caption>
       <thead><tr><th scope="col">Avería</th><th scope="col" class="num-c">Desde</th><th scope="col" class="num-c">Lo habitual</th></tr></thead>
       <tbody>
-        <tr><td>Atasco o desagüe</td><td class="num-c">90 €</td><td class="num-c hab">100 – 260 €</td></tr>
-        <tr><td>Fuga de agua</td><td class="num-c">70 €</td><td class="num-c hab">90 – 290 €</td></tr>
-        <tr><td>Grifo o cisterna</td><td class="num-c">60 €</td><td class="num-c hab">80 – 210 €</td></tr>
-        <tr><td>Termo eléctrico</td><td class="num-c">80 €</td><td class="num-c hab">110 – 290 €</td></tr>
-        <tr><td>Plato de ducha o instalación</td><td class="num-c">140 €</td><td class="num-c hab">190 – 1.190 €</td></tr>
+        <tr><td>Atasco o desagüe<span class="hrs-t"><svg class="ico" width="14" height="14" aria-hidden="true"><use href="#i-clock"/></svg>1 – 3 h de trabajo</span></td><td class="num-c">100 €</td><td class="num-c hab">120 – 350 €</td></tr>
+        <tr><td>Fuga de agua<span class="hrs-t"><svg class="ico" width="14" height="14" aria-hidden="true"><use href="#i-clock"/></svg>1 – 4 h de trabajo</span></td><td class="num-c">90 €</td><td class="num-c hab">120 – 450 €</td></tr>
+        <tr><td>Grifo o cisterna<span class="hrs-t"><svg class="ico" width="14" height="14" aria-hidden="true"><use href="#i-clock"/></svg>1 – 3 h de trabajo</span></td><td class="num-c">80 €</td><td class="num-c hab">100 – 280 €</td></tr>
+        <tr><td>Termo eléctrico<span class="hrs-t"><svg class="ico" width="14" height="14" aria-hidden="true"><use href="#i-clock"/></svg>2 – 4 h de trabajo</span></td><td class="num-c">100 €</td><td class="num-c hab">150 – 450 €</td></tr>
+        <tr><td>Plato de ducha o instalación<span class="hrs-t"><svg class="ico" width="14" height="14" aria-hidden="true"><use href="#i-clock"/></svg>1 – 3 días de trabajo</span></td><td class="num-c">250 €</td><td class="num-c hab">350 – 1.500 €</td></tr>
       </tbody>
     </table>
   </div>
@@ -650,6 +663,7 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
   </div>
   <div class="faq glass">
     <details><summary>¿Cuánto tardo en hablar con un fontanero?</summary><p>No tiene que esperar a que le devuelvan la llamada: al pulsar Llamar le pasamos directamente con un fontanero de su zona. Si está en mitad de un trabajo, se lo dice en ese momento y acuerdan día y hora.</p></details>
+    <details><summary>¿Por qué cuesta lo que cuesta?</summary><p>El precio no es solo el rato de la reparación. Incluye ir hasta su casa, encontrar de dónde viene la avería, repararla con el material y las máquinas que hagan falta y probar que queda bien. Un atasco suele llevar de 1 a 3 horas; una fuga, de 1 a 4; un termo, de 2 a 4; y una bajante con máquina, de 2 a 5. Además, el fontanero es un autónomo dado de alta y responde de su trabajo.</p></details>
     <details><summary>¿El precio de la web es el precio final?</summary><p>No. Es orientativo: lo que suele costar en Sevilla cada tipo de avería. El fontanero le da el precio exacto al verla, antes de empezar a trabajar, y usted decide.</p></details>
     <details><summary>¿Por qué no me dan el precio exacto por teléfono?</summary><p>Porque depende de lo que haya: dónde está el atasco o la fuga, el acceso y el material. Por teléfono le puede orientar; el precio cerrado se lo da al verlo, antes de empezar.</p></details>
     <details><summary>¿Cuánto me cuesta usar OficioYa?</summary><p>Nada. Usted paga directamente al fontanero el trabajo que acepte, al precio acordado.</p></details>
@@ -775,6 +789,7 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
     var rango = oyEur(selected.low) + ' € – ' + oyEur(selected.high) + ' €';
     document.getElementById('oldRange').textContent = 'Lo más sencillo, desde ' + oyEur(selected.floor) + ' €';
     document.getElementById('priceRange').textContent = rango;
+    var he = document.getElementById('horasEst'); if (he) he.textContent = btn.dataset.horas || '—';
     var cv = document.getElementById('chipBv'), cs = document.getElementById('chipBs');
     if (cv) cv.textContent = rango;
     if (cs) cs.textContent = (btn.querySelector('b') ? btn.querySelector('b').textContent : selected.desc) + ' · ' + LUGAR;

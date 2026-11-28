@@ -31,7 +31,7 @@
 {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://www.aficioya.com/"}, {"@type": "ListItem", "position": 2, "name": "Fontanero en Sevilla", "item": "https://www.aficioya.com/fontanero-sevilla.html"}, {"@type": "ListItem", "position": 3, "name": "Fontanero urgente", "item": "https://www.aficioya.com/fontanero-urgente-sevilla"}]}
 </script>
 <script type="application/ld+json">
-{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "¿Cuánto cuesta un fontanero urgente en Sevilla?", "acceptedAnswer": {"@type": "Answer", "text": "Depende de la urgencia: una fuga o un atasco que desborda suelen salir entre 110 € y 340 €. Un atasco de alcantarillado, desde 250 €. Fuera de horario puede haber recargo: pregúntelo al llamar. El fontanero le confirma el precio al verla, antes de empezar."}}, {"@type": "Question", "name": "¿Qué hago con una fuga mientras llega el fontanero?", "acceptedAnswer": {"@type": "Answer", "text": "Cierre la llave de paso general para cortar el agua. Si el agua llega a enchufes o al cuadro eléctrico, baje también el diferencial. Y si puede afectar al vecino de abajo, avísele."}}, {"@type": "Question", "name": "¿Cuándo es una urgencia de verdad?", "acceptedAnswer": {"@type": "Answer", "text": "Cuando hay una fuga que no para o se acerca a la instalación eléctrica, se ha quedado sin agua por una avería o un atasco desborda. Un grifo que gotea o un atasco leve pueden esperar a horario normal."}}, {"@type": "Question", "name": "¿Cuánto tarda en venir?", "acceptedAnswer": {"@type": "Answer", "text": "Depende de dónde esté el fontanero en ese momento. Al hablar con él le dice cuándo puede ir, y usted decide."}}, {"@type": "Question", "name": "¿Puedo llamar de noche o en festivo?", "acceptedAnswer": {"@type": "Answer", "text": "Sí, llame a cualquier hora. Si en ese momento el fontanero no puede cogerlo, tiene su número para devolverle la llamada."}}, {"@type": "Question", "name": "¿Cuánto me cuesta usar OficioYa?", "acceptedAnswer": {"@type": "Answer", "text": "Nada. Usted paga directamente al fontanero el trabajo que acepte, al precio acordado."}}, {"@type": "Question", "name": "¿Hacen trabajos de gas?", "acceptedAnswer": {"@type": "Answer", "text": "No: calderas, calentadores e instalaciones de gas, no. Si huele a gas, no toque interruptores, abra las ventanas, salga de casa y llame al 112."}}]}
+{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "¿Cuánto cuesta un fontanero urgente en Sevilla?", "acceptedAnswer": {"@type": "Answer", "text": "Depende de la urgencia: una fuga o un atasco que desborda suelen salir entre 150 € y 500 €. Un atasco de alcantarillado, desde 280 €. Fuera de horario puede haber recargo: pregúntelo al llamar. El fontanero le confirma el precio al verla, antes de empezar."}}, {"@type": "Question", "name": "¿Por qué cuesta lo que cuesta?", "acceptedAnswer": {"@type": "Answer", "text": "El precio no es solo el rato de la reparación. Incluye ir hasta su casa, encontrar de dónde viene la avería, repararla con el material y las máquinas que hagan falta y probar que queda bien. Un atasco suele llevar de 1 a 3 horas; una fuga, de 1 a 4; un termo, de 2 a 4; y una bajante con máquina, de 2 a 5. Además, el fontanero es un autónomo dado de alta y responde de su trabajo."}}, {"@type": "Question", "name": "¿Qué hago con una fuga mientras llega el fontanero?", "acceptedAnswer": {"@type": "Answer", "text": "Cierre la llave de paso general para cortar el agua. Si el agua llega a enchufes o al cuadro eléctrico, baje también el diferencial. Y si puede afectar al vecino de abajo, avísele."}}, {"@type": "Question", "name": "¿Cuándo es una urgencia de verdad?", "acceptedAnswer": {"@type": "Answer", "text": "Cuando hay una fuga que no para o se acerca a la instalación eléctrica, se ha quedado sin agua por una avería o un atasco desborda. Un grifo que gotea o un atasco leve pueden esperar a horario normal."}}, {"@type": "Question", "name": "¿Cuánto tarda en venir?", "acceptedAnswer": {"@type": "Answer", "text": "Depende de dónde esté el fontanero en ese momento. Al hablar con él le dice cuándo puede ir, y usted decide."}}, {"@type": "Question", "name": "¿Puedo llamar de noche o en festivo?", "acceptedAnswer": {"@type": "Answer", "text": "Sí, llame a cualquier hora. Si en ese momento el fontanero no puede cogerlo, tiene su número para devolverle la llamada."}}, {"@type": "Question", "name": "¿Cuánto me cuesta usar OficioYa?", "acceptedAnswer": {"@type": "Answer", "text": "Nada. Usted paga directamente al fontanero el trabajo que acepte, al precio acordado."}}, {"@type": "Question", "name": "¿Hacen trabajos de gas?", "acceptedAnswer": {"@type": "Answer", "text": "No: calderas, calentadores e instalaciones de gas, no. Si huele a gas, no toque interruptores, abra las ventanas, salga de casa y llame al 112."}}]}
 </script>
 
 <style>
@@ -204,6 +204,16 @@ textarea.inp{height:auto;min-height:74px;padding:13px 16px;resize:vertical;line-
 .steps h3{margin:18px 0 8px;font-size:19px;font-weight:800;letter-spacing:-.01em;color:var(--ink)}
 .steps p{margin:0;font-size:14.5px;line-height:1.55;color:var(--ink2)}
 
+
+/* Horas de trabajo (28/11/2026) */
+.ticket .hrs{flex:0 0 auto;text-align:right}
+.ticket .hrs small{color:var(--mint,#7CF0C5)}
+.ticket .hrs b{display:block;margin-top:2px;white-space:nowrap;font-size:26px;font-weight:900;color:#fff;letter-spacing:-.02em}
+.ticket .hrs span{display:block;max-width:170px;margin-left:auto;margin-top:2px;font-size:11.5px;line-height:1.35;color:var(--ink2)}
+.tnote{margin:8px 2px 0;font-size:12px;color:var(--ink2)}
+.hrs-c{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:15px;font-weight:800;color:#FFE38A}
+.hrs-t{display:flex;align-items:center;gap:6px;margin-top:5px;font-size:13.5px;font-weight:700;color:#FFE38A}
+@media (max-width:640px){.ticket .hrs{text-align:left}.ticket .hrs span{margin-left:0;max-width:none}}
 /* Precios */
 .tabla{margin-top:36px;border-radius:30px;padding:10px 28px 22px}
 .tabla table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
@@ -455,25 +465,26 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
       </picture>
     </div>
     <div class="fl fa" data-par="0.10"><div class="fchip"><span class="fic"><svg class="ico" width="20" height="20" aria-hidden="true"><use href="#i-shield"/></svg></span><span><small>Fontanero comprobado</small><b>Alta de autónomo y acuerdo firmado</b></span></div></div>
-    <div class="fl fb" data-par="0.18"><div class="fchip"><small>LO QUE SUELE COSTAR</small><strong id="chipBv">110 € – 340 €</strong><span id="chipBs">Fuga o inundación · Sevilla</span></div></div>
+    <div class="fl fb" data-par="0.18"><div class="fchip"><small>LO QUE SUELE COSTAR</small><strong id="chipBv">150 € – 500 €</strong><span id="chipBs">Fuga o inundación · Sevilla</span></div></div>
 
     <div class="card dark" id="presupuesto">
       <div class="ft"><h2>Precio orientativo</h2><span class="tag-ok">Gratis</span></div>
       <p class="lbl">1 · ¿Qué le pasa?</p>
       <div class="tiles" id="chipGrid" role="group" aria-label="Tipo de avería">
-        <button type="button" class="tile chip-opt" aria-pressed="false" data-id="fuga" data-low="110" data-high="340" data-floor="90" data-desc="Fuga de agua o inundación (urgente)"><span class="ic"><svg class="ico" width="20" height="20" aria-hidden="true"><use href="#i-drop"/></svg></span><span><b>Fuga o inundación</b><small>El agua no para</small></span></button>
-        <button type="button" class="tile chip-opt" aria-pressed="false" data-id="atasco" data-low="120" data-high="310" data-floor="100" data-desc="Atasco o desagüe que desborda (urgente)"><span class="ic"><svg class="ico" width="20" height="20" aria-hidden="true"><use href="#i-drain"/></svg></span><span><b>Atasco que desborda</b><small>Rebosa o sube el agua</small></span></button>
-        <button type="button" class="tile chip-opt" aria-pressed="false" data-id="sinagua" data-low="110" data-high="290" data-floor="90" data-desc="Avería que ha cortado el suministro (urgente)"><span class="ic"><svg class="ico" width="20" height="20" aria-hidden="true"><use href="#i-tap"/></svg></span><span><b>Me he quedado sin agua</b><small>No sale agua en casa</small></span></button>
-        <button type="button" class="tile chip-opt" aria-pressed="false" data-id="termo" data-low="130" data-high="310" data-floor="100" data-desc="Avería urgente en termo eléctrico"><span class="ic"><svg class="ico" width="20" height="20" aria-hidden="true"><use href="#i-bolt"/></svg></span><span><b>Termo averiado</b><small>Pierde agua o salta la luz</small></span></button>
-        <button type="button" class="tile chip-opt ancha" aria-pressed="false" data-id="otro" data-low="110" data-high="340" data-floor="90" data-desc="Otra urgencia de fontanería"><span class="ic"><svg class="ico" width="20" height="20" aria-hidden="true"><use href="#i-tool"/></svg></span><span><b>Otra urgencia</b><small>Cuéntesela al fontanero al llamar</small></span></button>
+        <button type="button" class="tile chip-opt" aria-pressed="false" data-id="fuga" data-low="150" data-high="500" data-floor="110" data-horas="1 – 4 h" data-desc="Fuga de agua o inundación (urgente)"><span class="ic"><svg class="ico" width="20" height="20" aria-hidden="true"><use href="#i-drop"/></svg></span><span><b>Fuga o inundación</b><small>El agua no para</small></span></button>
+        <button type="button" class="tile chip-opt" aria-pressed="false" data-id="atasco" data-low="150" data-high="400" data-floor="120" data-horas="1 – 3 h" data-desc="Atasco o desagüe que desborda (urgente)"><span class="ic"><svg class="ico" width="20" height="20" aria-hidden="true"><use href="#i-drain"/></svg></span><span><b>Atasco que desborda</b><small>Rebosa o sube el agua</small></span></button>
+        <button type="button" class="tile chip-opt" aria-pressed="false" data-id="sinagua" data-low="140" data-high="380" data-floor="110" data-horas="1 – 3 h" data-desc="Avería que ha cortado el suministro (urgente)"><span class="ic"><svg class="ico" width="20" height="20" aria-hidden="true"><use href="#i-tap"/></svg></span><span><b>Me he quedado sin agua</b><small>No sale agua en casa</small></span></button>
+        <button type="button" class="tile chip-opt" aria-pressed="false" data-id="termo" data-low="180" data-high="500" data-floor="120" data-horas="2 – 4 h" data-desc="Avería urgente en termo eléctrico"><span class="ic"><svg class="ico" width="20" height="20" aria-hidden="true"><use href="#i-bolt"/></svg></span><span><b>Termo averiado</b><small>Pierde agua o salta la luz</small></span></button>
+        <button type="button" class="tile chip-opt ancha" aria-pressed="false" data-id="otro" data-low="150" data-high="500" data-floor="110" data-horas="1 – 4 h" data-desc="Otra urgencia de fontanería"><span class="ic"><svg class="ico" width="20" height="20" aria-hidden="true"><use href="#i-tool"/></svg></span><span><b>Otra urgencia</b><small>Cuéntesela al fontanero al llamar</small></span></button>
       </div>
       <p class="gas">Solo termos eléctricos: no hacemos calderas, calentadores ni instalaciones de gas.</p>
 
       <div class="result" id="resultBox" aria-live="polite">
         <div class="ticket">
           <div><small>LO QUE SUELE COSTAR</small><strong id="priceRange">—</strong><span class="desde" id="oldRange">—</span></div>
-          <p>El fontanero confirma el precio al verla, antes de empezar</p>
+          <div class="hrs"><small>TIEMPO DE TRABAJO</small><b id="horasEst">—</b><span>Llegar, encontrar el origen, repararlo y probarlo</span></div>
         </div>
+        <p class="tnote">El fontanero confirma el precio al verla, antes de empezar.</p>
         <p class="lbl">2 · Sus datos</p>
         <div class="two">
           <label class="fld"><span>Su nombre</span><input class="inp" id="leadNombre" type="text" autocomplete="name" placeholder="Nombre" maxlength="60"></label>
@@ -519,7 +530,7 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
       <div class="gbody">
         <h3>Fuga o inundación</h3>
         <p>Agua que no para de salir, una tubería rota o una llave de paso que no cierra.</p>
-        <div class="gfoot"><div><small>Lo habitual en Sevilla</small><strong>110 € – 340 €</strong></div><button class="btn-g" type="button" data-calc="fuga">Ver mi precio<svg class="ico" width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg></button></div>
+        <div class="gfoot"><div><small>Lo habitual en Sevilla</small><strong>150 € – 500 €</strong><span class="hrs-c"><svg class="ico" width="15" height="15" aria-hidden="true"><use href="#i-clock"/></svg>1 – 4 h de trabajo</span></div><button class="btn-g" type="button" data-calc="fuga">Ver mi precio<svg class="ico" width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg></button></div>
       </div>
     </article>
     <article class="gcard glass">
@@ -527,7 +538,7 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
       <div class="gbody">
         <h3>Atasco que desborda</h3>
         <p>El inodoro rebosa o el agua sube por la ducha o el fregadero.</p>
-        <div class="gfoot"><div><small>Lo habitual en Sevilla</small><strong>120 € – 310 €</strong></div><button class="btn-g" type="button" data-calc="atasco">Ver mi precio<svg class="ico" width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg></button></div>
+        <div class="gfoot"><div><small>Lo habitual en Sevilla</small><strong>150 € – 400 €</strong><span class="hrs-c"><svg class="ico" width="15" height="15" aria-hidden="true"><use href="#i-clock"/></svg>1 – 3 h de trabajo</span></div><button class="btn-g" type="button" data-calc="atasco">Ver mi precio<svg class="ico" width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg></button></div>
       </div>
     </article>
     <article class="gcard glass">
@@ -535,7 +546,7 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
       <div class="gbody">
         <h3>Me he quedado sin agua</h3>
         <p>No sale agua en casa, o sale muy poca, por una avería.</p>
-        <div class="gfoot"><div><small>Lo habitual en Sevilla</small><strong>110 € – 290 €</strong></div><button class="btn-g" type="button" data-calc="sinagua">Ver mi precio<svg class="ico" width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg></button></div>
+        <div class="gfoot"><div><small>Lo habitual en Sevilla</small><strong>140 € – 380 €</strong><span class="hrs-c"><svg class="ico" width="15" height="15" aria-hidden="true"><use href="#i-clock"/></svg>1 – 3 h de trabajo</span></div><button class="btn-g" type="button" data-calc="sinagua">Ver mi precio<svg class="ico" width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg></button></div>
       </div>
     </article>
     <article class="gcard glass">
@@ -543,7 +554,7 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
       <div class="gbody">
         <h3>Termo averiado</h3>
         <p>Pierde agua, no calienta o hace saltar la luz. Solo termos eléctricos.</p>
-        <div class="gfoot"><div><small>Lo habitual en Sevilla</small><strong>130 € – 310 €</strong></div><button class="btn-g" type="button" data-calc="termo">Ver mi precio<svg class="ico" width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg></button></div>
+        <div class="gfoot"><div><small>Lo habitual en Sevilla</small><strong>180 € – 500 €</strong><span class="hrs-c"><svg class="ico" width="15" height="15" aria-hidden="true"><use href="#i-clock"/></svg>2 – 4 h de trabajo</span></div><button class="btn-g" type="button" data-calc="termo">Ver mi precio<svg class="ico" width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg></button></div>
       </div>
     </article>
     <article class="gcard glass">
@@ -551,7 +562,7 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
       <div class="gbody">
         <h3>Otra urgencia</h3>
         <p>Cualquier otra avería de fontanería que no puede esperar: cuéntesela al fontanero al llamar.</p>
-        <div class="gfoot"><div><small>Lo habitual en Sevilla</small><strong>110 € – 340 €</strong></div><button class="btn-g" type="button" data-calc="otro">Ver mi precio<svg class="ico" width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg></button></div>
+        <div class="gfoot"><div><small>Lo habitual en Sevilla</small><strong>150 € – 500 €</strong><span class="hrs-c"><svg class="ico" width="15" height="15" aria-hidden="true"><use href="#i-clock"/></svg>1 – 4 h de trabajo</span></div><button class="btn-g" type="button" data-calc="otro">Ver mi precio<svg class="ico" width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg></button></div>
       </div>
     </article>
     <article class="gcard tip">
@@ -583,18 +594,18 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
   <div class="head">
     <p class="eyebrow">PRECIOS</p>
     <h2 class="h">Lo que suele costar una urgencia en Sevilla.</h2>
-    <p class="lead">Precios orientativos con mano de obra. Fuera de horario puede haber recargo: pregúntelo al llamar. El fontanero le confirma el precio al verla, antes de empezar.</p>
+    <p class="lead">Precios orientativos con mano de obra. Fuera de horario puede haber recargo: pregúntelo al llamar. El fontanero le confirma el precio al verla, antes de empezar. Debajo de cada trabajo, el tiempo que suele llevar: llegar, encontrar el origen, repararlo y probar que queda bien.</p>
   </div>
   <div class="tabla glass">
     <table>
       <caption>Ver el precio orientativo y hablar con el fontanero es gratis. Usted paga directamente al fontanero el trabajo que acepte.</caption>
       <thead><tr><th scope="col">Urgencia</th><th scope="col" class="num-c">Desde</th><th scope="col" class="num-c">Lo habitual</th></tr></thead>
       <tbody>
-        <tr><td>Fuga o inundación</td><td class="num-c">90 €</td><td class="num-c hab">110 – 340 €</td></tr>
-        <tr><td>Atasco que desborda</td><td class="num-c">100 €</td><td class="num-c hab">120 – 310 €</td></tr>
-        <tr><td>Me he quedado sin agua</td><td class="num-c">90 €</td><td class="num-c hab">110 – 290 €</td></tr>
-        <tr><td>Termo averiado</td><td class="num-c">100 €</td><td class="num-c hab">130 – 310 €</td></tr>
-        <tr><td>Otra urgencia</td><td class="num-c">90 €</td><td class="num-c hab">110 – 340 €</td></tr>
+        <tr><td>Fuga o inundación<span class="hrs-t"><svg class="ico" width="14" height="14" aria-hidden="true"><use href="#i-clock"/></svg>1 – 4 h de trabajo</span></td><td class="num-c">110 €</td><td class="num-c hab">150 – 500 €</td></tr>
+        <tr><td>Atasco que desborda<span class="hrs-t"><svg class="ico" width="14" height="14" aria-hidden="true"><use href="#i-clock"/></svg>1 – 3 h de trabajo</span></td><td class="num-c">120 €</td><td class="num-c hab">150 – 400 €</td></tr>
+        <tr><td>Me he quedado sin agua<span class="hrs-t"><svg class="ico" width="14" height="14" aria-hidden="true"><use href="#i-clock"/></svg>1 – 3 h de trabajo</span></td><td class="num-c">110 €</td><td class="num-c hab">140 – 380 €</td></tr>
+        <tr><td>Termo averiado<span class="hrs-t"><svg class="ico" width="14" height="14" aria-hidden="true"><use href="#i-clock"/></svg>2 – 4 h de trabajo</span></td><td class="num-c">120 €</td><td class="num-c hab">180 – 500 €</td></tr>
+        <tr><td>Otra urgencia<span class="hrs-t"><svg class="ico" width="14" height="14" aria-hidden="true"><use href="#i-clock"/></svg>1 – 4 h de trabajo</span></td><td class="num-c">110 €</td><td class="num-c hab">150 – 500 €</td></tr>
       </tbody>
     </table>
   </div>
@@ -639,7 +650,8 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
     <h2 class="h">Lo que más nos preguntan.</h2>
   </div>
   <div class="faq glass">
-    <details><summary>¿Cuánto cuesta un fontanero urgente en Sevilla?</summary><p>Depende de la urgencia: una fuga o un atasco que desborda suelen salir entre 110 € y 340 €. Un atasco de alcantarillado, desde 250 €. Fuera de horario puede haber recargo: pregúntelo al llamar. El fontanero le confirma el precio al verla, antes de empezar.</p></details>
+    <details><summary>¿Cuánto cuesta un fontanero urgente en Sevilla?</summary><p>Depende de la urgencia: una fuga o un atasco que desborda suelen salir entre 150 € y 500 €. Un atasco de alcantarillado, desde 280 €. Fuera de horario puede haber recargo: pregúntelo al llamar. El fontanero le confirma el precio al verla, antes de empezar.</p></details>
+    <details><summary>¿Por qué cuesta lo que cuesta?</summary><p>El precio no es solo el rato de la reparación. Incluye ir hasta su casa, encontrar de dónde viene la avería, repararla con el material y las máquinas que hagan falta y probar que queda bien. Un atasco suele llevar de 1 a 3 horas; una fuga, de 1 a 4; un termo, de 2 a 4; y una bajante con máquina, de 2 a 5. Además, el fontanero es un autónomo dado de alta y responde de su trabajo.</p></details>
     <details><summary>¿Qué hago con una fuga mientras llega el fontanero?</summary><p>Cierre la llave de paso general para cortar el agua. Si el agua llega a enchufes o al cuadro eléctrico, baje también el diferencial. Y si puede afectar al vecino de abajo, avísele.</p></details>
     <details><summary>¿Cuándo es una urgencia de verdad?</summary><p>Cuando hay una fuga que no para o se acerca a la instalación eléctrica, se ha quedado sin agua por una avería o un atasco desborda. Un grifo que gotea o un atasco leve pueden esperar a horario normal.</p></details>
     <details><summary>¿Cuánto tarda en venir?</summary><p>Depende de dónde esté el fontanero en ese momento. Al hablar con él le dice cuándo puede ir, y usted decide.</p></details>
@@ -763,6 +775,7 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
     var rango = oyEur(selected.low) + ' € – ' + oyEur(selected.high) + ' €';
     document.getElementById('oldRange').textContent = 'Lo más sencillo, desde ' + oyEur(selected.floor) + ' €';
     document.getElementById('priceRange').textContent = rango;
+    var he = document.getElementById('horasEst'); if (he) he.textContent = btn.dataset.horas || '—';
     var cv = document.getElementById('chipBv'), cs = document.getElementById('chipBs');
     if (cv) cv.textContent = rango;
     if (cs) cs.textContent = (btn.querySelector('b') ? btn.querySelector('b').textContent : selected.desc) + ' · ' + LUGAR;

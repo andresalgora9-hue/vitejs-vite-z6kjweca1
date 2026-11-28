@@ -40,11 +40,11 @@
     fachada: { f1: [900, 1500], f2: [1500, 2600], f3: [2600, 5250] },
     escalera: { e1: [900, 1800], e2: [1800, 3500], e3: [3500, 6000] },
     // Fontanería Sevilla (landing fontanero-sevilla): [desde, rango]
-    fuga: { desde: 70, r: [90, 290] },
-    atasco: { desde: 90, r: [100, 260] },
-    grifo: { desde: 60, r: [80, 210] },
-    termo: { desde: 80, r: [110, 290] },
-    instalacion: { desde: 140, r: [190, 1190] },
+    fuga: { desde: 90, r: [120, 450] },
+    atasco: { desde: 100, r: [120, 350] },
+    grifo: { desde: 80, r: [100, 280] },
+    termo: { desde: 100, r: [150, 450] },
+    instalacion: { desde: 250, r: [350, 1500] },
     renovacion: { pequeno: [1500, 2500], medio: [2000, 3500], grande: [3000, 5000], tramo: 400 }
   };
   // Pintar por metros (misma tabla que la calculadora por m² de las landings de pintura)
