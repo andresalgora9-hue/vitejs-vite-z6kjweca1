@@ -12,6 +12,10 @@
   ],
   "rewrites": [
     {
+      "source": "/creceya",
+      "destination": "/creceya.html"
+    },
+    {
       "source": "/albanil-alcala-de-guadaira",
       "destination": "/albanil-alcala-de-guadaira.html"
     },
