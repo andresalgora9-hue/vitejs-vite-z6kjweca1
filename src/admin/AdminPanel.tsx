@@ -19,8 +19,9 @@ import AgenteIA from "./apAgenteIA";
 import Chats from "./apChats";
 import Archivos from "./apArchivos";
 import Impuestos from "./apImpuestos";
+import CreceYa from "./apCreceYa";
 
-type Seccion = "resumen" | "analisis" | "equipo" | "agente" | "chats" | "leads" | "facturas" | "impuestos" | "archivos" | "profesionales" | "captacion" | "mensajes" | "marketing" | "ajustes" | "antiguo";
+type Seccion = "resumen" | "analisis" | "equipo" | "agente" | "chats" | "leads" | "facturas" | "impuestos" | "archivos" | "profesionales" | "captacion" | "mensajes" | "marketing" | "ajustes" | "antiguo" | "creceya";
 
 const NAV: { id: Seccion; label: string; icono: string }[] = [
   { id: "resumen", label: "Resumen", icono: "M4 13h4v7H4zM10 8h4v12h-4zM16 4h4v16h-4z" },
@@ -38,12 +39,14 @@ const NAV: { id: Seccion; label: string; icono: string }[] = [
   { id: "marketing", label: "Marketing", icono: "M4 18l5-6 4 3 7-9M15 6h5v5" },
   { id: "ajustes", label: "Ajustes", icono: "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 0 0 5 12a7 7 0 0 0 .1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6c.1-.4.1-.8.1-1.2z" },
   { id: "antiguo", label: "CRM antiguo", icono: "M4 7h16v12H4zM4 7l2-3h12l2 3M10 11h4" },
+  { id: "creceya", label: "CreceYa · Clínicas", icono: "M7.5 3.5h9a4 4 0 0 1 4 4v9a4 4 0 0 1-4 4h-9a4 4 0 0 1-4-4v-9a4 4 0 0 1 4-4zM12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM17 7h.01" },
 ];
 
 // Menú ordenado por bloques
 const GRUPOS: { t: string; ids: Seccion[] }[] = [
   { t: "Negocio", ids: ["resumen", "marketing", "analisis"] },
   { t: "Clientes y profesionales", ids: ["leads", "profesionales", "captacion", "agente", "chats", "mensajes"] },
+  { t: "Agencia", ids: ["creceya"] },
   { t: "Dinero y papeles", ids: ["facturas", "impuestos", "archivos"] },
   { t: "Equipo", ids: ["equipo"] },
   { t: "Sistema", ids: ["ajustes", "antiguo"] },
@@ -54,9 +57,14 @@ function Icono({ d, size = 18 }: { d: string; size?: number }) {
   return <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d={d} /></svg>;
 }
 
+// CreceYa (agencia de redes) es solo del admin: el gestor no lo ve
+const esAdminLocal = () => { try { return JSON.parse(localStorage.getItem("oy_user") || "{}").type === "admin"; } catch { return false; } };
+
 export default function AdminPanel({ onLogout, nombre }: { onLogout: () => void; nombre?: string }) {
   const ancho = useAncho();
   const movil = ancho < 900;
+  const [esAdmin] = useState(esAdminLocal);
+  const navVisible = esAdmin ? NAV_ORDEN : NAV_ORDEN.filter((n) => n.id !== "creceya");
   const [sec, setSec] = useState<Seccion>(() => {
     try {
       const q = new URLSearchParams(window.location.search).get("panel");
@@ -128,6 +136,19 @@ export default function AdminPanel({ onLogout, nombre }: { onLogout: () => void;
     return () => clearInterval(t);
   }, [sec]);
 
+  // CreceYa: clínicas sin llamar, para el aviso del menú
+  const [cyNuevos, setCyNuevos] = useState(0);
+  useEffect(() => {
+    if (!esAdmin) return;
+    const leer = async () => {
+      const { count, error } = await db.from("creceya_leads").select("id", { count: "exact", head: true }).eq("estado", "nuevo");
+      if (!error) setCyNuevos(count || 0);
+    };
+    leer();
+    const t = setInterval(() => { if (document.visibilityState === "visible") leer(); }, 30000);
+    return () => clearInterval(t);
+  }, [sec, esAdmin]);
+
   // CRM antiguo: el panel de siempre, a pantalla completa, con botón para volver
   if (sec === "antiguo") {
     return (
@@ -147,7 +168,7 @@ export default function AdminPanel({ onLogout, nombre }: { onLogout: () => void;
   const sinAsignar = d ? d.solicitudes.filter((s) => ts(s.created_at) >= ts(INICIO_PAGO_POR_LEAD) && !usados.has(s.id) && s.status !== "descartado" && s.status !== "cancelled").length : 0;
   const vencidas = d ? d.facturas.filter((f) => f.status === "pendiente" && ts(f.due_at) < Date.now()).length : 0;
   const altas = d ? d.pros.filter((p) => (ts(p.joined_at || p.created_at) >= ts(INICIO_ALTAS) && !["pagada", "exento"].includes(p.activacion_estado || "")) || (p as any).alta_estado === "pendiente").length : 0;
-  const globo: Partial<Record<Seccion, number>> = { leads: sinAsignar, facturas: vencidas, profesionales: altas, captacion: captAtascados };
+  const globo: Partial<Record<Seccion, number>> = { leads: sinAsignar, facturas: vencidas, profesionales: altas, captacion: captAtascados, creceya: cyNuevos };
 
   const contenido = () => {
     // Captación: el CRM de Sandra con la vista de admin (gestión comercial, pipeline, comisiones), dentro del panel
@@ -157,6 +178,8 @@ export default function AdminPanel({ onLogout, nombre }: { onLogout: () => void;
         height: movil ? "calc(100vh - 128px)" : "calc(100vh - 96px)",
       }} />
     );
+    // CreceYa: no depende de los datos de OficioYa
+    if (sec === "creceya") return esAdmin ? <CreceYa aviso={aviso} /> : <div style={{ color: C.mutedL, padding: 30 }}>Esta sección es solo del admin.</div>;
     if (error) return <div style={{ color: C.red, padding: 30 }}>{error}</div>;
     if (!d) return <div style={{ color: C.mutedL, padding: 30 }}>Cargando datos...</div>;
     const props = { d, recargar: cargar, aviso, irA: (s: string) => setSec(s as Seccion) };
@@ -191,7 +214,7 @@ export default function AdminPanel({ onLogout, nombre }: { onLogout: () => void;
       }}>
         <Icono d={n.icono} />
         <span style={{ flex: horizontal ? undefined : 1 }}>{n.label}</span>
-        {g > 0 && <span style={{ background: n.id === "facturas" || n.id === "captacion" ? C.red : C.orange, color: "#fff", borderRadius: 99, minWidth: 18, height: 18, fontSize: 10.5, fontWeight: 800, display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "0 5px" }}>{g > 99 ? "99+" : g}</span>}
+        {g > 0 && <span style={{ background: n.id === "facturas" || n.id === "captacion" || n.id === "creceya" ? C.red : C.orange, color: "#fff", borderRadius: 99, minWidth: 18, height: 18, fontSize: 10.5, fontWeight: 800, display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "0 5px" }}>{g > 99 ? "99+" : g}</span>}
       </button>
     );
   };
@@ -212,7 +235,7 @@ export default function AdminPanel({ onLogout, nombre }: { onLogout: () => void;
         </div>
         {movil && (
           <nav style={{ display: "flex", gap: 4, overflowX: "auto", padding: "0 10px 8px", WebkitOverflowScrolling: "touch" as any }}>
-            {NAV_ORDEN.map((n) => botonNav(n, true))}
+            {navVisible.map((n) => botonNav(n, true))}
           </nav>
         )}
       </header>
@@ -220,9 +243,9 @@ export default function AdminPanel({ onLogout, nombre }: { onLogout: () => void;
       <div style={{ display: "flex" }}>
         {!movil && (
           <aside style={{ width: 220, flexShrink: 0, borderRight: "1px solid " + C.border, padding: "16px 10px", position: "sticky", top: 54, height: "calc(100vh - 54px)", boxSizing: "border-box", overflowY: "auto" }}>
-            {NAV_ORDEN.map((n, i) => (
+            {navVisible.map((n, i) => (
               <React.Fragment key={n.id}>
-                {(i === 0 || NAV_ORDEN[i - 1].grupo !== n.grupo) && (
+                {(i === 0 || navVisible[i - 1].grupo !== n.grupo) && (
                   <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: C.muted, padding: i === 0 ? "2px 12px 6px" : "16px 12px 6px" }}>{n.grupo}</div>
                 )}
                 {botonNav(n, false)}
