@@ -1,0 +1,651 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CreceYa · Redes sociales para clínicas estéticas en Sevilla</title>
+<meta name="description" content="Llevamos el Instagram de tu clínica estética todo el mes: 15 reels, 2 carruseles, 15 historias, comentarios y mensajes, e informe semanal y mensual. Solo clínicas de Sevilla.">
+<link rel="canonical" href="https://aficioya.com/creceya">
+<meta property="og:title" content="CreceYa · Redes sociales para clínicas estéticas en Sevilla">
+<meta property="og:description" content="Tu clínica en Instagram todo el mes. Tú solo atiendes a quien te escribe.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://aficioya.com/creceya">
+<meta name="theme-color" content="#14302A">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2314302A'/%3E%3Cpath d='M9 21l5-5 3 3 6-7' stroke='%23CBB8F0' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --porcelana: #F3F5F3;
+    --blanco: #FFFFFF;
+    --tinta: #14302A;
+    --tinta-2: #0E241F;
+    --salvia: #5A766E;
+    --linea: #DAE2DE;
+    --lila: #CBB8F0;
+    --lila-hondo: #7B5FC4;
+    --melocoton: #F4C7B0;
+    --menta: #B5E0CF;
+    --error: #B3261E;
+    --radio-g: 22px;
+    --radio-m: 14px;
+    --radio-p: 10px;
+    --ancho: 1120px;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  body {
+    margin: 0; background: var(--porcelana); color: var(--tinta);
+    font-family: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-optical-sizing: auto; font-size: 17px; line-height: 1.55; font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; }
+  :focus-visible { outline: 3px solid var(--lila-hondo); outline-offset: 3px; border-radius: 6px; }
+  .envoltorio { max-width: var(--ancho); margin: 0 auto; padding: 0 22px; }
+
+  /* Cabecera */
+  .barra { padding: 18px 0; }
+  .barra .envoltorio { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+  .marca { text-decoration: none; display: inline-flex; flex-direction: column; line-height: 1; }
+  .marca b { font-size: 24px; font-weight: 700; letter-spacing: -0.035em; font-variation-settings: "opsz" 72; }
+  .marca span { font-size: 12.5px; color: var(--salvia); margin-top: 4px; letter-spacing: 0.01em; }
+  .barra .boton { padding: 11px 16px; font-size: 15px; }
+
+  /* Botón */
+  .boton {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    background: var(--tinta); color: var(--blanco); text-decoration: none; border: 0; cursor: pointer;
+    font: inherit; font-weight: 600; font-size: 17px; padding: 16px 24px; border-radius: 999px;
+    transition: background-color .15s ease;
+  }
+  .boton:hover { background: var(--tinta-2); }
+  .boton[disabled] { opacity: .55; cursor: progress; }
+
+  /* Portada */
+  .portada { padding: 22px 0 64px; }
+  .portada .envoltorio { display: grid; grid-template-columns: 1fr; gap: 40px; align-items: center; }
+  h1 {
+    margin: 0; font-weight: 650; letter-spacing: -0.035em; line-height: 1.02;
+    font-size: clamp(38px, 9.4vw, 66px); font-variation-settings: "opsz" 96; max-width: 13ch;
+  }
+  .entradilla { margin: 22px 0 0; font-size: 19px; line-height: 1.5; color: var(--salvia); max-width: 34ch; }
+  .entradilla strong { color: var(--tinta); font-weight: 600; }
+  .accion { margin-top: 30px; display: flex; flex-wrap: wrap; align-items: center; gap: 14px 18px; }
+  .nota { font-size: 14.5px; color: var(--salvia); }
+
+  /* Calendario del mes */
+  .mes {
+    background: var(--blanco); border-radius: var(--radio-g); padding: 22px 18px 18px;
+    box-shadow: 0 1px 0 var(--linea), 0 24px 60px -32px rgba(20, 48, 42, .35);
+  }
+  .mes-cab { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin: 0 4px 14px; }
+  .mes-cab h2 { margin: 0; font-size: 19px; font-weight: 600; letter-spacing: -0.015em; }
+  .mes-cab small { font-size: 13.5px; color: var(--salvia); }
+  .semana, .dias { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .semana span { text-align: center; font-size: 12.5px; color: var(--salvia); padding-bottom: 6px; }
+  .dia {
+    position: relative; aspect-ratio: 1 / 1.18; border-radius: var(--radio-p); background: var(--porcelana);
+    padding: 4px 6px; font-size: 11.5px; line-height: 1.2; color: var(--salvia); font-variant-numeric: tabular-nums;
+  }
+  .dia.vacio { background: transparent; }
+  .dia .reel, .dia .carrusel, .dia .historia { position: absolute; }
+  .dia .reel { left: 28%; right: 16%; top: 40%; bottom: 10%; background: var(--lila); border-radius: 6px; }
+  .dia .reel::after {
+    content: ""; position: absolute; left: 50%; top: 50%; transform: translate(-35%, -50%);
+    border-left: 7px solid var(--tinta); border-top: 4.5px solid transparent; border-bottom: 4.5px solid transparent; opacity: .75;
+  }
+  .dia .carrusel { left: 24%; right: 22%; top: 46%; bottom: 14%; background: var(--melocoton); border-radius: 5px; box-shadow: 5px -5px 0 0 #F9DED0; }
+  .dia .historia { right: 5px; bottom: 5px; width: 10px; height: 10px; border-radius: 50%; background: var(--menta); box-shadow: 0 0 0 2px var(--blanco), 0 0 0 3.5px var(--menta); }
+  .dia.reel-y-hist .historia { right: 4px; bottom: 4px; }
+  .leyenda { list-style: none; margin: 16px 4px 0; padding: 14px 0 0; border-top: 1px solid var(--linea); display: grid; grid-template-columns: repeat(3, auto); justify-content: space-between; gap: 8px; }
+  .leyenda li { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+  .leyenda b { font-weight: 700; font-size: 16px; }
+  .muestra { width: 14px; height: 14px; border-radius: 4px; flex-shrink: 0; }
+  .muestra.r { background: var(--lila); }
+  .muestra.c { background: var(--melocoton); }
+  .muestra.h { background: var(--menta); border-radius: 50%; }
+  @media (prefers-reduced-motion: no-preference) {
+    .dia > i { animation: aparece .42s cubic-bezier(.2, .8, .2, 1.2) both; animation-delay: calc(var(--n) * 28ms + 250ms); }
+    @keyframes aparece { from { opacity: 0; transform: scale(.4); } to { opacity: 1; transform: none; } }
+    .dia .reel::after { animation: none; }
+  }
+
+  /* Secciones */
+  section.bloque { padding: 68px 0; }
+  section.bloque + section.bloque { border-top: 1px solid var(--linea); }
+  h2.titulo {
+    margin: 0 0 12px; font-size: clamp(30px, 6.2vw, 44px); font-weight: 650; letter-spacing: -0.03em;
+    line-height: 1.06; font-variation-settings: "opsz" 96; max-width: 18ch;
+  }
+  .bajada { margin: 0 0 34px; color: var(--salvia); font-size: 18px; max-width: 46ch; }
+
+  /* Qué incluye */
+  .incluye { list-style: none; margin: 0; padding: 0; }
+  .incluye li { display: grid; grid-template-columns: 92px 1fr; gap: 6px 18px; padding: 20px 0; border-top: 1px solid var(--linea); align-items: baseline; }
+  .incluye li:last-child { border-bottom: 1px solid var(--linea); }
+  .cifra { font-size: 44px; font-weight: 700; letter-spacing: -0.04em; line-height: 1; font-variation-settings: "opsz" 96; font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 10px; }
+  .cifra .muestra { width: 12px; height: 12px; }
+  .incluye h3 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
+  .incluye p { margin: 4px 0 0; color: var(--salvia); max-width: 52ch; }
+  .icono-linea { width: 40px; height: 40px; border-radius: 50%; background: var(--blanco); border: 1px solid var(--linea); display: inline-flex; align-items: center; justify-content: center; }
+
+  /* De dónde venimos */
+  .origen { display: grid; gap: 28px; }
+  .origen .dato { font-size: clamp(64px, 16vw, 112px); line-height: .9; font-weight: 700; letter-spacing: -0.05em; font-variation-settings: "opsz" 96; }
+  .origen .dato small { display: block; font-size: 18px; letter-spacing: 0; font-weight: 500; margin-top: 12px; color: var(--salvia); line-height: 1.4; max-width: 24ch; }
+  .origen p { margin: 0; font-size: 18px; max-width: 44ch; }
+  .origen p + p { margin-top: 14px; color: var(--salvia); }
+
+  /* Pasos (es una secuencia real) */
+  .pasos { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; counter-reset: paso; }
+  .pasos li { counter-increment: paso; display: grid; grid-template-columns: 44px 1fr; gap: 16px; padding: 18px 0; position: relative; }
+  .pasos li::before {
+    content: counter(paso); width: 36px; height: 36px; border-radius: 50%; background: var(--tinta); color: var(--blanco);
+    display: inline-flex; align-items: center; justify-content: center; font-weight: 600; font-size: 15px; position: relative; z-index: 1;
+  }
+  .pasos li:not(:last-child)::after { content: ""; position: absolute; left: 17.5px; top: 54px; bottom: -18px; width: 1px; background: var(--linea); }
+  .pasos h3 { margin: 4px 0 0; font-size: 19px; font-weight: 600; }
+  .pasos p { margin: 4px 0 0; color: var(--salvia); max-width: 48ch; }
+
+  /* Formulario */
+  .pedir { background: var(--tinta); color: var(--blanco); border-radius: 0; }
+  .pedir h2.titulo { color: var(--blanco); }
+  .pedir .bajada { color: #B9CCC5; }
+  .tarjeta { background: var(--blanco); color: var(--tinta); border-radius: var(--radio-g); padding: 26px 22px 24px; max-width: 620px; }
+  .progreso { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; font-size: 14px; color: var(--salvia); }
+  .progreso .rayas { display: flex; gap: 6px; flex: 1; max-width: 160px; }
+  .progreso .rayas i { flex: 1; height: 4px; border-radius: 4px; background: var(--linea); }
+  .progreso .rayas i.hecho { background: var(--tinta); }
+  .paso-form { border: 0; margin: 0; padding: 0; min-width: 0; }
+  .paso-form legend { padding: 0; font-size: 23px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; margin-bottom: 6px; }
+  .paso-form .ayuda { margin: 0 0 18px; color: var(--salvia); font-size: 15px; }
+  .opciones { display: grid; gap: 10px; }
+  .opcion {
+    width: 100%; text-align: left; font: inherit; font-size: 17px; font-weight: 500; color: var(--tinta); cursor: pointer;
+    background: var(--porcelana); border: 1.5px solid transparent; border-radius: var(--radio-m); padding: 16px 18px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; transition: border-color .12s ease, background-color .12s ease;
+  }
+  .opcion:hover { border-color: var(--tinta); }
+  .opcion[aria-pressed="true"] { background: #EDE6FB; border-color: var(--lila-hondo); }
+  .opcion .punto { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--salvia); flex-shrink: 0; }
+  .opcion[aria-pressed="true"] .punto { border: 6px solid var(--lila-hondo); }
+  .campo { margin-bottom: 14px; }
+  .campo label { display: block; font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+  .campo label span { font-weight: 400; color: var(--salvia); }
+  .campo input {
+    width: 100%; font: inherit; font-size: 17px; color: var(--tinta); background: var(--porcelana);
+    border: 1.5px solid var(--linea); border-radius: var(--radio-p); padding: 14px 14px; outline: none;
+  }
+  .campo input:focus { border-color: var(--tinta); background: var(--blanco); }
+  .campo input[aria-invalid="true"] { border-color: var(--error); }
+  .error-campo { color: var(--error); font-size: 14px; margin-top: 6px; display: none; }
+  .error-campo.ver { display: block; }
+  .acepto { display: flex; gap: 10px; align-items: flex-start; font-size: 14.5px; color: var(--salvia); margin: 6px 0 18px; line-height: 1.45; }
+  .acepto input { width: 20px; height: 20px; margin: 1px 0 0; accent-color: var(--tinta); flex-shrink: 0; }
+  .pie-form { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 18px; }
+  .atras { background: none; border: 0; font: inherit; color: var(--salvia); cursor: pointer; padding: 8px 2px; text-decoration: underline; text-underline-offset: 3px; }
+  .error-envio { color: var(--error); font-size: 15px; margin: 12px 0 0; display: none; }
+  .error-envio.ver { display: block; }
+  .oculto-bot { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+  .hecho-ok { text-align: left; }
+  .hecho-ok .sello { width: 56px; height: 56px; border-radius: 50%; background: var(--menta); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 14px; }
+  .hecho-ok h3 { margin: 0; font-size: 26px; letter-spacing: -0.02em; font-weight: 650; }
+  .hecho-ok p { margin: 10px 0 0; color: var(--salvia); font-size: 17px; max-width: 40ch; }
+  [hidden] { display: none !important; }
+
+  /* Preguntas */
+  .preguntas details { border-top: 1px solid var(--linea); }
+  .preguntas details:last-child { border-bottom: 1px solid var(--linea); }
+  .preguntas summary { list-style: none; cursor: pointer; padding: 20px 40px 20px 0; position: relative; font-size: 19px; font-weight: 600; letter-spacing: -0.01em; }
+  .preguntas summary::-webkit-details-marker { display: none; }
+  .preguntas summary::after { content: ""; position: absolute; right: 8px; top: 50%; width: 12px; height: 12px; border-right: 2px solid var(--tinta); border-bottom: 2px solid var(--tinta); transform: translateY(-70%) rotate(45deg); transition: transform .2s ease; }
+  .preguntas details[open] summary::after { transform: translateY(-30%) rotate(-135deg); }
+  .preguntas details p { margin: -6px 0 20px; color: var(--salvia); max-width: 60ch; }
+
+  footer { padding: 34px 0 110px; font-size: 14px; color: var(--salvia); }
+  footer .envoltorio { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px 22px; }
+  footer nav { display: flex; gap: 18px; }
+
+  /* Barra fija en móvil */
+  .fija {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    background: rgba(243, 245, 243, .94); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    border-top: 1px solid var(--linea); transform: translateY(110%); transition: transform .25s ease;
+  }
+  .fija.ver { transform: none; }
+  .fija .boton { width: 100%; }
+
+  /* Cookies (solo si hay píxel configurado) */
+  .cookies { position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 60; background: var(--blanco); color: var(--tinta); border-radius: var(--radio-m); padding: 16px; box-shadow: 0 12px 40px -12px rgba(20, 48, 42, .45); max-width: 520px; margin: 0 auto; font-size: 14.5px; }
+  .cookies p { margin: 0 0 12px; }
+  .cookies .fila { display: flex; gap: 10px; }
+  .cookies button { flex: 1; font: inherit; font-weight: 600; padding: 11px; border-radius: 999px; cursor: pointer; border: 1.5px solid var(--tinta); background: var(--blanco); color: var(--tinta); }
+  .cookies button.si { background: var(--tinta); color: var(--blanco); }
+
+  @media (min-width: 900px) {
+    body { font-size: 18px; }
+    .barra { padding: 26px 0; }
+    .portada { padding: 34px 0 96px; }
+    .portada .envoltorio { grid-template-columns: 1.1fr .9fr; gap: 64px; }
+    .mes { padding: 26px 24px 22px; }
+    section.bloque { padding: 96px 0; }
+    .incluye li { grid-template-columns: 140px 1fr; padding: 24px 0; }
+    .cifra { font-size: 56px; }
+    .origen { grid-template-columns: 1fr 1fr; gap: 64px; align-items: end; }
+    .pasos { grid-template-columns: repeat(4, 1fr); gap: 24px; }
+    .pasos li { grid-template-columns: 1fr; gap: 14px; padding: 0; }
+    .pasos li:not(:last-child)::after { left: 46px; right: -12px; top: 18px; bottom: auto; width: auto; height: 1px; }
+    .pedir .envoltorio { display: grid; grid-template-columns: .9fr 1.1fr; gap: 64px; align-items: start; }
+    .tarjeta { padding: 34px 32px 30px; }
+    .fija { display: none; }
+    footer { padding-bottom: 40px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="barra">
+  <div class="envoltorio">
+    <a class="marca" href="/creceya" aria-label="CreceYa, by OficioYa"><b>CreceYa</b><span>by OficioYa</span></a>
+    <a class="boton" href="#pedir" data-ir-form>Pedir propuesta</a>
+  </div>
+</header>
+
+<main>
+  <section class="portada" aria-labelledby="titular">
+    <div class="envoltorio">
+      <div>
+        <h1 id="titular">Tu clínica en Instagram todo el mes. Tú solo atiendes a quien te escribe.</h1>
+        <p class="entradilla">Llevamos las redes de clínicas estéticas de Sevilla: <strong>15 reels, 2 carruseles y 15 historias al mes</strong>, contestamos comentarios y mensajes y cada semana te contamos qué ha funcionado.</p>
+        <div class="accion">
+          <a class="boton" href="#pedir" id="cta-portada" data-ir-form>Pedir mi propuesta</a>
+          <span class="nota">Gratis y sin compromiso. Solo clínicas de Sevilla.</span>
+        </div>
+      </div>
+
+      <figure class="mes" aria-labelledby="mes-titulo" style="margin:0">
+        <div class="mes-cab">
+          <h2 id="mes-titulo">Así es un mes con nosotros</h2>
+        </div>
+        <div class="semana" aria-hidden="true"><span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+        <div class="dias" id="dias" role="img" aria-label="Calendario de 30 días: reel en días alternos, historias el resto de días y dos carruseles al mes."></div>
+        <ul class="leyenda">
+          <li><span class="muestra r" aria-hidden="true"></span><span><b>15</b> reels</span></li>
+          <li><span class="muestra c" aria-hidden="true"></span><span><b>2</b> carruseles</span></li>
+          <li><span class="muestra h" aria-hidden="true"></span><span><b>15</b> historias</span></li>
+        </ul>
+      </figure>
+    </div>
+  </section>
+
+  <section class="bloque" aria-labelledby="t-incluye">
+    <div class="envoltorio">
+      <h2 class="titulo" id="t-incluye">Qué hacemos cada mes</h2>
+      <p class="bajada">Nos encargamos de la idea, el guion, la edición y la publicación. Tú sigues con tus pacientes.</p>
+      <ul class="incluye">
+        <li>
+          <span class="cifra"><span class="muestra r" aria-hidden="true"></span>15</span>
+          <div><h3>Reels</h3><p>Vídeos cortos de tus tratamientos, de tu equipo y de las dudas que más os preguntan en consulta.</p></div>
+        </li>
+        <li>
+          <span class="cifra"><span class="muestra c" aria-hidden="true"></span>2</span>
+          <div><h3>Carruseles</h3><p>Publicaciones de varias imágenes para explicar un tratamiento paso a paso.</p></div>
+        </li>
+        <li>
+          <span class="cifra"><span class="muestra h" aria-hidden="true"></span>15</span>
+          <div><h3>Historias</h3><p>El día a día de la clínica, novedades y huecos libres en la agenda.</p></div>
+        </li>
+        <li>
+          <span class="cifra"><span class="icono-linea" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#14302A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 12c0 3.9-3.8 7-8.5 7-1 0-1.9-.1-2.8-.4L4 20l1.4-3.6A6.7 6.7 0 0 1 3.5 12c0-3.9 3.8-7 8.5-7s8.5 3.1 8.5 7z"/></svg></span></span>
+          <div><h3>Comentarios y mensajes</h3><p>Respondemos con el tono de tu clínica y te pasamos a quien quiere pedir cita.</p></div>
+        </li>
+        <li>
+          <span class="cifra"><span class="icono-linea" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#14302A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5M4 19h16M8 15l3-4 3 2 5-6"/></svg></span></span>
+          <div><h3>Informe semanal y mensual</h3><p>Cada semana, qué ha funcionado. Cada mes, cómo ha evolucionado tu cuenta y qué esperamos del mes siguiente.</p></div>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="bloque" aria-labelledby="t-origen">
+    <div class="envoltorio origen">
+      <div class="dato" aria-hidden="true">+270<small>solicitudes de clientes en los últimos 3 meses</small></div>
+      <div>
+        <h2 class="titulo" id="t-origen">Venimos de captar clientes, no de contar likes</h2>
+        <p>Somos el equipo de OficioYa, la plataforma de profesionales del hogar. Con anuncios y contenido propio ha recibido más de 270 solicitudes de clientes en los últimos 3 meses.</p>
+        <p>Con tu clínica hacemos lo mismo: contenido pensado para que te escriban pacientes de Sevilla.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="bloque" aria-labelledby="t-pasos">
+    <div class="envoltorio">
+      <h2 class="titulo" id="t-pasos">Cómo empezamos</h2>
+      <p class="bajada">De pedir la propuesta a la primera publicación.</p>
+      <ol class="pasos">
+        <li><div><h3>Pides tu propuesta</h3><p>Dejas tus datos aquí abajo y te llama Andrés.</p></div></li>
+        <li><div><h3>Hablamos 15 minutos</h3><p>Nos cuentas tus tratamientos, qué pacientes quieres atraer y cómo están hoy tus redes.</p></div></li>
+        <li><div><h3>Te enviamos la propuesta</h3><p>Con el plan del primer mes y el precio cerrado.</p></div></li>
+        <li><div><h3>Empezamos a publicar</h3><p>Y cada semana te mandamos el informe.</p></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="bloque pedir" id="pedir" aria-labelledby="t-pedir">
+    <div class="envoltorio">
+      <div>
+        <h2 class="titulo" id="t-pedir">Pide tu propuesta</h2>
+        <p class="bajada">Tres preguntas rápidas para prepararte una propuesta que encaje con tu clínica. No te compromete a nada.</p>
+      </div>
+
+      <div class="tarjeta" id="tarjeta">
+        <form id="form" novalidate>
+          <div class="progreso" aria-live="polite">
+            <span id="paso-texto">Paso 1 de 3</span>
+            <span class="rayas" aria-hidden="true"><i class="hecho"></i><i></i><i></i></span>
+          </div>
+
+          <fieldset class="paso-form" data-paso="1">
+            <legend>¿Cuánto quieres invertir al mes en tus redes?</legend>
+            <p class="ayuda">Es para prepararte una propuesta realista.</p>
+            <div class="opciones" role="group" aria-label="Inversión al mes" data-campo="presupuesto">
+              <button type="button" class="opcion" data-v="menos_200" aria-pressed="false">Menos de 200 € <span class="punto" aria-hidden="true"></span></button>
+              <button type="button" class="opcion" data-v="200_400" aria-pressed="false">Entre 200 y 400 € <span class="punto" aria-hidden="true"></span></button>
+              <button type="button" class="opcion" data-v="400_700" aria-pressed="false">Entre 400 y 700 € <span class="punto" aria-hidden="true"></span></button>
+              <button type="button" class="opcion" data-v="mas_700" aria-pressed="false">Más de 700 € <span class="punto" aria-hidden="true"></span></button>
+            </div>
+          </fieldset>
+
+          <fieldset class="paso-form" data-paso="2" hidden>
+            <legend>¿Quién lleva hoy las redes de la clínica?</legend>
+            <p class="ayuda">Así sabemos desde dónde partimos.</p>
+            <div class="opciones" role="group" aria-label="Quién lleva las redes" data-campo="gestion_actual">
+              <button type="button" class="opcion" data-v="nadie" aria-pressed="false">Nadie, las tenemos paradas <span class="punto" aria-hidden="true"></span></button>
+              <button type="button" class="opcion" data-v="equipo" aria-pressed="false">Yo o alguien del equipo <span class="punto" aria-hidden="true"></span></button>
+              <button type="button" class="opcion" data-v="agencia" aria-pressed="false">Una agencia o un freelance <span class="punto" aria-hidden="true"></span></button>
+            </div>
+            <div class="pie-form"><button type="button" class="atras" data-atras>Atrás</button></div>
+          </fieldset>
+
+          <fieldset class="paso-form" data-paso="3" hidden>
+            <legend>¿A quién llamamos?</legend>
+            <p class="ayuda">Te llama Andrés para preparar la propuesta.</p>
+            <div class="campo">
+              <label for="nombre">Tu nombre</label>
+              <input id="nombre" name="nombre" autocomplete="name" required maxlength="80">
+              <div class="error-campo" id="e-nombre">Escribe tu nombre.</div>
+            </div>
+            <div class="campo">
+              <label for="negocio">Nombre de la clínica</label>
+              <input id="negocio" name="negocio" autocomplete="organization" required maxlength="120">
+              <div class="error-campo" id="e-negocio">Escribe el nombre de la clínica.</div>
+            </div>
+            <div class="campo">
+              <label for="telefono">Teléfono</label>
+              <input id="telefono" name="telefono" type="tel" inputmode="tel" autocomplete="tel" required maxlength="20" placeholder="600 000 000">
+              <div class="error-campo" id="e-telefono">Escribe un teléfono de 9 cifras (por ejemplo, 600 000 000).</div>
+            </div>
+            <div class="campo">
+              <label for="instagram">Instagram de la clínica <span>(opcional)</span></label>
+              <input id="instagram" name="instagram" autocomplete="off" maxlength="80" placeholder="@tuclinica">
+            </div>
+            <div class="oculto-bot" aria-hidden="true"><label for="web">Web</label><input id="web" name="web" tabindex="-1" autocomplete="off"></div>
+            <label class="acepto"><input type="checkbox" id="acepto" required><span>Acepto que CreceYa me llame para preparar la propuesta y he leído la <a href="/privacidad" target="_blank" rel="noopener">política de privacidad</a>.</span></label>
+            <div class="error-campo" id="e-acepto" style="margin:-10px 0 14px">Marca la casilla para que podamos llamarte.</div>
+            <button type="submit" class="boton" id="enviar" style="width:100%">Pedir mi propuesta</button>
+            <p class="error-envio" id="error-envio" role="alert"></p>
+            <div class="pie-form"><button type="button" class="atras" data-atras>Atrás</button></div>
+          </fieldset>
+        </form>
+
+        <div class="hecho-ok" id="hecho" hidden tabindex="-1">
+          <span class="sello" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#14302A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+          <h3 id="hecho-titulo">Recibido</h3>
+          <p>Te llama Andrés para preparar tu propuesta. Ten el teléfono a mano.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="bloque preguntas" aria-labelledby="t-preguntas">
+    <div class="envoltorio">
+      <h2 class="titulo" id="t-preguntas">Preguntas frecuentes</h2>
+      <details>
+        <summary>¿Cuánto cuesta?</summary>
+        <p>Depende de tu clínica. Te damos el precio cerrado en la propuesta, antes de empezar. Pedirla es gratis y no te compromete a nada.</p>
+      </details>
+      <details>
+        <summary>¿Qué necesito para empezar?</summary>
+        <p>Acceso a la cuenta de Instagram de la clínica y una llamada de 15 minutos para conocer tus tratamientos y tu forma de trabajar.</p>
+      </details>
+      <details>
+        <summary>¿Contestáis a los mensajes de los pacientes?</summary>
+        <p>Sí. Respondemos comentarios y mensajes directos con el tono de tu clínica, y te pasamos a quien quiere pedir cita o una valoración.</p>
+      </details>
+      <details>
+        <summary>¿Qué incluye el informe?</summary>
+        <p>Cada semana te mandamos qué se ha publicado y qué ha funcionado. Cada mes, la evolución de la cuenta y lo que esperamos del mes siguiente.</p>
+      </details>
+      <details>
+        <summary>¿Trabajáis con clínicas fuera de Sevilla?</summary>
+        <p>Ahora mismo solo con clínicas de Sevilla y alrededores.</p>
+      </details>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="envoltorio">
+    <span>CreceYa es un servicio de OficioYa. Sevilla.</span>
+    <nav><a href="/privacidad">Privacidad</a><a href="/cookies">Cookies</a></nav>
+  </div>
+</footer>
+
+<div class="fija" id="fija" aria-hidden="true"><a class="boton" href="#pedir" data-ir-form tabindex="-1">Pedir mi propuesta</a></div>
+
+<script>
+(function () {
+  "use strict";
+  // ── Ajustes ───────────────────────────────────────────────
+  var CY_PIXEL = ""; // ID del píxel de Meta de CreceYa (vacío = no se carga ningún píxel)
+  var SUPABASE = "https://rjwojxwrsbvwwshwwpvq.supabase.co";
+  var KEY = "sb_publishable_ReA-g1IhCfbhwMfkei7naw_BgtOs9nv";
+  var VARIANTE = "v1";
+
+  // ── Calendario del mes ───────────────────────────────────
+  var dias = document.getElementById("dias");
+  var frag = document.createDocumentFragment();
+  for (var d = 1; d <= 35; d++) {
+    var c = document.createElement("div");
+    if (d > 30) { c.className = "dia vacio"; frag.appendChild(c); continue; }
+    c.className = "dia";
+    c.textContent = d;
+    var reel = d % 2 === 1, carrusel = d === 10 || d === 24, historia = d % 2 === 0;
+    if (reel) { var r = document.createElement("i"); r.className = "reel"; r.style.setProperty("--n", d); c.appendChild(r); }
+    if (carrusel) { var k = document.createElement("i"); k.className = "carrusel"; k.style.setProperty("--n", d); c.appendChild(k); }
+    if (historia) { var h = document.createElement("i"); h.className = "historia"; h.style.setProperty("--n", d); c.appendChild(h); }
+    frag.appendChild(c);
+  }
+  dias.appendChild(frag);
+
+  // ── Origen de la visita (UTM, clic de Meta/Google) ───────
+  var ORIGEN = {};
+  try {
+    var guardado = JSON.parse(sessionStorage.getItem("cy_origen") || "null");
+    var q = new URLSearchParams(location.search);
+    var claves = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "fbclid", "gclid"];
+    var nuevo = {};
+    claves.forEach(function (k) { var v = q.get(k); if (v) nuevo[k] = v.slice(0, 300); });
+    ORIGEN = Object.keys(nuevo).length ? nuevo : (guardado || {});
+    if (!ORIGEN.ref && document.referrer && document.referrer.indexOf(location.host) === -1) {
+      try { ORIGEN.ref = new URL(document.referrer).host; } catch (e) {}
+    }
+    sessionStorage.setItem("cy_origen", JSON.stringify(ORIGEN));
+  } catch (e) {}
+  function galleta(n) { var m = document.cookie.match(new RegExp("(?:^|; )" + n + "=([^;]*)")); return m ? decodeURIComponent(m[1]) : ""; }
+
+  // ── Píxel de Meta (solo si hay ID y la persona acepta) ───
+  var pixelListo = false;
+  function cargarPixel() {
+    if (!CY_PIXEL || pixelListo) return;
+    !function (f, b, e, v, n, t, s) { if (f.fbq) return; n = f.fbq = function () { n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments); };
+      if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = "2.0"; n.queue = []; t = b.createElement(e); t.async = !0;
+      t.src = v; s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s); }(window, document, "script", "https://connect.facebook.net/en_US/fbevents.js");
+    window.fbq("init", CY_PIXEL);
+    window.fbq("track", "PageView");
+    pixelListo = true;
+  }
+  if (CY_PIXEL) {
+    var decision = "";
+    try { decision = localStorage.getItem("cy_cookies") || ""; } catch (e) {}
+    if (decision === "si") cargarPixel();
+    else if (!decision) {
+      var b = document.createElement("div");
+      b.className = "cookies"; b.setAttribute("role", "dialog"); b.setAttribute("aria-label", "Cookies");
+      b.innerHTML = '<p>Usamos cookies de Meta para saber qué anuncios funcionan. <a href="/cookies">Más información</a></p><div class="fila"><button type="button" class="no">Rechazar</button><button type="button" class="si">Aceptar</button></div>';
+      document.body.appendChild(b);
+      b.querySelector(".si").onclick = function () { try { localStorage.setItem("cy_cookies", "si"); } catch (e) {} b.remove(); cargarPixel(); };
+      b.querySelector(".no").onclick = function () { try { localStorage.setItem("cy_cookies", "no"); } catch (e) {} b.remove(); };
+    }
+  }
+
+  // ── Barra fija en móvil ──────────────────────────────────
+  var fija = document.getElementById("fija");
+  var ctaPortada = document.getElementById("cta-portada");
+  var seccionForm = document.getElementById("pedir");
+  var verPortada = true, verForm = false;
+  function pintarFija() {
+    var mostrar = !verPortada && !verForm;
+    fija.classList.toggle("ver", mostrar);
+    fija.setAttribute("aria-hidden", mostrar ? "false" : "true");
+    fija.querySelector("a").tabIndex = mostrar ? 0 : -1;
+  }
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver(function (e) { verPortada = e[0].isIntersecting; pintarFija(); }).observe(ctaPortada);
+    new IntersectionObserver(function (e) { verForm = e[0].isIntersecting; pintarFija(); }, { threshold: 0.15 }).observe(seccionForm);
+  }
+
+  // ── Formulario por pasos ─────────────────────────────────
+  var form = document.getElementById("form");
+  var pasos = form.querySelectorAll(".paso-form");
+  var rayas = form.querySelectorAll(".rayas i");
+  var pasoTexto = document.getElementById("paso-texto");
+  var datos = { presupuesto: "", gestion_actual: "" };
+  var actual = 1;
+
+  function irPaso(n, enfocar) {
+    actual = n;
+    pasos.forEach(function (p) { p.hidden = Number(p.getAttribute("data-paso")) !== n; });
+    rayas.forEach(function (r, i) { r.classList.toggle("hecho", i < n); });
+    pasoTexto.textContent = "Paso " + n + " de 3";
+    if (enfocar) {
+      var p = form.querySelector('.paso-form[data-paso="' + n + '"]');
+      var f = n === 3 ? p.querySelector("#nombre") : p.querySelector('.opcion[aria-pressed="true"]') || p.querySelector(".opcion");
+      if (f) setTimeout(function () { f.focus({ preventScroll: true }); }, 30);
+      var t = document.getElementById("tarjeta").getBoundingClientRect().top;
+      if (t < 0 || t > window.innerHeight * 0.6) document.getElementById("tarjeta").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+    }
+  }
+
+  form.querySelectorAll(".opciones").forEach(function (g) {
+    var campo = g.getAttribute("data-campo");
+    g.querySelectorAll(".opcion").forEach(function (o) {
+      o.addEventListener("click", function () {
+        datos[campo] = o.getAttribute("data-v");
+        g.querySelectorAll(".opcion").forEach(function (x) { x.setAttribute("aria-pressed", x === o ? "true" : "false"); });
+        setTimeout(function () { irPaso(actual + 1, true); }, 180);
+      });
+    });
+  });
+  form.querySelectorAll("[data-atras]").forEach(function (b) {
+    b.addEventListener("click", function () { if (actual > 1) irPaso(actual - 1, true); });
+  });
+  document.querySelectorAll("[data-ir-form]").forEach(function (a) {
+    a.addEventListener("click", function () { setTimeout(function () { var p = form.querySelector('.paso-form[data-paso="' + actual + '"] .opcion, .paso-form[data-paso="' + actual + '"] input'); if (p && !form.querySelector('.paso-form[data-paso="' + actual + '"]').hidden) p.focus({ preventScroll: true }); }, 500); });
+  });
+
+  function tel(v) {
+    var d = String(v || "").replace(/\D/g, "");
+    if (d.length === 11 && d.indexOf("34") === 0) d = d.slice(2);
+    if (d.length === 13 && d.indexOf("0034") === 0) d = d.slice(4);
+    return d;
+  }
+  function marcar(id, mal) {
+    var i = document.getElementById(id), e = document.getElementById("e-" + id);
+    if (i && i.type !== "checkbox") i.setAttribute("aria-invalid", mal ? "true" : "false");
+    if (e) e.classList.toggle("ver", !!mal);
+    if (i && e) { if (mal) i.setAttribute("aria-describedby", "e-" + id); else i.removeAttribute("aria-describedby"); }
+    return mal;
+  }
+  ["nombre", "negocio", "telefono"].forEach(function (id) {
+    document.getElementById(id).addEventListener("input", function () { if (this.getAttribute("aria-invalid") === "true") marcar(id, false); });
+  });
+
+  var enviando = false;
+  form.addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    if (enviando) return;
+    var nombre = document.getElementById("nombre").value.trim();
+    var negocio = document.getElementById("negocio").value.trim();
+    var telefono = tel(document.getElementById("telefono").value);
+    var acepto = document.getElementById("acepto").checked;
+    var malos = [
+      marcar("nombre", nombre.length < 2) && "nombre",
+      marcar("negocio", negocio.length < 2) && "negocio",
+      marcar("telefono", !/^[6789]\d{8}$/.test(telefono)) && "telefono",
+      marcar("acepto", !acepto) && "acepto",
+    ].filter(Boolean);
+    if (malos.length) { document.getElementById(malos[0]).focus(); return; }
+
+    var origen = Object.assign({}, ORIGEN, { landing: "/creceya", variante: VARIANTE });
+    var fbp = galleta("_fbp"), fbc = galleta("_fbc");
+    if (fbp) origen.fbp = fbp;
+    if (fbc) origen.fbc = fbc; else if (ORIGEN.fbclid) origen.fbc = "fb.1." + Date.now() + "." + ORIGEN.fbclid;
+
+    var cuerpo = {
+      nombre: nombre, negocio: negocio, telefono: telefono,
+      instagram: document.getElementById("instagram").value.trim(),
+      presupuesto: datos.presupuesto, gestion_actual: datos.gestion_actual,
+      web: document.getElementById("web").value, origen: origen,
+    };
+    var boton = document.getElementById("enviar");
+    var errorEnvio = document.getElementById("error-envio");
+    errorEnvio.classList.remove("ver");
+    enviando = true; boton.disabled = true; boton.textContent = "Enviando…";
+
+    fetch(SUPABASE + "/rest/v1/rpc/creceya_solicitar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", apikey: KEY, Authorization: "Bearer " + KEY },
+      body: JSON.stringify({ p: cuerpo }),
+    }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+      .then(function (res) {
+        if (!res.ok || !res.j || res.j.ok !== true) {
+          var err = res.j && res.j.error;
+          if (err === "telefono") { marcar("telefono", true); document.getElementById("telefono").focus(); throw new Error("silencio"); }
+          if (err === "nombre") { marcar("nombre", true); document.getElementById("nombre").focus(); throw new Error("silencio"); }
+          throw new Error("envio");
+        }
+        if (pixelListo && window.fbq) { try { window.fbq("track", "Lead", { content_name: "CreceYa clínicas" }, res.j.id ? { eventID: "cy_" + res.j.id } : undefined); } catch (e) {} }
+        form.hidden = true;
+        var hecho = document.getElementById("hecho");
+        var nombre1 = nombre.split(/\s+/)[0];
+        document.getElementById("hecho-titulo").textContent = "Recibido, " + nombre1.charAt(0).toUpperCase() + nombre1.slice(1);
+        hecho.hidden = false;
+        hecho.focus();
+        verForm = true; pintarFija();
+      })
+      .catch(function (e) {
+        if (e && e.message !== "silencio") {
+          errorEnvio.textContent = "No se ha podido enviar. Revisa tu conexión y vuelve a pulsar «Pedir mi propuesta».";
+          errorEnvio.classList.add("ver");
+        }
+      })
+      .then(function () { enviando = false; boton.disabled = false; boton.textContent = "Pedir mi propuesta"; });
+  });
+})();
+</script>
+</body>
+</html>
